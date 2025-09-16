@@ -21,7 +21,7 @@ on:
 
 env:
   CACHE_VERSION: 1
-  DEFAULT_PYTHON: "3.10"
+  DEFAULT_PYTHON: "3.12"
   PYTHON_ROOT_DIRS: ./app
   API_DIRS: ./api
   FIREBASE_DIRS: ./firebase
