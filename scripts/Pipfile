@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 types-requests = "*"
 boltdb = "*"
+typing-extensions = "*"
 
 [dev-packages]
 black = "*"
