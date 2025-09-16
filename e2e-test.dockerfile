@@ -1,4 +1,4 @@
-FROM python:3.10-bullseye
+FROM python:3.12-slim
 COPY ./Pipfile.lock ./Pipfile /
 RUN python -m pip install --upgrade pip
 RUN python -m pip install pipenv
