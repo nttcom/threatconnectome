@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
-  DEFAULT_PYTHON: "3.10"
+  DEFAULT_PYTHON: "3.12"
   PYTHON_ROOT_DIRS: ./
   E2ETEST_DIRS: ./e2etests
 

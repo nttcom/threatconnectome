@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "507122b965e98dc7c99054aa37abe52d5d0c412318d50752ad9c732b3c0dabdb"
+            "sha256": "32a24697fe08a11cd3b6228041fd2e4478a52925d71c0fc6f0dd15d987f57591"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.10"
+            "python_version": "3.12"
         },
         "sources": [
             {
@@ -429,11 +429,11 @@
         },
         "google-cloud-storage": {
             "hashes": [
-                "sha256:60f291b0881e5c72919b156d1ee276d1b69a2538fcdc35f4e87559ae11678f77",
-                "sha256:8cace9359b85f315f21868cf771143d6dbb47dcc5a3a9317c8207accc4d10fd3"
+                "sha256:16eeca305e4747a6871f8f7627eef3b862fdd365b872ca74d4a89e9841d0f8e8",
+                "sha256:4c77ec00c98ccc6428e4c39404926f41e2152f48809b02af29d5116645c3c317"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==3.3.1"
+            "version": "==3.4.0"
         },
         "google-crc32c": {
             "hashes": [
@@ -1203,12 +1203,12 @@
         },
         "pydantic": {
             "hashes": [
-                "sha256:d989c3c6cb79469287b1569f7447a17848c998458d49ebe294e975b9baf0f0db",
-                "sha256:dde5df002701f6de26248661f6835bbe296a47bf73990135c7d07ce741b9623b"
+                "sha256:6b8ffda597a14812a7975c90b82a8a2e777d9257aba3453f973acd3c032a18e2",
+                "sha256:c42dd626f5cfc1c6950ce6205ea58c93efa406da65f479dcb4029d5934857da2"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==2.11.7"
+            "version": "==2.11.9"
         },
         "pydantic-core": {
             "hashes": [
