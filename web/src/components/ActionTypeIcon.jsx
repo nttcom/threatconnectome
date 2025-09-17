@@ -43,6 +43,5 @@ export function ActionTypeIcon(props) {
 
 ActionTypeIcon.propTypes = {
   disabled: PropTypes.bool.isRequired,
-  sx: PropTypes.object,
   actionType: PropTypes.string.isRequired,
 };

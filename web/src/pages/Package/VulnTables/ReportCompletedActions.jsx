@@ -16,7 +16,6 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { ActionTypeIcon } from "../../../components/ActionTypeIcon";
-import { UUIDTypography } from "../../../components/UUIDTypography";
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
