@@ -94,7 +94,7 @@ services:
 
   kong:
     container_name: supabase-kong
-    image: kong:3.9.1
+    image: kong:2.8.1
     restart: unless-stopped
     ports:
       - 8000:8000/tcp
