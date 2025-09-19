@@ -369,6 +369,7 @@ UniqueConstraint(
     Package.ecosystem,
     OSPackage.source_name,
     name="package_name_ecosystem_source_name_key",
+    postgresql_nulls_not_distinct=True,
 )
 
 
