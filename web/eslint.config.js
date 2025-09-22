@@ -1,12 +1,13 @@
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
+import globals from "globals";
+import eslintConfigPrettier from "eslint-config-prettier";
 import prettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import globals from "globals";
 import unusedImports from "eslint-plugin-unused-imports";
 
 export default [
@@ -47,7 +48,6 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
-      ...prettier.rules,
       ...react.configs.recommended.rules,
       ...react.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
@@ -58,7 +58,6 @@ export default [
       "react/no-unused-prop-types": ["error"],
       "unused-imports/no-unused-imports": "error",
       "no-unused-vars": "off",
-      quotes: ["error", "double"],
       "import/order": [
         "error",
         {
@@ -76,4 +75,5 @@ export default [
       ],
     },
   },
+  eslintConfigPrettier,
 ];
