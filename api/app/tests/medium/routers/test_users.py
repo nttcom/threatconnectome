@@ -23,15 +23,19 @@ def test_create_user():
     assert user1.user_id != ZERO_FILLED_UUID
 
 
-def test_duplicate_email_user_can_be_registered(testdb):
+def test_it_should_return_400_when_create_user_with_duplicate_email(testdb):
     email = USER1["email"]
-    account = models.Account(uid="test_uid1", email=email, years=2)
+    years = USER1["years"]
+    account = models.Account(uid="test_uid1", email=email, years=years)
     persistence.create_account(testdb, account)
 
-    user1 = create_user(USER1)
-    assert user1.email == USER1["email"]
-    assert user1.years == USER1["years"]
-    assert user1.user_id != ZERO_FILLED_UUID
+    request = {"years": years}
+    response = client.post("/users", headers=headers(USER1), json=request)
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "This email is already registered in the system. Please use a different email."
+    )
 
 
 def test_duplicate_user():

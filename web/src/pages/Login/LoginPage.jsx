@@ -78,14 +78,17 @@ export function Login() {
           break;
         }
         case "No such user":
-          await createUser({}); // should get uid & email via firebase credential in api.
-          // TODO: navigate to the first time login page, or say hello on snackbar.
-          navigate("/account", {
-            state: {
-              from: redirectedFrom.from ?? "/",
-              search: redirectedFrom.search ?? "",
-            },
-          });
+          await createUser({})
+            .unwrap()
+            .then(() =>
+              navigate("/account", {
+                state: {
+                  from: redirectedFrom.from ?? "/",
+                  search: redirectedFrom.search ?? "",
+                },
+              }),
+            )
+            .catch((error) => setMessage(error.data?.detail ?? "Something went wrong."));
           break;
         default:
           setMessage("Something went wrong.");
