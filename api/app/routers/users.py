@@ -53,7 +53,10 @@ def create_user(
     if len(persistence.get_accounts_by_email(db, email)) > 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This email is already registered in the system. Please use a different email.",
+            detail=(
+                "This email address is already in use. "
+                "You'll need to use a different email to sign up."
+            ),
         )
 
     account = models.Account(**data.model_dump(), uid=uid, email=email)

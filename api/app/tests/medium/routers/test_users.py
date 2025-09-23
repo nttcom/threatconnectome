@@ -34,7 +34,7 @@ def test_it_should_return_400_when_create_user_with_duplicate_email(testdb):
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "This email is already registered in the system. Please use a different email."
+        == "This email address is already in use. You'll need to use a different email to sign up."
     )
 
 
