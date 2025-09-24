@@ -1,56 +1,68 @@
+import json
 from typing import (
     Type,
 )
 
+from cyclonedx.model.bom import Bom
+from cyclonedx.model.component import Component
+from cyclonedx.schema import SchemaVersion
+from cyclonedx.validation.json import JsonStrictValidator
+
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
-    SBOM,
     SBOMParser,
 )
 from app.sbom.parser.syft_cdx_parser import SyftCDXParser
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 
 
-def _inspect_cyclonedx(sbom: SBOM) -> tuple[str, str | None]:  # tool_name, tool_version
-    def _get_tool0(jdata_: dict) -> dict:
+def _inspect_cyclonedx(sbom_bom: Bom) -> tuple[str, str | None]:  # tool_name, tool_version
+    def _get_tool0(jdata_: Bom) -> Component:
         # https://cyclonedx.org/docs/1.5/json/#metadata_tools
-        tools_ = jdata_["metadata"]["tools"]
-        if isinstance(tools_, dict):
-            if components_ := tools_.get("components"):  # CDX1.5
-                return components_[0]
-            if services_ := tools_.get("services"):  # CDX1.5
-                return services_[0]
-            raise ValueError("Not supported CycloneDX format")
-        if isinstance(tools_, list):
-            return tools_[0]  # CDX1.5 (legacy)
+        tools_ = jdata_.metadata.tools
+        if tools_.components:  # CDX1.5
+            return tools_.components[0]
+        if tools_.services:  # CDX1.5
+            return tools_.services[0]
+        if tools_.tools:  # CDX1.5 (legacy)
+            return tools_.tools[0]
+
         raise ValueError("Not supported CycloneDX format")
 
     try:
-        tool0 = _get_tool0(sbom)
-        tool_name = tool0["name"]
-        tool_version = tool0.get("version")
+        tool0 = _get_tool0(sbom_bom)
+        tool_name = tool0.name
+        tool_version = tool0.version
         return (tool_name, tool_version)
     except (IndexError, KeyError, TypeError):
         raise ValueError("Not supported CycloneDX format")
 
 
-def _inspect_spdx(sbom: SBOM) -> tuple[str, str | None]:  # tool_name, tool_version
-    raise ValueError("SPDX is not yet supported")
+def _validate_and_get_cyclonedx_version(sbom_json: dict, sbom_str: str) -> str:
+    spec_versions = {
+        "1.6": SchemaVersion.V1_6,
+        "1.5": SchemaVersion.V1_5,
+        "1.4": SchemaVersion.V1_4,
+    }
+    for ver, schema_ver in spec_versions.items():
+        if sbom_json.get("specVersion") == ver:
+            validator = JsonStrictValidator(schema_ver)
+            if validation_errors := validator.validate_str(sbom_str):
+                raise ValueError(
+                    "Not supported file format. ValidationError: " + repr(validation_errors)
+                )
+            return ver
+    raise ValueError("Not supported CycloneDX specVersion")
 
 
-def _inspect_sbom(sbom: SBOM) -> SBOMInfo:
+def _validate_and_get_version(sbom_json: dict, sbom_str: str) -> str:
     try:
-        if sbom.get("bomFormat") == "CycloneDX":
-            spec_name = "CycloneDX"
-            spec_version = sbom["specVersion"]
-            tool_name, tool_version = _inspect_cyclonedx(sbom)
-        elif sbom.get("SPDXID") == "SPDXRef-DOCUMENT":
-            spec_name = "SPDX"
-            spec_version = sbom["spdxVersion"]
-            tool_name, tool_version = _inspect_spdx(sbom)
+        if sbom_json.get("bomFormat") == "CycloneDX":
+            return _validate_and_get_cyclonedx_version(sbom_json, sbom_str)
+        elif sbom_json.get("SPDXID") == "SPDXRef-DOCUMENT":
+            raise ValueError("SPDX is not yet supported")
         else:
             raise ValueError("Not supported file format")
-        return SBOMInfo(spec_name, spec_version, tool_name, tool_version)
     except (IndexError, KeyError, TypeError):
         raise ValueError("Not supported file format")
 
@@ -62,14 +74,17 @@ SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
 }
 
 
-def sbom_json_to_artifact_json_lines(jdata: dict) -> list[dict]:
-    sbom: SBOM = jdata
-    sbom_info = _inspect_sbom(sbom)
+def sbom_json_to_artifact_json_lines(sbom_str: str) -> list[dict]:
+    sbom_json = json.loads(sbom_str)
+    spec_version = _validate_and_get_version(sbom_json, sbom_str)
+    sbom_bom = Bom.from_json(sbom_json)  # type: ignore[attr-defined]
+    tool_name, tool_version = _inspect_cyclonedx(sbom_bom)
+    sbom_info = SBOMInfo("CycloneDX", spec_version, tool_name, tool_version)
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))
     if not sbom_parser:
         raise ValueError("Not supported file format")
 
-    artifacts = sbom_parser.parse_sbom(sbom, sbom_info)
+    artifacts = sbom_parser.parse_sbom(sbom_bom, sbom_info)
     return [
         artifact.to_json()
         for artifact in sorted(

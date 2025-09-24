@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { Provider, useDispatch } from "react-redux";
+import { Provider } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { AuthProvider } from "../../../providers/auth/AuthContext";

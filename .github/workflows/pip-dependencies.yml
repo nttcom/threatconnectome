@@ -12,12 +12,12 @@ on:
     paths:
       - api/Pipfile
   schedule:
-    - cron: '0 19 * * *'
+    - cron: "0 19 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
-  DEFAULT_PYTHON: "3.10"
+  DEFAULT_PYTHON: "3.12"
   API_DIRS: ./api
 
 jobs:
@@ -26,14 +26,14 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.API_DIRS }}
-  
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check out code from GitHub
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         id: python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
       - name: Setup pipenv

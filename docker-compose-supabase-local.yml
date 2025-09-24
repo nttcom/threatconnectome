@@ -68,7 +68,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
   traefik:
-    image: traefik:latest
+    image: traefik:v3.5.2
     depends_on:
       - api
       - web

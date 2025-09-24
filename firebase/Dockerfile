@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22.19.0-alpine
 
 RUN apk update \
     && apk --no-cache add curl \
@@ -6,4 +6,4 @@ RUN apk update \
 # If you use Realtime Database, Cloud Firestore, or Cloud Storage emulator,
 # you will need to add `openjdk11-jre-headless`.
 
-RUN npm install -g firebase-tools@12.1.0
+RUN npm install -g firebase-tools@14.16.0       

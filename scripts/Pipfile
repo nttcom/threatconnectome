@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 types-requests = "*"
 boltdb = "*"
+typing-extensions = "*"
 
 [dev-packages]
 black = "*"
@@ -14,4 +15,4 @@ ruff = "*"
 mypy = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.12"

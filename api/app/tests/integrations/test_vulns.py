@@ -1,5 +1,4 @@
 import copy
-import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -322,7 +321,7 @@ class TestUpdateVuln:
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
         )
         with open(sbom_file, "r") as sbom:
-            sbom_json = json.load(sbom)
+            sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
 

@@ -1,4 +1,3 @@
-import { AuthProvider } from "./AuthProvider";
 import { FirebaseProvider } from "./FirebaseProvider";
 import { SupabaseProvider } from "./SupabaseProvider";
 

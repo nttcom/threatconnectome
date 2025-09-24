@@ -17,11 +17,12 @@ uvicorn = "*"
 sqlalchemy = "*"
 univers = "*"
 packageurl-python = "*"
-sendgrid = "*"
+sendgrid = "6.11.0"
 email-validator = "*"
 pillow = "*"
 supabase = "*"
 deprecation = "*"
+cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 
 [dev-packages]
 mypy = "*"
@@ -36,4 +37,4 @@ httpretty = "*"
 pytest-mock = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.12"
