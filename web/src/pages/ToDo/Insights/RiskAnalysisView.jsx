@@ -98,8 +98,7 @@ export function RiskAnalysisView(props) {
                 <Typography component="span" variant="body2" sx={{ fontWeight: "bold" }}>
                   AI-Generated Summary:
                 </Typography>
-                The content in this card has been automatically generated and may contain
-                inaccuracies.
+                This content is AI-generated and should be verified independently.
               </Typography>
             </Paper>
 
