@@ -27,6 +27,7 @@ import {
   ToDo,
   Vulnerability,
 } from "./pages";
+import VulnerabilityPage from "./pages/demo/VulnerabilityPage";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
 
@@ -63,6 +64,7 @@ root.render(
                 <Route path="/sign_up" element={<SignUp />} />
                 <Route path="/" element={<App />}>
                   <Route index element={<Status />} />
+                  <Route path="vulnerability" element={<VulnerabilityPage />} />
                   <Route path="pteam">
                     <Route index element={<PTeam />} />
                     <Route path="join" element={<AcceptPTeamInvitation />} />
