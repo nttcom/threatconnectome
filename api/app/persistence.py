@@ -13,6 +13,10 @@ def get_account_by_uid(db: Session, uid: str) -> models.Account | None:
     return db.scalars(select(models.Account).where(models.Account.uid == uid)).one_or_none()
 
 
+def get_accounts_by_email(db: Session, email: str) -> Sequence[models.Account]:
+    return db.scalars(select(models.Account).where(models.Account.email == email)).all()
+
+
 def get_account_by_id(db: Session, user_id: UUID | str) -> models.Account | None:
     return db.scalars(
         select(models.Account).where(models.Account.user_id == str(user_id))
