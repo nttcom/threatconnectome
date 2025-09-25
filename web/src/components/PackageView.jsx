@@ -36,7 +36,8 @@ export function PackageView(props) {
                   alignItems: "center",
                   mb: 1,
                   minWidth: 0,
-                  height: "48px",
+                  minHeight: "48px",
+                  flexWrap: "wrap",
                 }}
               >
                 <WarningIcon sx={{ fontSize: 32, color: yellow[900], mr: 1 }} />
@@ -80,7 +81,8 @@ export function PackageView(props) {
                   alignItems: "center",
                   mb: 1,
                   minWidth: 0,
-                  height: "48px",
+                  minHeight: "48px",
+                  flexWrap: "wrap",
                 }}
               >
                 <RecommendIcon sx={{ fontSize: 32, color: green[500], mr: 1 }} />
