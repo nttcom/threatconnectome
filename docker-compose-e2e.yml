@@ -54,7 +54,7 @@ services:
       retries: 5
       start_period: 5s
   testdb:
-    image: postgres:14
+    image: postgres:17
     command:
       - postgres
       # - -c
