@@ -60,7 +60,7 @@ export function SafetyImpactSelectorView(props) {
     setOpenDialog(false);
   };
 
-  const handleSaveReason = () => {
+  const handleSave = () => {
     if (pendingSafetyImpact === defaultSafetyImpactItem) {
       onRevertedToDefault();
     } else {
@@ -180,7 +180,7 @@ export function SafetyImpactSelectorView(props) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSaveReason} disabled={isSaveDisabled}>
+          <Button onClick={handleSave} disabled={isSaveDisabled}>
             Save
           </Button>
         </DialogActions>
