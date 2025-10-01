@@ -30,6 +30,8 @@ import {
 } from "../../../utils/const";
 import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
+const TOOLTIP_TEXT_LIMIT = 150;
+
 export function SafetyImpactSelectorView(props) {
   const {
     fixedTicketSafetyImpact,
@@ -41,6 +43,7 @@ export function SafetyImpactSelectorView(props) {
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [readMoreDialogOpen, setReadMoreDialogOpen] = useState(false);
 
   const defaultSafetyImpactItem = "Default";
 
@@ -107,6 +110,37 @@ export function SafetyImpactSelectorView(props) {
     },
   }));
 
+  const handleOpenReadMoreDialog = () => {
+    setReadMoreDialogOpen(true);
+  };
+
+  const handleCloseReadMoreDialog = () => {
+    setReadMoreDialogOpen(false);
+  };
+
+  const reasonText = fixedTicketSafetyImpactChangeReason || "";
+  const isLongReason = reasonText.length > TOOLTIP_TEXT_LIMIT;
+
+  const tooltipContent = (
+    <>
+      <Typography variant="h6" sx={{ px: 1, pt: 1 }}>
+        Why was it changed from the default safety impact?
+      </Typography>
+      <Box sx={{ p: 1 }}>
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {isLongReason ? `${reasonText.substring(0, TOOLTIP_TEXT_LIMIT)}...` : reasonText}
+        </Typography>
+      </Box>
+      {isLongReason && (
+        <Box sx={{ textAlign: "right", px: 1, pb: 1 }}>
+          <Button size="small" onClick={handleOpenReadMoreDialog}>
+            Read more...
+          </Button>
+        </Box>
+      )}
+    </>
+  );
+
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl size="small" variant="standard">
@@ -126,19 +160,7 @@ export function SafetyImpactSelectorView(props) {
         </Select>
       </FormControl>
       {fixedTicketSafetyImpactChangeReason !== null && (
-        <StyledTooltip
-          arrow
-          title={
-            <>
-              <Typography variant="h6">
-                Why was it changed from the default safety impact?
-              </Typography>
-              <Box sx={{ p: 1 }}>
-                <Typography variant="body2">{fixedTicketSafetyImpactChangeReason}</Typography>
-              </Box>
-            </>
-          }
-        >
+        <StyledTooltip arrow title={tooltipContent}>
           <IconButton size="small">
             <InfoOutlinedIcon color="primary" fontSize="small" />
           </IconButton>
@@ -183,6 +205,23 @@ export function SafetyImpactSelectorView(props) {
           <Button onClick={handleSave} disabled={isSaveDisabled}>
             Save
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={readMoreDialogOpen} onClose={handleCloseReadMoreDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Why was it changed from the default safety impact?</DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            sx={{
+              whiteSpace: "pre-wrap",
+              overflowWrap: "break-word",
+            }}
+          >
+            {reasonText}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseReadMoreDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
