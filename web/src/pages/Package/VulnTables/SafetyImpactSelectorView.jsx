@@ -109,7 +109,7 @@ export function SafetyImpactSelectorView(props) {
 
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
-      <FormControl sx={{ width: 130 }} size="small" variant="standard">
+      <FormControl size="small" variant="standard">
         <Select
           open={false}
           value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
