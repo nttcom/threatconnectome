@@ -164,14 +164,13 @@ export function SafetyImpactSelectorView(props) {
             </FormControl>
 
             <Collapse in={pendingSafetyImpact !== defaultSafetyImpactItem}>
-              <DialogContentText>Enter the reason for changing Safety Impact</DialogContentText>
+              <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
               <TextField
                 hiddenLabel
                 variant="filled"
                 fullWidth
                 multiline
                 rows={4}
-                placeholder="Continue writing here"
                 value={pendingReasonSafetyImpact}
                 onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
               />
