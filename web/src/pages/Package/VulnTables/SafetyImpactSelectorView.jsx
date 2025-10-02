@@ -2,6 +2,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Box,
   Button,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,6 +12,7 @@ import {
   IconButton,
   MenuItem,
   Select,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -38,33 +40,33 @@ export function SafetyImpactSelectorView(props) {
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
-  const [openReasonDialog, setOpenReasonDialog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const defaultSafetyImpactItem = "Default";
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const handleOpenDialog = () => {
+    setPendingSafetyImpact(fixedTicketSafetyImpact || defaultSafetyImpactItem);
+    setPendingReasonSafetyImpact(fixedTicketSafetyImpactChangeReason || "");
+    setOpenDialog(true);
+  };
+
   const handleSelectSafetyImpact = (e) => {
-    if (e.target.value === defaultSafetyImpactItem) {
-      setPendingSafetyImpact("");
-      setPendingReasonSafetyImpact("");
-      onRevertedToDefault();
-    } else {
-      setPendingSafetyImpact(e.target.value);
-      setPendingReasonSafetyImpact(
-        fixedTicketSafetyImpactChangeReason === null ? "" : fixedTicketSafetyImpactChangeReason,
-      );
-      setOpenReasonDialog(true);
-    }
+    setPendingSafetyImpact(e.target.value);
   };
 
   const handleClose = () => {
-    setOpenReasonDialog(false);
+    setOpenDialog(false);
   };
 
-  const handleSaveReason = async () => {
-    onSave(pendingSafetyImpact, pendingReasonSafetyImpact);
-    setOpenReasonDialog(false);
+  const handleSave = () => {
+    if (pendingSafetyImpact === defaultSafetyImpactItem) {
+      onRevertedToDefault();
+    } else {
+      onSave(pendingSafetyImpact, pendingReasonSafetyImpact);
+    }
+    setOpenDialog(false);
   };
 
   const handleReasonSafetyImpactLengthCheck = (string) => {
@@ -79,6 +81,15 @@ export function SafetyImpactSelectorView(props) {
       setPendingReasonSafetyImpact(string);
     }
   };
+
+  const isUnchanged =
+    (fixedTicketSafetyImpact || defaultSafetyImpactItem) === pendingSafetyImpact &&
+    (fixedTicketSafetyImpactChangeReason || "") === pendingReasonSafetyImpact;
+
+  const isReasonRequiredAndEmpty =
+    pendingSafetyImpact !== defaultSafetyImpactItem && pendingReasonSafetyImpact === "";
+
+  const isSaveDisabled = isUnchanged || isReasonRequiredAndEmpty;
 
   const StyledTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} />
@@ -98,12 +109,11 @@ export function SafetyImpactSelectorView(props) {
 
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
-      <FormControl sx={{ width: 130 }} size="small" variant="standard">
+      <FormControl size="small" variant="standard">
         <Select
+          open={false}
           value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
-          onChange={(e) => {
-            handleSelectSafetyImpact(e);
-          }}
+          onOpen={handleOpenDialog}
         >
           <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
             {defaultSafetyImpactItem}
@@ -134,38 +144,42 @@ export function SafetyImpactSelectorView(props) {
           </IconButton>
         </StyledTooltip>
       )}
-      <Dialog open={openReasonDialog} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Safety Impact update</DialogTitle>
         <DialogContent>
-          <Box sx={{ pb: 2 }}>
-            <DialogContentText>
-              Current:{" "}
-              {fixedTicketSafetyImpact
-                ? safetyImpactProps[fixedTicketSafetyImpact].displayName
-                : defaultSafetyImpactItem}
-            </DialogContentText>
-            <DialogContentText>
-              Updated:{" "}
-              {pendingSafetyImpact === ""
-                ? defaultSafetyImpactItem
-                : safetyImpactProps[pendingSafetyImpact].displayName}
-            </DialogContentText>
-          </Box>
-          <DialogContentText>Enter the reason for changing Safety Impact</DialogContentText>
-          <TextField
-            hiddenLabel
-            variant="filled"
-            fullWidth
-            multiline
-            rows={4}
-            placeholder="Continue writing here"
-            value={pendingReasonSafetyImpact}
-            onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
-          />
+          <Stack spacing={2}>
+            <FormControl fullWidth>
+              <Select
+                value={pendingSafetyImpact}
+                onChange={handleSelectSafetyImpact}
+                inputProps={{ "aria-label": "Safety Impact" }}
+              >
+                <MenuItem value={defaultSafetyImpactItem}>{defaultSafetyImpactItem}</MenuItem>
+                {sortedSafetyImpacts.map((safetyImpact) => (
+                  <MenuItem key={safetyImpact} value={safetyImpact}>
+                    {safetyImpactProps[safetyImpact]?.displayName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Collapse in={pendingSafetyImpact !== defaultSafetyImpactItem}>
+              <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
+              <TextField
+                hiddenLabel
+                variant="filled"
+                fullWidth
+                multiline
+                rows={4}
+                value={pendingReasonSafetyImpact}
+                onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
+              />
+            </Collapse>
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSaveReason} disabled={pendingReasonSafetyImpact === ""}>
+          <Button onClick={handleSave} disabled={isSaveDisabled}>
             Save
           </Button>
         </DialogActions>
