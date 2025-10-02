@@ -27,6 +27,21 @@
   },
   "components": [
     {
+      "bom-ref": "test-ref-key",
+      "type": "application",
+        "name": "sample target1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "lang-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "npm"
+        }
+      ]
+    },
+    {
       "bom-ref": "8c90136c-e90f-4db3-9c25-264e6f54452e",
       "type": "application",
       "name": "package-lock.json",
@@ -67,6 +82,14 @@
     }
   ],
   "dependencies": [
+    {
+      "ref": "test-ref-key",
+      "dependsOn": ["pkg:npm/asynckit@0.4.0"]
+    },
+    {
+      "ref": "8c90136c-e90f-4db3-9c25-264e6f54452e",
+      "dependsOn": ["pkg:npm/asynckit@0.4.0"]
+    },
     {
       "ref": "pkg:npm/asynckit@0.4.0",
       "dependsOn": []

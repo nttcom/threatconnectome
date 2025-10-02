@@ -50,25 +50,37 @@ def _get_vuln_ids_dict_by_service(
 
     for dependency in dependencies:
         for ticket in dependency.tickets:
-            ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
+            if related_ticket_status == "solved":
+                valid = ticket.ticket_status.ticket_handling_status == _completed
+            elif related_ticket_status == "unsolved":
+                valid = ticket.ticket_status.ticket_handling_status != _completed
+            else:
+                valid = True
 
-            if (
-                related_ticket_status == "solved"
-                and ticket.ticket_status.ticket_handling_status != _completed
-            ):
-                continue
-            elif (
-                related_ticket_status == "unsolved"
-                and ticket.ticket_status.ticket_handling_status == _completed
-            ):
-                continue
+            ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
             if ticket.threat.vuln_id not in vuln_ids_dict:
                 vuln_ids_dict[ticket.threat.vuln_id] = {
-                    "vuln_id": ticket.threat.vuln_id,
+                    "valid": valid,
                     "highest_ssvc_priority": ssvc_priority,
                     "vuln_updated_at": ticket.threat.vuln.updated_at,
                 }
+            else:
+                vuln_info = vuln_ids_dict[ticket.threat.vuln_id]
+
+                vuln_info["valid"] = vuln_info["valid"] or valid
+
+                if vuln_info["highest_ssvc_priority"] > ssvc_priority:
+                    vuln_info["highest_ssvc_priority"] = ssvc_priority
+
+    for vuln_id in list(vuln_ids_dict.keys()):
+        vuln_info = vuln_ids_dict[vuln_id]
+        if not vuln_info["valid"]:
+            del vuln_ids_dict[vuln_id]
+        else:
+            del vuln_info["valid"]
+            vuln_info["vuln_id"] = vuln_id
+
     return vuln_ids_dict
 
 
@@ -135,28 +147,38 @@ def _get_ticket_counts_by_service(
     package_id: UUID | str | None,
     related_ticket_status: str | None,
 ) -> dict:
-    ticket_counts_dict: dict = _create_initial_ticket_counts_dict()
-
+    vuln_ids_dict = {}
     _completed = models.TicketHandlingStatusType.completed
 
     dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
     for dependency in dependencies:
-        if package_id and dependency.package_version.package_id != str(package_id):
-            continue
         for ticket in dependency.tickets:
             ssvc_priority = ticket.ssvc_deployer_priority or models.SSVCDeployerPriorityEnum.DEFER
 
-            if (
-                related_ticket_status == "solved"
-                and ticket.ticket_status.ticket_handling_status != _completed
-            ):
-                continue
-            elif (
-                related_ticket_status == "unsolved"
-                and ticket.ticket_status.ticket_handling_status == _completed
-            ):
-                continue
+            if related_ticket_status == "solved":
+                valid = ticket.ticket_status.ticket_handling_status == _completed
+            elif related_ticket_status == "unsolved":
+                valid = ticket.ticket_status.ticket_handling_status != _completed
+            else:
+                valid = True
 
+            if ticket.threat.vuln_id not in vuln_ids_dict:
+                vuln_ids_dict[ticket.threat.vuln_id] = {
+                    "vuln_id": ticket.threat.vuln_id,
+                    "ssvc_priority_list": [ssvc_priority],
+                    "valid": valid,
+                }
+            else:
+                vuln_ids_dict[ticket.threat.vuln_id]["ssvc_priority_list"].append(ssvc_priority)
+                vuln_ids_dict[ticket.threat.vuln_id]["valid"] = (
+                    vuln_ids_dict[ticket.threat.vuln_id]["valid"] or valid
+                )
+
+    ticket_counts_dict: dict = _create_initial_ticket_counts_dict()
+    for vuln_info in vuln_ids_dict.values():
+        if not vuln_info["valid"]:
+            continue
+        for ssvc_priority in vuln_info["ssvc_priority_list"]:
             ticket_counts_dict[ssvc_priority.value] += 1
 
     return ticket_counts_dict
