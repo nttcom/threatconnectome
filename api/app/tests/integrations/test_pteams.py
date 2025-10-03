@@ -233,16 +233,10 @@ class TestGetVulnIdsTiedToServicePackage:
         assert len(response2.json()["vuln_ids"]) == 1
         assert set(response2.json()["vuln_ids"]) == {str(self.vuln2.vuln_id)}
 
-    def test_vuln_ids_are_sorted_correctly(self):
-        """
-        Memo
-        ticket1 ssvc_deployer_priority is IMMEDIATE
-        ticket2 ssvc_deployer_priority is IMMEDIATE
-        ticket3 ssvc_deployer_priority is SCHEDULED
-        """
+    def test_it_filters_multiple_tickets_when_solved_or_unsolved_is_specified(self):
         # Given
-        # Create 3st ticket
-        service_name2 = "test_service3"
+        # Register a service that results in two tickets being associated with a single Vuln
+        service_name3 = "test_service3"
         upload_file_name = "test_trivy_cyclonedx_combined-stream.json"
         sbom_file = (
             Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
@@ -251,29 +245,110 @@ class TestGetVulnIdsTiedToServicePackage:
             sbom_json = sbom.read()
 
         bg_create_tags_from_sbom_json(
-            sbom_json, self.ticket_response1["pteam_id"], service_name2, upload_file_name
+            sbom_json, self.ticket_response1["pteam_id"], service_name3, upload_file_name
+        )
+
+        # Set one of the two tickets to completed
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/tickets?vuln_id={str(self.vuln2.vuln_id)}",
+            headers=headers(USER1),
+        )
+        ticket_id_1 = response1.json()[0]["ticket_id"]
+        json_data = {
+            "ticket_handling_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            ticket_id_1,
+            json_data,
+        )
+
+        # When
+        response_solved = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+        response_unsolved = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response_solved.status_code == 200
+        assert len(response_solved.json()["vuln_ids"]) == 1
+        assert set(response_solved.json()["vuln_ids"]) == {str(self.vuln2.vuln_id)}
+
+        assert response_unsolved.status_code == 200
+        assert len(response_unsolved.json()["vuln_ids"]) == 2
+        assert set(response_unsolved.json()["vuln_ids"]) == {
+            self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
+        }
+
+    def test_vuln_ids_are_sorted_correctly(self):
+        """
+        Memo
+        vuln1 ssvc_deployer_priority is IMMEDIATE
+        vuln2 ssvc_deployer_priority is SCHEDULED, OUT_OF_CYCLE
+        vuln3 ssvc_deployer_priority is SCHEDULED
+        """
+        # Given
+        # Register a service that results in two tickets being associated with a single Vuln
+        service_name3 = "test_service3"
+        upload_file_name = "test_trivy_cyclonedx_combined-stream.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = sbom.read()
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name3, upload_file_name
         )
         vuln3 = create_vuln(USER1, VULN3)
 
-        # When
         response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/tickets?vuln_id={str(self.vuln2.vuln_id)}",
+            headers=headers(USER1),
+        )
+        target_service_id = response1.json()[0]["service_id"]
+        target_ticket_id = response1.json()[0]["ticket_id"]
+
+        put_service_request = {
+            "system_exposure": "small",
+            "service_mission_impact": "degraded",
+            "service_safety_impact": "negligible",
+        }
+        put_ticket_url = f"/pteams/{self.ticket_response1['pteam_id']}/services/{target_service_id}"
+        client.put(put_ticket_url, headers=headers(USER1), json=put_service_request)
+
+        put_ticket_request = {"ticket_safety_impact": "catastrophic"}
+        put_ticket_url = f"/pteams/{self.ticket_response1['pteam_id']}/tickets/{target_ticket_id}"
+        client.put(put_ticket_url, headers=headers(USER1), json=put_ticket_request)
+
+        # When
+        response2 = client.get(
             f"/pteams/{self.ticket_response1['pteam_id']}/vuln_ids",
             headers=headers(USER1),
         )
 
         # Then
-        assert response1.status_code == 200
-        assert response1.json()["pteam_id"] == self.ticket_response1["pteam_id"]
-        assert response1.json()["service_id"] is None
-        assert response1.json()["package_id"] is None
-        assert response1.json()["related_ticket_status"] is None
-        assert len(response1.json()["vuln_ids"]) == 3
+        assert response2.status_code == 200
+        assert response2.json()["pteam_id"] == self.ticket_response1["pteam_id"]
+        assert response2.json()["service_id"] is None
+        assert response2.json()["package_id"] is None
+        assert response2.json()["related_ticket_status"] is None
+        assert len(response2.json()["vuln_ids"]) == 3
         vuln_ids_sorted = [
-            str(self.vuln2.vuln_id),
             self.ticket_response1["vuln_id"],
+            str(self.vuln2.vuln_id),
             str(vuln3.vuln_id),
         ]
-        assert response1.json()["vuln_ids"] == vuln_ids_sorted
+        assert response2.json()["vuln_ids"] == vuln_ids_sorted
 
 
 class TestGetTicketCountsTiedToServicePackage:
@@ -330,7 +405,7 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response1.json()["package_id"] is None
         assert response1.json()["related_ticket_status"] is None
         assert response1.json()["ssvc_priority_count"] == {
-            "immediate": 2,
+            "immediate": 3,
             "out_of_cycle": 0,
             "scheduled": 0,
             "defer": 0,
@@ -366,7 +441,7 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response1.json()["package_id"] is None
         assert response1.json()["related_ticket_status"] is None
         assert response1.json()["ssvc_priority_count"] == {
-            "immediate": 2,
+            "immediate": 3,
             "out_of_cycle": 0,
             "scheduled": 0,
             "defer": 0,
@@ -417,7 +492,7 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response1.json()["package_id"] is None
         assert response1.json()["related_ticket_status"] is None
         assert response1.json()["ssvc_priority_count"] == {
-            "immediate": 2,
+            "immediate": 3,
             "out_of_cycle": 0,
             "scheduled": 0,
             "defer": 0,
@@ -468,7 +543,7 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response1.json()["package_id"] is None
         assert response1.json()["related_ticket_status"] is None
         assert response1.json()["ssvc_priority_count"] == {
-            "immediate": 2,
+            "immediate": 3,
             "out_of_cycle": 0,
             "scheduled": 0,
             "defer": 0,
@@ -480,7 +555,68 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response2.json()["package_id"] is None
         assert response2.json()["related_ticket_status"] == "unsolved"
         assert response2.json()["ssvc_priority_count"] == {
-            "immediate": 1,
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+    def test_it_filters_multiple_tickets_when_solved_or_unsolved_is_specified(self):
+        # Given
+        # Register a service that results in two tickets being associated with a single Vuln
+        service_name3 = "test_service3"
+        upload_file_name = "test_trivy_cyclonedx_combined-stream.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = sbom.read()
+
+        bg_create_tags_from_sbom_json(
+            sbom_json, self.ticket_response1["pteam_id"], service_name3, upload_file_name
+        )
+
+        # Set one of the two tickets to completed
+        response1 = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/tickets?vuln_id={str(self.vuln2.vuln_id)}",
+            headers=headers(USER1),
+        )
+        ticket_id_1 = response1.json()[0]["ticket_id"]
+        json_data = {
+            "ticket_handling_status": "completed",
+            "note": "string",
+            "assignees": [self.ticket_response1["user_id"]],
+            "scheduled_at": None,
+        }
+        set_ticket_status(
+            USER1,
+            self.ticket_response1["pteam_id"],
+            ticket_id_1,
+            json_data,
+        )
+
+        # When
+        response_solved = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=solved",
+            headers=headers(USER1),
+        )
+        response_unsolved = client.get(
+            f"/pteams/{self.ticket_response1['pteam_id']}/ticket_counts?related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response_solved.status_code == 200
+        assert response_solved.json()["ssvc_priority_count"] == {
+            "immediate": 2,
+            "out_of_cycle": 0,
+            "scheduled": 0,
+            "defer": 0,
+        }
+
+        assert response_unsolved.status_code == 200
+        assert response_unsolved.json()["ssvc_priority_count"] == {
+            "immediate": 3,
             "out_of_cycle": 0,
             "scheduled": 0,
             "defer": 0,
