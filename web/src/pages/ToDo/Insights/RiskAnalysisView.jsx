@@ -49,7 +49,7 @@ export function RiskAnalysisView(props) {
     <>
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: 30, md: 35 } }}>
           Risk Analysis: {cveId}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
@@ -66,7 +66,7 @@ export function RiskAnalysisView(props) {
       </Box>
 
       {/* Main Content */}
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: 4 }}>
         <Grid container spacing={4}>
           {/* Risk Summary */}
           <Grid size={12}>
@@ -153,7 +153,15 @@ export function RiskAnalysisView(props) {
         </Grid>
 
         {/* Footer: Action Buttons */}
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+        <Box
+          sx={{
+            mt: 4,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 2,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
           <Button variant="outlined" disabled>
             Export Report (PDF)
           </Button>

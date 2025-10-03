@@ -24,12 +24,25 @@ export function ThreatScenario(props) {
               <Card variant="outlined">
                 <CardHeader
                   avatar={
-                    <Avatar sx={{ bgcolor: "error.main" }}>
-                      <ImpactCategoryIcon />
+                    <Avatar
+                      sx={{
+                        bgcolor: "error.main",
+                        width: { xs: 32, md: 40 },
+                        height: { xs: 32, md: 40 },
+                      }}
+                    >
+                      <ImpactCategoryIcon sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }} />
                     </Avatar>
                   }
                   title={scenario.title}
-                  titleTypographyProps={{ variant: "h6" }}
+                  titleTypographyProps={{
+                    variant: "h6",
+                    sx: {
+                      fontSize: { xs: "1rem", md: "1.25rem" },
+                      whiteSpace: "normal",
+                      overflowWrap: "break-word",
+                    },
+                  }}
                 />
                 <CardContent>
                   <Typography variant="body2" color="text.secondary">
