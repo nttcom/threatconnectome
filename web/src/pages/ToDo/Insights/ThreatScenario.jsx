@@ -35,12 +35,14 @@ export function ThreatScenario(props) {
                     </Avatar>
                   }
                   title={scenario.title}
-                  titleTypographyProps={{
-                    variant: "h6",
-                    sx: {
-                      fontSize: { xs: "1rem", md: "1.25rem" },
-                      whiteSpace: "normal",
-                      overflowWrap: "break-word",
+                  slotProps={{
+                    title: {
+                      variant: "h6",
+                      sx: {
+                        fontSize: { xs: "1rem", md: "1.25rem" },
+                        whiteSpace: "normal",
+                        overflowWrap: "break-word",
+                      },
                     },
                   }}
                 />
