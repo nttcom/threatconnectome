@@ -1,3 +1,4 @@
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import {
   Box,
@@ -77,6 +78,30 @@ export function RiskAnalysisView(props) {
                 Risk Summary
               </Typography>
             </Box>
+
+            {/* Disclaimer for AI-generated content */}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 1.5,
+                mb: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                backgroundColor: "action.hover",
+                borderRadius: 2,
+                borderColor: "divider",
+              }}
+            >
+              <SmartToyOutlinedIcon sx={{ color: "primary.main" }} />
+              <Typography variant="body2" color="text.secondary">
+                <Typography component="span" variant="body2" sx={{ fontWeight: "bold" }}>
+                  AI-Generated Summary:
+                </Typography>
+                This content is AI-generated and should be verified independently.
+              </Typography>
+            </Paper>
+
             <List>
               {uniqueThreatScenarios.map((scenario, index) => {
                 const RiskIcon = impactCategoryIcons[scenario.impact_category].icon;
