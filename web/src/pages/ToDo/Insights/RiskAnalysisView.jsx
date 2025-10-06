@@ -126,7 +126,8 @@ export function RiskAnalysisView(props) {
               <Tabs
                 value={tabValue}
                 variant="scrollable"
-                scrollButtons="auto"
+                scrollButtons
+                allowScrollButtonsMobile
                 onChange={handleTabChange}
                 aria-label="detailed analysis tabs"
               >
