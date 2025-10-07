@@ -95,7 +95,7 @@ export function SafetyImpactSelectorView(props) {
   const isSaveDisabled = isUnchanged || isReasonRequiredAndEmpty;
 
   const StyledTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} classes={{ popper: className }} />
+    <Tooltip {...props} classes={{ popper: className }} leaveDelay={500} />
   ))(() => ({
     [`& .${tooltipClasses.arrow}`]: {
       "&:before": {
