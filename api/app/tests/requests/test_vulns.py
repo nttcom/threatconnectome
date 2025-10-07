@@ -1253,7 +1253,7 @@ class TestGetVulns:
                 testdb,
             )
 
-    def test_it_should_return_all_vulns_when_creator_ids_is_empty(self, testdb: Session):
+    def test_it_should_return_no_vulns_when_creator_ids_is_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
@@ -1269,18 +1269,8 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data["vulns"]) == number_of_vulns
-        assert response_data["num_vulns"] == number_of_vulns
-
-        # Check the details of each vuln
-        for i, vuln in enumerate(response_data["vulns"]):
-            reversed_index = len(response_data["vulns"]) - 1 - i
-            self.assert_vuln_response(
-                vuln,
-                vuln_ids[reversed_index],
-                self.create_vuln_request(reversed_index),
-                testdb,
-            )
+        assert len(response_data["vulns"]) == 0
+        assert response_data["num_vulns"] == 0
 
     def test_it_should_filter_by_package_name(self, testdb: Session):
         # Given
