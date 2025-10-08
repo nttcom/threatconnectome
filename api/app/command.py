@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timezone
-from typing import Sequence
+from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import (
@@ -194,6 +194,7 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
+    query: Any
     if "cve_id" in sort_keys or "-cve_id" in sort_keys:
         """
         When using DISTINCT and ORDER BY together, and if a function is used in the ORDER BY clause,
