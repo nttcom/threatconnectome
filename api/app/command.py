@@ -300,14 +300,6 @@ def get_vulns(
             column = VULNS_SORT_KEYS.get(_key)
             if column is not None:
                 if _key == "cve_id":
-                    query.add_columns(
-                        cast(func.substring(models.Vuln.cve_id, r"CVE-(\d+)-"), Integer).label(
-                            "cve_year"
-                        ),
-                        cast(func.substring(models.Vuln.cve_id, r"CVE-\d+-(\d+)"), Integer).label(
-                            "cve_number"
-                        ),
-                    )
                     sort_columns.extend(_get_cve_id_sort_columns(desc))
                 else:
                     sort_columns.append(column.desc().nullslast() if desc else column.nulls_first())
