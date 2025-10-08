@@ -1615,6 +1615,33 @@ class TestGetVulns:
         response_data = response.json()
         assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 8.0, 3.0]
 
+    # E: sortkey is cve_id
+    # E1
+    def test_it_should_sort_by_cve_id(self, testdb: Session):
+        # Given
+        vulns_data = [
+            {
+                "cve_id": "CVE-0000-10000",
+                "cvss_v3_score": 5.0,
+                "updated_at": "2024-01-01T00:00:00Z",
+            },
+            {"cve_id": "CVE-0000-2000", "cvss_v3_score": 5.0, "updated_at": "2024-01-01T00:00:00Z"},
+            {"cve_id": "CVE-0000-3000", "cvss_v3_score": 5.0, "updated_at": "2025-01-01T00:00:00Z"},
+        ]
+        self.setup_vulns(testdb, vulns_data)
+
+        # When
+        response = client.get("/vulns?sort_keys=cve_id", headers=self.headers_user)
+
+        # Then
+        assert response.status_code == 200
+        response_data = response.json()
+        assert [vuln["cve_id"] for vuln in response_data["vulns"]] == [
+            "CVE-0000-2000",
+            "CVE-0000-3000",
+            "CVE-0000-10000",
+        ]
+
     @pytest.mark.parametrize(
         "sort_keys,vulns_data,expected_cvss_scores,expected_updated_at,expected_created_at,expected_cve_ids",
         [

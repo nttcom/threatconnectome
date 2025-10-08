@@ -60,12 +60,14 @@ def ticket_setup(testdb):
     VULN1_FIX = {**VULN1, "package_name": "axios"}
     VULN2_FIX = {
         **VULN2,
+        "cve_id": "CVE-0000-2000",
         "exploitation": "public_poc",
         "automatable": "no",
         "package_name": "asynckit",
     }
     VULN3_FIX = {
         **VULN3,
+        "cve_id": "CVE-0000-10000",
         "package_name": "leftpad",
         "vulnerable_packages": [
             {
@@ -446,13 +448,44 @@ class TestGetTickets:
         )
         assert tickets == sorted_tickets
 
+    def test_it_should_sort_cve_id(self, ticket_setup):
+        # Given
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        pteam3 = ticket_setup["pteam3"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+        invitation = invite_to_pteam(USER3, pteam3.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        # When
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "sort_keys": ["cve_id"],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
+            },
+        )
+
+        # Then
+        assert response.status_code == 200
+        tickets = response.json()["tickets"]
+
+        sorted_tickets_id = [
+            ticket_setup["ticket1"]["ticket_id"],
+            ticket_setup["ticket2"]["ticket_id"],
+            ticket_setup["ticket3"]["ticket_id"],
+        ]
+        assert [ticket["ticket_id"] for ticket in tickets] == sorted_tickets_id
+
     @pytest.mark.parametrize(
         "cve_ids, expected_tickets, expected_count",
         [
             # Filter by single CVE ID - VULN1
             (["CVE-0000-0001"], ["ticket1"], 1),
             # Filter by multiple CVE IDs - both exist
-            (["CVE-0000-0001", "CVE-0000-0002"], ["ticket1", "ticket2"], 2),
+            (["CVE-0000-0001", "CVE-0000-2000"], ["ticket1", "ticket2"], 2),
             # Filter by non-existent CVE ID
             (["CVE-9999-9999"], [], 0),
         ],
