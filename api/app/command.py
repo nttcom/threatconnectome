@@ -303,7 +303,7 @@ def get_vulns(
                 if _key == "cve_id":
                     sort_columns.extend(_get_cve_id_sort_columns(desc))
                 else:
-                    sort_columns.append(column.desc().nullslast() if desc else column.nulls_first())
+                    sort_columns.append(column.desc().nullslast() if desc else column)
             else:
                 raise ValueError(f"Invalid sort key: {sort_key}")
 
@@ -503,7 +503,7 @@ ssvc_priority_case = case(
     else_=None,
 )
 
-ALLOWED_SORT_KEYS = {
+TICKETS_SORT_KEYS = {
     "ssvc_deployer_priority": ssvc_priority_case,
     "created_at": models.Ticket.created_at,
     "scheduled_at": models.TicketStatus.scheduled_at,
@@ -585,7 +585,7 @@ def get_sorted_paginated_tickets_for_pteams(
             if sort_key.startswith("-"):
                 desc = True
                 _key = sort_key[1:]
-            column = ALLOWED_SORT_KEYS.get(_key)
+            column = TICKETS_SORT_KEYS.get(_key)
             if column is not None:
                 if _key == "cve_id":
                     sort_columns.extend(_get_cve_id_sort_columns(desc))
