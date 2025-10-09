@@ -3,6 +3,8 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app import persistence
 from app.main import app
@@ -60,14 +62,12 @@ def ticket_setup(testdb):
     VULN1_FIX = {**VULN1, "package_name": "axios"}
     VULN2_FIX = {
         **VULN2,
-        "cve_id": "CVE-0000-2000",
         "exploitation": "public_poc",
         "automatable": "no",
         "package_name": "asynckit",
     }
     VULN3_FIX = {
         **VULN3,
-        "cve_id": "CVE-0000-10000",
         "package_name": "leftpad",
         "vulnerable_packages": [
             {
@@ -448,7 +448,41 @@ class TestGetTickets:
         )
         assert tickets == sorted_tickets
 
-    def test_it_should_sort_cve_id(self, ticket_setup):
+    @pytest.mark.parametrize(
+        "sort_key,vulns_data",
+        [
+            # Test case 1: cve_id ascending
+            (
+                "cve_id",
+                [
+                    {  # 1,
+                        "cve_id": "CVE-2023-2000",  # fix vuln1 of ticket_setup
+                    },
+                    {  # 2,
+                        "cve_id": "CVE-2023-10000",  # fix vuln2 of ticket_setup
+                    },
+                    {  # 3,
+                        "cve_id": None,  # fix vuln3 of ticket_setup
+                    },
+                ],
+            ),
+            (
+                "-cve_id",
+                [
+                    {  # 1,
+                        "cve_id": "CVE-2023-10000",  # fix vuln1 of ticket_setup
+                    },
+                    {  # 2,
+                        "cve_id": "CVE-2023-2000",  # fix vuln2 of ticket_setup
+                    },
+                    {  # 3,
+                        "cve_id": None,  # fix vuln3 of ticket_setup
+                    },
+                ],
+            ),
+        ],
+    )
+    def test_it_should_sort_cve_id(self, testdb: Session, ticket_setup, sort_key, vulns_data):
         # Given
         pteam1 = ticket_setup["pteam1"]
         pteam2 = ticket_setup["pteam2"]
@@ -458,12 +492,27 @@ class TestGetTickets:
         invitation = invite_to_pteam(USER3, pteam3.pteam_id)
         accept_pteam_invitation(USER1, invitation.invitation_id)
 
+        for i in range(3):
+            testdb.execute(
+                text(
+                    f"""
+                    UPDATE vuln
+                    SET {"cve_id = :cve_id"}
+                    WHERE vuln_id = :vuln_id
+                    """
+                ),
+                {
+                    "vuln_id": str(ticket_setup["vuln" + str(i + 1)].vuln_id),
+                    "cve_id": vulns_data[i]["cve_id"],
+                },
+            )
+
         # When
         response = client.get(
             "/tickets",
             headers=headers(USER1),
             params={
-                "sort_keys": ["cve_id"],
+                "sort_keys": [sort_key],
                 "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
             },
         )
@@ -485,7 +534,7 @@ class TestGetTickets:
             # Filter by single CVE ID - VULN1
             (["CVE-0000-0001"], ["ticket1"], 1),
             # Filter by multiple CVE IDs - both exist
-            (["CVE-0000-0001", "CVE-0000-2000"], ["ticket1", "ticket2"], 2),
+            (["CVE-0000-0001", "CVE-0000-0002"], ["ticket1", "ticket2"], 2),
             # Filter by non-existent CVE ID
             (["CVE-9999-9999"], [], 0),
         ],
