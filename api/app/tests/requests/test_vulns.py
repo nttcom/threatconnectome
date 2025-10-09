@@ -1402,7 +1402,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 3.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 8.0, None]
 
     # A3
     def test_it_should_sort_by_descending_updated_at_when_cvss_v3_scores_are_equal(
@@ -1435,7 +1435,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 5.0, 5.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 5.0, 8.0, None]
         assert [
             vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
         ] == [
@@ -1783,6 +1783,94 @@ class TestGetVulns:
                     "2021-01-01T00:00:00Z",
                 ],
                 ["CVE-2020-0001", "CVE-2020-0001", "CVE-2020-0002", "CVE-2020-0003"],
+            ),
+            # Test case 5: cve_id ascending when cve_id contains None
+            (
+                ["cve_id"],
+                [
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2020-10000",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2020-2000",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": None,
+                    },
+                ],
+                [5.0, 5.0, 5.0, 5.0],
+                [
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                [
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                    "2021-01-01T00:00:00Z",
+                    "2021-01-04T00:00:00Z",
+                ],
+                ["CVE-2020-0001", "CVE-2020-2000", "CVE-2020-10000", None],
+            ),
+            # Test case 5: cve_id descending when cve_id contains None
+            (
+                ["-cve_id"],
+                [
+                    {  # 1
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2020-10000",
+                    },
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2020-2000",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": None,
+                    },
+                ],
+                [5.0, 5.0, 5.0, 5.0],
+                [
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                [
+                    "2021-01-01T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-04T00:00:00Z",
+                ],
+                ["CVE-2020-10000", "CVE-2020-2000", "CVE-2020-0001", None],
             ),
         ],
     )
