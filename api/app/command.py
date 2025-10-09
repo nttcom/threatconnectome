@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, joinedload
 
-from app import models, persistence, schemas
+from app import models, schemas
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -154,12 +154,10 @@ def get_vulns(
     sort_keys: list[str] = ["-cvss_v3_score", "-updated_at"],  # set default sort key
 ) -> dict:
     # Remove duplicates from lists
-    fixed_creator_ids = set()
-    if creator_ids is not None:
-        for creator_id in creator_ids:
-            if not persistence.get_account_by_id(db, creator_id):
-                continue
-            fixed_creator_ids.add(creator_id)
+    fixed_vuln_ids: set[str | None] = set()
+    if vuln_ids is not None:
+        for vuln_id in vuln_ids:
+            fixed_vuln_ids.add(vuln_id)
 
     fixed_title_words: set[str | None] = set()
     if title_words is not None:
@@ -170,6 +168,11 @@ def get_vulns(
     if detail_words is not None:
         for detail_word in detail_words:
             fixed_detail_words.add(detail_word)
+
+    fixed_creator_ids: set[str | None] = set()
+    if creator_ids is not None:
+        for creator_id in creator_ids:
+            fixed_creator_ids.add(creator_id)
 
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
@@ -188,8 +191,8 @@ def get_vulns(
         filters.append(models.Vuln.cvss_v3_score >= min_cvss_v3_score)
     if max_cvss_v3_score is not None:
         filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
-    if vuln_ids:
-        filters.append(models.Vuln.vuln_id.in_(vuln_ids))
+    if len(fixed_vuln_ids) > 0:
+        filters.append(models.Vuln.vuln_id.in_(fixed_vuln_ids))
     if len(fixed_title_words) > 0:
         filters.append(
             or_(
@@ -218,8 +221,8 @@ def get_vulns(
                 ],
             )
         )
-    if len(fixed_cve_ids) > 0:
-        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+    if len(fixed_creator_ids) > 0:
+        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
@@ -228,8 +231,8 @@ def get_vulns(
         filters.append(models.Vuln.updated_at >= updated_after)
     if updated_before:
         filters.append(models.Vuln.updated_at <= updated_before)
-    if len(fixed_creator_ids) > 0:
-        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
+    if len(fixed_cve_ids) > 0:
+        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
 
     if package_name:
         filters.append(models.Affect.affected_name.in_(package_name))
