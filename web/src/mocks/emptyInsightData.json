@@ -1,0 +1,7 @@
+{
+  "description": "example insight description",
+  "data_processing_strategy": "example reasoning and planing",
+  "threat_scenarios": [],
+  "affected_objects": [],
+  "insight_references": []
+}
