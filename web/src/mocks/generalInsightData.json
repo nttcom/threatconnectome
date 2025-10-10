@@ -1,0 +1,38 @@
+{
+  "description": "example insight description",
+  "data_processing_strategy": "example reasoning and planing",
+  "threat_scenarios": [
+    {
+      "impact_category": "denial_of_control",
+      "title": "example threat_scenario title1",
+      "description": "example threat_scenario description1"
+    },
+    {
+      "impact_category": "manipulation_of_view",
+      "title": "example threat_scenario title2",
+      "description": "example threat_scenario description2"
+    }
+  ],
+  "affected_objects": [
+    {
+      "object_category": "person",
+      "name": "example affected_object name1",
+      "description": "example affected_object description1"
+    },
+    {
+      "object_category": "mobile_device",
+      "name": "example affected_object name2",
+      "description": "example affected_object description2"
+    }
+  ],
+  "insight_references": [
+    {
+      "link_text": "example link_text1",
+      "url": "https://www.google.com/"
+    },
+    {
+      "link_text": "example link_text2",
+      "url": "https://www.ntt.com/index.html"
+    }
+  ]
+}
