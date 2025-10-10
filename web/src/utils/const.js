@@ -24,7 +24,7 @@ export const drawerWidth = 200;
 
 export const mainMaxWidth = 1100;
 
-export const maxReasonSafetyImpactLengthInHalf = 500;
+export const maxReasonSafetyImpactLengthInHalf = 2000;
 export const maxServiceNameLengthInHalf = 255;
 export const maxDescriptionLengthInHalf = 300;
 export const maxKeywordLengthInHalf = 20;
