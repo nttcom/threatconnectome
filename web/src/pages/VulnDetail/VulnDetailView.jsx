@@ -115,7 +115,10 @@ export function VulnDetailView(props) {
                         flexDirection: "row",
                       }}
                     >
-                      <ActionTypeIcon actionType="elimination" disabled={false} />
+                      <ActionTypeIcon
+                        actionType={action.action_type}
+                        disabled={!action.recommended}
+                      />
                       <Box display="flex" flexDirection="column">
                         <Typography noWrap variant="body">
                           {action.action}
