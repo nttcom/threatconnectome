@@ -33,6 +33,7 @@ export default [
         version: "18.3",
       },
       "import/resolver": {
+        typescript: true,
         node: {
           extensions: [".js", ".jsx"],
         },
