@@ -1,6 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
 import { http, HttpResponse } from "msw";
-import { Provider } from "react-redux";
 
 import emptyInsightData from "../../../mocks/emptyInsightData.json";
 import generalInsightData from "../../../mocks/generalInsightData.json";
@@ -23,22 +21,6 @@ const rootReducer = {
 export default {
   title: "RiskAnalysis",
   component: RiskAnalysis,
-
-  decorators: [
-    (Story) => {
-      const mockStore = configureStore({
-        reducer: rootReducer,
-        preloadedState: mockAuthedState,
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(tcApi.middleware),
-      });
-      return (
-        <Provider store={mockStore}>
-          <Story />
-        </Provider>
-      );
-    },
-  ],
-
   args: {
     ticketId: "ticket-123",
     serviceName: "Example Service",
@@ -46,9 +28,6 @@ export default {
     cveId: "CVE-2025-XXXX",
     cvss: "9.8 CRITICAL",
   },
-};
-
-export const Default = {
   parameters: {
     msw: {
       handlers: [
@@ -59,6 +38,8 @@ export const Default = {
     },
   },
 };
+
+export const Default = {};
 
 export const EmptyState = {
   parameters: {
