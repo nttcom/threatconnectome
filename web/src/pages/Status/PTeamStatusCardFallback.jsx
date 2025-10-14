@@ -16,7 +16,7 @@ export function PTeamStatusCardFallback({ error }) {
     >
       <TableCell colSpan={1000}>
         <Box>
-          <Typography>something went wrong</Typography>
+          <Typography>Something went wrong</Typography>
           {error instanceof APIError && (
             <Typography>called API: {error.api || "unknown"}</Typography>
           )}

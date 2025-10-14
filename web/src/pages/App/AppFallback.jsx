@@ -7,7 +7,7 @@ export function AppFallback({ error }) {
   console.log(error);
   return (
     <Box>
-      <Typography>something went wrong</Typography>
+      <Typography>Something went wrong</Typography>
       {error instanceof APIError && <Typography>called API: {error.api || "unknown"}</Typography>}
     </Box>
   );
