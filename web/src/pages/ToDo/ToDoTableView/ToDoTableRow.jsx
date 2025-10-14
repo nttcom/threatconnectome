@@ -28,7 +28,7 @@ export function ToDoTableRow(props) {
     displayAssignee,
   } = useTodoItemState(ticket);
 
-  const cveId = vuln?.cve_id || "-";
+  const cveId = vuln?.cve_id || "No Known CVE";
   const pteamName = pteam?.pteam_name || "-";
   const serviceName = service?.service_name || "-";
   const packageName = serviceDependency?.package_name || "-";
