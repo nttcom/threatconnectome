@@ -3,6 +3,7 @@ import { InputAdornment, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function CVESearchField({ word, onApply, variant = "default" }) {
   const [newWord, setNewWord] = useState("");
@@ -12,14 +13,16 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
     setNewWord(word);
   }, [word]);
 
-  const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
-
   const handleApply = (value) => {
     const trimmedValue = value.trim();
-    if (trimmedValue && !CVE_PATTERN.test(trimmedValue)) {
-      enqueueSnackbar("Invalid CVE ID format. Expected format: CVE-YYYY-NNNN", {
-        variant: "error",
-      });
+    const success = isValidCVEFormat(trimmedValue);
+    if (!success) {
+      enqueueSnackbar(
+        "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)",
+        {
+          variant: "error",
+        },
+      );
       return;
     }
     onApply(trimmedValue);

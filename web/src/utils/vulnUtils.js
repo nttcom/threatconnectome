@@ -48,3 +48,14 @@ export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
         vulnerable_package.affected_name === package_name),
   );
 }
+
+export function isValidCVEFormat(value) {
+  const trimmedValue = value.trim();
+  const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
+
+  if (trimmedValue && !CVE_PATTERN.test(trimmedValue)) {
+    return false;
+  }
+
+  return true;
+}
