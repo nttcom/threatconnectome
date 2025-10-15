@@ -3,6 +3,7 @@ import { InputAdornment, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function CVESearchField({ word, onApply, variant = "default" }) {
