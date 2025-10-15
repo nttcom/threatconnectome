@@ -53,9 +53,5 @@ export function isValidCVEFormat(value) {
   const trimmedValue = value.trim();
   const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
 
-  if (trimmedValue && !CVE_PATTERN.test(trimmedValue)) {
-    return false;
-  }
-
-  return true;
+  return !trimmedValue || CVE_PATTERN.test(trimmedValue);
 }
