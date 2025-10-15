@@ -129,7 +129,13 @@ class SyftCDXParser(SBOMParser):
             if component.purl and isinstance(component.purl.qualifiers, dict)
             else None
         )
-        pkg_info = str(distro).casefold() if distro else str(component.purl.type).casefold()
+        if distro:
+            if distro.casefold().startswith("wolfi-"):
+                pkg_info = "wolfi"
+            else:
+                pkg_info = str(distro).casefold()
+        else:
+            pkg_info = str(component.purl.type).casefold()
         mgr_info = SyftCDXParser._guess_mgr(component.properties)
 
         return {

@@ -293,6 +293,79 @@ class TestSyftCDXParser:
         assert artifact.source_name == "audit"
         assert artifact.ecosystem == "rocky-9.3"
 
+    def test_it_should_create_ecosystem_when_wolfi(self):
+        # Given
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "c5deb6a1d7b5896f",
+                    "type": "container",
+                    "name": "cgr.dev/chainguard/wolfi-base",
+                    "version": (
+                        "sha256:d4c119d06767bceda3a23e47e2dc7734272c44d340c570223399a1fee61ce275"
+                    ),
+                },
+            },
+            "components": [
+                {
+                    "bom-ref": (
+                        "pkg:apk/wolfi/libgcc@15.2.0-r2?arch=x86_64&distro=wolfi-20230201"
+                        "&package-id=8a675e376d8be3b7&upstream=gcc"
+                    ),
+                    "type": "library",
+                    "publisher": "wolfi",
+                    "name": "libgcc",
+                    "version": "15.2.0-r2",
+                    "description": "GCC runtime library",
+                    "licenses": [{"expression": "GPL-3.0-or-later WITH GCC-exception-3.1"}],
+                    "cpe": ("cpe:2.3:a:libgcc:libgcc:15.2.0-r2:*:*:*:*:*:*:*"),
+                    "purl": (
+                        "pkg:apk/wolfi/libgcc@15.2.0-r2?arch=x86_64&distro=wolfi-20230201"
+                        "&upstream=gcc"
+                    ),
+                    "properties": [
+                        {"name": "syft:package:type", "value": "apk"},
+                        {"name": "syft:metadata:originPackage", "value": "gcc"},
+                        {"name": "syft:location:0:path", "value": "/usr/lib/apk/db/installed"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": (
+                        "pkg:apk/wolfi/glibc@2.42-r1?arch=x86_64&distro=wolfi-20230201"
+                        "&package-id=2757b349b2a4a56e"
+                    ),
+                    "dependsOn": [
+                        (
+                            "pkg:apk/wolfi/libgcc@15.2.0-r2?arch=x86_64&distro=wolfi-20230201"
+                            "&package-id=8a675e376d8be3b7&upstream=gcc"
+                        )
+                    ],
+                },
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.6",
+            tool_name="syft",
+            tool_version="1.27.1",
+        )
+
+        # When
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+
+        # Then
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.ecosystem == "wolfi"
+        assert artifact.package_name == "libgcc"
+        assert artifact.source_name == "gcc"
+        assert artifact.package_manager == ""
+        assert len(artifact.targets) == 1
+        assert list(artifact.targets)[0] == ("/usr/lib/apk/db/installed", "15.2.0-r2")
+
     def test_it_should_parse_sbom_with_spec_version_1_6(self):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
