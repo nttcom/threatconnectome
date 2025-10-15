@@ -43,7 +43,7 @@ services:
       - ./api/app/alembic:/app/alembic:rw # for 'alembic revision --autogenerate'
       - ./key:/key:ro
   db:
-    image: postgres:14
+    image: postgres:17
     command:
       - postgres
       # - -c
