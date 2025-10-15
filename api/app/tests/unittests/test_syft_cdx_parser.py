@@ -295,7 +295,7 @@ class TestSyftCDXParser:
 
     def test_it_should_create_ecosystem_when_wolfi(self):
         # Given
-        sbom = sbom = {
+        sbom = {
             "metadata": {
                 "component": {
                     "bom-ref": "c5deb6a1d7b5896f",
