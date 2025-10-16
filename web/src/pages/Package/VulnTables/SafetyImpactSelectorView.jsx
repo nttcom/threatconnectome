@@ -2,7 +2,6 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   Box,
   Button,
-  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
