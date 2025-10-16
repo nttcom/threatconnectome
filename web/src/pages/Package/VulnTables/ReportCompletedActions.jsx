@@ -52,7 +52,7 @@ export function ReportCompletedActions(props) {
     const actions = [actionByFixedVersions, ...vulnActions];
     return actions.map((action) => ({
       ...action,
-      ui_id: createRandomUUID(), // ui_id is used for components' keys.
+      uiId: createRandomUUID(), // uiId is used for components' keys.
     }));
   }, [actionByFixedVersions, vulnActions]);
 
@@ -72,7 +72,7 @@ export function ReportCompletedActions(props) {
   const handleAction = async () =>
     await Promise.all(
       selectedAction.map(async (uiId) => {
-        const action = actionsWithUiId.find((actionWithUiId) => actionWithUiId.ui_id === uiId);
+        const action = actionsWithUiId.find((actionWithUiId) => actionWithUiId.uiId === uiId);
 
         return await createActionLog({
           action_id: action.action_id,
@@ -174,9 +174,9 @@ export function ReportCompletedActions(props) {
               <>
                 {actionsWithUiId.map((action) => (
                   <MenuItem
-                    key={action.ui_id}
-                    onClick={() => handleSelectAction(action.ui_id)}
-                    selected={selectedAction.includes(action.ui_id)}
+                    key={action.uiId}
+                    onClick={() => handleSelectAction(action.uiId)}
+                    selected={selectedAction.includes(action.uiId)}
                     sx={{
                       alignItems: "center",
                       display: "flex",
@@ -201,13 +201,13 @@ export function ReportCompletedActions(props) {
         {activeStep === 1 && (
           <>
             {actionsWithUiId
-              .filter((action) => selectedAction.includes(action.ui_id))
+              .filter((action) => selectedAction.includes(action.uiId))
               .map((action) => (
                 <Box
                   alignItems="center"
                   display="flex"
                   flexDirection="row"
-                  key={action.ui_id}
+                  key={action.uiId}
                   mb={1}
                 >
                   <ActionTypeChip actionType={action.action_type} />

@@ -27,7 +27,7 @@ export function VulnDetailView(props) {
     () =>
       actions.map((action) => ({
         ...action,
-        ui_id: createRandomUUID(), // ui_id is used for components' keys.
+        uiId: createRandomUUID(), // uiId is used for components' keys.
       })),
     [actions],
   );
@@ -117,7 +117,7 @@ export function VulnDetailView(props) {
                 <Box>
                   {actionsWithUiId.map((action) => (
                     <MenuItem
-                      key={action.ui_id}
+                      key={action.uiId}
                       sx={{
                         alignItems: "center",
                         display: "flex",
