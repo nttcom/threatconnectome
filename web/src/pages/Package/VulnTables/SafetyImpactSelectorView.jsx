@@ -176,18 +176,16 @@ export function SafetyImpactSelectorView(props) {
               </Select>
             </FormControl>
 
-            <Collapse in={true}>
-              <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
-              <TextField
-                hiddenLabel
-                variant="filled"
-                fullWidth
-                multiline
-                rows={4}
-                value={pendingReasonSafetyImpact}
-                onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
-              />
-            </Collapse>
+            <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
+            <TextField
+              hiddenLabel
+              variant="filled"
+              fullWidth
+              multiline
+              rows={4}
+              value={pendingReasonSafetyImpact}
+              onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
