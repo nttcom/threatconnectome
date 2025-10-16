@@ -546,6 +546,9 @@ class TicketStatus(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=current_timestamp()
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
 
     action_logs = relationship(
         "ActionLog",
