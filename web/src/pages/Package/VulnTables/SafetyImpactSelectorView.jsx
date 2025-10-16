@@ -33,12 +33,7 @@ import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 const TOOLTIP_TEXT_LIMIT = 150;
 
 export function SafetyImpactSelectorView(props) {
-  const {
-    fixedTicketSafetyImpact,
-    fixedTicketSafetyImpactChangeReason,
-    onRevertedToDefault,
-    onSave,
-  } = props;
+  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
@@ -64,11 +59,10 @@ export function SafetyImpactSelectorView(props) {
   };
 
   const handleSave = () => {
-    if (pendingSafetyImpact === defaultSafetyImpactItem) {
-      onRevertedToDefault();
-    } else {
-      onSave(pendingSafetyImpact, pendingReasonSafetyImpact);
-    }
+    onSave(
+      pendingSafetyImpact === defaultSafetyImpactItem ? null : pendingSafetyImpact,
+      pendingReasonSafetyImpact,
+    );
     setOpenDialog(false);
   };
 
@@ -85,14 +79,9 @@ export function SafetyImpactSelectorView(props) {
     }
   };
 
-  const isUnchanged =
+  const isSaveDisabled =
     (fixedTicketSafetyImpact || defaultSafetyImpactItem) === pendingSafetyImpact &&
     (fixedTicketSafetyImpactChangeReason || "") === pendingReasonSafetyImpact;
-
-  const isReasonRequiredAndEmpty =
-    pendingSafetyImpact !== defaultSafetyImpactItem && pendingReasonSafetyImpact === "";
-
-  const isSaveDisabled = isUnchanged || isReasonRequiredAndEmpty;
 
   const StyledTooltip = styled(({ className, ...props }) => (
     <Tooltip {...props} classes={{ popper: className }} leaveDelay={500} />
@@ -176,7 +165,9 @@ export function SafetyImpactSelectorView(props) {
                 onChange={handleSelectSafetyImpact}
                 inputProps={{ "aria-label": "Safety Impact" }}
               >
-                <MenuItem value={defaultSafetyImpactItem}>{defaultSafetyImpactItem}</MenuItem>
+                <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
+                  {defaultSafetyImpactItem}
+                </MenuItem>
                 {sortedSafetyImpacts.map((safetyImpact) => (
                   <MenuItem key={safetyImpact} value={safetyImpact}>
                     {safetyImpactProps[safetyImpact]?.displayName}
@@ -185,7 +176,7 @@ export function SafetyImpactSelectorView(props) {
               </Select>
             </FormControl>
 
-            <Collapse in={pendingSafetyImpact !== defaultSafetyImpactItem}>
+            <Collapse in={true}>
               <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
               <TextField
                 hiddenLabel
@@ -229,6 +220,5 @@ export function SafetyImpactSelectorView(props) {
 SafetyImpactSelectorView.propTypes = {
   fixedTicketSafetyImpact: PropTypes.string,
   fixedTicketSafetyImpactChangeReason: PropTypes.string,
-  onRevertedToDefault: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };
