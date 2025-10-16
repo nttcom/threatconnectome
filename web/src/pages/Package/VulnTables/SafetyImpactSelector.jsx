@@ -28,18 +28,11 @@ export function SafetyImpactSelector(props) {
       );
   };
 
-  const handleRevertedToDefault = async () => {
-    const requestData = {
-      ticket_safety_impact: null,
-      ticket_safety_impact_change_reason: null,
-    };
-    updateTicketFunction(requestData);
-  };
-
   const handleSave = async (safetyImpact, ticketSafetyImpactChangeReason) => {
     const requestData = {
       ticket_safety_impact: safetyImpact,
-      ticket_safety_impact_change_reason: ticketSafetyImpactChangeReason,
+      ticket_safety_impact_change_reason:
+        ticketSafetyImpactChangeReason === "" ? null : ticketSafetyImpactChangeReason,
     };
     updateTicketFunction(requestData);
   };
@@ -48,7 +41,6 @@ export function SafetyImpactSelector(props) {
     <SafetyImpactSelectorView
       fixedTicketSafetyImpact={ticket.ticket_safety_impact}
       fixedTicketSafetyImpactChangeReason={ticket.ticket_safety_impact_change_reason}
-      onRevertedToDefault={handleRevertedToDefault}
       onSave={handleSave}
     />
   );
