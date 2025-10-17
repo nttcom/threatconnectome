@@ -1,11 +1,5 @@
 export const createActionByFixedVersions = (affectedVersions, fixedVersions, packageName) => {
   const action = {
-    // Create action_id to make it common processing with manual registration action
-    // This action_id is only used on the UI
-    action_id:
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2),
     action_type: "elimination",
     recommended: true,
   };
