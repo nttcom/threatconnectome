@@ -24,7 +24,7 @@ import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
 
 export function Login() {
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [visible, setVisible] = useState(false);
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
@@ -44,13 +44,17 @@ export function Login() {
 
   useEffect(() => {
     dispatch(setAuthUserIsReady(false));
-    setMessage(location.state?.message);
+    setMessage({ text: location.state?.message, type: location.state?.type });
     signOut();
   }, [dispatch, location, signOut]);
 
+  const showMessage = (text, type = "error") => {
+    setMessage({ text, type });
+  };
+
   const callSignInWithEmailAndPassword = async (email, password) => {
     return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
-      setMessage(authError.message);
+      showMessage(authError.message);
       return undefined;
     });
   };
@@ -68,12 +72,13 @@ export function Login() {
           const actionCodeSettings = { url: `${window.location.origin}/login` };
           await sendEmailVerification({ actionCodeSettings })
             .then(() =>
-              setMessage(
+              showMessage(
                 "Your email address is not verified." +
                   " An email for verification was sent to your address.",
+                "info",
               ),
             )
-            .catch((error) => setMessage(error.message));
+            .catch((error) => showMessage(error.message));
           break;
         }
         case "No such user":
@@ -87,10 +92,10 @@ export function Login() {
                 },
               }),
             )
-            .catch((error) => setMessage(error.data?.detail ?? "Something went wrong."));
+            .catch((error) => showMessage(error.data?.detail ?? "Something went wrong."));
           break;
         default:
-          setMessage("Something went wrong.");
+          showMessage("Something went wrong.");
           console.error(error);
       }
     }
@@ -98,7 +103,7 @@ export function Login() {
 
   const handleLoginWithEmail = async (event) => {
     event.preventDefault();
-    setMessage("Logging in...");
+    showMessage("Logging in...", "info");
     const data = new FormData(event.currentTarget);
     const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
     if (authData === undefined) return;
@@ -109,7 +114,7 @@ export function Login() {
     signInWithSamlPopup()
       .then(() => navigateInternalPage())
       .catch((error) => {
-        setMessage("Something went wrong.");
+        showMessage("Something went wrong.");
         console.error(error);
       });
   };
@@ -120,7 +125,7 @@ export function Login() {
      */
     const redirectTo = `${window.location.origin}/auth_keycloak_callback`;
     await signInWithRedirect({ provider: "keycloak", redirectTo }).catch((authError) => {
-      setMessage(authError.message);
+      showMessage(authError.message);
       console.error(authError);
     });
   };
@@ -236,7 +241,9 @@ export function Login() {
         </Link>
       </Box>
       <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
-        <Typography>{message}</Typography>
+        <Typography color={message.type === "error" ? "error" : "textPrimary"}>
+          {message.text}
+        </Typography>
       </Box>
       <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
         This service is in closed beta. LOGIN is only available for email addresses of authorized
