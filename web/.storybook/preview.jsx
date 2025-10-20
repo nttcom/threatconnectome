@@ -19,16 +19,38 @@ const rootReducer = {
   [tcApi.reducerPath]: tcApi.reducer,
 };
 
-export const decorators = [
+const decorators = [
   (Story, context) => {
-    const { preloadedState } = context.parameters.redux || {};
+    // Get the individual story's preloadedState
+    const { preloadedState: storyPreloadedState } = context.parameters.redux || {};
+
+    // Safely merge the default state (mockAuthedState) with the story-specific state (preloadedState)
+    const preloadedState = {
+      ...mockAuthedState, // 1. Apply default state for all slices
+      ...storyPreloadedState, // 2. Override with story-specific slices (e.g., user: {})
+
+      // 3. Deep-merge the 'auth' slice specifically
+      // This ensures 'authUserIsReady: true' is the default,
+      // but allows stories to override it (e.g., authUserIsReady: false for login screen)
+      // or extend it (e.g., auth: { ... , role: 'admin' })
+      auth: {
+        ...mockAuthedState.auth,
+        ...(storyPreloadedState?.auth || {}),
+      },
+    };
 
     const store = configureStore({
       reducer: rootReducer,
-      preloadedState: preloadedState || mockAuthedState,
+      preloadedState,
       middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(tcApi.middleware),
     });
 
+    // --- IMPORTANT: Force remount on args change ---
+    // RTK Query caches data. When args change in Controls, RTK Query hooks
+    // might keep stale data or a 'loading' state, freezing the component.
+    // Changing the 'key' forces React to remount the entire tree,
+    // creating a new, fresh store and clearing all RTK Query cache.
+    // This is the simplest way to ensure Controls work reliably with RTK Query.
     const key = JSON.stringify(context.args);
 
     return (
