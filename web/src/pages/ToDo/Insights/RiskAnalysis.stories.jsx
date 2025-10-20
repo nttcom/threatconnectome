@@ -2,21 +2,8 @@ import { http, HttpResponse } from "msw";
 
 import emptyInsightData from "../../../mocks/emptyInsightData.json";
 import generalInsightData from "../../../mocks/generalInsightData.json";
-import { tcApi } from "../../../services/tcApi";
-import { sliceReducers } from "../../../slices";
 
 import { RiskAnalysis } from "./RiskAnalysis.jsx";
-
-const mockAuthedState = {
-  auth: {
-    authUserIsReady: true,
-  },
-};
-
-const rootReducer = {
-  ...sliceReducers,
-  [tcApi.reducerPath]: tcApi.reducer,
-};
 
 export default {
   title: "RiskAnalysis",
