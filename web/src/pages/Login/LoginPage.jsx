@@ -44,7 +44,7 @@ export function Login() {
 
   useEffect(() => {
     dispatch(setAuthUserIsReady(false));
-    setMessage({ text: location.state?.message, type: location.state?.type });
+    setMessage({ text: location.state?.message, type: location.state?.messageType });
     signOut();
   }, [dispatch, location, signOut]);
 
