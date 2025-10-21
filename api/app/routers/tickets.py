@@ -23,17 +23,20 @@ def ticket_to_response(ticket: models.Ticket):
     service = dependency.service
     pteam_id = service.pteam_id
     service_id = service.service_id
+
+    ticket_status_dict = {
+        k: v for k, v in ticket.ticket_status.__dict__.items() if k != "ticket_id"
+    }
     return schemas.TicketResponse(
         ticket_id=UUID(ticket.ticket_id),
         vuln_id=UUID(ticket.threat.vuln_id),
         dependency_id=UUID(ticket.dependency_id),
         service_id=service_id,
         pteam_id=pteam_id,
-        created_at=ticket.created_at,
         ssvc_deployer_priority=ticket.ssvc_deployer_priority,
         ticket_safety_impact=ticket.ticket_safety_impact,
         ticket_safety_impact_change_reason=ticket.ticket_safety_impact_change_reason,
-        ticket_status=(schemas.TicketStatusResponse.model_validate(ticket.ticket_status)),
+        ticket_status=schemas.TicketStatusResponse(**ticket_status_dict),
     )
 
 
