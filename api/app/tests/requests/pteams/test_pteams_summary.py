@@ -238,11 +238,6 @@ class TestGetPTeamPackagesSummary:
         test_target = "test target"
         vulnerable_version = "1.2"  # vulnerable
 
-        # create_ticket(
-        #     testdb,
-        # )
-        # create_ticket()
-
         service1 = models.Service(
             service_name=test_service1,
             pteam_id=str(pteam1.pteam_id),
