@@ -783,7 +783,7 @@ def get_ticket(
 
 
 def check_ticket_status_update_request(
-    ticket, data: schemas.TicketUpdateRequest, pteam, ticket_id: UUID, now, db: Session
+    ticket, data: schemas.TicketStatusRequest, pteam, ticket_id: UUID, now, db: Session
 ):
     update_data = data.model_dump(exclude_unset=True)
 
@@ -882,7 +882,7 @@ def check_ticket_status_update_request(
 
 
 def set_ticket_status(
-    ticket, data: schemas.TicketUpdateRequest, current_user: models.Account, now, db: Session
+    ticket, data: schemas.TicketStatusRequest, current_user: models.Account, now, db: Session
 ):
     """
     Set status of the ticket.

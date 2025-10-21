@@ -1148,7 +1148,9 @@ class TestPutTicket:
 
             request = {
                 "ticket_safety_impact": models.SafetyImpactEnum.CRITICAL.value,
-                "ticket_safety_impact_change_reason": self.ticket1.ticket_safety_impact_change_reason,
+                "ticket_safety_impact_change_reason": (
+                    self.ticket1.ticket_safety_impact_change_reason
+                ),
             }
 
             response = client.put(
