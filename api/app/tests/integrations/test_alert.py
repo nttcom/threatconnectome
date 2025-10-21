@@ -302,7 +302,9 @@ class TestAlert:
             ).first()
 
             put_ticket_request = {
-                "ticket_handling_status": "completed",
+                "ticket_status": {
+                    "ticket_handling_status": "completed",
+                }
             }
             set_ticket_status(
                 USER1,

@@ -183,7 +183,7 @@ class TestGetPTeamPackagesSummary:
             testdb, test_service, test_target, vulnerable_version
         )
 
-        vuln1 = create_vuln(USER1, VULN1)  # PACKAGE1
+        create_vuln(USER1, VULN1)  # PACKAGE1
         db_ticket1 = testdb.scalars(select(models.Ticket)).one()
 
         # When
@@ -215,7 +215,7 @@ class TestGetPTeamPackagesSummary:
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
                 "ssvc_priority": expected_ssvc_priority.value,
-                "updated_at": datetime.isoformat(vuln1.updated_at),
+                "updated_at": datetime.isoformat(db_ticket1.ticket_status.updated_at),
                 "status_count": {
                     **{
                         status_type.value: 0
@@ -237,6 +237,11 @@ class TestGetPTeamPackagesSummary:
         test_service2 = "test_service2"
         test_target = "test target"
         vulnerable_version = "1.2"  # vulnerable
+
+        # create_ticket(
+        #     testdb,
+        # )
+        # create_ticket()
 
         service1 = models.Service(
             service_name=test_service1,
@@ -277,8 +282,9 @@ class TestGetPTeamPackagesSummary:
         )
         testdb.add(dependency2)
         testdb.flush()
-        vuln1 = create_vuln(USER1, VULN1)  # PACKAGE1
+        create_vuln(USER1, VULN1)  # PACKAGE1
         db_ticket1 = testdb.scalars(select(models.Ticket))
+        db_ticket_statuses = testdb.scalars(select(models.TicketStatus))
 
         # When
         url = f"/pteams/{pteam1.pteam_id}/packages/summary"
@@ -311,6 +317,11 @@ class TestGetPTeamPackagesSummary:
         summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
             "Z", "+00:00"
         )
+
+        updated_time = []
+        for ticket_status in db_ticket_statuses:
+            updated_time.append(ticket_status.updated_at)
+
         assert summary["packages"] == [
             {
                 "package_id": str(package.package_id),
@@ -318,7 +329,7 @@ class TestGetPTeamPackagesSummary:
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "ssvc_priority": expected_ssvc_priority.value,
-                "updated_at": datetime.isoformat(vuln1.updated_at),
+                "updated_at": datetime.isoformat(max(updated_time)),
                 "status_count": {
                     **{
                         status_type.value: 0

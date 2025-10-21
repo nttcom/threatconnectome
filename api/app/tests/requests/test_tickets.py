@@ -150,10 +150,12 @@ def ticket_setup(testdb):
         pteam1.pteam_id,
         ticket1["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [str(user1.user_id)],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [str(user1.user_id)],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
     set_ticket_status(
@@ -161,10 +163,12 @@ def ticket_setup(testdb):
         pteam2.pteam_id,
         ticket2["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
     set_ticket_status(
@@ -172,10 +176,12 @@ def ticket_setup(testdb):
         pteam3.pteam_id,
         ticket3["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
 
@@ -245,7 +251,6 @@ class TestGetTickets:
                 "dependency_id",
                 "service_id",
                 "pteam_id",
-                "created_at",
                 "ssvc_deployer_priority",
                 "ticket_status",
             ]:
