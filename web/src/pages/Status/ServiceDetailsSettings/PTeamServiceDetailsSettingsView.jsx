@@ -25,6 +25,7 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
+import { useViewportOffset } from "../../../hooks/useViewportOffset";
 import {
   maxServiceNameLengthInHalf,
   maxDescriptionLengthInHalf,
@@ -56,6 +57,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [isImageChanged, setIsImageChanged] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+  const viewportOffsetTop = useViewportOffset();
 
   useEffect(() => {
     // Reset the state when switching services
@@ -117,6 +119,9 @@ export function PTeamServiceDetailsSettingsView(props) {
         `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
         },
       );
     } else {
@@ -127,9 +132,12 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleKeywordSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
       enqueueSnackbar(
-        `Too long description. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
+        `Too long keyword. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
         },
       );
     } else {
@@ -140,9 +148,12 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleDescriptionSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
       enqueueSnackbar(
-        `Too long keyword. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
+        `Too long description. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
         },
       );
     } else {

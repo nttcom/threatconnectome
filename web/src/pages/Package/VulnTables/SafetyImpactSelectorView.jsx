@@ -22,6 +22,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useViewportOffset } from "../../../hooks/useViewportOffset";
 import {
   safetyImpactProps,
   sortedSafetyImpacts,
@@ -42,6 +43,7 @@ export function SafetyImpactSelectorView(props) {
   const defaultSafetyImpactItem = "Default";
 
   const { enqueueSnackbar } = useSnackbar();
+  const viewportOffsetTop = useViewportOffset();
 
   const handleOpenDialog = () => {
     setPendingSafetyImpact(fixedTicketSafetyImpact || defaultSafetyImpactItem);
@@ -71,6 +73,9 @@ export function SafetyImpactSelectorView(props) {
         `Too long ticket_safety_impact_change_reason. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
         },
       );
     } else {
