@@ -345,14 +345,6 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class TicketStatusRequest(ORMModel):
-    ticket_handling_status: TicketHandlingStatusType | None = None
-    logging_ids: list[UUID] | None = None
-    assignees: list[UUID] | None = None
-    note: str | None = None
-    scheduled_at: datetime | None = None
-
-
 class TicketStatusResponse(ORMModel):
     status_id: UUID
     ticket_handling_status: TicketHandlingStatusType
@@ -382,14 +374,17 @@ class TicketListResponse(BaseModel):
     tickets: list[TicketResponse]
 
 
-class TicketUpdateRequest(ORMModel):
-    ticket_safety_impact: SafetyImpactEnum | None = None
-    ticket_safety_impact_change_reason: str | None = None
+class TicketStatusRequest(ORMModel):
     ticket_handling_status: TicketHandlingStatusType | None = None
     logging_ids: list[UUID] | None = None
     assignees: list[UUID] | None = None
     note: str | None = None
     scheduled_at: datetime | None = None
+
+
+class TicketUpdateRequest(ORMModel):
+    ticket_safety_impact: SafetyImpactEnum | None = None
+    ticket_safety_impact_change_reason: str | None = None
     ticket_status: TicketStatusRequest | None = None
 
 
