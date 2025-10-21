@@ -920,6 +920,7 @@ def set_ticket_status(
 
     # set last updated by
     ticket.ticket_status.user_id = current_user.user_id
+    ticket.ticket_status.updated_at = now
 
     db.flush()
 
@@ -986,8 +987,6 @@ def update_ticket(
         check_ticket_status_update_request(ticket, data.ticket_status, pteam, ticket_id, now, db)
         set_ticket_status(ticket, data.ticket_status, current_user, now, db)
     update_ticket_safety_impact(ticket, data, db)
-
-    ticket.ticket_status.updated_at = datetime.now(timezone.utc)
 
     db.commit()
 
