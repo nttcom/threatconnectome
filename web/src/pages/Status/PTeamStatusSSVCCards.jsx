@@ -60,13 +60,13 @@ export function PTeamStatusSSVCCards(props) {
       .unwrap()
       .then(() => {
         enqueueSnackbar("Update succeeded", { variant: "success" });
+        card.handleClickIconButton(false);
       })
       .catch((error) => {
         enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
       })
       .finally(() => {
         setIsUpdating(false);
-        card.handleClickIconButton(false);
       });
   };
 
