@@ -68,14 +68,21 @@ export function Drawer() {
   // Auto-open drawer on large screens.
   // HACK: Use async update to prevent UI freeze from Drawer's race condition.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      dispatch(setDrawerOpen(isLgUp));
-    }, 0);
+    let timer;
+    if (isLgUp) {
+      timer = setTimeout(() => {
+        dispatch(setDrawerOpen(isLgUp));
+      }, 0);
+    } else if (isSmDown) {
+      timer = setTimeout(() => {
+        dispatch(setDrawerOpen(!isSmDown));
+      }, 0);
+    }
 
     return () => {
       clearTimeout(timer);
     };
-  }, [isLgUp, dispatch]);
+  }, [isLgUp, isSmDown, dispatch]);
 
   const drawerTitle = "Threatconnectome";
 
