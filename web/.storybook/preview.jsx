@@ -51,7 +51,7 @@ const decorators = [
     // Changing the 'key' forces React to remount the entire tree,
     // creating a new, fresh store and clearing all RTK Query cache.
     // This is the simplest way to ensure Controls work reliably with RTK Query.
-    const key = JSON.stringify(context.args);
+    const key = JSON.stringify(context.args) + "-" + context.globals.viewport.value;
 
     return (
       <Provider key={key} store={store}>
