@@ -1625,11 +1625,9 @@ class TestPutTicket:
                 "accept": "application/json",
             }
             response = client.put(url, headers=_headers, json=status_request)
-            if response.status_code != 200:
-                raise HTTPError(response)
 
-            data = response.json()
-            assert data["ticket_status"]["assignees"] == [str(self.user1.user_id)]
+            assert response.status_code == 200
+            assert response.json()["ticket_status"]["assignees"] == [str(self.user1.user_id)]
 
         def test_it_should_return_400_when_there_is_no_time_zone_in_scheduled_at_time(self):
             ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
