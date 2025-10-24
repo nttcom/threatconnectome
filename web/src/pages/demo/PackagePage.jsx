@@ -11,12 +11,12 @@ import {
   Box,
   TablePagination,
   Chip,
-  Stack,
   Tabs,
   Tab,
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Stack,
 } from "@mui/material";
 import { useState } from "react";
 
@@ -145,12 +145,13 @@ export default function PackagePage({
           <Tab label={`Unsolved (${tabCounts.unsolved || 0})`} />
           <Tab label={`Solved (${tabCounts.solved || 0})`} />
         </Tabs>
-        <Stack direction="row" spacing={1}>
-          {Object.entries(ssvcCounts).map(([priority, count]) => (
-            <SSVCPriorityChip key={priority} priority={priority} count={count} />
-          ))}
-        </Stack>
       </Box>
+
+      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        {Object.entries(ssvcCounts).map(([priority, count]) => (
+          <SSVCPriorityChip key={priority} priority={priority} count={count} />
+        ))}
+      </Stack>
 
       {/* === デフォルトSafety Impactの表示を追加 === */}
       <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 2 }}>
