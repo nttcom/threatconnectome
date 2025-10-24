@@ -1,47 +1,77 @@
 import PackagePage from "./PackagePage";
-// モックデータをインポート
-import { mockVulnerabilities, mockMembers } from "./mockData";
+// 全てのmockデータをインポート
+import {
+  mockVulnerabilities,
+  mockMembers,
+  mockPackageData,
+  mockPackageReferences,
+  mockDefaultSafetyImpact,
+  mockSsvcCounts,
+  mockTabCounts,
+} from "./mockData";
 
 export default {
   title: "demo/PackagePage",
   component: PackagePage,
   parameters: {
-    // StorybookのUI上でコンポーネントが全画面表示されるように設定
     layout: "fullscreen",
   },
+  // argTypesは最新のpropsを反映
   argTypes: {
-    // onSaveChangesが呼び出されたときにActionsパネルにログを出力する
-    onSaveChanges: { action: "onSaveChanges" },
+    packageData: { control: "object" },
+    packageReferences: { control: "object" },
+    defaultSafetyImpact: { control: "text" },
+    ssvcCounts: { control: "object" },
+    tabCounts: { control: "object" },
+    initialVulnerabilities: { control: "object" },
+    members: { control: "object" },
   },
 };
 
-// デフォルトのストーリー（データがある場合）
-export const Default = {
-  args: {
-    // initialVulnerabilitiesとmembersをpropsとして渡す
-    initialVulnerabilities: mockVulnerabilities,
-    members: mockMembers,
-  },
+const Template = (args) => <PackagePage {...args} />;
+
+// Defaultストーリー
+export const Default = Template.bind({});
+Default.args = {
+  packageData: mockPackageData,
+  packageReferences: mockPackageReferences,
+  defaultSafetyImpact: mockDefaultSafetyImpact,
+  ssvcCounts: mockSsvcCounts,
+  tabCounts: mockTabCounts,
+  initialVulnerabilities: mockVulnerabilities,
+  members: mockMembers,
 };
 
-// データが空の場合のストーリー
-export const EmptyState = {
-  args: {
-    initialVulnerabilities: [],
-    members: mockMembers,
-  },
+// EmptyStateストーリー
+export const EmptyState = Template.bind({});
+EmptyState.args = {
+  ...Default.args,
+  packageReferences: [],
+  initialVulnerabilities: [],
+  ssvcCounts: { immediate: 0, high: 0, medium: 0, low: 0 },
+  tabCounts: { unsolved: 0, solved: 42 },
 };
 
-// ページネーションをテストするために多くのデータを持つストーリー
-export const WithPagination = {
-  args: {
-    initialVulnerabilities: [
-      ...mockVulnerabilities,
-      // 新しいデータを追加して1ページに収まらないようにする
-      { id: "vuln-007", title: "Additional Vuln 1", tasks: [] },
-      { id: "vuln-008", title: "Additional Vuln 2", tasks: [] },
-      { id: "vuln-009", title: "Additional Vuln 3", tasks: [] },
-    ],
-    members: mockMembers,
-  },
+// WithPaginationストーリー
+export const WithPagination = Template.bind({});
+const manyVulnerabilities = [
+  ...mockVulnerabilities,
+  ...Array.from({ length: 15 }, (_, i) => ({
+    id: `vuln-extra-${i}`,
+    title: `Additional Vulnerability ${i + 1}`,
+    highestSsvc: "medium",
+    updated_at: "2025-09-01",
+    affected_versions: ["1.0.0"],
+    patched_versions: ["1.0.1"],
+    // --- クリック時にエラーが出ないよう、詳細情報を追加 ---
+    cveId: `CVE-2025-EXTRA-${i}`,
+    description: "This is a generated description for testing pagination.",
+    mitigation: "Generated mitigation advice.",
+    tasks: [], // タスク0件のケースをテスト
+  })),
+];
+WithPagination.args = {
+  ...Default.args,
+  initialVulnerabilities: manyVulnerabilities,
+  tabCounts: { unsolved: manyVulnerabilities.length, solved: 42 },
 };
