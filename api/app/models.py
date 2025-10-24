@@ -518,12 +518,9 @@ class TicketStatus(Base):
     __tablename__ = "ticketstatus"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.status_id:
             self.status_id = str(uuid.uuid4())
-        if not self.created_at:
-            self.created_at = now
 
     status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID] = mapped_column(
