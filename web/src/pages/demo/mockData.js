@@ -115,7 +115,7 @@ export const mockPackageReferences = [
   { target: "notification-batch/pom.xml", version: "2.13.0", service: "Notification Batch" },
 ];
 
-export const mockDefaultSafetyImpact = "Medium (default)";
+export const mockDefaultSafetyImpact = "Medium";
 
 export const mockSsvcCounts = { immediate: 2, high: 1, medium: 1, low: 0 };
 
