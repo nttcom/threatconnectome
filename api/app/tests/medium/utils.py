@@ -195,7 +195,7 @@ def get_tickets_related_to_vuln_package(
 
 def set_ticket_status(user: dict, pteam_id: UUID | str, ticket_id: UUID | str, json: dict) -> dict:
     response = client.put(
-        f"/pteams/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
+        f"/pteams/{pteam_id}/tickets/{ticket_id}",
         headers=headers(user),
         json=json,
     )

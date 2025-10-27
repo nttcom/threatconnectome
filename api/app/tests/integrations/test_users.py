@@ -310,9 +310,11 @@ class TestDeleteUserSideEffects:
 
         # Set ticket status
         status_request1 = {
-            "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
-            "assignees": [str(self.user1.user_id)],
-            "logging_ids": [self.actionlog1["logging_id"]],
+            "ticket_status": {
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
+                "assignees": [str(self.user1.user_id)],
+                "logging_ids": [self.actionlog1["logging_id"]],
+            }
         }
         set_ticket_status(
             USER1,
@@ -322,9 +324,11 @@ class TestDeleteUserSideEffects:
         )
 
         status_request2 = {
-            "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
-            "assignees": [str(self.user2.user_id)],
-            "logging_ids": [self.actionlog2["logging_id"]],
+            "ticket_status": {
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
+                "assignees": [str(self.user2.user_id)],
+                "logging_ids": [self.actionlog2["logging_id"]],
+            }
         }
         set_ticket_status(
             USER2,
@@ -468,9 +472,11 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
-            "assignees": [str(self.user1.user_id)],
-            "logging_ids": [self.actionlog1["logging_id"]],
+            "ticket_status": {
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
+                "assignees": [str(self.user1.user_id)],
+                "logging_ids": [self.actionlog1["logging_id"]],
+            }
         }
         set_ticket_status(
             USER2,
@@ -493,9 +499,11 @@ class TestDeleteUserSideEffects:
         self.update_pteam_member(USER1, self.user2.user_id, self.pteam1.pteam_id, True)
 
         status_request = {
-            "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
-            "assignees": [str(self.user1.user_id)],
-            "logging_ids": [self.actionlog1["logging_id"]],
+            "ticket_status": {
+                "ticket_handling_status": models.TicketHandlingStatusType.completed.value,
+                "assignees": [str(self.user1.user_id)],
+                "logging_ids": [self.actionlog1["logging_id"]],
+            }
         }
         set_ticket_status(
             USER2,

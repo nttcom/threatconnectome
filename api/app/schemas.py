@@ -345,20 +345,12 @@ class ActionLogRequest(ORMModel):
     executed_at: datetime | None = None
 
 
-class TicketStatusRequest(ORMModel):
-    ticket_handling_status: TicketHandlingStatusType | None = None
-    logging_ids: list[UUID] | None = None
-    assignees: list[UUID] | None = None
-    note: str | None = None
-    scheduled_at: datetime | None = None
-
-
 class TicketStatusResponse(ORMModel):
     status_id: UUID
-    ticket_id: UUID
     ticket_handling_status: TicketHandlingStatusType
     user_id: UUID | None  # None: auto created when ticket is created
     created_at: datetime
+    updated_at: datetime
     assignees: list[UUID] = []
     note: str | None = None
     scheduled_at: datetime | None = None
@@ -371,7 +363,6 @@ class TicketResponse(ORMModel):
     dependency_id: UUID
     service_id: UUID
     pteam_id: UUID
-    created_at: datetime
     ssvc_deployer_priority: SSVCDeployerPriorityEnum | None
     ticket_safety_impact: SafetyImpactEnum | None
     ticket_safety_impact_change_reason: str | None
@@ -383,9 +374,18 @@ class TicketListResponse(BaseModel):
     tickets: list[TicketResponse]
 
 
+class TicketStatusRequest(ORMModel):
+    ticket_handling_status: TicketHandlingStatusType | None = None
+    logging_ids: list[UUID] | None = None
+    assignees: list[UUID] | None = None
+    note: str | None = None
+    scheduled_at: datetime | None = None
+
+
 class TicketUpdateRequest(ORMModel):
     ticket_safety_impact: SafetyImpactEnum | None = None
     ticket_safety_impact_change_reason: str | None = None
+    ticket_status: TicketStatusRequest | None = None
 
 
 class PTeamPackagesSummary(ORMModel):
