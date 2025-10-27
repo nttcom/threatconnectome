@@ -14,7 +14,7 @@ from sqlalchemy import (
     or_,
     select,
 )
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from app import models, schemas
 
@@ -65,10 +65,8 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
             ),
         )
     else:
-        select_stmt = select_stmt.options(
-            joinedload(models.Ticket.ticket_status, innerjoin=True).joinedload(
-                models.TicketStatus.action_logs, innerjoin=False
-            ),
+        select_stmt = select_stmt.join(
+            models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id
         )
 
     select_stmt = select_stmt.join(
@@ -96,7 +94,7 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
         )
 
     select_stmt = select_stmt.order_by(
-        models.Ticket.ssvc_deployer_priority, models.Ticket.created_at
+        models.Ticket.ssvc_deployer_priority, models.TicketStatus.created_at
     )
 
     # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
@@ -332,7 +330,7 @@ def get_packages_summary(
         select(
             models.Ticket.dependency_id,
             models.Ticket.ssvc_deployer_priority,
-            models.Vuln.updated_at,
+            models.TicketStatus.updated_at,
         )
         .join(
             models.TicketStatus,
@@ -508,7 +506,7 @@ ssvc_priority_case = case(
 
 TICKETS_SORT_KEYS = {
     "ssvc_deployer_priority": ssvc_priority_case,
-    "created_at": models.Ticket.created_at,
+    "created_at": models.TicketStatus.created_at,
     "scheduled_at": models.TicketStatus.scheduled_at,
     "cve_id": models.Vuln.cve_id,
     "package_name": models.Package.name,

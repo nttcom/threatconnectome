@@ -1,7 +1,7 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 
-import { useUpdateTicketSafetyImpactMutation } from "../../../services/tcApi";
+import { useUpdateTicketMutation } from "../../../services/tcApi";
 import { errorToString } from "../../../utils/func";
 
 import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
@@ -9,12 +9,12 @@ import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 export function SafetyImpactSelector(props) {
   const { pteamId, ticket } = props;
 
-  const [updateTicketSafetyImpact] = useUpdateTicketSafetyImpactMutation();
+  const [updateTicket] = useUpdateTicketMutation();
 
   const { enqueueSnackbar } = useSnackbar();
 
   const updateTicketFunction = async (requestData) => {
-    await updateTicketSafetyImpact({
+    await updateTicket({
       pteamId,
       ticketId: ticket.ticket_id,
       data: requestData,

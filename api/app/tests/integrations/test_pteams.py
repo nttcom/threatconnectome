@@ -53,10 +53,12 @@ class TestGetVulnIdsTiedToServicePackage:
             testdb, USER1, PTEAM1, service_name1, VULN1
         )
         json_data = {
-            "ticket_handling_status": "acknowledged",
-            "note": "string",
-            "assignees": [],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "note": "string",
+                "assignees": [],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -145,10 +147,12 @@ class TestGetVulnIdsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -191,10 +195,12 @@ class TestGetVulnIdsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -255,10 +261,12 @@ class TestGetVulnIdsTiedToServicePackage:
         )
         ticket_id_1 = response1.json()[0]["ticket_id"]
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -361,10 +369,12 @@ class TestGetTicketCountsTiedToServicePackage:
             testdb, USER1, PTEAM1, service_name1, VULN1
         )
         json_data = {
-            "ticket_handling_status": "acknowledged",
-            "note": "string",
-            "assignees": [],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "note": "string",
+                "assignees": [],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -463,10 +473,12 @@ class TestGetTicketCountsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -514,10 +526,12 @@ class TestGetTicketCountsTiedToServicePackage:
         # Given
         # Change status of ticket1
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,
@@ -583,10 +597,12 @@ class TestGetTicketCountsTiedToServicePackage:
         )
         ticket_id_1 = response1.json()[0]["ticket_id"]
         json_data = {
-            "ticket_handling_status": "completed",
-            "note": "string",
-            "assignees": [self.ticket_response1["user_id"]],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "completed",
+                "note": "string",
+                "assignees": [self.ticket_response1["user_id"]],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,

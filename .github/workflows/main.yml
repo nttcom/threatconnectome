@@ -55,7 +55,7 @@ jobs:
         working-directory: ${{ env.API_DIRS }}
     services:
       postgres:
-        image: postgres
+        image: postgres:17.6
         ports:
           - 5432:5432
         env:

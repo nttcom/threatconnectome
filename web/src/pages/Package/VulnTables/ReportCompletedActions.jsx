@@ -20,7 +20,7 @@ import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useCreateActionLogMutation,
-  useUpdateTicketStatusMutation,
+  useUpdateTicketMutation,
   useGetUserMeQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
@@ -63,7 +63,7 @@ export function ReportCompletedActions(props) {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
   const [createActionLog] = useCreateActionLogMutation();
-  const [updateTicketStatus] = useUpdateTicketStatusMutation();
+  const [updateTicket] = useUpdateTicketMutation();
 
   if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
@@ -94,14 +94,16 @@ export function ReportCompletedActions(props) {
     )
       .then(
         async (actionLogs) =>
-          await updateTicketStatus({
+          await updateTicket({
             pteamId,
             ticketId,
             data: {
-              ticket_handling_status: "completed",
-              logging_ids: actionLogs.map((log) => log.logging_id),
-              note: note.trim() || null,
-              scheduled_at: null, // clear scheduled date
+              ticket_status: {
+                ticket_handling_status: "completed",
+                logging_ids: actionLogs.map((log) => log.logging_id),
+                note: note.trim() || null,
+                scheduled_at: null, // clear scheduled date
+              },
             },
           }).unwrap(),
       )

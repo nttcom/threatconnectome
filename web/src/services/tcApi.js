@@ -362,7 +362,7 @@ export const tcApi = createApi({
       ],
     }),
 
-    updateTicketSafetyImpact: builder.mutation({
+    updateTicket: builder.mutation({
       query: ({ pteamId, ticketId, data }) => ({
         url: `pteams/${pteamId}/tickets/${ticketId}`,
         method: "PUT",
@@ -371,17 +371,6 @@ export const tcApi = createApi({
       invalidatesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Ticket", id: arg.ticketId },
-      ],
-    }),
-
-    /* Ticket Status */
-    updateTicketStatus: builder.mutation({
-      query: ({ pteamId, ticketId, data }) => ({
-        url: `pteams/${pteamId}/tickets/${ticketId}/ticketstatuses`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: (result, error, arg) => [
         { type: "TicketStatus", id: "ALL" },
         { type: "TicketStatus", id: arg.ticketId },
       ],
@@ -505,8 +494,7 @@ export const {
   useUploadSBOMFileMutation,
   useGetTicketsQuery,
   useGetPteamTicketsQuery,
-  useUpdateTicketSafetyImpactMutation,
-  useUpdateTicketStatusMutation,
+  useUpdateTicketMutation,
   useGetUserMeQuery,
   useGetVulnsQuery,
   useGetVulnQuery,

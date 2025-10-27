@@ -33,10 +33,12 @@ class TestGetVulnIdsTiedToServicePackage:
         )
 
         json_data = {
-            "ticket_handling_status": "acknowledged",
-            "note": "string",
-            "assignees": [],
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "note": "string",
+                "assignees": [],
+                "scheduled_at": None,
+            }
         }
         set_ticket_status(
             USER1,

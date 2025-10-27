@@ -61,7 +61,6 @@ def create_ticket_internal(
     ticket = models.Ticket(
         threat_id=threat.threat_id,
         dependency_id=dependency.dependency_id,
-        created_at=now,
         ssvc_deployer_priority=None,
         threat=threat,
         dependency=dependency,
@@ -79,6 +78,7 @@ def create_ticket_internal(
         assignees=[],
         scheduled_at=None,
         created_at=now,
+        updated_at=now,
     )
     persistence.create_ticket_status(db, ticket_status)
 

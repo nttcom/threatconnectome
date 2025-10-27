@@ -685,18 +685,74 @@ def get_ticket_counts_tied_to_service_package(
 
 
 @router.get(
-    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
-    response_model=schemas.TicketStatusResponse,
+    "/{pteam_id}/tickets",
+    response_model=list[schemas.TicketResponse],
 )
-def get_ticket_status(
+def get_tickets_by_service_id_and_package_id_and_vuln_id(
+    pteam_id: UUID,
+    service_id: UUID | None = Query(None),
+    package_id: UUID | None = Query(None),
+    vuln_id: UUID | None = Query(None),
+    assigned_to_me: bool = Query(False),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get tickets related to the service, package and vuln.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if service_id:
+        if not (service := persistence.get_service_by_id(db, service_id)):
+            raise NO_SUCH_SERVICE
+        if service.pteam_id != str(pteam_id):
+            raise NO_SUCH_SERVICE
+    if package_id and not (persistence.get_package_by_id(db, package_id)):
+        raise NO_SUCH_PACKAGE
+    if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
+        raise NO_SUCH_VULN
+
+    if assigned_to_me:
+        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
+            db, service_id, package_id, vuln_id, current_user.user_id
+        )
+    else:
+        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
+            db, service_id, package_id, vuln_id
+        )
+
+    ret = [
+        {
+            "ticket_id": ticket.ticket_id,
+            "vuln_id": ticket.threat.vuln_id,
+            "dependency_id": ticket.dependency_id,
+            "service_id": ticket.dependency.service.service_id,
+            "pteam_id": pteam.pteam_id,
+            "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+            "ticket_safety_impact": ticket.ticket_safety_impact,
+            "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
+            "ticket_status": {
+                k: v for k, v in ticket.ticket_status.__dict__.items() if k != "ticket_id"
+            },
+        }
+        for ticket in tickets
+    ]
+    return ret
+
+
+@router.get("/{pteam_id}/tickets/{ticket_id}", response_model=schemas.TicketResponse)
+def get_ticket(
     pteam_id: UUID,
     ticket_id: UUID,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Get the current status of the ticket.
+    Get a ticket.
     """
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
@@ -704,33 +760,31 @@ def get_ticket_status(
     if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
         raise NO_SUCH_TICKET
 
-    return ticket.ticket_status
-
-
-@router.put(
-    "/{pteam_id}/tickets/{ticket_id}/ticketstatuses",
-    response_model=schemas.TicketStatusResponse,
-)
-def set_ticket_status(
-    pteam_id: UUID,
-    ticket_id: UUID,
-    data: schemas.TicketStatusRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Set status of the ticket.
-    Current value should be inherited if not specified.
-
-    scheduled_at is necessary to make ticket_handling_status "scheduled".
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+    service = ticket.dependency.service
+    if str(service.pteam_id) != str(pteam_id):
         raise NO_SUCH_TICKET
 
+    vuln_id = ticket.threat.vuln_id if ticket.threat else None
+    ticket_status_dict = {
+        k: v for k, v in ticket.ticket_status.__dict__.items() if k != "ticket_id"
+    }
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "vuln_id": vuln_id,
+        "dependency_id": ticket.dependency_id,
+        "service_id": ticket.dependency.service.service_id,
+        "pteam_id": pteam.pteam_id,
+        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
+        "ticket_safety_impact": ticket.ticket_safety_impact,
+        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
+        "ticket_status": ticket_status_dict,
+    }
+
+
+def check_ticket_status_update_request(
+    ticket, data: schemas.TicketStatusRequest, pteam, ticket_id: UUID, now, db: Session
+):
     update_data = data.model_dump(exclude_unset=True)
 
     if "ticket_handling_status" in update_data.keys() and data.ticket_handling_status is None:
@@ -753,7 +807,6 @@ def set_ticket_status(
         # user cannot set alerted
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong topic status")
 
-    now = datetime.now(timezone.utc)
     if data.scheduled_at and data.scheduled_at.tzinfo is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -827,6 +880,18 @@ def set_ticket_status(
                 detail="Not a pteam member",
             )
 
+
+def set_ticket_status(
+    ticket, data: schemas.TicketStatusRequest, current_user: models.Account, now, db: Session
+):
+    """
+    Set status of the ticket.
+    Current value should be inherited if not specified.
+
+    scheduled_at is necessary to make ticket_handling_status "scheduled".
+    """
+    update_data = data.model_dump(exclude_unset=True)
+
     # update only if required
     if "assignees" in update_data.keys() and data.assignees is not None:
         ticket.ticket_status.assignees = list(map(str, data.assignees))
@@ -855,129 +920,16 @@ def set_ticket_status(
 
     # set last updated by
     ticket.ticket_status.user_id = current_user.user_id
+    ticket.ticket_status.updated_at = now
 
-    db.commit()
-
-    return ticket.ticket_status
-
-
-@router.get(
-    "/{pteam_id}/tickets",
-    response_model=list[schemas.TicketResponse],
-)
-def get_tickets_by_service_id_and_package_id_and_vuln_id(
-    pteam_id: UUID,
-    service_id: UUID | None = Query(None),
-    package_id: UUID | None = Query(None),
-    vuln_id: UUID | None = Query(None),
-    assigned_to_me: bool = Query(False),
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get tickets related to the service, package and vuln.
-    """
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if service_id:
-        if not (service := persistence.get_service_by_id(db, service_id)):
-            raise NO_SUCH_SERVICE
-        if service.pteam_id != str(pteam_id):
-            raise NO_SUCH_SERVICE
-    if package_id and not (persistence.get_package_by_id(db, package_id)):
-        raise NO_SUCH_PACKAGE
-    if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
-        raise NO_SUCH_VULN
-
-    if assigned_to_me:
-        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id, current_user.user_id
-        )
-    else:
-        tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id
-        )
-
-    ret = [
-        {
-            "ticket_id": ticket.ticket_id,
-            "vuln_id": ticket.threat.vuln_id,
-            "dependency_id": ticket.dependency_id,
-            "service_id": ticket.dependency.service.service_id,
-            "pteam_id": pteam.pteam_id,
-            "created_at": ticket.created_at,
-            "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
-            "ticket_safety_impact": ticket.ticket_safety_impact,
-            "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
-            "ticket_status": ticket.ticket_status.__dict__,
-        }
-        for ticket in tickets
-    ]
-    return ret
+    db.flush()
 
 
-@router.get("/{pteam_id}/tickets/{ticket_id}", response_model=schemas.TicketResponse)
-def get_ticket(
-    pteam_id: UUID,
-    ticket_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get a ticket.
-    """
-
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
-
-    service = ticket.dependency.service
-    if str(service.pteam_id) != str(pteam_id):
-        raise NO_SUCH_TICKET
-
-    vuln_id = ticket.threat.vuln_id if ticket.threat else None
-
-    return {
-        "ticket_id": ticket.ticket_id,
-        "vuln_id": vuln_id,
-        "dependency_id": ticket.dependency_id,
-        "service_id": ticket.dependency.service.service_id,
-        "pteam_id": pteam.pteam_id,
-        "created_at": ticket.created_at,
-        "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
-        "ticket_safety_impact": ticket.ticket_safety_impact,
-        "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
-        "ticket_status": ticket.ticket_status,
-    }
-
-
-@router.put(
-    "/{pteam_id}/tickets/{ticket_id}",
-    response_model=schemas.TicketResponse,
-)
-def update_ticket_safety_impact(
-    pteam_id: UUID,
-    ticket_id: UUID,
-    data: schemas.TicketUpdateRequest,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+def update_ticket_safety_impact(ticket, data: schemas.TicketUpdateRequest, db: Session):
     """
     Update ticket_safety_impact.
     """
     max_reason_safety_impact_length_in_half = 2000
-
-    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-        raise NO_SUCH_PTEAM
-    if not check_pteam_membership(pteam, current_user):
-        raise NOT_A_PTEAM_MEMBER
-    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
-        raise NO_SUCH_TICKET
 
     need_fix_ssvc_priority = False
     updated_keys = data.model_dump(exclude_unset=True).keys()
@@ -1010,21 +962,49 @@ def update_ticket_safety_impact(
         db.flush()
         fix_ticket_ssvc_priority(db, ticket)
 
+
+@router.put(
+    "/{pteam_id}/tickets/{ticket_id}",
+    response_model=schemas.TicketResponse,
+)
+def update_ticket(
+    pteam_id: UUID,
+    ticket_id: UUID,
+    data: schemas.TicketUpdateRequest,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+    if not (ticket := persistence.get_ticket_by_id(db, ticket_id)):
+        raise NO_SUCH_TICKET
+
+    now = datetime.now(timezone.utc)
+    if data.ticket_status is not None:
+        check_ticket_status_update_request(ticket, data.ticket_status, pteam, ticket_id, now, db)
+        set_ticket_status(ticket, data.ticket_status, current_user, now, db)
+    update_ticket_safety_impact(ticket, data, db)
+
     db.commit()
 
     vuln_id = ticket.threat.vuln_id if ticket.threat else None
 
+    ticket_status_dict = {
+        k: v for k, v in ticket.ticket_status.__dict__.items() if k != "ticket_id"
+    }
     return {
         "ticket_id": ticket.ticket_id,
         "vuln_id": vuln_id,
         "dependency_id": ticket.dependency_id,
         "service_id": ticket.dependency.service.service_id,
         "pteam_id": pteam.pteam_id,
-        "created_at": ticket.created_at,
         "ssvc_deployer_priority": ticket.ssvc_deployer_priority,
         "ticket_safety_impact": ticket.ticket_safety_impact,
         "ticket_safety_impact_change_reason": ticket.ticket_safety_impact_change_reason,
-        "ticket_status": ticket.ticket_status,
+        "ticket_status": ticket_status_dict,
     }
 
 
