@@ -6,7 +6,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Typography,
   Box,
   TablePagination,
@@ -17,6 +16,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Stack,
+  Paper,
 } from "@mui/material";
 import { useState } from "react";
 
@@ -115,7 +115,7 @@ export default function PackagePage({
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
   return (
-    <Box sx={{ p: 3, bgcolor: "#f4f6f8" }}>
+    <Box sx={{ p: 3 }}>
       {/* ページヘッダー */}
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -159,55 +159,53 @@ export default function PackagePage({
       </Typography>
 
       {/* 脆弱性テーブル */}
-      <Paper elevation={0} sx={{ borderRadius: 4 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell align="center">Tasks</TableCell>
-                <TableCell align="center">Highest SSVC</TableCell>
-                <TableCell>Last Updated</TableCell>
-                <TableCell>Affected Version</TableCell>
-                <TableCell>Patched Version</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {vulnerabilities
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((vuln) => (
-                  <TableRow
-                    key={vuln.id}
-                    onClick={() => handleRowClick(vuln)}
-                    hover
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell>{vuln.title || "No Title"}</TableCell>
-                    <TableCell align="center">{vuln.tasks?.length || 0}</TableCell>
-                    <TableCell align="center">
-                      <SSVCPriorityChip priority={vuln.highestSsvc} />
-                    </TableCell>
-                    <TableCell>{vuln.updated_at || "-"}</TableCell>
-                    <TableCell>{(vuln.affected_versions || []).join("\n")}</TableCell>
-                    <TableCell>{(vuln.patched_versions || []).join("\n")}</TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={vulnerabilities.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-        />
-      </Paper>
+      <TableContainer component={Paper} variant="outlined">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Title</TableCell>
+              <TableCell align="center">Tasks</TableCell>
+              <TableCell align="center">Highest SSVC</TableCell>
+              <TableCell>Last Updated</TableCell>
+              <TableCell>Affected Version</TableCell>
+              <TableCell>Patched Version</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {vulnerabilities
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((vuln) => (
+                <TableRow
+                  key={vuln.id}
+                  onClick={() => handleRowClick(vuln)}
+                  hover
+                  sx={{ cursor: "pointer" }}
+                >
+                  <TableCell>{vuln.title || "No Title"}</TableCell>
+                  <TableCell align="center">{vuln.tasks?.length || 0}</TableCell>
+                  <TableCell align="center">
+                    <SSVCPriorityChip priority={vuln.highestSsvc} />
+                  </TableCell>
+                  <TableCell>{vuln.updated_at || "-"}</TableCell>
+                  <TableCell>{(vuln.affected_versions || []).join("\n")}</TableCell>
+                  <TableCell>{(vuln.patched_versions || []).join("\n")}</TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={vulnerabilities.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(e, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+      />
 
       {/* ダイアログ */}
       {/* {selectedVuln && (
