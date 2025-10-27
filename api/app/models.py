@@ -231,6 +231,17 @@ class Account(Base):
     )
 
 
+class AccountFavoritePTeam(Base):
+    __tablename__ = "accountfavoritepteam"
+
+    user_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    favorite_pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
+    )
+
+
 class PackageVersion(Base):
     __tablename__ = "packageversion"
     __table_args__ = (
