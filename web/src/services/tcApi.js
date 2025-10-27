@@ -204,10 +204,13 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Service", id: arg.serviceId },
-        { type: "Ticket", id: "ALL" },
-      ],
+      invalidatesTags: (result, error, arg) =>
+        result
+          ? [
+              { type: "Service", id: arg.serviceId },
+              { type: "Ticket", id: "ALL" },
+            ]
+          : [],
     }),
     deletePTeamService: builder.mutation({
       query: ({ pteamId, serviceId }) => ({

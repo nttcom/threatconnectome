@@ -3,6 +3,7 @@ import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import {
   Box,
   Button,
+  CircularProgress,
   Grid,
   IconButton,
   Paper,
@@ -43,11 +44,13 @@ export function PTeamStatusSSVCCards(props) {
   const [isMissionImpactEditable, setIsMissionImpactEditable] = useState(false);
   const [systemExposureValue, setSystemExposureValue] = useState(service.system_exposure);
   const [missionImpactValue, setMissionImpactValue] = useState(service.service_mission_impact);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const { enqueueSnackbar } = useSnackbar();
 
   const handleUpdatePTeamService = async (card) => {
+    setIsUpdating(true);
     const data =
       card.title === "System Exposure"
         ? { system_exposure: systemExposureValue }
@@ -57,10 +60,24 @@ export function PTeamStatusSSVCCards(props) {
       .unwrap()
       .then(() => {
         enqueueSnackbar("Update succeeded", { variant: "success" });
+        card.handleClickIconButton(false);
       })
       .catch((error) => {
         enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+      })
+      .finally(() => {
+        setIsUpdating(false);
       });
+  };
+
+  const handleClickIconSystemExposure = (open) => {
+    if (open) setIsMissionImpactEditable(false);
+    setIsSystemExposureEditable(open);
+  };
+
+  const handleClickIconMissionImpact = (open) => {
+    if (open) setIsSystemExposureEditable(false);
+    setIsMissionImpactEditable(open);
   };
 
   const SSVCCardsList = [
@@ -70,7 +87,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedSystemExposure,
       valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
-      handleClickIconButton: setIsSystemExposureEditable,
+      handleClickIconButton: handleClickIconSystemExposure,
       handleClickToggleButton: setSystemExposureValue,
     },
     {
@@ -79,7 +96,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedMissionImpat,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
-      handleClickIconButton: setIsMissionImpactEditable,
+      handleClickIconButton: handleClickIconMissionImpact,
       handleClickToggleButton: setMissionImpactValue,
     },
   ];
@@ -203,7 +220,7 @@ export function PTeamStatusSSVCCards(props) {
                 </Tooltip>
               </Box>
               {!card.isEditable && (
-                <IconButton onClick={() => card.handleClickIconButton(true)}>
+                <IconButton disabled={isUpdating} onClick={() => card.handleClickIconButton(true)}>
                   <EditIcon />
                 </IconButton>
               )}
@@ -247,6 +264,7 @@ export function PTeamStatusSSVCCards(props) {
                       ? card.handleClickToggleButton(service.system_exposure)
                       : card.handleClickToggleButton(service.service_mission_impact);
                   }}
+                  disabled={isUpdating}
                 >
                   Cancel
                 </Button>
@@ -254,11 +272,12 @@ export function PTeamStatusSSVCCards(props) {
                   variant="contained"
                   size="small"
                   onClick={() => {
-                    card.handleClickIconButton(false);
                     handleUpdatePTeamService(card);
                   }}
+                  disabled={isUpdating}
+                  startIcon={isUpdating ? <CircularProgress size={20} /> : null}
                 >
-                  Update
+                  {isUpdating ? "Updating..." : "Update"}
                 </Button>
               </Stack>
             )}
