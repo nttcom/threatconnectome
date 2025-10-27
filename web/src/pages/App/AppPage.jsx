@@ -28,6 +28,7 @@ export function App() {
       navigate("/login", {
         state: {
           message: "Please login to continue.",
+          messageType: "info",
         },
       });
     };

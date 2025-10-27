@@ -3,6 +3,8 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app import persistence
 from app.main import app
@@ -148,10 +150,12 @@ def ticket_setup(testdb):
         pteam1.pteam_id,
         ticket1["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [str(user1.user_id)],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [str(user1.user_id)],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
     set_ticket_status(
@@ -159,10 +163,12 @@ def ticket_setup(testdb):
         pteam2.pteam_id,
         ticket2["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
     set_ticket_status(
@@ -170,10 +176,12 @@ def ticket_setup(testdb):
         pteam3.pteam_id,
         ticket3["ticket_id"],
         {
-            "ticket_handling_status": "acknowledged",
-            "assignees": [],
-            "note": "",
-            "scheduled_at": None,
+            "ticket_status": {
+                "ticket_handling_status": "acknowledged",
+                "assignees": [],
+                "note": "",
+                "scheduled_at": None,
+            }
         },
     )
 
@@ -243,7 +251,6 @@ class TestGetTickets:
                 "dependency_id",
                 "service_id",
                 "pteam_id",
-                "created_at",
                 "ssvc_deployer_priority",
                 "ticket_status",
             ]:
@@ -445,6 +452,86 @@ class TestGetTickets:
             ),
         )
         assert tickets == sorted_tickets
+
+    @pytest.mark.parametrize(
+        "sort_key,vulns_data",
+        [
+            # Test case 1: cve_id ascending
+            (
+                "cve_id",
+                [
+                    {  # 1,
+                        "cve_id": "CVE-2023-2000",  # fix vuln1 of ticket_setup
+                    },
+                    {  # 2,
+                        "cve_id": "CVE-2023-10000",  # fix vuln2 of ticket_setup
+                    },
+                    {  # 3,
+                        "cve_id": None,  # fix vuln3 of ticket_setup
+                    },
+                ],
+            ),
+            (
+                "-cve_id",
+                [
+                    {  # 1,
+                        "cve_id": "CVE-2023-10000",  # fix vuln1 of ticket_setup
+                    },
+                    {  # 2,
+                        "cve_id": "CVE-2023-2000",  # fix vuln2 of ticket_setup
+                    },
+                    {  # 3,
+                        "cve_id": None,  # fix vuln3 of ticket_setup
+                    },
+                ],
+            ),
+        ],
+    )
+    def test_it_should_sort_cve_id(self, testdb: Session, ticket_setup, sort_key, vulns_data):
+        # Given
+        pteam1 = ticket_setup["pteam1"]
+        pteam2 = ticket_setup["pteam2"]
+        pteam3 = ticket_setup["pteam3"]
+        invitation = invite_to_pteam(USER2, pteam2.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+        invitation = invite_to_pteam(USER3, pteam3.pteam_id)
+        accept_pteam_invitation(USER1, invitation.invitation_id)
+
+        for i in range(3):
+            testdb.execute(
+                text(
+                    f"""
+                    UPDATE vuln
+                    SET {"cve_id = :cve_id"}
+                    WHERE vuln_id = :vuln_id
+                    """
+                ),
+                {
+                    "vuln_id": str(ticket_setup["vuln" + str(i + 1)].vuln_id),
+                    "cve_id": vulns_data[i]["cve_id"],
+                },
+            )
+
+        # When
+        response = client.get(
+            "/tickets",
+            headers=headers(USER1),
+            params={
+                "sort_keys": [sort_key],
+                "pteam_ids": [str(pteam1.pteam_id), str(pteam2.pteam_id), str(pteam3.pteam_id)],
+            },
+        )
+
+        # Then
+        assert response.status_code == 200
+        tickets = response.json()["tickets"]
+
+        sorted_tickets_id = [
+            ticket_setup["ticket1"]["ticket_id"],
+            ticket_setup["ticket2"]["ticket_id"],
+            ticket_setup["ticket3"]["ticket_id"],
+        ]
+        assert [ticket["ticket_id"] for ticket in tickets] == sorted_tickets_id
 
     @pytest.mark.parametrize(
         "cve_ids, expected_tickets, expected_count",

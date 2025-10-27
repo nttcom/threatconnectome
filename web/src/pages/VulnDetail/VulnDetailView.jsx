@@ -4,11 +4,11 @@ import {
 } from "@mui/icons-material";
 import { Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
-import { utcStringToLocalDate } from "../../utils/func";
+import { utcStringToLocalDate, createRandomUUID } from "../../utils/func";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
@@ -22,6 +22,15 @@ export function VulnDetailView(props) {
   const { vuln, actions } = props;
 
   const [showAllPackages, setShowAllPackages] = useState(false);
+
+  const actionsWithUiId = useMemo(
+    () =>
+      actions.map((action) => ({
+        ...action,
+        uiId: createRandomUUID(), // uiId is used for components' keys.
+      })),
+    [actions],
+  );
 
   return (
     <>
@@ -101,21 +110,24 @@ export function VulnDetailView(props) {
             <Box alignItems="center" display="flex" flexDirection="row">
               <Typography sx={{ fontWeight: "bold" }}>Action</Typography>
             </Box>
-            {actions.length === 0 ? (
+            {actionsWithUiId.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
             ) : (
               <>
                 <Box>
-                  {actions.map((action) => (
+                  {actionsWithUiId.map((action) => (
                     <MenuItem
-                      key={action.action_id}
+                      key={action.uiId}
                       sx={{
                         alignItems: "center",
                         display: "flex",
                         flexDirection: "row",
                       }}
                     >
-                      <ActionTypeIcon actionType="elimination" disabled={false} />
+                      <ActionTypeIcon
+                        actionType={action.action_type}
+                        disabled={!action.recommended}
+                      />
                       <Box display="flex" flexDirection="column">
                         <Typography noWrap variant="body">
                           {action.action}

@@ -209,7 +209,6 @@ class TestFixTicketByThreat:
         ticket = models.Ticket(
             threat_id=threat.threat_id,
             dependency_id=dependency1.dependency_id,
-            created_at="2023-10-01T00:00:00Z",
             threat=threat,
             dependency=dependency1,
         )

@@ -263,3 +263,98 @@ class TestTrivyCDXParser:
         assert len(artifact4.targets) == 2
         assert list(artifact4.targets)[0] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
         assert list(artifact4.targets)[1] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
+
+    def test_it_should_create_ecosystem_when_wolfi(self):
+        sbom = {
+            "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.6",
+            "serialNumber": ("urn:uuid:5bf250f0-d1be-4c1a-96dc-5f6e62c28cb2"),
+            "version": 1,
+            "metadata": {
+                "timestamp": "2025-07-03T08:41:51+00:00",
+                "tools": {
+                    "components": [
+                        {
+                            "type": "application",
+                            "group": "aquasecurity",
+                            "name": "trivy",
+                            "version": "0.63.0",
+                        }
+                    ]
+                },
+                "component": {
+                    "bom-ref": (
+                        "pkg:oci/wolfi-base@sha256%3A1c6a85817d3a8787e094aae474e978d4ecdf634fd65e77ab28"
+                        "ffae513e35cca1?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fwolfi-base"
+                    ),
+                    "type": "container",
+                    "name": "chainguard/wolfi-base",
+                    "purl": (
+                        "pkg:oci/wolfi-base@sha256%3A1c6a85817d3a8787e094aae474e978d4ecdf634fd65e77ab28"
+                        "ffae513e35cca1?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fwolfi-base"
+                    ),
+                },
+            },
+            "components": [
+                {
+                    "bom-ref": "54c52eb4-daef-4d2c-956f-35d046b7a2bb",
+                    "type": "operating-system",
+                    "name": "wolfi",
+                    "version": "20230201",
+                    "properties": [
+                        {"name": "aquasecurity:trivy:Class", "value": "os-pkgs"},
+                        {"name": "aquasecurity:trivy:Type", "value": "wolfi"},
+                    ],
+                },
+                {
+                    "bom-ref": ("pkg:apk/wolfi/libgcc@15.1.0-r1?arch=x86_64&distro=20230201"),
+                    "type": "library",
+                    "supplier": {"name": "wolfi"},
+                    "name": "libgcc",
+                    "version": "15.1.0-r1",
+                    "licenses": [
+                        {"license": {"name": "GPL-3.0-or-later"}},
+                        {"license": {"name": "WITH"}},
+                        {"license": {"name": "GCC-exception-3.1"}},
+                    ],
+                    "purl": ("pkg:apk/wolfi/libgcc@15.1.0-r1?arch=x86_64&distro=20230201"),
+                    "properties": [
+                        {"name": "aquasecurity:trivy:PkgID", "value": "libgcc@15.1.0-r1"},
+                        {"name": "aquasecurity:trivy:PkgType", "value": "wolfi"},
+                        {"name": "aquasecurity:trivy:SrcName", "value": "gcc"},
+                    ],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "54c52eb4-daef-4d2c-956f-35d046b7a2bb",
+                    "dependsOn": [
+                        "pkg:apk/wolfi/libgcc@15.1.0-r1?arch=x86_64&distro=20230201",
+                    ],
+                },
+                {
+                    "ref": (
+                        "pkg:oci/wolfi-base@sha256%3A1c6a85817d3a8787e094aae474e978d4ecdf634fd65e77ab28"
+                        "ffae513e35cca1?arch=amd64&repository_url=index.docker.io%2Fchainguard%2Fwolfi-base"
+                    ),
+                    "dependsOn": ["54c52eb4-daef-4d2c-956f-35d046b7a2bb"],
+                },
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.6",
+            tool_name="trivy",
+            tool_version="0.63.0",
+        )
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        assert artifact.ecosystem == "wolfi"
+        assert artifact.package_name == "libgcc"
+        assert artifact.source_name == "gcc"
+        assert artifact.package_manager == ""
+        assert len(artifact.targets) == 1
+        assert list(artifact.targets)[0] == ("wolfi", "15.1.0-r1")

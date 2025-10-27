@@ -1,3 +1,4 @@
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import {
   Box,
@@ -48,7 +49,7 @@ export function RiskAnalysisView(props) {
     <>
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: 30, md: 35 } }}>
           Risk Analysis: {cveId}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
@@ -65,7 +66,7 @@ export function RiskAnalysisView(props) {
       </Box>
 
       {/* Main Content */}
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: 4 }}>
         <Grid container spacing={4}>
           {/* Risk Summary */}
           <Grid size={12}>
@@ -77,6 +78,30 @@ export function RiskAnalysisView(props) {
                 Risk Summary
               </Typography>
             </Box>
+
+            {/* Disclaimer for AI-generated content */}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 1.5,
+                mb: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                backgroundColor: "action.hover",
+                borderRadius: 2,
+                borderColor: "divider",
+              }}
+            >
+              <SmartToyOutlinedIcon sx={{ color: "primary.main" }} />
+              <Typography variant="body2" color="text.secondary">
+                <Typography component="span" variant="body2" sx={{ fontWeight: "bold" }}>
+                  AI-Generated Summary:
+                </Typography>
+                This content is AI-generated and should be verified independently.
+              </Typography>
+            </Paper>
+
             <List>
               {uniqueThreatScenarios.map((scenario, index) => {
                 const RiskIcon = impactCategoryIcons[scenario.impact_category].icon;
@@ -101,7 +126,8 @@ export function RiskAnalysisView(props) {
               <Tabs
                 value={tabValue}
                 variant="scrollable"
-                scrollButtons="auto"
+                scrollButtons
+                allowScrollButtonsMobile
                 onChange={handleTabChange}
                 aria-label="detailed analysis tabs"
               >
@@ -128,7 +154,15 @@ export function RiskAnalysisView(props) {
         </Grid>
 
         {/* Footer: Action Buttons */}
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+        <Box
+          sx={{
+            mt: 4,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 2,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
           <Button variant="outlined" disabled>
             Export Report (PDF)
           </Button>

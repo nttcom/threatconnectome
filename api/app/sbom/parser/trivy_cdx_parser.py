@@ -68,6 +68,8 @@ OS_PACKAGE_TYPES = [
 # Example: "alpine" is formatted as "alpine+distro" instead of just "distro"
 OS_PACKAGE_TYPES_USING_TYPE_AND_DISTRO_AS_ECOSYSTEM = ["alpine"]
 
+OS_PACKAGE_TYPES_USING_TYPE_ONLY_AS_ECOSYSTEM = ["wolfi"]
+
 
 class TrivyCDXParser(SBOMParser):
     @staticmethod
@@ -159,6 +161,9 @@ class TrivyCDXParser(SBOMParser):
                     if distro
                     else component.purl.type
                 ).casefold()
+            elif pkg_type is not None and pkg_type in OS_PACKAGE_TYPES_USING_TYPE_ONLY_AS_ECOSYSTEM:
+                # For these OS types, we use pkg_type only as the ecosystem
+                ecosystem = pkg_type.casefold()
             else:
                 distro = (
                     component.purl.qualifiers.get("distro")

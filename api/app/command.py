@@ -1,20 +1,22 @@
 import re
 from datetime import datetime, timezone
-from typing import Sequence
+from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import (
+    Integer,
     and_,
     case,
+    cast,
     delete,
     false,
     func,
     or_,
     select,
 )
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
-from app import models, persistence, schemas
+from app import models, schemas
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -63,10 +65,8 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
             ),
         )
     else:
-        select_stmt = select_stmt.options(
-            joinedload(models.Ticket.ticket_status, innerjoin=True).joinedload(
-                models.TicketStatus.action_logs, innerjoin=False
-            ),
+        select_stmt = select_stmt.join(
+            models.TicketStatus, models.TicketStatus.ticket_id == models.Ticket.ticket_id
         )
 
     select_stmt = select_stmt.join(
@@ -94,14 +94,14 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
         )
 
     select_stmt = select_stmt.order_by(
-        models.Ticket.ssvc_deployer_priority, models.Ticket.created_at
+        models.Ticket.ssvc_deployer_priority, models.TicketStatus.created_at
     )
 
     # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
     return db.scalars(select_stmt).unique().all()
 
 
-def get_vulns_count(
+def _get_vulns_count(
     db: Session,
     filters,
     pteam_id: UUID | str | None,
@@ -123,6 +123,18 @@ def get_vulns_count(
 
     result = db.scalar(count_query)
     return result if result is not None else 0
+
+
+def _get_cve_id_sort_columns(desc: bool):
+    """
+    Function to sort CVE-IDs
+    """
+    col1 = cast(func.substring(models.Vuln.cve_id, r"CVE-(\d+)-"), Integer)
+    col2 = cast(func.substring(models.Vuln.cve_id, r"CVE-\d+-(\d+)"), Integer)
+    if desc:
+        return [col1.desc().nullslast(), col2.desc().nullslast()]
+    else:
+        return [col1, col2]
 
 
 VULNS_SORT_KEYS = {
@@ -154,12 +166,10 @@ def get_vulns(
     sort_keys: list[str] = ["-cvss_v3_score", "-updated_at"],  # set default sort key
 ) -> dict:
     # Remove duplicates from lists
-    fixed_creator_ids = set()
-    if creator_ids is not None:
-        for creator_id in creator_ids:
-            if not persistence.get_account_by_id(db, creator_id):
-                continue
-            fixed_creator_ids.add(creator_id)
+    fixed_vuln_ids: set[str | None] = set()
+    if vuln_ids is not None:
+        for vuln_id in vuln_ids:
+            fixed_vuln_ids.add(vuln_id)
 
     fixed_title_words: set[str | None] = set()
     if title_words is not None:
@@ -171,6 +181,11 @@ def get_vulns(
         for detail_word in detail_words:
             fixed_detail_words.add(detail_word)
 
+    fixed_creator_ids: set[str | None] = set()
+    if creator_ids is not None:
+        for creator_id in creator_ids:
+            fixed_creator_ids.add(creator_id)
+
     fixed_cve_ids: set[str | None] = set()
     if cve_ids is not None:
         for cve_id in cve_ids:
@@ -180,7 +195,21 @@ def get_vulns(
                 raise ValueError(f"Invalid CVE ID format: {cve_id}")
 
     # Base query
-    query = select(models.Vuln).join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
+    query: Any
+    if "cve_id" in sort_keys or "-cve_id" in sort_keys:
+        """
+        When using DISTINCT and ORDER BY together, and if a function is used in the ORDER BY clause,
+        that function must also be included in the SELECT clause.
+        """
+        query = select(
+            models.Vuln,
+            cast(func.substring(models.Vuln.cve_id, r"CVE-(\d+)-"), Integer).label("cve_year"),
+            cast(func.substring(models.Vuln.cve_id, r"CVE-\d+-(\d+)"), Integer).label("cve_number"),
+        ).join(models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id)
+    else:
+        query = select(models.Vuln).join(
+            models.Affect, models.Affect.vuln_id == models.Vuln.vuln_id
+        )
 
     filters = []
 
@@ -188,8 +217,8 @@ def get_vulns(
         filters.append(models.Vuln.cvss_v3_score >= min_cvss_v3_score)
     if max_cvss_v3_score is not None:
         filters.append(models.Vuln.cvss_v3_score <= max_cvss_v3_score)
-    if vuln_ids:
-        filters.append(models.Vuln.vuln_id.in_(vuln_ids))
+    if len(fixed_vuln_ids) > 0:
+        filters.append(models.Vuln.vuln_id.in_(fixed_vuln_ids))
     if len(fixed_title_words) > 0:
         filters.append(
             or_(
@@ -218,8 +247,8 @@ def get_vulns(
                 ],
             )
         )
-    if len(fixed_cve_ids) > 0:
-        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
+    if len(fixed_creator_ids) > 0:
+        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
     if created_after:
         filters.append(models.Vuln.created_at >= created_after)
     if created_before:
@@ -228,8 +257,8 @@ def get_vulns(
         filters.append(models.Vuln.updated_at >= updated_after)
     if updated_before:
         filters.append(models.Vuln.updated_at <= updated_before)
-    if len(fixed_creator_ids) > 0:
-        filters.append(models.Vuln.created_by.in_(fixed_creator_ids))
+    if len(fixed_cve_ids) > 0:
+        filters.append(models.Vuln.cve_id.in_(fixed_cve_ids))
 
     if package_name:
         filters.append(models.Affect.affected_name.in_(package_name))
@@ -247,7 +276,7 @@ def get_vulns(
         )
 
     # Count total number of vulnerabilities matching the filters
-    num_vulns = get_vulns_count(db, filters, pteam_id)
+    num_vulns = _get_vulns_count(db, filters, pteam_id)
 
     if filters:
         query = query.where(and_(*filters))
@@ -272,10 +301,10 @@ def get_vulns(
                 _key = sort_key[1:]
             column = VULNS_SORT_KEYS.get(_key)
             if column is not None:
-                if desc:
-                    sort_columns.append(column.desc().nullslast())
+                if _key == "cve_id":
+                    sort_columns.extend(_get_cve_id_sort_columns(desc))
                 else:
-                    sort_columns.append(column.nulls_first())
+                    sort_columns.append(column.desc().nullslast() if desc else column)
             else:
                 raise ValueError(f"Invalid sort key: {sort_key}")
 
@@ -301,7 +330,7 @@ def get_packages_summary(
         select(
             models.Ticket.dependency_id,
             models.Ticket.ssvc_deployer_priority,
-            models.Vuln.updated_at,
+            models.TicketStatus.updated_at,
         )
         .join(
             models.TicketStatus,
@@ -475,9 +504,9 @@ ssvc_priority_case = case(
     else_=None,
 )
 
-ALLOWED_SORT_KEYS = {
+TICKETS_SORT_KEYS = {
     "ssvc_deployer_priority": ssvc_priority_case,
-    "created_at": models.Ticket.created_at,
+    "created_at": models.TicketStatus.created_at,
     "scheduled_at": models.TicketStatus.scheduled_at,
     "cve_id": models.Vuln.cve_id,
     "package_name": models.Package.name,
@@ -557,9 +586,12 @@ def get_sorted_paginated_tickets_for_pteams(
             if sort_key.startswith("-"):
                 desc = True
                 _key = sort_key[1:]
-            column = ALLOWED_SORT_KEYS.get(_key)
+            column = TICKETS_SORT_KEYS.get(_key)
             if column is not None:
-                sort_columns.append(column.desc().nullslast() if desc else column)
+                if _key == "cve_id":
+                    sort_columns.extend(_get_cve_id_sort_columns(desc))
+                else:
+                    sort_columns.append(column.desc().nullslast() if desc else column)
             else:
                 raise ValueError(f"Invalid sort key: {sort_key}")
 

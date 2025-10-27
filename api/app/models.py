@@ -491,12 +491,9 @@ class Ticket(Base):
     __tablename__ = "ticket"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.ticket_id:
             self.ticket_id = str(uuid.uuid4())
-        if not self.created_at:
-            self.created_at = now
 
     ticket_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     threat_id: Mapped[StrUUID] = mapped_column(
@@ -504,9 +501,6 @@ class Ticket(Base):
     )
     dependency_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=current_timestamp()
     )
     ticket_safety_impact: Mapped[SafetyImpactEnum | None] = mapped_column(nullable=True)
     ticket_safety_impact_change_reason: Mapped[str | None] = mapped_column(nullable=True)
@@ -525,12 +519,9 @@ class TicketStatus(Base):
     __tablename__ = "ticketstatus"
 
     def __init__(self, *args, **kwargs) -> None:
-        now = datetime.now(timezone.utc)
         super().__init__(*args, **kwargs)
         if not self.status_id:
             self.status_id = str(uuid.uuid4())
-        if not self.created_at:
-            self.created_at = now
 
     status_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     ticket_id: Mapped[StrUUID] = mapped_column(
@@ -545,6 +536,9 @@ class TicketStatus(Base):
     assignees: Mapped[list[StrUUID]] = mapped_column(default=[])
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=current_timestamp()
     )
 

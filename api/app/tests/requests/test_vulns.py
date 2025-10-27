@@ -1253,7 +1253,7 @@ class TestGetVulns:
                 testdb,
             )
 
-    def test_it_should_return_all_vulns_when_creator_ids_is_empty(self, testdb: Session):
+    def test_it_should_return_no_vulns_when_creator_ids_is_empty(self, testdb: Session):
         # Given
         number_of_vulns = 3
         vuln_ids = []
@@ -1269,18 +1269,8 @@ class TestGetVulns:
         # Then
         assert response.status_code == 200
         response_data = response.json()
-        assert len(response_data["vulns"]) == number_of_vulns
-        assert response_data["num_vulns"] == number_of_vulns
-
-        # Check the details of each vuln
-        for i, vuln in enumerate(response_data["vulns"]):
-            reversed_index = len(response_data["vulns"]) - 1 - i
-            self.assert_vuln_response(
-                vuln,
-                vuln_ids[reversed_index],
-                self.create_vuln_request(reversed_index),
-                testdb,
-            )
+        assert len(response_data["vulns"]) == 0
+        assert response_data["num_vulns"] == 0
 
     def test_it_should_filter_by_package_name(self, testdb: Session):
         # Given
@@ -1412,7 +1402,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 3.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [3.0, 8.0, None]
 
     # A3
     def test_it_should_sort_by_descending_updated_at_when_cvss_v3_scores_are_equal(
@@ -1445,7 +1435,7 @@ class TestGetVulns:
         response = client.get("/vulns?sort_keys=cvss_v3_score", headers=self.headers_user)
         assert response.status_code == 200
         response_data = response.json()
-        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [None, 5.0, 5.0, 8.0]
+        assert [vuln["cvss_v3_score"] for vuln in response_data["vulns"]] == [5.0, 5.0, 8.0, None]
         assert [
             vuln["updated_at"] for vuln in response_data["vulns"] if vuln["cvss_v3_score"] == 5.0
         ] == [
@@ -1793,6 +1783,94 @@ class TestGetVulns:
                     "2021-01-01T00:00:00Z",
                 ],
                 ["CVE-2020-0001", "CVE-2020-0001", "CVE-2020-0002", "CVE-2020-0003"],
+            ),
+            # Test case 5: cve_id ascending when cve_id contains None
+            (
+                ["cve_id"],
+                [
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2020-10000",
+                    },
+                    {  # 1
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2020-2000",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": None,
+                    },
+                ],
+                [5.0, 5.0, 5.0, 5.0],
+                [
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                [
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                    "2021-01-01T00:00:00Z",
+                    "2021-01-04T00:00:00Z",
+                ],
+                ["CVE-2020-0001", "CVE-2020-2000", "CVE-2020-10000", None],
+            ),
+            # Test case 5: cve_id descending when cve_id contains None
+            (
+                ["-cve_id"],
+                [
+                    {  # 1
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-01T00:00:00Z",
+                        "created_at": "2021-01-01T00:00:00Z",
+                        "cve_id": "CVE-2020-10000",
+                    },
+                    {  # 3
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-02T00:00:00Z",
+                        "created_at": "2021-01-02T00:00:00Z",
+                        "cve_id": "CVE-2020-0001",
+                    },
+                    {  # 2
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-03T00:00:00Z",
+                        "created_at": "2021-01-03T00:00:00Z",
+                        "cve_id": "CVE-2020-2000",
+                    },
+                    {  # 4
+                        "cvss_v3_score": 5.0,
+                        "updated_at": "2023-01-04T00:00:00Z",
+                        "created_at": "2021-01-04T00:00:00Z",
+                        "cve_id": None,
+                    },
+                ],
+                [5.0, 5.0, 5.0, 5.0],
+                [
+                    "2023-01-01T00:00:00Z",
+                    "2023-01-03T00:00:00Z",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-04T00:00:00Z",
+                ],
+                [
+                    "2021-01-01T00:00:00Z",
+                    "2021-01-03T00:00:00Z",
+                    "2021-01-02T00:00:00Z",
+                    "2021-01-04T00:00:00Z",
+                ],
+                ["CVE-2020-10000", "CVE-2020-2000", "CVE-2020-0001", None],
             ),
         ],
     )

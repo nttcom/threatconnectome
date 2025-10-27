@@ -50,6 +50,15 @@ def create_user(
     if persistence.get_account_by_uid(db, uid):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uid already used")
 
+    if len(persistence.get_accounts_by_email(db, email)) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This email address is already in use. "
+                "You'll need to use a different email to sign up."
+            ),
+        )
+
     account = models.Account(**data.model_dump(), uid=uid, email=email)
     persistence.create_account(db, account)
 

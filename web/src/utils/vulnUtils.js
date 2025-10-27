@@ -1,11 +1,5 @@
 export const createActionByFixedVersions = (affectedVersions, fixedVersions, packageName) => {
   const action = {
-    // Create action_id to make it common processing with manual registration action
-    // This action_id is only used on the UI
-    action_id:
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2),
     action_type: "elimination",
     recommended: true,
   };
@@ -47,4 +41,11 @@ export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
       (vulnerable_package.affected_name === package_source_name ||
         vulnerable_package.affected_name === package_name),
   );
+}
+
+export function isValidCVEFormat(value) {
+  const trimmedValue = value.trim();
+  const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
+
+  return !trimmedValue || CVE_PATTERN.test(trimmedValue);
 }

@@ -160,6 +160,7 @@ os_families = {
     "openSUSE": "opensuse",
     "rocky": "rocky",
     "ubuntu": "ubuntu",
+    "wolfi": "wolfi",
 }
 
 
@@ -284,7 +285,7 @@ class ThreatconnectomeClient:
 def create_os_package_info(os_repos):
     key = os_repos.decode().split(" ", 1)[0]
     family_name = os_families[key]
-    if family_name in ["redhat", "archlinux"]:
+    if family_name in ["redhat", "archlinux", "wolfi"]:
         os_name = family_name
         version = ""
     else:

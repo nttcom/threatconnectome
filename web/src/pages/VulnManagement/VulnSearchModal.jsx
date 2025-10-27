@@ -21,6 +21,7 @@ import {
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addDays } from "date-fns";
+import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
@@ -28,6 +29,7 @@ import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { cvssRatings } from "../../utils/const";
 import { cvssConvertToScore } from "../../utils/func";
+import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function VulnSearchModal(props) {
   const { show, onSearch, onCancel } = props;
@@ -43,6 +45,7 @@ export function VulnSearchModal(props) {
   const [cvssName, setCvssName] = useState("");
   const [minCvssScore, setMinCvssScore] = useState("");
   const [maxCvssScore, setMaxCvssScore] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const now = new Date();
   const cvssRatingsKeys = Object.keys(cvssRatings);
@@ -58,9 +61,19 @@ export function VulnSearchModal(props) {
   };
 
   const handleSearch = () => {
+    const trimmedCveIds = cveIds.trim();
+    if (trimmedCveIds && !isValidCVEFormat(trimmedCveIds)) {
+      enqueueSnackbar(
+        "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)",
+        {
+          variant: "error",
+        },
+      );
+      return;
+    }
     const params = {
       titleWords: titleWords,
-      cveIds: cveIds,
+      cveIds: trimmedCveIds,
       vulnIds: vulnIds,
       creatorIds: creatorIds,
       updatedAfter: updatedAfter?.toISOString(),

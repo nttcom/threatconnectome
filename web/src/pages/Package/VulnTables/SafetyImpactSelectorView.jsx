@@ -11,6 +11,7 @@ import {
   IconButton,
   MenuItem,
   Select,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -21,6 +22,7 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useViewportOffset } from "../../../hooks/useViewportOffset";
 import {
   safetyImpactProps,
   sortedSafetyImpacts,
@@ -28,43 +30,41 @@ import {
 } from "../../../utils/const";
 import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 
+const TOOLTIP_TEXT_LIMIT = 150;
+
 export function SafetyImpactSelectorView(props) {
-  const {
-    fixedTicketSafetyImpact,
-    fixedTicketSafetyImpactChangeReason,
-    onRevertedToDefault,
-    onSave,
-  } = props;
+  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
-  const [openReasonDialog, setOpenReasonDialog] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [readMoreDialogOpen, setReadMoreDialogOpen] = useState(false);
 
   const defaultSafetyImpactItem = "Default";
 
   const { enqueueSnackbar } = useSnackbar();
+  const viewportOffsetTop = useViewportOffset();
+
+  const handleOpenDialog = () => {
+    setPendingSafetyImpact(fixedTicketSafetyImpact || defaultSafetyImpactItem);
+    setPendingReasonSafetyImpact(fixedTicketSafetyImpactChangeReason || "");
+    setOpenDialog(true);
+  };
 
   const handleSelectSafetyImpact = (e) => {
-    if (e.target.value === defaultSafetyImpactItem) {
-      setPendingSafetyImpact("");
-      setPendingReasonSafetyImpact("");
-      onRevertedToDefault();
-    } else {
-      setPendingSafetyImpact(e.target.value);
-      setPendingReasonSafetyImpact(
-        fixedTicketSafetyImpactChangeReason === null ? "" : fixedTicketSafetyImpactChangeReason,
-      );
-      setOpenReasonDialog(true);
-    }
+    setPendingSafetyImpact(e.target.value);
   };
 
   const handleClose = () => {
-    setOpenReasonDialog(false);
+    setOpenDialog(false);
   };
 
-  const handleSaveReason = async () => {
-    onSave(pendingSafetyImpact, pendingReasonSafetyImpact);
-    setOpenReasonDialog(false);
+  const handleSave = () => {
+    onSave(
+      pendingSafetyImpact === defaultSafetyImpactItem ? null : pendingSafetyImpact,
+      pendingReasonSafetyImpact,
+    );
+    setOpenDialog(false);
   };
 
   const handleReasonSafetyImpactLengthCheck = (string) => {
@@ -73,6 +73,9 @@ export function SafetyImpactSelectorView(props) {
         `Too long ticket_safety_impact_change_reason. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
         },
       );
     } else {
@@ -80,8 +83,12 @@ export function SafetyImpactSelectorView(props) {
     }
   };
 
+  const isSaveDisabled =
+    (fixedTicketSafetyImpact || defaultSafetyImpactItem) === pendingSafetyImpact &&
+    (fixedTicketSafetyImpactChangeReason || "") === pendingReasonSafetyImpact;
+
   const StyledTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} classes={{ popper: className }} />
+    <Tooltip {...props} classes={{ popper: className }} leaveDelay={500} />
   ))(() => ({
     [`& .${tooltipClasses.arrow}`]: {
       "&:before": {
@@ -96,14 +103,44 @@ export function SafetyImpactSelectorView(props) {
     },
   }));
 
+  const handleOpenReadMoreDialog = () => {
+    setReadMoreDialogOpen(true);
+  };
+
+  const handleCloseReadMoreDialog = () => {
+    setReadMoreDialogOpen(false);
+  };
+
+  const reasonText = fixedTicketSafetyImpactChangeReason || "";
+  const isLongReason = reasonText.length > TOOLTIP_TEXT_LIMIT;
+
+  const tooltipContent = (
+    <>
+      <Typography variant="h6" sx={{ px: 1, pt: 1 }}>
+        Why was it changed from the default safety impact?
+      </Typography>
+      <Box sx={{ p: 1 }}>
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {isLongReason ? `${reasonText.substring(0, TOOLTIP_TEXT_LIMIT)}...` : reasonText}
+        </Typography>
+      </Box>
+      {isLongReason && (
+        <Box sx={{ textAlign: "right", px: 1, pb: 1 }}>
+          <Button size="small" onClick={handleOpenReadMoreDialog}>
+            Read more...
+          </Button>
+        </Box>
+      )}
+    </>
+  );
+
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
-      <FormControl sx={{ width: 130 }} size="small" variant="standard">
+      <FormControl size="small" variant="standard">
         <Select
+          open={false}
           value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
-          onChange={(e) => {
-            handleSelectSafetyImpact(e);
-          }}
+          onOpen={handleOpenDialog}
         >
           <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
             {defaultSafetyImpactItem}
@@ -116,58 +153,67 @@ export function SafetyImpactSelectorView(props) {
         </Select>
       </FormControl>
       {fixedTicketSafetyImpactChangeReason !== null && (
-        <StyledTooltip
-          arrow
-          title={
-            <>
-              <Typography variant="h6">
-                Why was it changed from the default safety impact?
-              </Typography>
-              <Box sx={{ p: 1 }}>
-                <Typography variant="body2">{fixedTicketSafetyImpactChangeReason}</Typography>
-              </Box>
-            </>
-          }
-        >
+        <StyledTooltip arrow title={tooltipContent}>
           <IconButton size="small">
             <InfoOutlinedIcon color="primary" fontSize="small" />
           </IconButton>
         </StyledTooltip>
       )}
-      <Dialog open={openReasonDialog} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Safety Impact update</DialogTitle>
         <DialogContent>
-          <Box sx={{ pb: 2 }}>
-            <DialogContentText>
-              Current:{" "}
-              {fixedTicketSafetyImpact
-                ? safetyImpactProps[fixedTicketSafetyImpact].displayName
-                : defaultSafetyImpactItem}
-            </DialogContentText>
-            <DialogContentText>
-              Updated:{" "}
-              {pendingSafetyImpact === ""
-                ? defaultSafetyImpactItem
-                : safetyImpactProps[pendingSafetyImpact].displayName}
-            </DialogContentText>
-          </Box>
-          <DialogContentText>Enter the reason for changing Safety Impact</DialogContentText>
-          <TextField
-            hiddenLabel
-            variant="filled"
-            fullWidth
-            multiline
-            rows={4}
-            placeholder="Continue writing here"
-            value={pendingReasonSafetyImpact}
-            onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
-          />
+          <Stack spacing={2}>
+            <FormControl fullWidth>
+              <Select
+                value={pendingSafetyImpact}
+                onChange={handleSelectSafetyImpact}
+                inputProps={{ "aria-label": "Safety Impact" }}
+              >
+                <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
+                  {defaultSafetyImpactItem}
+                </MenuItem>
+                {sortedSafetyImpacts.map((safetyImpact) => (
+                  <MenuItem key={safetyImpact} value={safetyImpact}>
+                    {safetyImpactProps[safetyImpact]?.displayName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
+            <TextField
+              hiddenLabel
+              variant="filled"
+              fullWidth
+              multiline
+              rows={4}
+              value={pendingReasonSafetyImpact}
+              onChange={(e) => handleReasonSafetyImpactLengthCheck(e.target.value)}
+            />
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSaveReason} disabled={pendingReasonSafetyImpact === ""}>
+          <Button onClick={handleSave} disabled={isSaveDisabled}>
             Save
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={readMoreDialogOpen} onClose={handleCloseReadMoreDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Why was it changed from the default safety impact?</DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            sx={{
+              whiteSpace: "pre-wrap",
+              overflowWrap: "break-word",
+            }}
+          >
+            {reasonText}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseReadMoreDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -176,6 +222,5 @@ export function SafetyImpactSelectorView(props) {
 SafetyImpactSelectorView.propTypes = {
   fixedTicketSafetyImpact: PropTypes.string,
   fixedTicketSafetyImpactChangeReason: PropTypes.string,
-  onRevertedToDefault: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
 };

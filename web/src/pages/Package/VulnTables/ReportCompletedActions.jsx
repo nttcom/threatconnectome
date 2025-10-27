@@ -13,18 +13,18 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ActionTypeIcon } from "../../../components/ActionTypeIcon";
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useCreateActionLogMutation,
-  useUpdateTicketStatusMutation,
+  useUpdateTicketMutation,
   useGetUserMeQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { errorToString } from "../../../utils/func";
+import { errorToString, createRandomUUID } from "../../../utils/func";
 import { ActionTypeChip } from "../ActionTypeChip";
 import { RecommendedStar } from "../RecommendedStar";
 
@@ -48,6 +48,14 @@ export function ReportCompletedActions(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const actionsWithUiId = useMemo(() => {
+    const actions = [actionByFixedVersions, ...vulnActions];
+    return actions.map((action) => ({
+      ...action,
+      uiId: createRandomUUID(), // uiId is used for components' keys.
+    }));
+  }, [actionByFixedVersions, vulnActions]);
+
   const skip = useSkipUntilAuthUserIsReady();
   const {
     data: userMe,
@@ -55,27 +63,19 @@ export function ReportCompletedActions(props) {
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
   const [createActionLog] = useCreateActionLogMutation();
-  const [updateTicketStatus] = useUpdateTicketStatusMutation();
+  const [updateTicket] = useUpdateTicketMutation();
 
   if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
 
-  const actions = [actionByFixedVersions, ...vulnActions];
-
   const handleAction = async () =>
     await Promise.all(
-      selectedAction.map(async (actionId) => {
-        const action = actions.find((action) => action.action_id === actionId);
-        if (!action) {
-          console.error(`Action with ID ${actionId} not found in actions array.`);
-          return;
-        }
-
-        const isActionByFixedVersions = actionByFixedVersions.action_id === actionId;
+      selectedAction.map(async (uiId) => {
+        const action = actionsWithUiId.find((actionWithUiId) => actionWithUiId.uiId === uiId);
 
         return await createActionLog({
-          action_id: isActionByFixedVersions ? null : action.action_id,
+          action_id: action.action_id,
           action: action.action,
           action_type: action.action_type,
           recommended: action.recommended,
@@ -94,14 +94,16 @@ export function ReportCompletedActions(props) {
     )
       .then(
         async (actionLogs) =>
-          await updateTicketStatus({
+          await updateTicket({
             pteamId,
             ticketId,
             data: {
-              ticket_handling_status: "completed",
-              logging_ids: actionLogs.map((log) => log.logging_id),
-              note: note.trim() || null,
-              scheduled_at: null, // clear scheduled date
+              ticket_status: {
+                ticket_handling_status: "completed",
+                logging_ids: actionLogs.map((log) => log.logging_id),
+                note: note.trim() || null,
+                scheduled_at: null, // clear scheduled date
+              },
             },
           }).unwrap(),
       )
@@ -120,16 +122,10 @@ export function ReportCompletedActions(props) {
     onSetShow(false);
   };
 
-  const handleSelectAction = async (actionId) => {
-    if (!actionId) {
-      if (selectedAction.length) setSelectedAction([]);
-      else setSelectedAction(vulnActions.map((action) => action.action_id));
-    } else {
-      if (selectedAction.includes(actionId))
-        selectedAction.splice(selectedAction.indexOf(actionId), 1);
-      else selectedAction.push(actionId);
-      setSelectedAction([...selectedAction]);
-    }
+  const handleSelectAction = async (uiId) => {
+    if (selectedAction.includes(uiId)) selectedAction.splice(selectedAction.indexOf(uiId), 1);
+    else selectedAction.push(uiId);
+    setSelectedAction([...selectedAction]);
   };
 
   const isStepSkipped = (step) => {
@@ -172,17 +168,17 @@ export function ReportCompletedActions(props) {
       <DialogContent>
         {activeStep === 0 && (
           <>
-            {actions.length === 0 ? (
+            {actionsWithUiId.length === 0 ? (
               <Box display="flex" flexDirection="row" alignItems="center" sx={{ color: grey[500] }}>
                 <Typography variant="body2">No action</Typography>
               </Box>
             ) : (
               <>
-                {actions.map((action) => (
+                {actionsWithUiId.map((action) => (
                   <MenuItem
-                    key={action.action_id}
-                    onClick={() => handleSelectAction(action.action_id)}
-                    selected={selectedAction.includes(action.action_id)}
+                    key={action.uiId}
+                    onClick={() => handleSelectAction(action.uiId)}
+                    selected={selectedAction.includes(action.uiId)}
                     sx={{
                       alignItems: "center",
                       display: "flex",
@@ -206,14 +202,14 @@ export function ReportCompletedActions(props) {
         )}
         {activeStep === 1 && (
           <>
-            {actions
-              .filter((action) => selectedAction.includes(action.action_id))
+            {actionsWithUiId
+              .filter((action) => selectedAction.includes(action.uiId))
               .map((action) => (
                 <Box
                   alignItems="center"
                   display="flex"
                   flexDirection="row"
-                  key={action.action_id}
+                  key={action.uiId}
                   mb={1}
                 >
                   <ActionTypeChip actionType={action.action_type} />
