@@ -36,7 +36,7 @@ services:
       - ./api/app/alembic:/app/alembic:rw  # for 'alembic revision --autogenerate'
       - ./key:/key:ro
   testdb:
-    image: postgres:17
+    image: postgres:17.6
     command:
       - postgres
       # - -c
