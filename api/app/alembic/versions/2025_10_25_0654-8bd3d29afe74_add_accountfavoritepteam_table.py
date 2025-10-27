@@ -1,8 +1,8 @@
 """add accountfavoritepteam table
 
 Revision ID: 8bd3d29afe74
-Revises: 9dac8976dadb
-Create Date: 2025-10-24 06:54:14.421567
+Revises: 10eec183211d
+Create Date: 2025-10-25 06:54:14.421567
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "8bd3d29afe74"
-down_revision = "9dac8976dadb"
+down_revision = "10eec183211d"
 branch_labels = None
 depends_on = None
 
