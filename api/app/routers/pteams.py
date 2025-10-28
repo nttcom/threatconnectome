@@ -1283,11 +1283,7 @@ def apply_service_packages(
             new_dependencies_set.remove(item)  # already exists
             continue
         obsoleted_dependencies.append(dependency)
-    for obsoleted in obsoleted_dependencies:
-        package = obsoleted.package_version.package
-        service.dependencies.remove(obsoleted)
-        db.flush()
-        package_business.fix_package(db, package)
+
     # create new dependencies
     for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
@@ -1304,7 +1300,12 @@ def apply_service_packages(
         for threat in threats:
             db.refresh(threat.package_version)
             ticket_business.fix_ticket_by_threat(db, threat)
-    db.flush()
+
+    for obsoleted in obsoleted_dependencies:
+        package = obsoleted.package_version.package
+        service.dependencies.remove(obsoleted)
+        db.flush()
+        package_business.fix_package(db, package)
 
 
 @router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
