@@ -33,6 +33,24 @@ def delete_account(db: Session, account: models.Account) -> None:
     db.flush()
 
 
+### AccountFavoritePTeam
+def get_account_favorite_pteam_by_user_id(
+    db: Session, user_id: UUID | str
+) -> models.AccountFavoritePTeam | None:
+    return db.scalars(
+        select(models.AccountFavoritePTeam).where(
+            models.AccountFavoritePTeam.user_id == str(user_id),
+        )
+    ).one_or_none()
+
+
+def create_account_favorite_pteam(
+    db: Session, account_favorite_pteam: models.AccountFavoritePTeam
+) -> None:
+    db.add(account_favorite_pteam)
+    db.flush()
+
+
 ### Action
 
 
@@ -175,6 +193,20 @@ def create_pteam(db: Session, pteam: models.PTeam) -> None:
 def delete_pteam(db: Session, pteam: models.PTeam) -> None:
     db.delete(pteam)
     db.flush()
+
+
+### PTeamAccountRole
+def get_pteam_account_roles_by_user_id_and_pteam_id(
+    db: Session, user_id: UUID | str, pteam_id: UUID | str
+) -> models.PTeamAccountRole | None:
+    return db.scalars(
+        select(models.PTeamAccountRole).where(
+            and_(
+                models.PTeamAccountRole.pteam_id == str(pteam_id),
+                models.PTeamAccountRole.user_id == str(user_id),
+            )
+        )
+    ).one_or_none()
 
 
 ### PTeamInvitation

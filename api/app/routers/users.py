@@ -21,7 +21,20 @@ def get_my_user_info(
     """
     Get current user info.
     """
-    return current_user
+
+    return schemas.UserResponse(
+        user_id=UUID(current_user.user_id),
+        uid=current_user.uid,
+        email=current_user.email,
+        disabled=current_user.disabled,
+        years=current_user.years,
+        pteam_roles=current_user.pteam_roles,
+        favorite_pteam_id=(
+            UUID(current_user.account_favorite_pteam.favorite_pteam_id)
+            if current_user.account_favorite_pteam
+            else None
+        ),
+    )
 
 
 @router.post("", response_model=schemas.UserResponse)
@@ -63,8 +76,21 @@ def create_user(
     persistence.create_account(db, account)
 
     db.commit()
+    db.refresh(account)
 
-    return account
+    return schemas.UserResponse(
+        user_id=UUID(account.user_id),
+        uid=account.uid,
+        email=account.email,
+        disabled=account.disabled,
+        years=account.years,
+        pteam_roles=account.pteam_roles,
+        favorite_pteam_id=(
+            UUID(account.account_favorite_pteam.favorite_pteam_id)
+            if account.account_favorite_pteam
+            else None
+        ),
+    )
 
 
 @router.put("/{user_id}", response_model=schemas.UserResponse)
@@ -83,6 +109,34 @@ def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Information can only be updated by user himself",
         )
+    if data.favorite_pteam_id is not None:
+        if persistence.get_pteam_by_id(db, data.favorite_pteam_id) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="pteam_id does not exist",
+            )
+
+        if (
+            persistence.get_pteam_account_roles_by_user_id_and_pteam_id(
+                db, user_id, data.favorite_pteam_id
+            )
+            is None
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not a member of the PTeam",
+            )
+
+        if (
+            account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
+        ) is not None:
+            account_favorite_pteam.favorite_pteam_id = str(data.favorite_pteam_id)
+        else:
+            account_favorite_pteam = models.AccountFavoritePTeam(
+                user_id=user.user_id,
+                favorite_pteam_id=data.favorite_pteam_id,
+            )
+            persistence.create_account_favorite_pteam(db, account_favorite_pteam)
 
     update_data = data.model_dump(exclude_unset=True)
     if "disabled" in update_data.keys() and data.disabled is None:
@@ -102,7 +156,19 @@ def update_user(
 
     db.commit()
 
-    return user
+    return schemas.UserResponse(
+        user_id=UUID(user.user_id),
+        uid=user.uid,
+        email=user.email,
+        disabled=user.disabled,
+        years=user.years,
+        pteam_roles=current_user.pteam_roles,
+        favorite_pteam_id=(
+            UUID(current_user.account_favorite_pteam.favorite_pteam_id)
+            if current_user.account_favorite_pteam
+            else None
+        ),
+    )
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
