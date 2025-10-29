@@ -29,9 +29,9 @@ import VulnerabilitySplitDialog from "./VulnerabilitySplitDialog";
 function SSVCPriorityChip({ priority, count }) {
   const styles = {
     immediate: { bgcolor: "#d32f2f", color: "white" },
-    high: { bgcolor: "#f57c00", color: "white" },
-    medium: { bgcolor: "#fbc02d", color: "black" },
-    low: { bgcolor: "#388e3c", color: "white" },
+    "out-of-cycle": { bgcolor: "#f57c00", color: "white" },
+    scheduled: { bgcolor: "#fbc02d", color: "black" },
+    defer: { bgcolor: "#9e9e9e", color: "white" },
     none: { bgcolor: "#e0e0e0", color: "black" },
   };
   const label = count !== undefined ? `${priority}: ${count}` : priority || "none";
