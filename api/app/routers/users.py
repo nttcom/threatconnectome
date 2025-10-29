@@ -93,11 +93,7 @@ def create_user(
         disabled=account.disabled,
         years=account.years,
         pteam_roles=account.pteam_roles,
-        favorite_pteam_id=(
-            UUID(account.account_favorite_pteam.favorite_pteam_id)
-            if account.account_favorite_pteam
-            else None
-        ),
+        favorite_pteam_id=None,
     )
 
 
