@@ -88,6 +88,8 @@ class PteamMemberGetResponse(ORMModel):
 
 class UserCreateRequest(ORMModel):
     years: int = 0
+    # favorite_pteam_id is not permitted here.
+    # Because the user does not belong to any pteam at the time of creation.
 
 
 class UserUpdateRequest(ORMModel):
