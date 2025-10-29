@@ -108,7 +108,7 @@ class TestUpdateUser:
         assert response.status_code == 400
         assert response.json()["detail"] == "pteam_id does not exist"
 
-    def test_it_should_return_400_when_user_is_not_a_member_of_the_pteam(self):
+    def test_it_should_return_403_when_user_is_not_a_member_of_the_pteam(self):
         # Given
         create_user(USER1)
         user2 = create_user(USER2)
@@ -119,8 +119,8 @@ class TestUpdateUser:
         response = client.put(f"/users/{user2.user_id}", headers=headers(USER2), json=request)
 
         # Then
-        assert response.status_code == 400
-        assert response.json()["detail"] == "User is not a member of the PTeam"
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not a pteam member"
 
     def test_it_should_return_200_when_correct_request(self):
         # Given
@@ -154,6 +154,22 @@ class TestUpdateUser:
         assert response.status_code == 200
         data = response.json()
         assert data["favorite_pteam_id"] == str(pteam2.pteam_id)
+
+    def test_is_it_should_return_200_when_favorite_pteam_id_is_None(self):
+        # Given
+        user1 = create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # When
+        request1 = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request1)
+        request2 = {"favorite_pteam_id": None}
+        response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request2)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        assert data["favorite_pteam_id"] is None
 
 
 class TestDeleteUser:
