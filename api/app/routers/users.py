@@ -10,8 +10,16 @@ from app.auth.auth_exception import AuthException
 from app.auth.auth_module import AuthModule, get_auth_module
 from app.database import get_db
 from app.routers.utils.http_excption_creator import create_http_exception
+from app.routers.validators.account_validator import (
+    check_pteam_membership,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+NOT_A_PTEAM_MEMBER = HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="Not a pteam member",
+)
 
 
 @router.get("/me", response_model=schemas.UserResponse)
@@ -110,22 +118,14 @@ def update_user(
             detail="Information can only be updated by user himself",
         )
     if data.favorite_pteam_id is not None:
-        if persistence.get_pteam_by_id(db, data.favorite_pteam_id) is None:
+        if (pteam := persistence.get_pteam_by_id(db, data.favorite_pteam_id)) is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="pteam_id does not exist",
             )
 
-        if (
-            persistence.get_pteam_account_roles_by_user_id_and_pteam_id(
-                db, user_id, data.favorite_pteam_id
-            )
-            is None
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User is not a member of the PTeam",
-            )
+        if not check_pteam_membership(pteam, current_user):
+            raise NOT_A_PTEAM_MEMBER
 
         if (
             account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
@@ -137,6 +137,12 @@ def update_user(
                 favorite_pteam_id=data.favorite_pteam_id,
             )
             persistence.create_account_favorite_pteam(db, account_favorite_pteam)
+
+    elif data.favorite_pteam_id is None:
+        if (
+            account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
+        ) is not None:
+            persistence.delete_account_favorite_pteam(db, account_favorite_pteam)
 
     update_data = data.model_dump(exclude_unset=True)
     if "disabled" in update_data.keys() and data.disabled is None:

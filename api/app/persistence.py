@@ -51,6 +51,13 @@ def create_account_favorite_pteam(
     db.flush()
 
 
+def delete_account_favorite_pteam(
+    db: Session, account_favorite_pteam: models.AccountFavoritePTeam
+) -> None:
+    db.delete(account_favorite_pteam)
+    db.flush()
+
+
 ### Action
 
 
