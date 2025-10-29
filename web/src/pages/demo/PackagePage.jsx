@@ -159,16 +159,29 @@ export default function PackagePage({
       </Typography>
 
       {/* 脆弱性テーブル */}
+
       <TableContainer component={Paper} variant="outlined">
         <Table>
-          <TableHead>
+          <TableHead
+            sx={{
+              display: { xs: "none", sm: "table-header-group" },
+            }}
+          >
             <TableRow>
               <TableCell>Title</TableCell>
-              <TableCell align="center">Tasks</TableCell>
+              <TableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                Tasks
+              </TableCell>
               <TableCell align="center">Highest SSVC</TableCell>
-              <TableCell>Last Updated</TableCell>
-              <TableCell>Affected Version</TableCell>
-              <TableCell>Patched Version</TableCell>
+              <TableCell sx={{ display: { xs: "none", sm: "none", md: "table-cell" } }}>
+                Last Updated
+              </TableCell>
+              <TableCell sx={{ display: { xs: "none", sm: "none", md: "none", lg: "table-cell" } }}>
+                Affected Version
+              </TableCell>
+              <TableCell sx={{ display: { xs: "none", sm: "none", md: "none", lg: "table-cell" } }}>
+                Patched Version
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -179,21 +192,122 @@ export default function PackagePage({
                   key={vuln.id}
                   onClick={() => handleRowClick(vuln)}
                   hover
-                  sx={{ cursor: "pointer" }}
+                  sx={(theme) => ({
+                    // theme を引数に取る
+                    cursor: "pointer",
+                    display: { xs: "block", sm: "table-row" },
+                    // xs: カード型の時の下線 (カード間の境界)
+                    borderBottom: { xs: `1px solid ${theme.palette.divider}`, sm: "none" },
+                    padding: { xs: "16px", sm: 0 },
+                    "&:last-of-type": {
+                      borderBottom: { xs: "none" }, // 最後のカードの下線は消す
+                    },
+
+                    // ▼▼▼ 修正点 ▼▼▼
+                    // sm以上の時、すべての子(TableCell)に強制的に下線を引く
+                    "& > .MuiTableCell-root": {
+                      borderBottom: { sm: `1px solid ${theme.palette.divider}` },
+                    },
+                    // ▲▲▲ 修正点 ▲▲▲
+                  })}
                 >
-                  <TableCell>{vuln.title || "No Title"}</TableCell>
-                  <TableCell align="center">{vuln.tasks?.length || 0}</TableCell>
-                  <TableCell align="center">
+                  {/* Title */}
+                  <TableCell
+                    sx={{
+                      display: { xs: "block", sm: "table-cell" },
+                      padding: { xs: 0, sm: "16px" },
+                      // xsの時は borderBottom を 'none' に (親の指定を上書き)
+                      borderBottom: { xs: "none" },
+                      marginBottom: { xs: "12px", sm: 0 },
+                    }}
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        display: { xs: "block", sm: "none" },
+                        fontWeight: "bold",
+                        fontSize: "0.75rem",
+                        color: "text.secondary",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Title
+                    </Box>
+                    {vuln.title || "No Title"}
+                  </TableCell>
+
+                  {/* Tasks (sm以上で表示) */}
+                  <TableCell
+                    align="center"
+                    sx={{
+                      display: { xs: "none", sm: "table-cell" },
+                      // borderBottomの指定は不要 (親のTableRowが設定してくれる)
+                    }}
+                  >
+                    {vuln.tasks?.length || 0}
+                  </TableCell>
+
+                  {/* Highest SSVC */}
+                  <TableCell
+                    align="center"
+                    sx={{
+                      display: { xs: "block", sm: "table-cell" },
+                      padding: { xs: 0, sm: "16px" },
+                      // xsの時は borderBottom を 'none' に (親の指定を上書き)
+                      borderBottom: { xs: "none" },
+                      textAlign: { xs: "left", sm: "center" },
+                    }}
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        display: { xs: "block", sm: "none" },
+                        fontWeight: "bold",
+                        fontSize: "0.75rem",
+                        color: "text.secondary",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Highest SSVC
+                    </Box>
                     <SSVCPriorityChip priority={vuln.highestSsvc} />
                   </TableCell>
-                  <TableCell>{vuln.updated_at || "-"}</TableCell>
-                  <TableCell>{(vuln.affected_versions || []).join("\n")}</TableCell>
-                  <TableCell>{(vuln.patched_versions || []).join("\n")}</TableCell>
+
+                  {/* Last Updated (md以上で表示) */}
+                  <TableCell
+                    sx={{
+                      display: { xs: "none", sm: "none", md: "table-cell" },
+                      // borderBottomの指定は不要 (親のTableRowが設定してくれる)
+                    }}
+                  >
+                    {vuln.updated_at || "-"}
+                  </TableCell>
+
+                  {/* Affected Version (lg以上で表示) */}
+                  <TableCell
+                    sx={{
+                      display: { xs: "none", sm: "none", md: "none", lg: "table-cell" },
+                      // borderBottomの指定は不要 (親のTableRowが設定してくれる)
+                    }}
+                  >
+                    {(vuln.affected_versions || []).join("\n")}
+                  </TableCell>
+
+                  {/* Patched Version (lg以上で表示) */}
+                  <TableCell
+                    sx={{
+                      display: { xs: "none", sm: "none", md: "none", lg: "table-cell" },
+                      // borderBottomの指定は不要 (親のTableRowが設定してくれる)
+                    }}
+                  >
+                    {(vuln.patched_versions || []).join("\n")}
+                  </TableCell>
                 </TableRow>
               ))}
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
