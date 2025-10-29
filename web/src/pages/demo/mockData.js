@@ -117,6 +117,6 @@ export const mockPackageReferences = [
 
 export const mockDefaultSafetyImpact = "Medium";
 
-export const mockSsvcCounts = { immediate: 2, high: 1, medium: 1, low: 0 };
+export const mockSsvcCounts = { immediate: 2, "out-of-cycle": 1, scheduled: 1, defer: 0 };
 
 export const mockTabCounts = { unsolved: 4, solved: 42 };
