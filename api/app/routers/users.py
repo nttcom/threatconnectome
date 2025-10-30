@@ -113,6 +113,8 @@ def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Information can only be updated by user himself",
         )
+
+    update_data = data.model_dump(exclude_unset=True)
     if data.favorite_pteam_id is not None:
         if (pteam := persistence.get_pteam_by_id(db, data.favorite_pteam_id)) is None:
             raise HTTPException(
@@ -134,13 +136,12 @@ def update_user(
             )
             persistence.create_account_favorite_pteam(db, account_favorite_pteam)
 
-    elif data.favorite_pteam_id is None:
+    elif "favorite_pteam_id" in update_data.keys() and data.favorite_pteam_id is None:
         if (
             account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
         ) is not None:
             persistence.delete_account_favorite_pteam(db, account_favorite_pteam)
 
-    update_data = data.model_dump(exclude_unset=True)
     if "disabled" in update_data.keys() and data.disabled is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
