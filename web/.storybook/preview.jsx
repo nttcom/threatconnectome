@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import { Provider } from "react-redux";
 
+import { AuthProvider } from "../src/providers/auth/AuthContext";
 import { tcApi } from "../src/services/tcApi";
 import { sliceReducers } from "../src/slices";
 
@@ -54,9 +55,11 @@ const decorators = [
     const key = JSON.stringify(context.args) + "-" + context.globals.viewport.value;
 
     return (
-      <Provider key={key} store={store}>
-        <Story />
-      </Provider>
+      <AuthProvider>
+        <Provider key={key} store={store}>
+          <Story />
+        </Provider>
+      </AuthProvider>
     );
   },
 ];
