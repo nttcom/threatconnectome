@@ -10,7 +10,13 @@ import PropTypes from "prop-types";
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export function AccountSettingsDialog(props) {
-  const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe } = props;
+  const {
+    accountSettingOpen,
+    setAccountSettingOpen,
+    onSelectYear,
+    userMe,
+    onSelectFavoriteTeam = "",
+  } = props;
 
   const handleClose = () => {
     setAccountSettingOpen(false);
@@ -53,6 +59,38 @@ export function AccountSettingsDialog(props) {
                 ))}
               </Stack>
             </Box>
+
+            <Box>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Favorite Team
+                </Typography>
+                <Tooltip title="Your default team. This will be shown if no other team is currently selected.">
+                  <IconButton size="small">
+                    <HelpOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Select
+                size="small"
+                value={userMe.favorite_pteam_id || ""}
+                onChange={(e) => {
+                  onSelectFavoriteTeam(e);
+                }}
+                sx={{ minWidth: 200 }}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {userMe.pteam_roles.map((pteam_role) => (
+                  <MenuItem key={pteam_role.pteam.pteam_id} value={pteam_role.pteam.pteam_id}>
+                    {pteam_role.pteam.pteam_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Box>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -93,5 +131,6 @@ AccountSettingsDialog.propTypes = {
   accountSettingOpen: PropTypes.bool.isRequired,
   setAccountSettingOpen: PropTypes.func.isRequired,
   onSelectYear: PropTypes.func.isRequired,
+  onSelectFavoriteTeam: PropTypes.func.isRequired,
   userMe: PropTypes.object.isRequired,
 };
