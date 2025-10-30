@@ -74,6 +74,7 @@ class UserResponse(ORMModel):
     disabled: bool
     years: int
     pteam_roles: list[PTeamRole]
+    favorite_pteam_id: UUID | None
 
 
 class PteamMemberGetResponse(ORMModel):
@@ -87,11 +88,14 @@ class PteamMemberGetResponse(ORMModel):
 
 class UserCreateRequest(ORMModel):
     years: int = 0
+    # favorite_pteam_id is not permitted here.
+    # Because the user does not belong to any pteam at the time of creation.
 
 
 class UserUpdateRequest(ORMModel):
     disabled: bool | None = None
     years: int | None = None
+    favorite_pteam_id: UUID | None = None
 
 
 class ActionResponse(ORMModel):

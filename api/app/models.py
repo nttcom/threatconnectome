@@ -219,15 +219,20 @@ class Account(Base):
     __tablename__ = "account"
 
     user_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    uid: Mapped[str | None] = mapped_column(unique=True)
-    email: Mapped[Str255 | None]
+    uid: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[Str255]
     disabled: Mapped[bool] = mapped_column(default=False)
-    years: Mapped[int | None]
+    years: Mapped[int]
 
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     action_logs = relationship("ActionLog", back_populates="executed_by")
     pteam_roles = relationship(
         "PTeamAccountRole", back_populates="account", cascade="all, delete-orphan"
+    )
+    account_favorite_pteam = relationship(
+        "AccountFavoritePTeam",
+        cascade="all, delete-orphan",
+        uselist=False,
     )
 
 
