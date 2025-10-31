@@ -220,7 +220,10 @@ export function PTeamStatusSSVCCards(props) {
                 </Tooltip>
               </Box>
               {!card.isEditable && (
-                <IconButton disabled={isUpdating} onClick={() => card.handleClickIconButton(true)}>
+                <IconButton
+                  disabled={isUpdating || isSystemExposureEditable || isMissionImpactEditable}
+                  onClick={() => card.handleClickIconButton(true)}
+                >
                   <EditIcon />
                 </IconButton>
               )}
