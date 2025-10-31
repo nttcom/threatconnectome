@@ -1353,9 +1353,50 @@ def update_pteam(
 ):
     """
     Update a pteam.
+    - pteam_name
+      * max length: 255 in half-width or 127 in full-width
+    - contact_info
+      * max length: 255 in half-width or 127 in full-width
+    - webhook_url
+      * max length: 255 in half-width
+    - address
+      * max length: 255 in half-width
 
     Note: monitoring tags cannot be update with this api. use (add|update|remove)_pteamtag instead.
     """
+    max_pteam_name_length_in_half = 50
+    max_contact_info_length_in_half = 255
+    max_webhook_url_length_in_half = 255
+    max_address_length_in_half = 255
+
+    error_too_long_pteam_name = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long team name. Max length is {max_pteam_name_length_in_half} in half-width "
+            f"or {int(max_pteam_name_length_in_half / 2)} in full-width"
+        ),
+    )
+    error_too_long_contact_info = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long contact info. Max length is {max_contact_info_length_in_half} in half-width "
+            f"or {int(max_contact_info_length_in_half / 2)} in full-width"
+        ),
+    )
+    error_too_long_webhook_url = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long Slack webhook URL. Max length is {max_webhook_url_length_in_half} "
+            f"in half-width "
+        ),
+    )
+    error_too_long_address = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long email address. Max length is {max_address_length_in_half} in half-width "
+        ),
+    )
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_admin_authority(db, pteam, current_user):
@@ -1389,11 +1430,17 @@ def update_pteam(
         )
 
     if data.alert_slack and data.alert_slack.webhook_url:
-        validate_slack_webhook_url(data.alert_slack.webhook_url)
+        webhook_url = data.alert_slack.webhook_url.strip()
+        if (
+            unicode_tool.count_full_width_and_half_width_characters(webhook_url)
+            > max_webhook_url_length_in_half
+        ):
+            raise error_too_long_webhook_url
+        validate_slack_webhook_url(webhook_url)
         pteam.alert_slack = models.PTeamSlack(
             pteam_id=pteam.pteam_id,
             enable=data.alert_slack.enable,
-            webhook_url=data.alert_slack.webhook_url,
+            webhook_url=webhook_url,
         )
     elif data.alert_slack and data.alert_slack.webhook_url == "":
         pteam.alert_slack = models.PTeamSlack(
@@ -1403,13 +1450,36 @@ def update_pteam(
         )
 
     if data.pteam_name is not None:
-        pteam.pteam_name = data.pteam_name
+        update_pteam_name = data.pteam_name.strip()
+        if (
+            unicode_tool.count_full_width_and_half_width_characters(update_pteam_name)
+            > max_pteam_name_length_in_half
+        ):
+            raise error_too_long_pteam_name
+        pteam.pteam_name = update_pteam_name
     if data.contact_info is not None:
-        pteam.contact_info = data.contact_info
+        update_contact_info = data.contact_info.strip()
+        if (
+            unicode_tool.count_full_width_and_half_width_characters(update_contact_info)
+            > max_contact_info_length_in_half
+        ):
+            raise error_too_long_contact_info
+        pteam.contact_info = update_contact_info
     if data.alert_ssvc_priority is not None:
         pteam.alert_ssvc_priority = data.alert_ssvc_priority
     if data.alert_mail is not None:
-        pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
+        if data.alert_mail.address:
+            email_address = data.alert_mail.address.strip()
+            if (
+                unicode_tool.count_full_width_and_half_width_characters(email_address)
+                > max_address_length_in_half
+            ):
+                raise error_too_long_address
+            mail_data = data.alert_mail.__dict__.copy()
+            mail_data["address"] = email_address
+            pteam.alert_mail = models.PTeamMail(**mail_data)
+        else:
+            pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
 
     db.commit()
 
