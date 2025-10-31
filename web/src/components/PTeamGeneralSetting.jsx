@@ -3,9 +3,14 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useViewportOffset } from "../hooks/useViewportOffset";
 import { useUpdatePTeamMutation } from "../services/tcApi";
-import { modalCommonButtonStyle } from "../utils/const";
-import { errorToString } from "../utils/func";
+import {
+  modalCommonButtonStyle,
+  maxPTeamNameLengthInHalf,
+  maxContactInfoLengthInHalf,
+} from "../utils/const";
+import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
 
 export function PTeamGeneralSetting(props) {
   const { pteam } = props;
@@ -16,9 +21,42 @@ export function PTeamGeneralSetting(props) {
   const [updatePTeam] = useUpdatePTeamMutation();
 
   const { enqueueSnackbar } = useSnackbar();
+  const viewportOffsetTop = useViewportOffset();
 
   const operationError = (error) =>
     enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+
+  const handlePTeamNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long team name. Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setPTeamName(string);
+    }
+  };
+
+  const handleContactInfoSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxContactInfoLengthInHalf) {
+      enqueueSnackbar(
+        `Too long contact info. Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setContactInfo(string);
+    }
+  };
 
   const handleUpdatePTeam = async () => {
     const data = {
@@ -42,8 +80,9 @@ export function PTeamGeneralSetting(props) {
         <TextField
           size="small"
           value={pteamName}
-          onChange={(event) => setPTeamName(event.target.value)}
+          onChange={(event) => handlePTeamNameSetting(event.target.value)}
           variant="outlined"
+          placeholder={`Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`}
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
@@ -54,8 +93,9 @@ export function PTeamGeneralSetting(props) {
         <TextField
           size="small"
           value={contactInfo}
-          onChange={(event) => setContactInfo(event.target.value)}
+          onChange={(event) => handleContactInfoSetting(event.target.value)}
           variant="outlined"
+          placeholder={`Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`}
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
