@@ -70,16 +70,6 @@ export function PTeamStatusSSVCCards(props) {
       });
   };
 
-  const handleClickIconSystemExposure = (open) => {
-    if (open) setIsMissionImpactEditable(false);
-    setIsSystemExposureEditable(open);
-  };
-
-  const handleClickIconMissionImpact = (open) => {
-    if (open) setIsSystemExposureEditable(false);
-    setIsMissionImpactEditable(open);
-  };
-
   const SSVCCardsList = [
     {
       title: "System Exposure",
@@ -87,7 +77,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedSystemExposure,
       valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
-      handleClickIconButton: handleClickIconSystemExposure,
+      handleClickIconButton: setIsSystemExposureEditable,
       handleClickToggleButton: setSystemExposureValue,
     },
     {
@@ -96,7 +86,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedMissionImpat,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
-      handleClickIconButton: handleClickIconMissionImpact,
+      handleClickIconButton: setIsMissionImpactEditable,
       handleClickToggleButton: setMissionImpactValue,
     },
   ];
@@ -220,7 +210,10 @@ export function PTeamStatusSSVCCards(props) {
                 </Tooltip>
               </Box>
               {!card.isEditable && (
-                <IconButton disabled={isUpdating} onClick={() => card.handleClickIconButton(true)}>
+                <IconButton
+                  disabled={isUpdating || isSystemExposureEditable || isMissionImpactEditable}
+                  onClick={() => card.handleClickIconButton(true)}
+                >
                   <EditIcon />
                 </IconButton>
               )}
