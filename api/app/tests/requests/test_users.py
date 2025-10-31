@@ -21,7 +21,7 @@ class TestGetMyUserInfo:
         # Given
         user1 = create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
-        request1 = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        request1 = {"default_pteam_id": str(pteam1.pteam_id)}
         client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request1)
 
         # When
@@ -34,7 +34,7 @@ class TestGetMyUserInfo:
         assert user["uid"] == user1.uid
         assert user["disabled"] == USER1["disabled"]
         assert user["years"] == USER1["years"]
-        assert user["favorite_pteam_id"] == str(pteam1.pteam_id)
+        assert user["default_pteam_id"] == str(pteam1.pteam_id)
 
 
 class TestCreateUser:
@@ -96,12 +96,12 @@ class TestUpdateUser:
         assert response.status_code == 400
         assert response.json()["detail"] == expected_response_detail
 
-    def test_it_should_return_400_when_favorite_pteam_id_does_not_exist(self):
+    def test_it_should_return_400_when_default_pteam_id_does_not_exist(self):
         # Given
         user1 = create_user(USER1)
 
         # When
-        request = {"favorite_pteam_id": "123e4567-e89b-12d3-a456-426614174000"}
+        request = {"default_pteam_id": "123e4567-e89b-12d3-a456-426614174000"}
         response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
 
         # Then
@@ -115,7 +115,7 @@ class TestUpdateUser:
         pteam1 = create_pteam(USER1, PTEAM1)
 
         # When
-        request = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        request = {"default_pteam_id": str(pteam1.pteam_id)}
         response = client.put(f"/users/{user2.user_id}", headers=headers(USER2), json=request)
 
         # Then
@@ -128,34 +128,34 @@ class TestUpdateUser:
         pteam1 = create_pteam(USER1, PTEAM1)
 
         # When
-        request = {"favorite_pteam_id": str(pteam1.pteam_id), "years": 10, "disabled": True}
+        request = {"default_pteam_id": str(pteam1.pteam_id), "years": 10, "disabled": True}
         response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request)
 
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["favorite_pteam_id"] == str(pteam1.pteam_id)
+        assert data["default_pteam_id"] == str(pteam1.pteam_id)
         assert data["years"] == 10
         assert data["disabled"] is True
 
-    def test_it_should_return_200_when_the_favorite_pteam_id_is_changed_twice(self):
+    def test_it_should_return_200_when_the_default_pteam_id_is_changed_twice(self):
         # Given
         user1 = create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
         pteam2 = create_pteam(USER1, PTEAM2)
 
         # When
-        request1 = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        request1 = {"default_pteam_id": str(pteam1.pteam_id)}
         client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request1)
-        request2 = {"favorite_pteam_id": str(pteam2.pteam_id)}
+        request2 = {"default_pteam_id": str(pteam2.pteam_id)}
         response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request2)
 
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["favorite_pteam_id"] == str(pteam2.pteam_id)
+        assert data["default_pteam_id"] == str(pteam2.pteam_id)
 
-    def test_return_200_when_the_previous_value_remains_if_favorite_pteam_id_is_not_specified(
+    def test_return_200_when_the_previous_value_remains_if_default_pteam_id_is_not_specified(
         self,
     ):
         # Given
@@ -163,7 +163,7 @@ class TestUpdateUser:
         pteam1 = create_pteam(USER1, PTEAM1)
 
         # When
-        request1 = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        request1 = {"default_pteam_id": str(pteam1.pteam_id)}
         client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request1)
         request2 = {"years": 10}
         response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request2)
@@ -171,24 +171,24 @@ class TestUpdateUser:
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["favorite_pteam_id"] == str(pteam1.pteam_id)
+        assert data["default_pteam_id"] == str(pteam1.pteam_id)
         assert data["years"] == 10
 
-    def test_is_it_should_return_200_when_favorite_pteam_id_is_None(self):
+    def test_is_it_should_return_200_when_default_pteam_id_is_None(self):
         # Given
         user1 = create_user(USER1)
         pteam1 = create_pteam(USER1, PTEAM1)
 
         # When
-        request1 = {"favorite_pteam_id": str(pteam1.pteam_id)}
+        request1 = {"default_pteam_id": str(pteam1.pteam_id)}
         client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request1)
-        request2 = {"favorite_pteam_id": None}
+        request2 = {"default_pteam_id": None}
         response = client.put(f"/users/{user1.user_id}", headers=headers(USER1), json=request2)
 
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["favorite_pteam_id"] is None
+        assert data["default_pteam_id"] is None
 
 
 class TestDeleteUser:

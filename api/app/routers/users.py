@@ -37,9 +37,9 @@ def get_my_user_info(
         disabled=current_user.disabled,
         years=current_user.years,
         pteam_roles=current_user.pteam_roles,
-        favorite_pteam_id=(
-            UUID(current_user.account_favorite_pteam.favorite_pteam_id)
-            if current_user.account_favorite_pteam
+        default_pteam_id=(
+            UUID(current_user.account_default_pteam.default_pteam_id)
+            if current_user.account_default_pteam
             else None
         ),
     )
@@ -93,7 +93,7 @@ def create_user(
         disabled=account.disabled,
         years=account.years,
         pteam_roles=account.pteam_roles,
-        favorite_pteam_id=None,
+        default_pteam_id=None,
     )
 
 
@@ -115,8 +115,8 @@ def update_user(
         )
 
     update_data = data.model_dump(exclude_unset=True)
-    if data.favorite_pteam_id is not None:
-        if (pteam := persistence.get_pteam_by_id(db, data.favorite_pteam_id)) is None:
+    if data.default_pteam_id is not None:
+        if (pteam := persistence.get_pteam_by_id(db, data.default_pteam_id)) is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="pteam_id does not exist",
@@ -126,21 +126,21 @@ def update_user(
             raise NOT_A_PTEAM_MEMBER
 
         if (
-            account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
+            account_default_pteam := persistence.get_account_default_pteam_by_user_id(db, user_id)
         ) is not None:
-            account_favorite_pteam.favorite_pteam_id = str(data.favorite_pteam_id)
+            account_default_pteam.default_pteam_id = str(data.default_pteam_id)
         else:
-            account_favorite_pteam = models.AccountFavoritePTeam(
+            account_default_pteam = models.AccountDefaultPTeam(
                 user_id=user.user_id,
-                favorite_pteam_id=data.favorite_pteam_id,
+                default_pteam_id=data.default_pteam_id,
             )
-            persistence.create_account_favorite_pteam(db, account_favorite_pteam)
+            persistence.create_account_default_pteam(db, account_default_pteam)
 
-    elif "favorite_pteam_id" in update_data.keys() and data.favorite_pteam_id is None:
+    elif "default_pteam_id" in update_data.keys() and data.default_pteam_id is None:
         if (
-            account_favorite_pteam := persistence.get_account_favorite_pteam_by_user_id(db, user_id)
+            account_default_pteam := persistence.get_account_default_pteam_by_user_id(db, user_id)
         ) is not None:
-            persistence.delete_account_favorite_pteam(db, account_favorite_pteam)
+            persistence.delete_account_default_pteam(db, account_default_pteam)
 
     if "disabled" in update_data.keys() and data.disabled is None:
         raise HTTPException(
@@ -166,9 +166,9 @@ def update_user(
         disabled=user.disabled,
         years=user.years,
         pteam_roles=current_user.pteam_roles,
-        favorite_pteam_id=(
-            UUID(current_user.account_favorite_pteam.favorite_pteam_id)
-            if current_user.account_favorite_pteam
+        default_pteam_id=(
+            UUID(current_user.account_default_pteam.default_pteam_id)
+            if current_user.account_default_pteam
             else None
         ),
     )

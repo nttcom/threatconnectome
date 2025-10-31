@@ -229,20 +229,20 @@ class Account(Base):
     pteam_roles = relationship(
         "PTeamAccountRole", back_populates="account", cascade="all, delete-orphan"
     )
-    account_favorite_pteam = relationship(
-        "AccountFavoritePTeam",
+    account_default_pteam = relationship(
+        "AccountDefaultPTeam",
         cascade="all, delete-orphan",
         uselist=False,
     )
 
 
-class AccountFavoritePTeam(Base):
-    __tablename__ = "accountfavoritepteam"
+class AccountDefaultPTeam(Base):
+    __tablename__ = "accountdefaultpteam"
 
     user_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True, index=True
     )
-    favorite_pteam_id: Mapped[StrUUID] = mapped_column(
+    default_pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
 
