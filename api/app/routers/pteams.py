@@ -13,12 +13,6 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.constants import (
-    MAX_CONTACT_INFO_LENGTH_IN_HALF,
-    MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
-    MAX_PTEAM_NAME_LENGTH_IN_HALF,
-    MAX_WEBHOOK_URL_LENGTH_IN_HALF,
-)
 from app.business import dependency_business, package_business, threat_business, ticket_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
@@ -27,6 +21,12 @@ from app.business.ssvc_business import (
     get_vuln_ids_summary_by_service_and_package_id,
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
+from app.constants import (
+    MAX_CONTACT_INFO_LENGTH_IN_HALF,
+    MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+    MAX_PTEAM_NAME_LENGTH_IN_HALF,
+    MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+)
 from app.database import get_db, open_db_session
 from app.detector import ecosystem_analyzer
 from app.notification.alert import notify_sbom_upload_ended
