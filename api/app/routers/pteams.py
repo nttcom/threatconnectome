@@ -13,6 +13,12 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
+from app.constants import (
+    MAX_CONTACT_INFO_LENGTH_IN_HALF,
+    MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+    MAX_PTEAM_NAME_LENGTH_IN_HALF,
+    MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+)
 from app.business import dependency_business, package_business, threat_business, ticket_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
@@ -1364,36 +1370,32 @@ def update_pteam(
 
     Note: monitoring tags cannot be update with this api. use (add|update|remove)_pteamtag instead.
     """
-    max_pteam_name_length_in_half = 50
-    max_contact_info_length_in_half = 255
-    max_webhook_url_length_in_half = 255
-    max_address_length_in_half = 255
-
     error_too_long_pteam_name = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
-            f"Too long team name. Max length is {max_pteam_name_length_in_half} in half-width "
-            f"or {int(max_pteam_name_length_in_half / 2)} in full-width"
+            f"Too long team name. Max length is {MAX_PTEAM_NAME_LENGTH_IN_HALF} in half-width "
+            f"or {int(MAX_PTEAM_NAME_LENGTH_IN_HALF / 2)} in full-width"
         ),
     )
     error_too_long_contact_info = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
-            f"Too long contact info. Max length is {max_contact_info_length_in_half} in half-width "
-            f"or {int(max_contact_info_length_in_half / 2)} in full-width"
+            f"Too long contact info. Max length is {MAX_CONTACT_INFO_LENGTH_IN_HALF} in half-width "
+            f"or {int(MAX_CONTACT_INFO_LENGTH_IN_HALF / 2)} in full-width"
         ),
     )
     error_too_long_webhook_url = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
-            f"Too long Slack webhook URL. Max length is {max_webhook_url_length_in_half} "
+            f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
             f"in half-width "
         ),
     )
     error_too_long_address = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
-            f"Too long email address. Max length is {max_address_length_in_half} in half-width "
+            f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
+            f"in half-width"
         ),
     )
 
@@ -1433,7 +1435,7 @@ def update_pteam(
         webhook_url = data.alert_slack.webhook_url.strip()
         if (
             unicode_tool.count_full_width_and_half_width_characters(webhook_url)
-            > max_webhook_url_length_in_half
+            > MAX_WEBHOOK_URL_LENGTH_IN_HALF
         ):
             raise error_too_long_webhook_url
         validate_slack_webhook_url(webhook_url)
@@ -1453,7 +1455,7 @@ def update_pteam(
         update_pteam_name = data.pteam_name.strip()
         if (
             unicode_tool.count_full_width_and_half_width_characters(update_pteam_name)
-            > max_pteam_name_length_in_half
+            > MAX_PTEAM_NAME_LENGTH_IN_HALF
         ):
             raise error_too_long_pteam_name
         pteam.pteam_name = update_pteam_name
@@ -1461,7 +1463,7 @@ def update_pteam(
         update_contact_info = data.contact_info.strip()
         if (
             unicode_tool.count_full_width_and_half_width_characters(update_contact_info)
-            > max_contact_info_length_in_half
+            > MAX_CONTACT_INFO_LENGTH_IN_HALF
         ):
             raise error_too_long_contact_info
         pteam.contact_info = update_contact_info
@@ -1472,7 +1474,7 @@ def update_pteam(
             email_address = data.alert_mail.address.strip()
             if (
                 unicode_tool.count_full_width_and_half_width_characters(email_address)
-                > max_address_length_in_half
+                > MAX_EMAIL_ADDRESS_LENGTH_IN_HALF
             ):
                 raise error_too_long_address
             mail_data = data.alert_mail.__dict__.copy()
