@@ -50,16 +50,6 @@ NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="N
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
 
-@router.get("", response_model=list[schemas.PTeamEntry])
-def get_pteams(
-    current_user: models.Account = Depends(get_current_user), db: Session = Depends(get_db)
-):
-    """
-    Get all pteams list.
-    """
-    return persistence.get_all_pteams(db)
-
-
 @router.post("/apply_invitation", response_model=schemas.PTeamInfo)
 def apply_invitation(
     request: schemas.ApplyInvitationRequest,

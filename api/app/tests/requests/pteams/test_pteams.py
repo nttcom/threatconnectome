@@ -33,57 +33,6 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-def test_get_pteams():
-    create_user(USER1)
-
-    response = client.get("/pteams", headers=headers(USER1))
-    assert response.status_code == 200
-    assert response.json() == []
-
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    response = client.get("/pteams", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["pteam_id"] == str(pteam1.pteam_id)
-    assert data[0]["pteam_name"] == PTEAM1["pteam_name"]
-    assert data[0]["contact_info"] == PTEAM1["contact_info"]
-
-
-def test_get_pteams__without_auth():
-    response = client.get("/pteams")  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
-
-
-def test_get_pteams__by_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-
-    response = client.get("/pteams", headers=headers(USER2))
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["pteam_id"] == str(pteam1.pteam_id)
-    assert data[0]["pteam_name"] == PTEAM1["pteam_name"]
-    assert data[0]["contact_info"] == PTEAM1["contact_info"]
-
-
-def test_get_pteams__by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    create_pteam(USER1, PTEAM1)
-
-    response = client.get("/pteams", headers=headers(USER2))  # not a member
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-
-
 def test_get_pteam():
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)

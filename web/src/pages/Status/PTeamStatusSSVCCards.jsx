@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
@@ -49,6 +49,14 @@ export function PTeamStatusSSVCCards(props) {
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const { enqueueSnackbar } = useSnackbar();
 
+  useEffect(() => {
+    setIsSystemExposureEditable(false);
+    setIsMissionImpactEditable(false);
+    setSystemExposureValue(service.system_exposure);
+    setMissionImpactValue(service.service_mission_impact);
+    setIsUpdating(false);
+  }, [service]);
+
   const handleUpdatePTeamService = async (card) => {
     setIsUpdating(true);
     const data =
@@ -70,16 +78,6 @@ export function PTeamStatusSSVCCards(props) {
       });
   };
 
-  const handleClickIconSystemExposure = (open) => {
-    if (open) setIsMissionImpactEditable(false);
-    setIsSystemExposureEditable(open);
-  };
-
-  const handleClickIconMissionImpact = (open) => {
-    if (open) setIsSystemExposureEditable(false);
-    setIsMissionImpactEditable(open);
-  };
-
   const SSVCCardsList = [
     {
       title: "System Exposure",
@@ -87,7 +85,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedSystemExposure,
       valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
-      handleClickIconButton: handleClickIconSystemExposure,
+      handleClickIconButton: setIsSystemExposureEditable,
       handleClickToggleButton: setSystemExposureValue,
     },
     {
@@ -96,7 +94,7 @@ export function PTeamStatusSSVCCards(props) {
       items: sortedMissionImpat,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
-      handleClickIconButton: handleClickIconMissionImpact,
+      handleClickIconButton: setIsMissionImpactEditable,
       handleClickToggleButton: setMissionImpactValue,
     },
   ];
@@ -220,7 +218,10 @@ export function PTeamStatusSSVCCards(props) {
                 </Tooltip>
               </Box>
               {!card.isEditable && (
-                <IconButton disabled={isUpdating} onClick={() => card.handleClickIconButton(true)}>
+                <IconButton
+                  disabled={isUpdating || isSystemExposureEditable || isMissionImpactEditable}
+                  onClick={() => card.handleClickIconButton(true)}
+                >
                   <EditIcon />
                 </IconButton>
               )}
