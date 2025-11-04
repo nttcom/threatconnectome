@@ -14,7 +14,7 @@ import { PTeamServiceDetailsSettingsView } from "./PTeamServiceDetailsSettingsVi
 const serviceDetailsSettingNoImageUrl = "images/720x480.png";
 
 export function PTeamServiceDetailsSettings(props) {
-  const { pteamId, service } = props;
+  const { pteamId, service, expandService } = props;
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -88,10 +88,18 @@ export function PTeamServiceDetailsSettings(props) {
       ? serviceDetailsSettingNoImageUrl
       : thumbnail;
 
-  return <PTeamServiceDetailsSettingsView service={service} image={image} onSave={handleSave} />;
+  return (
+    <PTeamServiceDetailsSettingsView
+      service={service}
+      image={image}
+      onSave={handleSave}
+      expandService={expandService}
+    />
+  );
 }
 
 PTeamServiceDetailsSettings.propTypes = {
   pteamId: PropTypes.string.isRequired,
   service: PropTypes.object.isRequired,
+  expandService: PropTypes.bool.isRequired,
 };
