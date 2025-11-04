@@ -177,7 +177,6 @@ export function PTeamServiceDetailsSettingsView(props) {
     <>
       <IconButton
         onClick={handleClickOpen}
-        disabled={!expandService}
         sx={{
           position: { md: "absolute", xs: undefined },
           right: 0,
