@@ -1,6 +1,9 @@
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { configureStore } from "@reduxjs/toolkit";
 import { initialize, mswLoader } from "msw-storybook-addon";
+import { SnackbarProvider } from "notistack";
 import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
 
 import { AuthProvider } from "../src/providers/auth/AuthContext";
 import { tcApi } from "../src/services/tcApi";
@@ -19,6 +22,8 @@ const rootReducer = {
   ...sliceReducers,
   [tcApi.reducerPath]: tcApi.reducer,
 };
+
+const theme = createTheme();
 
 const decorators = [
   (Story, context) => {
@@ -55,11 +60,18 @@ const decorators = [
     const key = JSON.stringify(context.args) + "-" + context.globals.viewport.value;
 
     return (
-      <AuthProvider>
-        <Provider key={key} store={store}>
-          <Story />
-        </Provider>
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <Provider key={key} store={store}>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              <SnackbarProvider>
+                <Story />
+              </SnackbarProvider>
+            </ThemeProvider>
+          </Provider>
+        </AuthProvider>
+      </MemoryRouter>
     );
   },
 ];
