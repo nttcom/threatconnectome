@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
@@ -48,6 +48,14 @@ export function PTeamStatusSSVCCards(props) {
 
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    setIsSystemExposureEditable(false);
+    setIsMissionImpactEditable(false);
+    setSystemExposureValue(service.system_exposure);
+    setMissionImpactValue(service.service_mission_impact);
+    setIsUpdating(false);
+  }, [service]);
 
   const handleUpdatePTeamService = async (card) => {
     setIsUpdating(true);
