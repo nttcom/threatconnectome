@@ -37,7 +37,7 @@ import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
 export function PTeamServiceDetailsSettingsView(props) {
-  const { service, image, onSave } = props;
+  const { service, image, onSave, expandService } = props;
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
@@ -177,7 +177,13 @@ export function PTeamServiceDetailsSettingsView(props) {
     <>
       <IconButton
         onClick={handleClickOpen}
-        sx={{ position: { md: "absolute", xs: undefined }, right: 0, top: 0 }}
+        disabled={!expandService}
+        sx={{
+          position: { md: "absolute", xs: undefined },
+          right: 0,
+          top: 0,
+          opacity: expandService ? 1 : 0.7,
+        }}
       >
         <SettingsIcon />
       </IconButton>
@@ -357,4 +363,5 @@ PTeamServiceDetailsSettingsView.propTypes = {
   service: PropTypes.object.isRequired,
   image: PropTypes.string.isRequired,
   onSave: PropTypes.func.isRequired,
+  expandService: PropTypes.bool.isRequired,
 };

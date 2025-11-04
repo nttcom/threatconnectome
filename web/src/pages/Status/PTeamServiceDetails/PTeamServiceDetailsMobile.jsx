@@ -50,7 +50,11 @@ export function PTeamServiceDetailsMobile(props) {
             >
               {serviceName}
             </Typography>
-            <PTeamServiceDetailsSettings pteamId={props.pteamId} service={props.service} />
+            <PTeamServiceDetailsSettings
+              pteamId={props.pteamId}
+              service={props.service}
+              expandService={true}
+            />
           </Box>
           <Typography variant="body2" sx={{ mb: 1, wordBreak: "break-all" }}>
             {description}

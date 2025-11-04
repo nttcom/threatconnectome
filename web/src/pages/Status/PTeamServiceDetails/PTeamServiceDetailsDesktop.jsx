@@ -72,6 +72,12 @@ export function PTeamServiceDetails(props) {
     props.highestSsvcPriority,
   );
 
+  const handleCollapseClick = () => {
+    if (!expandService) {
+      onSwitchExpandService();
+    }
+  };
+
   return (
     <>
       <Collapse
@@ -82,6 +88,7 @@ export function PTeamServiceDetails(props) {
             ? {}
             : {
                 position: "relative",
+                cursor: "pointer",
                 "&::before": {
                   content: "''",
                   width: "100%",
@@ -93,9 +100,14 @@ export function PTeamServiceDetails(props) {
                 },
               }
         }
+        onClick={handleCollapseClick}
       >
         <Card sx={{ display: "flex", height: 200, position: "relative" }}>
-          <PTeamServiceDetailsSettings pteamId={pteamId} service={service} />
+          <PTeamServiceDetailsSettings
+            pteamId={pteamId}
+            service={service}
+            expandService={expandService}
+          />
           <CardMedia image={image} sx={{ aspectRatio: "4 / 3" }} />
           <Divider orientation="vertical" variant="middle" flexItem />
           <CardContent sx={{ display: "flex", flex: 1, minWidth: 0 }}>
