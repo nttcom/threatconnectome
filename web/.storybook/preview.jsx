@@ -51,12 +51,12 @@ const decorators = [
       middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(tcApi.middleware),
     });
 
-    // --- IMPORTANT: Force remount on args change ---
-    // RTK Query caches data. When args change in Controls, RTK Query hooks
-    // might keep stale data or a 'loading' state, freezing the component.
+    // --- IMPORTANT: Force remount on args change AND viewport change ---
+    // RTK Query caches data. When args or viewport change via Storybook's GUI,
+    // RTK Query hooks might keep a 'loading' state, freezing the component.
     // Changing the 'key' forces React to remount the entire tree,
     // creating a new, fresh store and clearing all RTK Query cache.
-    // This is the simplest way to ensure Controls work reliably with RTK Query.
+    // This is the simplest way to ensure Storybook's GUI works reliably with RTK Query
     const key = JSON.stringify(context.args) + "-" + context.globals.viewport.value;
 
     return (
