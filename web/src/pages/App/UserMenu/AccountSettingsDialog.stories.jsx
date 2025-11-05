@@ -10,6 +10,11 @@ const mockUser = {
 export default {
   title: "Dialogs/AccountSettingsDialog",
   component: AccountSettingsDialog,
+  argTypes: {
+    setAccountSettingOpen: { action: "setAccountSettingOpen" },
+    onSelectYear: { action: "onSelectYear" },
+    onSelectDefaultTeam: { action: "onSelectDefaultTeam" },
+  },
   args: {
     accountSettingOpen: true,
     userMe: mockUser,

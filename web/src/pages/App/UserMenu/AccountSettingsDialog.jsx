@@ -10,13 +10,8 @@ import PropTypes from "prop-types";
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export function AccountSettingsDialog(props) {
-  const {
-    accountSettingOpen,
-    setAccountSettingOpen,
-    onSelectYear,
-    userMe,
-    onSelectFavoriteTeam = "",
-  } = props;
+  const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe, onSelectDefaultTeam } =
+    props;
 
   const handleClose = () => {
     setAccountSettingOpen(false);
@@ -73,14 +68,14 @@ export function AccountSettingsDialog(props) {
               </Box>
               <Select
                 size="small"
-                value={userMe.favorite_pteam_id || ""}
+                defaultValue="none"
                 onChange={(e) => {
-                  onSelectFavoriteTeam(e);
+                  onSelectDefaultTeam(e.target.value);
                 }}
                 sx={{ minWidth: 200 }}
                 displayEmpty
               >
-                <MenuItem value="">
+                <MenuItem value="none">
                   <em>None</em>
                 </MenuItem>
                 {userMe.pteam_roles.map((pteam_role) => (
@@ -131,6 +126,6 @@ AccountSettingsDialog.propTypes = {
   accountSettingOpen: PropTypes.bool.isRequired,
   setAccountSettingOpen: PropTypes.func.isRequired,
   onSelectYear: PropTypes.func.isRequired,
-  onSelectFavoriteTeam: PropTypes.func.isRequired,
+  onSelectDefaultTeam: PropTypes.func.isRequired,
   userMe: PropTypes.object.isRequired,
 };
