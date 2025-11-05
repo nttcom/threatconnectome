@@ -63,7 +63,7 @@ export function AccountSettingsDialog(props) {
             <Box>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  Favorite Team
+                  Default Team
                 </Typography>
                 <Tooltip title="Your default team. This will be shown if no other team is currently selected.">
                   <IconButton size="small">
