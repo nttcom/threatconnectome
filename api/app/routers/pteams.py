@@ -22,9 +22,7 @@ from app.business.ssvc_business import (
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
 from app.constants import (
-    MAX_CONTACT_INFO_LENGTH_IN_HALF,
     MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
-    MAX_PTEAM_NAME_LENGTH_IN_HALF,
     MAX_WEBHOOK_URL_LENGTH_IN_HALF,
 )
 from app.database import get_db, open_db_session
@@ -37,6 +35,10 @@ from app.routers.validators.account_validator import (
 )
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.utility import timezone_tool, unicode_tool
+
+# Local constants for pteam-specific fields
+MAX_PTEAM_NAME_LENGTH_IN_HALF = 50
+MAX_CONTACT_INFO_LENGTH_IN_HALF = 255
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
@@ -1433,7 +1435,7 @@ def update_pteam(
     """
     Update a pteam.
     - pteam_name
-      * max length: 255 in half-width or 127 in full-width
+      * max length: 50 in half-width or 25 in full-width
     - contact_info
       * max length: 255 in half-width or 127 in full-width
     - webhook_url
