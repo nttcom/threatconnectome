@@ -1022,24 +1022,97 @@ def create_pteam(
 ):
     """
     Create a pteam.
+    - pteam_name
+      * max length: 50 in half-width or 25 in full-width
+    - contact_info
+      * max length: 255 in half-width or 127 in full-width
+    - webhook_url
+      * max length: 255 in half-width or 127 in full-width
+    - address
+      * max length: 255 in half-width or 127 in full-width
     """
+    error_too_long_pteam_name = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long team name. Max length is {MAX_PTEAM_NAME_LENGTH_IN_HALF} in half-width "
+            f"or {int(MAX_PTEAM_NAME_LENGTH_IN_HALF / 2)} in full-width"
+        ),
+    )
+    error_too_long_contact_info = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long contact info. Max length is {MAX_CONTACT_INFO_LENGTH_IN_HALF} in half-width "
+            f"or {int(MAX_CONTACT_INFO_LENGTH_IN_HALF / 2)} in full-width"
+        ),
+    )
+    error_too_long_webhook_url = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
+            f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
+        ),
+    )
+    error_too_long_address = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
+            f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
+        ),
+    )
 
+    # Validate pteam_name
+    pteam_name = data.pteam_name.strip()
+    if (
+        unicode_tool.count_full_width_and_half_width_characters(pteam_name)
+        > MAX_PTEAM_NAME_LENGTH_IN_HALF
+    ):
+        raise error_too_long_pteam_name
+
+    # Validate contact_info
+    contact_info = data.contact_info.strip()
+    if (
+        unicode_tool.count_full_width_and_half_width_characters(contact_info)
+        > MAX_CONTACT_INFO_LENGTH_IN_HALF
+    ):
+        raise error_too_long_contact_info
+
+    # Validate webhook_url
+    validated_webhook_url = ""
     if data.alert_slack and data.alert_slack.webhook_url:
-        validate_slack_webhook_url(data.alert_slack.webhook_url)
+        webhook_url = data.alert_slack.webhook_url.strip()
+        if (
+            unicode_tool.count_full_width_and_half_width_characters(webhook_url)
+            > MAX_WEBHOOK_URL_LENGTH_IN_HALF
+        ):
+            raise error_too_long_webhook_url
+        validate_slack_webhook_url(webhook_url)
+        validated_webhook_url = webhook_url
+
+    # Validate email address
+    validated_email_address = ""
+    if data.alert_mail and data.alert_mail.address:
+        email_address = data.alert_mail.address.strip()
+        if (
+            unicode_tool.count_full_width_and_half_width_characters(email_address)
+            > MAX_EMAIL_ADDRESS_LENGTH_IN_HALF
+        ):
+            raise error_too_long_address
+        validated_email_address = email_address
+
     pteam = models.PTeam(
-        pteam_name=data.pteam_name.strip(),
-        contact_info=data.contact_info.strip(),
+        pteam_name=pteam_name,
+        contact_info=contact_info,
         alert_ssvc_priority=data.alert_ssvc_priority,
     )
     pteam.alert_slack = models.PTeamSlack(
         pteam_id=pteam.pteam_id,
         enable=data.alert_slack.enable if data.alert_slack else True,
-        webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
+        webhook_url=validated_webhook_url,
     )
     pteam.alert_mail = models.PTeamMail(
         pteam_id=pteam.pteam_id,
         enable=data.alert_mail.enable if data.alert_mail else True,
-        address=data.alert_mail.address if data.alert_mail else "",
+        address=validated_email_address,
     )
     persistence.create_pteam(db, pteam)
 

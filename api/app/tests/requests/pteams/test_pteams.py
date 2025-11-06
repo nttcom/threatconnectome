@@ -136,69 +136,165 @@ def test_it_should_return_403_when_get_pteam_by_not_member():
     assert response.reason_phrase == "Forbidden"
 
 
-def test_create_pteam():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    assert pteam1.pteam_name == PTEAM1["pteam_name"]
-    assert pteam1.contact_info == PTEAM1["contact_info"]
-    assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
-    assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
-    assert pteam1.pteam_id != ZERO_FILLED_UUID
+class TestCreatePteam:
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    user_me = response.json()
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
-        pteam1.pteam_id
-    }
+    def test_create_pteam(self):
+        """Test basic pteam creation functionality"""
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        assert pteam1.pteam_name == PTEAM1["pteam_name"]
+        assert pteam1.contact_info == PTEAM1["contact_info"]
+        assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
+        assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
+        assert pteam1.pteam_id != ZERO_FILLED_UUID
 
-    pteam2 = create_pteam(USER1, PTEAM2)
-    assert pteam2.pteam_name == PTEAM2["pteam_name"]
-    assert pteam2.contact_info == PTEAM2["contact_info"]
-    assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
-    assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
-    assert pteam2.pteam_id != ZERO_FILLED_UUID
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        user_me = response.json()
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    user_me = response.json()
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
-        pteam1.pteam_id,
-        pteam2.pteam_id,
-    }
+        pteam2 = create_pteam(USER1, PTEAM2)
+        assert pteam2.pteam_name == PTEAM2["pteam_name"]
+        assert pteam2.contact_info == PTEAM2["contact_info"]
+        assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
+        assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
+        assert pteam2.pteam_id != ZERO_FILLED_UUID
 
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        user_me = response.json()
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
+            pteam1.pteam_id,
+            pteam2.pteam_id,
+        }
 
-def test_create_pteam__by_default():
-    create_user(USER1)
-    _pteam = PTEAM1.copy()
-    del _pteam["contact_info"]
-    del _pteam["alert_slack"]
-    del _pteam["alert_ssvc_priority"]
-    del _pteam["alert_mail"]
-    pteam1 = create_pteam(USER1, _pteam)
-    assert pteam1.contact_info == ""
-    assert pteam1.alert_slack.enable is True
-    assert pteam1.alert_slack.webhook_url == ""
-    assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
-    assert pteam1.alert_mail.enable is True
-    assert pteam1.alert_mail.address == ""
+    @pytest.mark.parametrize(
+        "field_name, test_value",
+        [
+            # pteam_name tests (max 255 half-width chars) - valid cases
+            ("pteam_name", "a" * 50),
+            ("pteam_name", "あ" * 25),
+            # contact_info tests (max 255 half-width chars) - valid cases
+            ("contact_info", "a" * 255),
+            ("contact_info", "あ" * 127),
+            # webhook_url tests (max 255 half-width chars) - valid cases
+            ("webhook_url", "https://hooks.slack.com/services/" + "a" * 222),
+            # email address tests (max 255 half-width chars) - valid cases
+            ("email_address", "a" * 245 + "@test.com"),
+        ],
+    )
+    def test_return_200_with_valid_character_limits(self, field_name, test_value):
+        """Test that valid character limits are accepted for PTeam creation"""
+        # Given
+        create_user(USER1)
 
+        if field_name == "webhook_url":
+            request_data = {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {**PTEAM1, "alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {**PTEAM1, field_name: test_value}
 
-def test_it_should_return_401_when_create_pteam_without_auth():
-    create_user(USER1)
-    request = {**PTEAM1}
-    response = client.post("/pteams", json=request)  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
+        # When
+        response = client.post("/pteams", headers=headers(USER1), json=request_data)
 
+        # Then
+        assert response.status_code == 200
 
-def test_it_should_success_create_pteam_when_duplicate_pteam_name():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    pteam2 = create_pteam(USER1, PTEAM1)
-    assert pteam1.pteam_id != pteam2.pteam_id
-    del pteam1.pteam_id, pteam2.pteam_id
-    assert pteam1 == pteam2
+    @pytest.mark.parametrize(
+        "field_name, test_value, expected_error_message",
+        [
+            # pteam_name tests (max 255 half-width chars) - invalid cases
+            (
+                "pteam_name",
+                "a" * 51,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            (
+                "pteam_name",
+                "あ" * 26,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            # contact_info tests (max 255 half-width chars) - invalid cases
+            (
+                "contact_info",
+                "a" * 256,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            (
+                "contact_info",
+                "あ" * 128,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # webhook_url tests (max 255 half-width chars) - invalid cases
+            (
+                "webhook_url",
+                "https://hooks.slack.com/services/" + "a" * 223,
+                "Too long Slack webhook URL. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # email address tests (max 255 half-width chars) - invalid cases
+            (
+                "email_address",
+                "a" * 247 + "@test.com",
+                "Too long email address. Max length is 255 in half-width or 127 in full-width",
+            ),
+        ],
+    )
+    def test_return_400_with_invalid_character_limits(
+        self, field_name, test_value, expected_error_message
+    ):
+        """Test that invalid character limits are rejected for PTeam creation"""
+        # Given
+        create_user(USER1)
+
+        if field_name == "webhook_url":
+            request_data = {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {**PTEAM1, "alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {**PTEAM1, field_name: test_value}
+
+        # When
+        response = client.post("/pteams", headers=headers(USER1), json=request_data)
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_error_message
+
+    def test_create_pteam__by_default(self):
+        """Test pteam creation with default values"""
+        create_user(USER1)
+        _pteam = PTEAM1.copy()
+        del _pteam["contact_info"]
+        del _pteam["alert_slack"]
+        del _pteam["alert_ssvc_priority"]
+        del _pteam["alert_mail"]
+        pteam1 = create_pteam(USER1, _pteam)
+        assert pteam1.contact_info == ""
+        assert pteam1.alert_slack.enable is True
+        assert pteam1.alert_slack.webhook_url == ""
+        assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
+        assert pteam1.alert_mail.enable is True
+        assert pteam1.alert_mail.address == ""
+
+    def test_it_should_return_401_when_create_pteam_without_auth(self):
+        """Test that unauthorized requests are rejected"""
+        create_user(USER1)
+        request = {**PTEAM1}
+        response = client.post("/pteams", json=request)  # no headers
+        assert response.status_code == 401
+        assert response.reason_phrase == "Unauthorized"
+
+    def test_it_should_success_create_pteam_when_duplicate_pteam_name(self):
+        """Test that duplicate pteam names are allowed"""
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        pteam2 = create_pteam(USER1, PTEAM1)
+        assert pteam1.pteam_id != pteam2.pteam_id
+        del pteam1.pteam_id, pteam2.pteam_id
+        assert pteam1 == pteam2
 
 
 def test_it_should_return_400_when_try_delete_last_admin():
