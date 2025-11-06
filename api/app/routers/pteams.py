@@ -1388,14 +1388,14 @@ def update_pteam(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
             f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
-            f"in half-width "
+            f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
         ),
     )
     error_too_long_address = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
             f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
-            f"in half-width"
+            f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
         ),
     )
 

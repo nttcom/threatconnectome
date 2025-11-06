@@ -67,7 +67,7 @@ export function PTeamNotificationSetting(props) {
   const handleMailAddressSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxEmailAddressLengthInHalf) {
       enqueueSnackbar(
-        `Too long email address. Max length is ${maxEmailAddressLengthInHalf} in half-width`,
+        `Too long email address. Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
           style: {
@@ -83,7 +83,7 @@ export function PTeamNotificationSetting(props) {
   const handleSlackUrlSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
       enqueueSnackbar(
-        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width`,
+        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`,
         {
           variant: "error",
           style: {

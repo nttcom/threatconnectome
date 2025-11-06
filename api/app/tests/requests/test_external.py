@@ -43,7 +43,9 @@ class TestCheckSlack:
         # Then
         assert response.status_code == 400
         detail = response.json().get("detail", "")
-        assert detail == "Too long Slack webhook URL. Max length is 255 in half-width"
+        assert detail == (
+            "Too long Slack webhook URL. Max length is 255 in half-width or 127 in full-width"
+        )
 
     def test_return_400_with_wrong_url(self):
         """Test error handling with wrong but valid URL format"""
@@ -94,7 +96,9 @@ class TestCheckEmail:
         # Then
         assert response.status_code == 400
         detail = response.json().get("detail", "")
-        assert detail == "Too long email address. Max length is 255 in half-width"
+        assert detail == (
+            "Too long email address. Max length is 255 in half-width or 127 in full-width"
+        )
 
     def test_return_200_with_successful_email_send(self, mocker):
         """Test successful email sending with actual validation but mocked SendGrid communication"""

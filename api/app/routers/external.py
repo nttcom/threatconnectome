@@ -39,7 +39,7 @@ def check_webhook_url(data: SlackCheckRequest, current_user: Account = Depends(g
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
-                f"in half-width"
+                f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
             ),
         )
 
@@ -69,7 +69,7 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
-                f"in half-width"
+                f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
             ),
         )
 

@@ -695,21 +695,47 @@ class TestUpdatePteam:
         assert response.status_code == 200
 
     @pytest.mark.parametrize(
-        "field_name, test_value",
+        "field_name, test_value, expected_error_message",
         [
             # pteam_name tests (max 50 half-width chars) - invalid cases
-            ("pteam_name", "a" * 51),
-            ("pteam_name", "あ" * 26),
+            (
+                "pteam_name",
+                "a" * 51,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            (
+                "pteam_name",
+                "あ" * 26,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
             # contact_info tests (max 255 half-width chars) - invalid cases
-            ("contact_info", "a" * 256),
-            ("contact_info", "あ" * 128),
+            (
+                "contact_info",
+                "a" * 256,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            (
+                "contact_info",
+                "あ" * 128,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
             # webhook_url tests (max 255 half-width chars) - invalid cases
-            ("webhook_url", "https://hooks.slack.com/services/" + "a" * 223),
+            (
+                "webhook_url",
+                "https://hooks.slack.com/services/" + "a" * 223,
+                "Too long Slack webhook URL. Max length is 255 in half-width or 127 in full-width",
+            ),
             # email address tests (max 255 half-width chars) - invalid cases
-            ("email_address", "a" * 247 + "@test.com"),
+            (
+                "email_address",
+                "a" * 247 + "@test.com",
+                "Too long email address. Max length is 255 in half-width or 127 in full-width",
+            ),
         ],
     )
-    def test_return_400_with_invalid_character_limits(self, field_name, test_value):
+    def test_return_400_with_invalid_character_limits(
+        self, field_name, test_value, expected_error_message
+    ):
         """Test that invalid character limits are rejected for PTeam fields"""
         # Given
         create_user(USER1)
@@ -729,8 +755,7 @@ class TestUpdatePteam:
 
         # Then
         assert response.status_code == 400
-        detail = response.json().get("detail", "")
-        assert "too long" in detail.lower()
+        assert response.json()["detail"] == expected_error_message
 
     def test_return_200_update_pteam(self):
         """Test basic update functionality with all fields"""
