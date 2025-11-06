@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
+from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business import threat_business, ticket_business
 from app.database import get_db
@@ -41,7 +42,12 @@ def _create_vuln_response(db: Session, vuln: models.Vuln) -> schemas.VulnRespons
     )
 
 
-@router.put("/{vuln_id}", response_model=schemas.VulnResponse)
+@router.put(
+    "/{vuln_id}",
+    response_model=schemas.VulnResponse,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
 def update_vuln(
     vuln_id: UUID,
     request: schemas.VulnUpdateRequest,
@@ -242,7 +248,12 @@ def _get_affect_by_affected_name_and_ecosystem(
     return None
 
 
-@router.delete("/{vuln_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{vuln_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
 def delete_vuln(
     vuln_id: UUID,
     current_user: models.Account = Depends(get_current_user),

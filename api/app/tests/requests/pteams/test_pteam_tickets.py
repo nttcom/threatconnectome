@@ -23,6 +23,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_user,
     headers,
+    headers_with_api_key,
     invite_to_pteam,
     set_ticket_status,
 )
@@ -428,7 +429,7 @@ class TestGetTickets:
             }
 
             vuln_response2 = client.put(
-                f"/vulns/{vuln2_id}", headers=headers(USER1), json=vuln_request2
+                f"/vulns/{vuln2_id}", headers=headers_with_api_key(USER1), json=vuln_request2
             )
             vuln_data2 = vuln_response2.json()
 

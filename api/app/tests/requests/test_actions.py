@@ -10,6 +10,7 @@ from app.tests.medium.utils import (
     create_user,
     create_vuln,
     headers,
+    headers_with_api_key,
 )
 
 client = TestClient(app)
@@ -38,7 +39,7 @@ class TestCreateAction:
         # When
         response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -61,7 +62,7 @@ class TestCreateAction:
         # Send the request and check the response
         response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -84,12 +85,34 @@ class TestCreateAction:
         # Send the request and check the response
         response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
         # Then
         assert response.status_code == 422
+
+    def test_raise_403_if_invalid_api_key(self):
+        # Given
+        action_create_request = {
+            "vuln_id": str(self.vuln_id),
+            "action": "example action",
+            "action_type": "elimination",
+            "recommended": True,
+        }
+        invalid_headers = headers(USER1)
+        invalid_headers["X-API-Key"] = "invalid"
+
+        # Send the request and check the response
+        response = client.post(
+            "/actions",
+            headers=invalid_headers,
+            json=action_create_request,
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Invalid API Key"
 
 
 class TestUpdateAction:
@@ -111,7 +134,7 @@ class TestUpdateAction:
 
         action_response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
         self.action_id = action_response.json()["action_id"]
@@ -129,7 +152,7 @@ class TestUpdateAction:
         # When
         response = client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -152,7 +175,7 @@ class TestUpdateAction:
         # When
         response = client.put(
             f"/actions/{non_existent_action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -169,7 +192,7 @@ class TestUpdateAction:
         # When
         response = client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -186,7 +209,7 @@ class TestUpdateAction:
         # When
         response = client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -203,13 +226,34 @@ class TestUpdateAction:
         # When
         response = client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
         # Then
         assert response.status_code == 400
         assert response.json() == {"detail": "Cannot specify None for recommended"}
+
+    def test_raise_403_if_invalid_api_key(self, testdb: Session):
+        # Given
+        action_update_request = {
+            "action": "updated action",
+            "action_type": "mitigation",
+            "recommended": False,
+        }
+        invalid_headers = headers(USER1)
+        invalid_headers["X-API-Key"] = "invalid"
+
+        # When
+        response = client.put(
+            f"/actions/{self.action_id}",
+            headers=invalid_headers,
+            json=action_update_request,
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Invalid API Key"
 
 
 class TestGetAction:
@@ -231,7 +275,7 @@ class TestGetAction:
 
         action_response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
         self.action_id = action_response.json()["action_id"]
@@ -291,7 +335,7 @@ class TestDeleteAction:
 
         action_response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
         self.action_id = action_response.json()["action_id"]
@@ -300,7 +344,7 @@ class TestDeleteAction:
         # When
         response = client.delete(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
         )
 
         # Then
@@ -320,9 +364,24 @@ class TestDeleteAction:
         # When
         response = client.delete(
             f"/actions/{non_existent_action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
         )
 
         # Then
         assert response.status_code == 404
         assert response.json() == {"detail": "No such vuln action"}
+
+    def test_raise_403_if_invalid_api_key(self):
+        # Given
+        invalid_headers = headers(USER1)
+        invalid_headers["X-API-Key"] = "invalid"
+
+        # When
+        response = client.delete(
+            f"/actions/{self.action_id}",
+            headers=invalid_headers,
+        )
+
+        # Then
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Invalid API Key"
