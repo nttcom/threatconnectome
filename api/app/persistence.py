@@ -33,6 +33,31 @@ def delete_account(db: Session, account: models.Account) -> None:
     db.flush()
 
 
+### AccountDefaultPTeam
+def get_account_default_pteam_by_user_id(
+    db: Session, user_id: UUID | str
+) -> models.AccountDefaultPTeam | None:
+    return db.scalars(
+        select(models.AccountDefaultPTeam).where(
+            models.AccountDefaultPTeam.user_id == str(user_id),
+        )
+    ).one_or_none()
+
+
+def create_account_default_pteam(
+    db: Session, account_default_pteam: models.AccountDefaultPTeam
+) -> None:
+    db.add(account_default_pteam)
+    db.flush()
+
+
+def delete_account_default_pteam(
+    db: Session, account_default_pteam: models.AccountDefaultPTeam
+) -> None:
+    db.delete(account_default_pteam)
+    db.flush()
+
+
 ### Action
 
 

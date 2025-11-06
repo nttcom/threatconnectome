@@ -219,15 +219,31 @@ class Account(Base):
     __tablename__ = "account"
 
     user_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    uid: Mapped[str | None] = mapped_column(unique=True)
-    email: Mapped[Str255 | None]
+    uid: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[Str255]
     disabled: Mapped[bool] = mapped_column(default=False)
-    years: Mapped[int | None]
+    years: Mapped[int]
 
     pteam_invitations = relationship("PTeamInvitation", back_populates="inviter")
     action_logs = relationship("ActionLog", back_populates="executed_by")
     pteam_roles = relationship(
         "PTeamAccountRole", back_populates="account", cascade="all, delete-orphan"
+    )
+    account_default_pteam = relationship(
+        "AccountDefaultPTeam",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class AccountDefaultPTeam(Base):
+    __tablename__ = "accountdefaultpteam"
+
+    user_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    default_pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
     )
 
 
