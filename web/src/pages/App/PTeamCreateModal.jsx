@@ -16,8 +16,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
+import { useViewportOffset } from "../../hooks/useViewportOffset";
 import { useCreatePTeamMutation } from "../../services/tcApi";
-import { errorToString } from "../../utils/func";
+import {
+  maxPTeamNameLengthInHalf,
+  maxContactInfoLengthInHalf,
+  maxSlackWebhookUrlLengthInHalf,
+} from "../../utils/const";
+import { errorToString, countFullWidthAndHalfWidthCharacters } from "../../utils/func";
 
 export function PTeamCreateModal(props) {
   const { open, onSetOpen, onCloseTeamSelector } = props;
@@ -29,6 +35,55 @@ export function PTeamCreateModal(props) {
   const [slackUrl, setSlackUrl] = useState("");
 
   const [createPTeam] = useCreatePTeamMutation();
+  const viewportOffsetTop = useViewportOffset();
+
+  const handlePTeamNameSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
+      enqueueSnackbar(
+        `Too long team name. Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setPTeamName(string);
+    }
+  };
+
+  const handleContactInfoSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxContactInfoLengthInHalf) {
+      enqueueSnackbar(
+        `Too long contact info. Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setContactInfo(string);
+    }
+  };
+
+  const handleSlackUrlSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
+      enqueueSnackbar(
+        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setSlackUrl(string);
+    }
+  };
 
   useEffect(() => {
     onCloseTeamSelector();
@@ -75,19 +130,22 @@ export function PTeamCreateModal(props) {
           <Box display="flex" flexDirection="column">
             <TextField
               label="Team name"
-              onChange={(event) => setPTeamName(event.target.value)}
+              onChange={(event) => handlePTeamNameSetting(event.target.value)}
+              placeholder={`Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`}
               required
               error={!pteamName}
               margin="dense"
             ></TextField>
             <TextField
               label="Contact Info"
-              onChange={(event) => setContactInfo(event.target.value)}
+              onChange={(event) => handleContactInfoSetting(event.target.value)}
+              placeholder={`Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`}
               margin="dense"
             ></TextField>
             <TextField
               label="Slack's Incoming Webhook URL"
-              onChange={(event) => setSlackUrl(event.target.value)}
+              onChange={(event) => handleSlackUrlSetting(event.target.value)}
+              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`}
               margin="dense"
             ></TextField>
           </Box>
