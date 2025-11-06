@@ -1,14 +1,14 @@
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
-import globals from "globals";
 import eslintConfigPrettier from "eslint-config-prettier";
-import prettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import storybook from "eslint-plugin-storybook";
 import unusedImports from "eslint-plugin-unused-imports";
+import globals from "globals";
 
 export default [
   { ignores: ["dist", "build"] },
@@ -33,6 +33,7 @@ export default [
         version: "18.3",
       },
       "import/resolver": {
+        typescript: true,
         node: {
           extensions: [".js", ".jsx"],
         },
@@ -75,5 +76,6 @@ export default [
       ],
     },
   },
+  ...storybook.configs["flat/recommended"],
   eslintConfigPrettier,
 ];
