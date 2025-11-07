@@ -227,7 +227,7 @@ export function PTeamNotificationSetting(props) {
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => handleMailAddressSetting(event.target.value)}
-              placeholder={`Max length is ${maxEmailAddressLengthInHalf} in half-width`}
+              placeholder={`Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`}
             />
           </FormControl>
           <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />
@@ -250,7 +250,7 @@ export function PTeamNotificationSetting(props) {
               autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
-              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width`}
+              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
