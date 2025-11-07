@@ -19,6 +19,7 @@ class APIError(Exception):
 class ThreatconnectomeClient:
     api_url: str
     refresh_token: str
+    api_key: str | None
     retry_max: int  # 0 for never, negative for forever
     connect_timeout: float
     read_timeout: float
@@ -28,21 +29,28 @@ class ThreatconnectomeClient:
         self,
         api_url: str,
         refresh_token: str,
+        api_key: str | None = None,
         retry_max: int = -1,
         connect_timeout: float = 60.0,
         read_timeout: float = 60.0,
     ):
         self.api_url = api_url.rstrip("/")
         self.refresh_token = refresh_token
+        self.api_key = api_key
         self.retry_max = retry_max
         self.connect_timeout = connect_timeout
         self.read_timeout = read_timeout
-        self.headers = self._refresh_auth_token(
-            {  # headers except auth token
-                "accept": "application/json",
-                "Content-Type": "application/json",
-            }
-        )
+
+        base_headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        # Add API key header if provided
+        if self.api_key:
+            base_headers["X-API-Key"] = self.api_key
+
+        self.headers = self._refresh_auth_token(base_headers)
 
     def _refresh_auth_token(self, headers: dict) -> dict:
         resp = requests.post(
@@ -235,6 +243,13 @@ def main() -> None:
         type=str,
         help="set the refresh token of Threatconnectome API",
     )
+    parser.add_argument(
+        "-k",
+        "--api-key",
+        dest="api_key",
+        type=str,
+        help="set the API key for Threatconnectome API authentication",
+    )
     args = parser.parse_args()
     if args.token:
         refresh_token = args.token
@@ -247,9 +262,22 @@ def main() -> None:
             "You can use 'export THREATCONNECTOME_REFRESHTOKEN=\"XXXXXX\"'."
         )
 
+    # Get API key from argument or environment variable
+    if args.api_key:
+        api_key = args.api_key
+    else:
+        api_key = os.environ.get("VULN_API_KEY")
+
+    if not api_key:
+        sys.exit(
+            "ERROR: Require the API Key for Threatconnectome.\n"
+            "You can use '-k API_KEY' or 'export VULN_API_KEY=\"XXXXXX\"'."
+        )
+
     tc_client = ThreatconnectomeClient(
         args.url,
         refresh_token,
+        api_key=api_key,
         retry_max=3,
         connect_timeout=60.0,
         read_timeout=60.0,
