@@ -98,27 +98,17 @@ vi .env  # change default values
     - Web API Key in firebase project settings
 
 - Optional values that can be left as it is
-  - `WEBUI_URL`
-    - Url of Threatconnectome web ui
   - `DB_USER`
     - Username of DB for connection
   - `DB_PASSWORD`
     - Password to be set for the DB, required when connecting to the DB
-  - `DB_HOST`
-    - Hostname of DB
-  - `DB_PORT`
-    - Port for connection
-  - `DB_SCHEMA`
-    - Schema of DB
-  - `FIREBASE_CRED`
-    - Authentication credential file to sign into api
-  - `TESTDB_HOST`
-    - Hostname of testdb
   - `SYSTEM_EMAIL`
     - Email address recorded when the system executes an event
     - From email address for sending email with sendgrid
   - `SENDGRID_API_KEY`
     - Api key to send email with sendgrid
+  - `VULN_API_KEY`
+    - API key for patching vulnerability information in threatconnectome
 
 :warning: **Files that need to be placed**
 
