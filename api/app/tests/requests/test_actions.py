@@ -92,7 +92,7 @@ class TestCreateAction:
         # Then
         assert response.status_code == 422
 
-    def test_raise_403_if_invalid_api_key(self):
+    def test_raise_401_if_invalid_api_key(self):
         # Given
         action_create_request = {
             "vuln_id": str(self.vuln_id),
@@ -111,7 +111,7 @@ class TestCreateAction:
         )
 
         # Then
-        assert response.status_code == 403
+        assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"
 
 
@@ -234,7 +234,7 @@ class TestUpdateAction:
         assert response.status_code == 400
         assert response.json() == {"detail": "Cannot specify None for recommended"}
 
-    def test_raise_403_if_invalid_api_key(self, testdb: Session):
+    def test_raise_401_if_invalid_api_key(self, testdb: Session):
         # Given
         action_update_request = {
             "action": "updated action",
@@ -252,7 +252,7 @@ class TestUpdateAction:
         )
 
         # Then
-        assert response.status_code == 403
+        assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"
 
 
@@ -371,7 +371,7 @@ class TestDeleteAction:
         assert response.status_code == 404
         assert response.json() == {"detail": "No such vuln action"}
 
-    def test_raise_403_if_invalid_api_key(self):
+    def test_raise_401_if_invalid_api_key(self):
         # Given
         invalid_headers = headers(USER1)
         invalid_headers["X-API-Key"] = "invalid"
@@ -383,5 +383,5 @@ class TestDeleteAction:
         )
 
         # Then
-        assert response.status_code == 403
+        assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"

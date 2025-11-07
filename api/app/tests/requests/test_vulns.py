@@ -430,7 +430,7 @@ class TestUpdateVuln:
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
 
-    def test_raise_403_if_invalid_api_key(self, testdb: Session, update_setup):
+    def test_raise_401_if_invalid_api_key(self, testdb: Session, update_setup):
         # Given
         invalid_headers = headers(USER1)
         invalid_headers["X-API-Key"] = "invalid"
@@ -443,7 +443,7 @@ class TestUpdateVuln:
         )
 
         # Then
-        assert response.status_code == 403
+        assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"
 
 
@@ -2030,7 +2030,7 @@ class TestDeleteVuln:
         assert response.status_code == 404
         assert response.json()["detail"] == "No such vuln"
 
-    def test_raise_403_if_invalid_api_key(self):
+    def test_raise_401_if_invalid_api_key(self):
         # Given
         invalid_headers = headers(USER1)
         invalid_headers["X-API-Key"] = "invalid"
@@ -2039,7 +2039,7 @@ class TestDeleteVuln:
         response = client.delete(f"/vulns/{self.new_vuln_id}", headers=invalid_headers)
 
         # Then
-        assert response.status_code == 403
+        assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"
 
 

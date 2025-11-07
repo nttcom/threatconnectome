@@ -8,7 +8,7 @@ def verify_api_key(x_api_key: str = Header(...)):
     API key (X-API-Key) is required for modifying vulns and actions.
 
     Raises:
-        HTTPException: If the API key is invalid, returns 403 Forbidden.
+        HTTPException: If the API key is invalid, returns 401 Unauthorized.
     """
     if x_api_key != os.getenv("VULN_API_KEY"):
-        raise HTTPException(status_code=403, detail="Invalid API Key")
+        raise HTTPException(status_code=401, detail="Invalid API Key")
