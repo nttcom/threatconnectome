@@ -46,10 +46,6 @@ class ThreatconnectomeClient:
             "Content-Type": "application/json",
         }
 
-        # Add API key header if provided
-        if self.api_key:
-            base_headers["X-API-Key"] = self.api_key
-
         self.headers = self._refresh_auth_token(base_headers)
 
     def _refresh_auth_token(self, headers: dict) -> dict:
@@ -68,6 +64,7 @@ class ThreatconnectomeClient:
         self,
         func: Callable[..., requests.Response],
         *args,
+        use_api_key: bool = False,
         **kwargs,
     ) -> requests.Response:
         # Note:
@@ -87,8 +84,12 @@ class ThreatconnectomeClient:
                 return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
+            request_headers = self.headers.copy()
+            if use_api_key and self.api_key:
+                request_headers["X-API-Key"] = self.api_key
+
             try:
-                resp = _func(headers=self.headers)
+                resp = _func(headers=request_headers)
             except requests.exceptions.Timeout as error:
                 if _retry == 0:
                     raise APIError(f"ERROR: Exceeded retry max: {error}")
@@ -115,11 +116,15 @@ class ThreatconnectomeClient:
             sleep(3)
 
     def get_vulns(self, params: dict) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/vulns", params=params)
+        response = self._retry_call(
+            requests.get, f"{self.api_url}/vulns", params=params, use_api_key=False
+        )
         return response.json()
 
     def update_vuln(self, vuln_id: str, vuln_data: dict) -> requests.Response:
-        return self._retry_call(requests.put, f"{self.api_url}/vulns/{vuln_id}", json=vuln_data)
+        return self._retry_call(
+            requests.put, f"{self.api_url}/vulns/{vuln_id}", json=vuln_data, use_api_key=True
+        )
 
 
 def _json_loads(filepath: str | bytes | bytearray):
@@ -248,7 +253,7 @@ def main() -> None:
         "--api-key",
         dest="api_key",
         type=str,
-        help="set the API key for Threatconnectome API authentication",
+        help="set the API key for patching vulnerability information in threatconnectome",
     )
     args = parser.parse_args()
     if args.token:
