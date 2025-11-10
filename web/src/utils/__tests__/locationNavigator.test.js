@@ -5,7 +5,7 @@ test.each([
   {
     locationPathname: "/",
     locationSearch: "?pteamId=dummyPteamId1",
-    pteamRoles: [{ pteam: { pteam_id: "dummyPteamId1" } }],
+    pteamRoles: { pteam_roles: [{ pteam: { pteam_id: "dummyPteamId1" } }] },
     navigateCallCount: 0,
     expectedParam: "",
   },
@@ -13,7 +13,7 @@ test.each([
   {
     locationPathname: "/",
     locationSearch: "?pteamId=dummyPteamId1",
-    pteamRoles: [],
+    pteamRoles: { pteam_roles: [] },
     navigateCallCount: 1,
     expectedParam: "",
   },
@@ -21,7 +21,7 @@ test.each([
   {
     locationPathname: "/packages/dummyPackageId1",
     locationSearch: "?pteamId=dummyPteamId1",
-    pteamRoles: [],
+    pteamRoles: { pteam_roles: [] },
     navigateCallCount: 1,
     expectedParam: "",
   },
@@ -29,7 +29,7 @@ test.each([
   {
     locationPathname: "/pteam",
     locationSearch: "?pteamId=dummyPteamId1",
-    pteamRoles: [],
+    pteamRoles: { pteam_roles: [] },
     navigateCallCount: 1,
     expectedParam: "",
   },
@@ -37,7 +37,7 @@ test.each([
   {
     locationPathname: "/other",
     locationSearch: "?pteamId=dummyPteamId1",
-    pteamRoles: [],
+    pteamRoles: { pteam_roles: [] },
     navigateCallCount: 0,
     expectedParam: "",
   },
@@ -45,7 +45,7 @@ test.each([
   {
     locationPathname: "/",
     locationSearch: "",
-    pteamRoles: [{ pteam: { pteam_id: "pteamId1" } }],
+    pteamRoles: { pteam_roles: [{ pteam: { pteam_id: "pteamId1" } }] },
     navigateCallCount: 1,
     expectedParam: "pteamId=pteamId1",
   },
