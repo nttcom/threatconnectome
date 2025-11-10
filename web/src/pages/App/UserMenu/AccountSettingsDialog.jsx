@@ -6,12 +6,12 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
+import { useState, useEffect } from "react";
 
 import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export function AccountSettingsDialog(props) {
-  const { accountSettingOpen, setAccountSettingOpen, onSelectYear, userMe, onSelectDefaultTeam } =
-    props;
+  const { accountSettingOpen, setAccountSettingOpen, onUpdateUser, userMe } = props;
 
   const handleClose = () => {
     setAccountSettingOpen(false);
@@ -68,9 +68,11 @@ export function AccountSettingsDialog(props) {
               </Box>
               <Select
                 size="small"
-                defaultValue="none"
+                value={userMe.default_pteam_id || "none"}
                 onChange={(e) => {
-                  onSelectDefaultTeam(e.target.value);
+                  onUpdateUser({
+                    default_pteam_id: e.target.value === "none" ? null : e.target.value,
+                  });
                 }}
                 sx={{ minWidth: 200 }}
                 displayEmpty
@@ -100,9 +102,9 @@ export function AccountSettingsDialog(props) {
                 </Box>
                 <Select
                   size="small"
-                  defaultValue={userMe.years}
+                  value={userMe.years}
                   onChange={(e) => {
-                    onSelectYear(e);
+                    onUpdateUser({ years: e.target.value });
                   }}
                   sx={{ minWidth: 130 }}
                 >
@@ -125,7 +127,6 @@ export function AccountSettingsDialog(props) {
 AccountSettingsDialog.propTypes = {
   accountSettingOpen: PropTypes.bool.isRequired,
   setAccountSettingOpen: PropTypes.func.isRequired,
-  onSelectYear: PropTypes.func.isRequired,
-  onSelectDefaultTeam: PropTypes.func.isRequired,
+  onUpdateUser: PropTypes.func.isRequired,
   userMe: PropTypes.object.isRequired,
 };
