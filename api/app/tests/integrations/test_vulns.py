@@ -17,7 +17,7 @@ from app.tests.medium.constants import PTEAM1, USER1
 from app.tests.medium.utils import (
     create_pteam,
     create_user,
-    headers,
+    headers_with_api_key,
 )
 
 client = TestClient(app)
@@ -124,7 +124,9 @@ class TestUpdateVuln:
         current_time = datetime.now(timezone.utc)
 
         # When
-        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
+        )
 
         # Then
         vuln = testdb.scalars(
@@ -166,7 +168,9 @@ class TestUpdateVuln:
         new_vuln_id = uuid4()
 
         # When
-        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
+        )
 
         # Then
         package = testdb.scalars(
@@ -185,7 +189,7 @@ class TestUpdateVuln:
 
         # When
         response = client.put(
-            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
         )
 
         # Then
@@ -238,7 +242,9 @@ class TestUpdateVuln:
         before_fixed_versions = self.affect1.fixed_versions
 
         # When
-        response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request
+        )
 
         # Then
         vuln = testdb.scalars(
@@ -267,7 +273,9 @@ class TestUpdateVuln:
             raise Exception("previous_ticket is None")
 
         # When
-        response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request
+        )
 
         updated_ticket = persistence.get_ticket_by_id(testdb, previous_ticket.ticket_id)
 
@@ -290,7 +298,9 @@ class TestUpdateVuln:
         send_alert_to_pteam = mocker.patch("app.business.ticket_business.send_alert_to_pteam")
 
         # When
-        response = client.put(f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=request)
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request
+        )
 
         ticket = persistence.get_ticket_by_threat_id_and_dependency_id(
             testdb, self.threat1.threat_id, self.dependency1.dependency_id
@@ -346,7 +356,7 @@ class TestUpdateVuln:
 
         # When
         vuln_id = str(uuid4())
-        client.put(f"/vulns/{vuln_id}", headers=headers(USER1), json=request1)
+        client.put(f"/vulns/{vuln_id}", headers=headers_with_api_key(USER1), json=request1)
 
         tickets = testdb.scalars(select(models.Ticket)).all()
         assert len(tickets) == 3

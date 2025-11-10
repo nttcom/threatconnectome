@@ -182,6 +182,7 @@ class APIError(Exception):
 class ThreatconnectomeClient:
     api_url: str
     refresh_token: str
+    api_key: str | None
     retry_max: int  # 0 for never, negative for forever
     connect_timeout: float
     read_timeout: float
@@ -191,21 +192,24 @@ class ThreatconnectomeClient:
         self,
         api_url: str,
         refresh_token: str,
+        api_key: str | None = None,
         retry_max: int = -1,
         connect_timeout: float = 60.0,
         read_timeout: float = 60.0,
     ):
         self.api_url = api_url.rstrip("/")
         self.refresh_token = refresh_token
+        self.api_key = api_key
         self.retry_max = retry_max
         self.connect_timeout = connect_timeout
         self.read_timeout = read_timeout
-        self.headers = self._refresh_auth_token(
-            {  # headers except auth token
-                "accept": "application/json",
-                "Content-Type": "application/json",
-            }
-        )
+
+        base_headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        self.headers = self._refresh_auth_token(base_headers)
 
     def _refresh_auth_token(self, headers: dict) -> dict:
         resp = requests.post(
@@ -223,6 +227,7 @@ class ThreatconnectomeClient:
         self,
         func: Callable[..., requests.Response],
         *args,
+        use_api_key: bool = False,
         **kwargs,
     ) -> requests.Response:
         # Note:
@@ -242,8 +247,12 @@ class ThreatconnectomeClient:
                 return f"{resp.status_code}: {resp.reason}: {resp.text}"
 
         while True:
+            request_headers = self.headers.copy()
+            if use_api_key and self.api_key:
+                request_headers["X-API-Key"] = self.api_key
+
             try:
-                resp = _func(headers=self.headers)
+                resp = _func(headers=request_headers)
             except requests.exceptions.Timeout as error:
                 if _retry == 0:
                     raise APIError(f"ERROR: Exceeded retry max: {error}")
@@ -271,14 +280,14 @@ class ThreatconnectomeClient:
 
     def get_vulns(self, offset, limit) -> dict:
         response = self._retry_call(
-            requests.get, f"{self.api_url}/vulns?offset={offset}&limit={limit}"
+            requests.get, f"{self.api_url}/vulns?offset={offset}&limit={limit}", use_api_key=False
         )
         return response.json()
 
     def create_or_update_vuln(self, vuln_id: str, vuln: dict) -> None:
         api_endpoint = f"{self.api_url}/vulns/{vuln_id}"
         print(f"Put {api_endpoint}")
-        response = self._retry_call(requests.put, api_endpoint, json=vuln)
+        response = self._retry_call(requests.put, api_endpoint, json=vuln, use_api_key=True)
         print(f"Http status: {response.status_code} {response.reason}")
 
 
@@ -402,6 +411,13 @@ def main() -> None:
         help="set the refresh token of Threatconnectome API",
     )
     parser.add_argument(
+        "-k",
+        "--api-key",
+        dest="api_key",
+        type=str,
+        help="set the API key for patching vulnerability information in threatconnectome",
+    )
+    parser.add_argument(
         "--force-update",
         dest="update",
         action="store_true",
@@ -417,6 +433,18 @@ def main() -> None:
         sys.exit(
             "ERROR: Require the Bearer Token of Threatconnectome.\n"
             "You can use 'export THREATCONNECTOME_REFRESHTOKEN=\"XXXXXX\"'."
+        )
+
+    # Get API key from argument or environment variable
+    if args.api_key:
+        api_key = args.api_key
+    else:
+        api_key = os.environ.get("VULN_API_KEY")
+
+    if not api_key:
+        sys.exit(
+            "ERROR: Require the API Key for Threatconnectome.\n"
+            "You can use '-k API_KEY' or 'export VULN_API_KEY=\"XXXXXX\"'."
         )
 
     trivy_db = Path(args.trivy_db).expanduser()
@@ -528,6 +556,7 @@ def main() -> None:
     tc_client = ThreatconnectomeClient(
         args.url,
         refresh_token,
+        api_key=api_key,
         retry_max=3,
         connect_timeout=60.0,
         read_timeout=60.0,
