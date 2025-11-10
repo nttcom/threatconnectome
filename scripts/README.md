@@ -130,7 +130,7 @@ This key is required to patch vulnerability information into Threatconnectome.
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 export VULN_API_KEY="XXXXXXXXX"
 # For local development environment
-python3 vulnrichment2tc.py -v vulnrichment  "http://localhost/api"
+python3 vulnrichment2tc.py -v vulnrichment "http://localhost/api"
 
 ```
 
