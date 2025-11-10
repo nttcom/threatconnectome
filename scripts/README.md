@@ -90,7 +90,7 @@ The default path of `trivy.db` is as follows:
 
 Run the following commands to create vulns from Trivy DB:
 
-The value of VULN_API_KEY should match the value specified in the VULN_API_KEY environment variable when starting the API.
+The value of VULN_API_KEY should match the value specified in the VULN_API_KEY environment variable when starting the Threatconnectome.
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
@@ -122,7 +122,7 @@ git clone https://github.com/cisagov/vulnrichment
 
 Run the following commands to update vulns from vulnrichment:
 
-The value of VULN_API_KEY should match the value specified in the VULN_API_KEY environment variable when starting the API.
+The value of VULN_API_KEY should match the value specified in the VULN_API_KEY environment variable when starting the Threatconnectome.
 
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
