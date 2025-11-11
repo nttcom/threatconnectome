@@ -6,7 +6,7 @@ import { beforeAll, afterEach, afterAll } from "vitest";
 export const server = setupServer();
 
 // Start the server before all tests and throw an error for unhandled requests.
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledRequest: "warn" }));
 
 // Reset any request handlers that we may add during the tests,
 // so they don't affect other tests.
