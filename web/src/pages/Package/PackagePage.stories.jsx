@@ -1,12 +1,8 @@
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { http, HttpResponse } from "msw"; // MSW v2+ のインポート
-import React from "react"; // Error Boundary のために React をインポート
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { http, HttpResponse } from "msw";
+import React from "react";
 
-import { Package } from "./PackagePage"; // コンポーネントへのパス
+import { Package } from "./PackagePage";
 
-// (MUIテーマ、モックデータ定義)
-const theme = createTheme();
 const pteamId = "pteam-abc-123";
 const serviceId = "service-xyz-789";
 const packageId = "pkg-uuid-456";
@@ -150,21 +146,17 @@ const mockMembersList = [
   { user_id: "user-2", name: "Bob", email: "bob@example.com" },
 ];
 
-// ★★★ 不足していたユーザー情報のモックデータを追加 ★★★
 const mockUserMe = {
   user_id: "current-user-123",
   name: "Current User",
   email: "current.user@example.com",
-  pteam_roles: [], // 必要であれば追加
+  pteam_roles: [],
 };
 
-// MSW v2+ 構文のAPIハンドラ
 const successHandlers = [
-  // 1. useGetPTeamQuery
   http.get(`*/pteams/${pteamId}`, () => {
     return HttpResponse.json(mockPTeam);
   }),
-  // 2. useGetDependenciesQuery
   http.get(`*/pteams/${pteamId}/dependencies`, ({ request }) => {
     const url = new URL(request.url);
     if (
@@ -174,7 +166,6 @@ const successHandlers = [
       return HttpResponse.json(mockDependencies);
     }
   }),
-  // 3. useGetPTeamVulnIdsTiedToServicePackageQuery
   http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
     const url = new URL(request.url);
     if (url.searchParams.get("related_ticket_status") === "unsolved") {
@@ -184,7 +175,6 @@ const successHandlers = [
       return HttpResponse.json(mockVulnIdsSolved);
     }
   }),
-  // 4. useGetPTeamTicketCountsTiedToServicePackageQuery
   http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
     const url = new URL(request.url);
     if (url.searchParams.get("related_ticket_status") === "unsolved") {
@@ -194,7 +184,6 @@ const successHandlers = [
       return HttpResponse.json(mockTicketCountsSolved);
     }
   }),
-  // 5. useGetVulnQuery
   http.get("*/vulns/:vulnId", ({ params }) => {
     const { vulnId } = params;
     const vulnData = mockVulnDetails[vulnId];
@@ -203,7 +192,6 @@ const successHandlers = [
     }
     return HttpResponse.json({ message: "Not Found" }, { status: 404 });
   }),
-  // 6. useGetVulnActionsQuery
   http.get("*/vulns/:vulnId/actions", ({ params }) => {
     const { vulnId } = params;
     const actionsData = mockVulnActions[vulnId];
@@ -212,7 +200,6 @@ const successHandlers = [
     }
     return HttpResponse.json([]);
   }),
-  // 7. useGetPteamTicketsQuery
   http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
     const url = new URL(request.url);
     const vulnId = url.searchParams.get("vuln_id");
@@ -224,18 +211,15 @@ const successHandlers = [
     }
     return HttpResponse.json([]);
   }),
-  // 8. useGetPTeamMembersQuery
   http.get(`*/pteams/${pteamId}/members`, () => {
     return HttpResponse.json(mockMembersList);
   }),
 
-  // ★★★ 9. useGetUserMeQuery (NEW - ReportCompletedActions 用) ★★★
   http.get("*/users/me", () => {
     return HttpResponse.json(mockUserMe);
   }),
 ];
 
-// (ErrorBoundary クラスは変更なし)
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -262,7 +246,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// (export default, renderStory は変更なし)
 export default {
   title: "Package/PackagePage",
   component: Package,
@@ -272,56 +255,49 @@ export default {
   },
 };
 
-const renderStory = (initialPath) => (
-  <ThemeProvider theme={theme}>
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route path="/package/:packageId" element={<Package />} />
-      </Routes>
-    </MemoryRouter>
-  </ThemeProvider>
-);
-
-// (Default は変更なし)
 export const Default = {
-  render: () => renderStory(`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`),
   parameters: {
     msw: {
-      handlers: successHandlers, // 9個のハンドラすべてを使用
+      handlers: successHandlers,
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/package/:packageId",
+      useRoutes: true,
     },
   },
 };
 
-// ★★★ LOADING ストーリーを修正 ★★★
-// (slice(1) -> slice(1, 8) or slice(-8) ではなく、明示的にハンドラを指定)
 export const Loading = {
-  render: () => renderStory(`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`),
   parameters: {
     msw: {
       handlers: [
-        // 1. getPTeamQuery: 無限待機
         http.get(`*/pteams/${pteamId}`, async () => {
           await new Promise(() => {});
         }),
-        // 2-8. 他の 7 つのハンドラは成功させる
-        successHandlers[1], // getDependencies
-        successHandlers[2], // getVulnIds (unsolved)
-        successHandlers[3], // getTicketCounts (unsolved)
-        successHandlers[4], // getVuln
-        successHandlers[5], // getVulnActions
-        successHandlers[6], // getTickets
-        successHandlers[7], // getMembers
-        // ★ 9. getUserMe も成功させる
-        successHandlers[8], // getUserMe
+        successHandlers[1],
+        successHandlers[2],
+        successHandlers[3],
+        successHandlers[4],
+        successHandlers[5],
+        successHandlers[6],
+        successHandlers[7],
+        successHandlers[8],
       ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/package/:packageId",
+      useRoutes: true,
     },
   },
 };
 
-// ★★★ DEPENDENCIES ERROR ストーリーを修正 ★★★
-// (slice(2) -> slice(2, 8) or slice(-7) ではなく、明示的にハンドラを指定)
 export const DependenciesError = {
-  render: () => renderStory(`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`),
   decorators: [
     (Story, context) => (
       <ErrorBoundary key={JSON.stringify(context.args)}>
@@ -332,40 +308,47 @@ export const DependenciesError = {
   parameters: {
     msw: {
       handlers: [
-        // 1. getPTeam: 成功
         successHandlers[0],
-        // 2. getDependencies: 失敗
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 });
         }),
-        // 3-8. 他の 6 つのハンドラは成功させる
-        successHandlers[2], // getVulnIds (unsolved)
-        successHandlers[3], // getTicketCounts (unsolved)
-        successHandlers[4], // getVuln
-        successHandlers[5], // getVulnActions
-        successHandlers[6], // getTickets
-        successHandlers[7], // getMembers
-        // ★ 9. getUserMe も成功させる
-        successHandlers[8], // getUserMe
+        successHandlers[2],
+        successHandlers[3],
+        successHandlers[4],
+        successHandlers[5],
+        successHandlers[6],
+        successHandlers[7],
+        successHandlers[8],
       ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/package/:packageId",
+      useRoutes: true,
     },
   },
 };
 
-// (NoPTeamId は変更なし)
 export const NoPTeamId = {
-  render: () => renderStory(`/package/${packageId}?serviceId=${serviceId}`),
+  parameters: {
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/package/${packageId}?serviceId=${serviceId}`],
+      },
+      path: "/package/:packageId",
+      useRoutes: true,
+    },
+  },
 };
 
-// ★★★ NoVulnerabilities ストーリーを修正 ★★★
-// (slice(-4) ではなく、明示的にハンドラを指定)
 export const NoVulnerabilities = {
-  render: () => renderStory(`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`),
   parameters: {
     msw: {
       handlers: [
-        successHandlers[0], // pteam
-        successHandlers[1], // dependencies
+        successHandlers[0],
+        successHandlers[1],
 
         http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
           return HttpResponse.json({ vuln_ids: [] });
@@ -376,14 +359,19 @@ export const NoVulnerabilities = {
           });
         }),
 
-        // vuln, actions, tickets は呼び出されないが、members と userMe は呼び出される
-        successHandlers[4], // getVuln (空データ用)
-        successHandlers[5], // getVulnActions (空データ用)
-        successHandlers[6], // getTickets (空データ用)
-        successHandlers[7], // getMembers
-        // ★ 9. getUserMe も成功させる
-        successHandlers[8], // getUserMe
+        successHandlers[4],
+        successHandlers[5],
+        successHandlers[6],
+        successHandlers[7],
+        successHandlers[8],
       ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/package/:packageId",
+      useRoutes: true,
     },
   },
 };
