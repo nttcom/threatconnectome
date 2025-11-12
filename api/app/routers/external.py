@@ -19,10 +19,26 @@ from app.notification.slack import (
     send_slack,
     validate_slack_webhook_url,
 )
+from app.routers.validators.field_validator import validate_field_length
 from app.schemas import EmailCheckRequest, SlackCheckRequest
-from app.utility import unicode_tool
 
 router = APIRouter(prefix="/external", tags=["external"])
+
+# Common error messages for external validation
+ERROR_TOO_LONG_WEBHOOK_URL = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail=(
+        f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
+        f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
+    ),
+)
+ERROR_TOO_LONG_ADDRESS = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail=(
+        f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
+        f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
+    ),
+)
 
 
 @router.post("/slack/check")
@@ -31,26 +47,20 @@ def check_webhook_url(data: SlackCheckRequest, current_user: Account = Depends(g
     Send test message to slack used by incomming webhook url
     """
     # validate webhook URL length
-    webhook_url_char_count = unicode_tool.count_full_width_and_half_width_characters(
-        data.slack_webhook_url.strip()
+    webhook_url = validate_field_length(
+        data.slack_webhook_url,
+        MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+        ERROR_TOO_LONG_WEBHOOK_URL,
     )
-    if webhook_url_char_count > MAX_WEBHOOK_URL_LENGTH_IN_HALF:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
-                f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
-            ),
-        )
 
-    validate_slack_webhook_url(data.slack_webhook_url)
+    validate_slack_webhook_url(webhook_url)
     blocks = [
         {
             "type": "section",
             "text": {"type": "mrkdwn", "text": "test message from Threatconnectome"},
         }
     ]
-    response = send_slack(data.slack_webhook_url, blocks)
+    response = send_slack(webhook_url, blocks)
     if response is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     if response.status_code != 200:
@@ -63,15 +73,11 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
     Send test email with sendgrid
     """
     # validate email address length
-    email_char_count = unicode_tool.count_full_width_and_half_width_characters(data.email.strip())
-    if email_char_count > MAX_EMAIL_ADDRESS_LENGTH_IN_HALF:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
-                f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
-            ),
-        )
+    email = validate_field_length(
+        data.email,
+        MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+        ERROR_TOO_LONG_ADDRESS,
+    )
 
     if not ready_to_send_email():
         raise HTTPException(

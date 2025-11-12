@@ -33,6 +33,7 @@ from app.routers.validators.account_validator import (
     check_pteam_admin_authority,
     check_pteam_membership,
 )
+from app.routers.validators.field_validator import validate_field_length
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.utility import timezone_tool, unicode_tool
 
@@ -1064,42 +1065,38 @@ def create_pteam(
       * max length: 255 in half-width or 127 in full-width
     """
     # Validate pteam_name
-    pteam_name = data.pteam_name.strip()
-    if (
-        unicode_tool.count_full_width_and_half_width_characters(pteam_name)
-        > MAX_PTEAM_NAME_LENGTH_IN_HALF
-    ):
-        raise ERROR_TOO_LONG_PTEAM_NAME
+    pteam_name = validate_field_length(
+        data.pteam_name,
+        MAX_PTEAM_NAME_LENGTH_IN_HALF,
+        ERROR_TOO_LONG_PTEAM_NAME,
+    )
 
     # Validate contact_info
-    contact_info = data.contact_info.strip()
-    if (
-        unicode_tool.count_full_width_and_half_width_characters(contact_info)
-        > MAX_CONTACT_INFO_LENGTH_IN_HALF
-    ):
-        raise ERROR_TOO_LONG_CONTACT_INFO
+    contact_info = validate_field_length(
+        data.contact_info,
+        MAX_CONTACT_INFO_LENGTH_IN_HALF,
+        ERROR_TOO_LONG_CONTACT_INFO,
+    )
 
     # Validate webhook_url
     validated_webhook_url = ""
     if data.alert_slack and data.alert_slack.webhook_url:
-        webhook_url = data.alert_slack.webhook_url.strip()
-        if (
-            unicode_tool.count_full_width_and_half_width_characters(webhook_url)
-            > MAX_WEBHOOK_URL_LENGTH_IN_HALF
-        ):
-            raise ERROR_TOO_LONG_WEBHOOK_URL
+        webhook_url = validate_field_length(
+            data.alert_slack.webhook_url,
+            MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+            ERROR_TOO_LONG_WEBHOOK_URL,
+        )
         validate_slack_webhook_url(webhook_url)
         validated_webhook_url = webhook_url
 
     # Validate email address
     validated_email_address = ""
     if data.alert_mail and data.alert_mail.address:
-        email_address = data.alert_mail.address.strip()
-        if (
-            unicode_tool.count_full_width_and_half_width_characters(email_address)
-            > MAX_EMAIL_ADDRESS_LENGTH_IN_HALF
-        ):
-            raise ERROR_TOO_LONG_ADDRESS
+        email_address = validate_field_length(
+            data.alert_mail.address,
+            MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+            ERROR_TOO_LONG_ADDRESS,
+        )
         validated_email_address = email_address
 
     pteam = models.PTeam(
@@ -1479,12 +1476,11 @@ def update_pteam(
         )
 
     if data.alert_slack and data.alert_slack.webhook_url:
-        webhook_url = data.alert_slack.webhook_url.strip()
-        if (
-            unicode_tool.count_full_width_and_half_width_characters(webhook_url)
-            > MAX_WEBHOOK_URL_LENGTH_IN_HALF
-        ):
-            raise ERROR_TOO_LONG_WEBHOOK_URL
+        webhook_url = validate_field_length(
+            data.alert_slack.webhook_url,
+            MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+            ERROR_TOO_LONG_WEBHOOK_URL,
+        )
         validate_slack_webhook_url(webhook_url)
         pteam.alert_slack = models.PTeamSlack(
             pteam_id=pteam.pteam_id,
@@ -1499,31 +1495,28 @@ def update_pteam(
         )
 
     if data.pteam_name is not None:
-        update_pteam_name = data.pteam_name.strip()
-        if (
-            unicode_tool.count_full_width_and_half_width_characters(update_pteam_name)
-            > MAX_PTEAM_NAME_LENGTH_IN_HALF
-        ):
-            raise ERROR_TOO_LONG_PTEAM_NAME
+        update_pteam_name = validate_field_length(
+            data.pteam_name,
+            MAX_PTEAM_NAME_LENGTH_IN_HALF,
+            ERROR_TOO_LONG_PTEAM_NAME,
+        )
         pteam.pteam_name = update_pteam_name
     if data.contact_info is not None:
-        update_contact_info = data.contact_info.strip()
-        if (
-            unicode_tool.count_full_width_and_half_width_characters(update_contact_info)
-            > MAX_CONTACT_INFO_LENGTH_IN_HALF
-        ):
-            raise ERROR_TOO_LONG_CONTACT_INFO
+        update_contact_info = validate_field_length(
+            data.contact_info,
+            MAX_CONTACT_INFO_LENGTH_IN_HALF,
+            ERROR_TOO_LONG_CONTACT_INFO,
+        )
         pteam.contact_info = update_contact_info
     if data.alert_ssvc_priority is not None:
         pteam.alert_ssvc_priority = data.alert_ssvc_priority
     if data.alert_mail is not None:
         if data.alert_mail.address:
-            email_address = data.alert_mail.address.strip()
-            if (
-                unicode_tool.count_full_width_and_half_width_characters(email_address)
-                > MAX_EMAIL_ADDRESS_LENGTH_IN_HALF
-            ):
-                raise ERROR_TOO_LONG_ADDRESS
+            email_address = validate_field_length(
+                data.alert_mail.address,
+                MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+                ERROR_TOO_LONG_ADDRESS,
+            )
             mail_data = data.alert_mail.__dict__.copy()
             mail_data["address"] = email_address
             pteam.alert_mail = models.PTeamMail(**mail_data)
