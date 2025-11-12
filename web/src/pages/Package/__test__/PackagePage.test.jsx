@@ -159,13 +159,33 @@ describe("PackagePage Component Unit Tests", () => {
     render(<Package />, { route, path });
 
     // 5. アサーション
-    // "Test Service" は Chip と Table 内の2箇所に表示されるため、複数見つかるのが正しい挙動
-    // そのため、findAllByText を使って要素が1つ以上存在することを確認する
-    expect((await screen.findAllByText("Test Service"))[0]).toBeInTheDocument();
-    expect(screen.getByText("react")).toBeInTheDocument();
-    expect(screen.getByText("npm")).toBeInTheDocument();
-    expect(screen.getByText(packageId)).toBeInTheDocument();
-    expect(screen.getByText("UNSOLVED VULNS (2)")).toBeInTheDocument();
-    expect(screen.getByText("SOLVED VULNS (1)")).toBeInTheDocument();
+    // モックデータから期待値を生成し、テストの意図を明確にする
+    const expectedServiceName = MOCK_PTEAM.services[0].service_name;
+    const firstDependency = MOCK_DEPENDENCIES[0];
+    const expectedUnsolvedCount = MOCK_VULN_IDS_UNSOLVED.vuln_ids.length;
+    const expectedSolvedCount = MOCK_VULN_IDS_SOLVED.vuln_ids.length;
+
+    // useGetPTeamQuery の結果（サービス名）が "button" の役割を持つChipとして表示されていることを検証
+    expect(screen.getByRole("button", { name: expectedServiceName })).toBeInTheDocument();
+
+    // useGetDependenciesQuery の結果（パッケージ名）が h4 見出しとして表示されていることを検証
+    expect(
+      screen.getByRole("heading", { level: 4, name: firstDependency.package_name }),
+    ).toBeInTheDocument();
+
+    // useGetDependenciesQuery の結果（パッケージソース名）が表示されていることを検証
+    // この要素は特定のroleを持たないため getByText を使用
+    expect(screen.getByText(firstDependency.package_source_name)).toBeInTheDocument(); // "npm"
+
+    // パッケージIDが表示されていることを検証
+    expect(screen.getByText(packageId)).toBeInTheDocument(); // "pkg:npm/react@18.2.0"
+
+    // useGetPTeamVulnIdsTiedToServicePackageQuery の結果（脆弱性件数）が "tab" の役割を持つ要素として表示されていることを検証
+    expect(
+      screen.getByRole("tab", { name: `UNSOLVED VULNS (${expectedUnsolvedCount})` }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: `SOLVED VULNS (${expectedSolvedCount})` }),
+    ).toBeInTheDocument();
   });
 });
