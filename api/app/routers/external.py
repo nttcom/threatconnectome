@@ -19,25 +19,19 @@ from app.notification.slack import (
     send_slack,
     validate_slack_webhook_url,
 )
-from app.routers.validators.field_validator import validate_field_length
+from app.routers.validators.field_validator import strip_and_validate_field_length
 from app.schemas import EmailCheckRequest, SlackCheckRequest
 
 router = APIRouter(prefix="/external", tags=["external"])
 
 # Common error messages for external validation
-ERROR_TOO_LONG_WEBHOOK_URL = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST,
-    detail=(
-        f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
-        f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
-    ),
+WEBHOOK_URL_TOO_LONG_MESSAGE = (
+    f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
+    f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
 )
-ERROR_TOO_LONG_ADDRESS = HTTPException(
-    status_code=status.HTTP_400_BAD_REQUEST,
-    detail=(
-        f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
-        f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
-    ),
+EMAIL_ADDRESS_TOO_LONG_MESSAGE = (
+    f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
+    f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
 )
 
 
@@ -47,10 +41,10 @@ def check_webhook_url(data: SlackCheckRequest, current_user: Account = Depends(g
     Send test message to slack used by incomming webhook url
     """
     # validate webhook URL length
-    webhook_url = validate_field_length(
+    webhook_url = strip_and_validate_field_length(
         data.slack_webhook_url,
         MAX_WEBHOOK_URL_LENGTH_IN_HALF,
-        ERROR_TOO_LONG_WEBHOOK_URL,
+        WEBHOOK_URL_TOO_LONG_MESSAGE,
     )
 
     validate_slack_webhook_url(webhook_url)
@@ -73,10 +67,10 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
     Send test email with sendgrid
     """
     # validate email address length
-    email = validate_field_length(
+    email = strip_and_validate_field_length(
         data.email,
         MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
-        ERROR_TOO_LONG_ADDRESS,
+        EMAIL_ADDRESS_TOO_LONG_MESSAGE,
     )
 
     if not ready_to_send_email():
