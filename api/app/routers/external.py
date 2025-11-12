@@ -93,7 +93,7 @@ def check_email(data: EmailCheckRequest, current_user: Account = Depends(get_cur
         )
     try:
         send_email(
-            data.email,
+            email,
             SYSTEM_EMAIL,
             "test message from Threatconnectome",
             "test message from Threatconnectome",
