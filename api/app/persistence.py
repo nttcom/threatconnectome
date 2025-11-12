@@ -44,6 +44,17 @@ def get_account_default_pteam_by_user_id(
     ).one_or_none()
 
 
+def get_account_default_pteam_by_user_id_and_pteam_id(
+    db: Session, user_id: UUID | str, pteam_id: UUID | str
+) -> models.AccountDefaultPTeam | None:
+    return db.scalars(
+        select(models.AccountDefaultPTeam).where(
+            models.AccountDefaultPTeam.user_id == str(user_id),
+            models.AccountDefaultPTeam.default_pteam_id == str(pteam_id),
+        )
+    ).one_or_none()
+
+
 def create_account_default_pteam(
     db: Session, account_default_pteam: models.AccountDefaultPTeam
 ) -> None:

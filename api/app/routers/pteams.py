@@ -1496,7 +1496,14 @@ def delete_member(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
     pteam.pteam_roles.remove(target_role)
 
+    account_default_pteam = persistence.get_account_default_pteam_by_user_id_and_pteam_id(
+        db, user_id, pteam_id
+    )
+    if account_default_pteam is not None:
+        persistence.delete_account_default_pteam(db, account_default_pteam)
+
     db.flush()
+
     if command.missing_pteam_admin(db, pteam):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"

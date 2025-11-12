@@ -239,157 +239,188 @@ def test_it_should_return_400_when_try_delete_last_admin():
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
-def test_delete_member__last_admin_another():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+class TestDeleteMember:
+    def test_delete_member__last_admin_another(self):
+        user1 = create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    # invite another member (not ADMIN)
-    create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+        # invite another member (not ADMIN)
+        create_user(USER2)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # try leaving the pteam
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
+        # try leaving the pteam
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
+        )
+        assert response.status_code == 400
+        assert response.reason_phrase == "Bad Request"
+        assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
+    def test_delete_member__not_last_admin(self):
+        user1 = create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-def test_delete_member__not_last_admin():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
+        # invite another member (not ADMIN)
+        user2 = create_user(USER2)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # invite another member (not ADMIN)
-    user2 = create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+        # make the other member ADMIN
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
+        assert response.status_code == 200
 
-    # make the other member ADMIN
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
-    assert response.status_code == 200
+        # try leaving pteam
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
+        )
+        assert response.status_code == 204
 
-    # try leaving pteam
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 204
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert data["pteam_roles"] == []
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert data["pteam_roles"] == []
+        # user1 does not belong to pteam1
+        response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
+        assert response.status_code == 200
+        members_map = {UUID(x["user_id"]): x for x in response.json()}
+        assert members_map.get(user1.user_id) is None
 
-    # user1 does not belong to pteam1
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
-    assert response.status_code == 200
-    members_map = {UUID(x["user_id"]): x for x in response.json()}
-    assert members_map.get(user1.user_id) is None
+    def test_delete_member__by_admin(self):
+        user1 = create_user(USER1)
+        user2 = create_user(USER2)
+        user3 = create_user(USER3)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER3, invitation.invitation_id)
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
 
+        # kickout the other ADMIN
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-def test_delete_member__by_admin():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    user3 = create_user(USER3)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER3, invitation.invitation_id)
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
+        # kickout member
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-    # kickout the other ADMIN
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 400
+        assert response.reason_phrase == "Bad Request"
+        assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
-    # kickout member
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+    def test_delete_member__by_admin_myself(self):
+        create_user(USER1)
+        user2 = create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        # invite another ADMIN
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2)
+        )
+        assert response.status_code == 204
 
+    def test_delete_member__by_not_admin(self):
+        user1 = create_user(USER1)
+        user2 = create_user(USER2)
+        user3 = create_user(USER3)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER3, invitation.invitation_id)
 
-def test_delete_member__by_admin_myself():
-    create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # invite another ADMIN
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
+        # kickout ADMIN
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2)
-    )
-    assert response.status_code == 204
+        # kickout another member
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-def test_delete_member__by_not_admin():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    user3 = create_user(USER3)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER3, invitation.invitation_id)
+    def test_it_should_delete_the_account_default_pteam_table_when_deleting_a_user(self):
+        # Given
+        create_user(USER1)
+        user2 = create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # kickout ADMIN
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        # Set the default pteam for the user2
+        request = {"default_pteam_id": str(pteam1.pteam_id)}
+        response_put_users = client.put(
+            f"/users/{user2.user_id}", headers=headers(USER2), json=request
+        )
 
-    # kickout another member
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        # When
+        response_delete_users = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1)
+        )
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+        # Then
+        assert response_delete_users.status_code == 204
+
+        # before deleting
+        assert response_put_users.json()["default_pteam_id"] == str(pteam1.pteam_id)
+
+        # after deleting
+        response_get_users_me = client.get("/users/me", headers=headers(USER2))
+        assert response_get_users_me.status_code == 200
+        assert response_get_users_me.json()["default_pteam_id"] is None
 
 
 class TestGetPteamMembers:
