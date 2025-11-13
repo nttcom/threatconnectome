@@ -48,4 +48,16 @@ export class AuthProvider {
   async applyActionCode() {
     throw new Error("Not implemented");
   }
+  async registerPhoneNumber() {
+    throw new Error("Not implemented");
+  }
+  async deletePhoneNumber() {
+    throw new Error("Not implemented");
+  }
+  verifySmsForLogin() {
+    throw new Error("Not implemented");
+  }
+  verifySmsForEnrollment() {
+    throw new Error("Not implemented");
+  }
 }

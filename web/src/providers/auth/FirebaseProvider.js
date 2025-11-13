@@ -11,6 +11,11 @@ import {
   signInWithPopup,
   signOut,
   verifyPasswordResetCode,
+  multiFactor,
+  RecaptchaVerifier,
+  PhoneAuthProvider,
+  PhoneMultiFactorGenerator,
+  getMultiFactorResolver,
 } from "firebase/auth";
 
 import Firebase from "../../utils/Firebase";
@@ -71,8 +76,43 @@ export class FirebaseProvider extends AuthProvider {
       .then((result) => {
         return new AuthData(result);
       })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
+      .catch(async (error) => {
+        if (error.code == "auth/multi-factor-auth-required") {
+          const resolver = getMultiFactorResolver(auth, error);
+
+          for (const hint of resolver.hints) {
+            if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
+              const phoneInfoOptions = {
+                multiFactorHint: hint,
+                session: resolver.session,
+              };
+              const phoneAuthProvider = new PhoneAuthProvider(auth);
+
+              //Todo: RecaptchaVerifier will be implemented later.
+              const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible", {
+                size: "invisible",
+                callback: (response) => {
+                  // reCAPTCHA solved, you can proceed with
+                  // phoneAuthProvider.verifyPhoneNumber(...).
+                  console.log("success");
+                },
+              });
+
+              try {
+                const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+                  phoneInfoOptions,
+                  recaptchaVerifier,
+                );
+                return [resolver, verificationId];
+              } catch (error) {
+                recaptchaVerifier.clear();
+                throw error;
+              }
+            }
+          }
+        } else {
+          throw new FirebaseAuthError(error);
+        }
       });
   }
 
@@ -148,5 +188,67 @@ export class FirebaseProvider extends AuthProvider {
       .catch((error) => {
         throw new FirebaseAuthError(error);
       });
+  }
+
+  async registerPhoneNumber(phoneNumber) {
+    const e164Pattern = /^\+[1-9]\d{1,14}$/;
+    if (!e164Pattern.test(phoneNumber)) {
+      throw new Error(
+        "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
+      );
+    }
+
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+
+    //Todo: RecaptchaVerifier will be implemented later.
+    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible", {
+      size: "invisible",
+      callback: (response) => {
+        // reCAPTCHA solved, you can proceed with
+        // phoneAuthProvider.verifyPhoneNumber(...).
+        console.log("success");
+      },
+    });
+
+    try {
+      const multiFactorSession = await multiFactor(currentUser).getSession();
+      const phoneInfoOptions = {
+        phoneNumber: phoneNumber,
+        session: multiFactorSession,
+      };
+      const phoneAuthProvider = new PhoneAuthProvider(auth);
+      return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
+    } catch (error) {
+      recaptchaVerifier.clear();
+      throw error;
+    }
+  }
+
+  async deletePhoneNumber() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const multiFactorUser = multiFactor(currentUser);
+    for (const facter of multiFactorUser.enrolledFactors) {
+      multiFactorUser.unenroll(facter);
+    }
+  }
+
+  verifySmsForLogin(resolver, verificationId, verificationCode) {
+    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+
+    // Complete sign-in.
+    return resolver.resolveSignIn(multiFactorAssertion);
+  }
+
+  verifySmsForEnrollment(verificationId, verificationCode) {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+
+    // Complete enrollment.
+    multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
   }
 }
