@@ -23,13 +23,20 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useViewportOffset } from "../hooks/useViewportOffset";
 import {
   useCheckMailMutation,
   useCheckSlackMutation,
   useUpdatePTeamMutation,
 } from "../services/tcApi";
-import { modalCommonButtonStyle, sortedSSVCPriorities, ssvcPriorityProps } from "../utils/const";
-import { errorToString } from "../utils/func";
+import {
+  modalCommonButtonStyle,
+  sortedSSVCPriorities,
+  ssvcPriorityProps,
+  maxEmailAddressLengthInHalf,
+  maxSlackWebhookUrlLengthInHalf,
+} from "../utils/const";
+import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
 
 import { CheckButton } from "./CheckButton";
 
@@ -48,6 +55,7 @@ export function PTeamNotificationSetting(props) {
   const [emailMessage, setEmailMessage] = useState();
 
   const { enqueueSnackbar } = useSnackbar();
+  const viewportOffsetTop = useViewportOffset();
 
   const [postCheckMail] = useCheckMailMutation();
   const [postCheckSlack] = useCheckSlackMutation();
@@ -55,6 +63,38 @@ export function PTeamNotificationSetting(props) {
 
   const operationError = (error) =>
     enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+
+  const handleMailAddressSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxEmailAddressLengthInHalf) {
+      enqueueSnackbar(
+        `Too long email address. Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setMailAddress(string);
+    }
+  };
+
+  const handleSlackUrlSetting = (string) => {
+    if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
+      enqueueSnackbar(
+        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`,
+        {
+          variant: "error",
+          style: {
+            marginTop: `${viewportOffsetTop}px`,
+          },
+        },
+      );
+    } else {
+      setSlackUrl(string);
+    }
+  };
 
   const connectSuccessMessage = () => {
     return (
@@ -186,7 +226,8 @@ export function PTeamNotificationSetting(props) {
               type="text"
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
-              onChange={(event) => setMailAddress(event.target.value)}
+              onChange={(event) => handleMailAddressSetting(event.target.value)}
+              placeholder={`Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`}
             />
           </FormControl>
           <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />
@@ -208,7 +249,8 @@ export function PTeamNotificationSetting(props) {
               type={edittingSlackUrl ? "text" : "password"}
               autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
-              onChange={(event) => setSlackUrl(event.target.value)}
+              onChange={(event) => handleSlackUrlSetting(event.target.value)}
+              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
