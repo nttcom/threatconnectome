@@ -78,42 +78,45 @@ export class FirebaseProvider extends AuthProvider {
       })
       .catch(async (error) => {
         if (error.code == "auth/multi-factor-auth-required") {
-          const resolver = getMultiFactorResolver(auth, error);
-
-          for (const hint of resolver.hints) {
-            if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
-              const phoneInfoOptions = {
-                multiFactorHint: hint,
-                session: resolver.session,
-              };
-              const phoneAuthProvider = new PhoneAuthProvider(auth);
-
-              //Todo: RecaptchaVerifier will be implemented later.
-              const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible", {
-                size: "invisible",
-                callback: (response) => {
-                  // reCAPTCHA solved, you can proceed with
-                  // phoneAuthProvider.verifyPhoneNumber(...).
-                  console.log("success");
-                },
-              });
-
-              try {
-                const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-                  phoneInfoOptions,
-                  recaptchaVerifier,
-                );
-                return [resolver, verificationId];
-              } catch (error) {
-                recaptchaVerifier.clear();
-                throw error;
-              }
-            }
-          }
+          startSmsLoginFlow();
         } else {
           throw new FirebaseAuthError(error);
         }
       });
+  }
+
+  async startSmsLoginFlow() {
+    const resolver = getMultiFactorResolver(auth, error);
+    for (const hint of resolver.hints) {
+      if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
+        const phoneInfoOptions = {
+          multiFactorHint: hint,
+          session: resolver.session,
+        };
+        const phoneAuthProvider = new PhoneAuthProvider(auth);
+
+        //Todo: RecaptchaVerifier will be implemented later.
+        const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible", {
+          size: "invisible",
+          callback: (response) => {
+            // reCAPTCHA solved, you can proceed with
+            // phoneAuthProvider.verifyPhoneNumber(...).
+            console.log("success");
+          },
+        });
+
+        try {
+          const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+            phoneInfoOptions,
+            recaptchaVerifier,
+          );
+          return [resolver, verificationId];
+        } catch (error) {
+          recaptchaVerifier.clear();
+          throw error;
+        }
+      }
+    }
   }
 
   async signInWithSamlPopup() {
