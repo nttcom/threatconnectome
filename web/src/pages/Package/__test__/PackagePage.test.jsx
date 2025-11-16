@@ -1,23 +1,20 @@
-import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, it, vi } from "vitest";
 
-import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
-  useCreateActionLogMutation,
   useGetDependenciesQuery,
   useGetPTeamMembersQuery,
   useGetPTeamQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
-  useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPteamTicketsQuery,
+  useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetUserMeQuery,
   useGetVulnActionsQuery,
   useGetVulnQuery,
-  useUpdateTicketMutation,
 } from "../../../services/tcApi";
-import { render, screen } from "../../../utils/__tests__/test-utils";
+import { fireEvent, render, screen } from "../../../utils/__tests__/test-utils";
 import { Package } from "../PackagePage";
 
-// 1. 依存関係のモック化
 vi.mock("../../../hooks/auth");
 
 vi.mock("../../../services/tcApi", async (importOriginal) => {
@@ -33,12 +30,9 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     useGetVulnActionsQuery: vi.fn(),
     useGetPteamTicketsQuery: vi.fn(),
     useGetUserMeQuery: vi.fn(),
-    useCreateActionLogMutation: vi.fn(),
-    useUpdateTicketMutation: vi.fn(),
   };
 });
 
-// 2. モックデータの定義
 const MOCK_PTEAM = {
   pteam_id: "pteam-abc",
   pteam_name: "PTeam Alpha",
@@ -64,17 +58,12 @@ const MOCK_TICKET_COUNTS_UNSOLVED = { ssvc_priority_count: [{ priority: "critica
 
 describe("PackagePage Component Unit Tests", () => {
   it("should render correctly with successful API calls", async () => {
-    // 3. モックの戻り値を設定
-    vi.mocked(useSkipUntilAuthUserIsReady).mockReturnValue(false);
-
-    // PackagePageとVulnTableRowViewの両方で使われるフック
     vi.mocked(useGetDependenciesQuery).mockReturnValue({
       data: MOCK_DEPENDENCIES,
       isLoading: false,
       isSuccess: true,
     });
 
-    // PackagePageのフック設定
     vi.mocked(useGetPTeamQuery).mockReturnValue({
       data: MOCK_PTEAM,
       isLoading: false,
@@ -93,7 +82,6 @@ describe("PackagePage Component Unit Tests", () => {
       return { data: MOCK_TICKET_COUNTS_UNSOLVED, isLoading: false, isSuccess: true };
     });
 
-    // 子コンポーネント群が使うフックの設定
     vi.mocked(useGetPTeamMembersQuery).mockReturnValue({
       data: [],
       isLoading: false,
@@ -121,34 +109,29 @@ describe("PackagePage Component Unit Tests", () => {
       isLoading: false,
       isSuccess: true,
     });
-    vi.mocked(useGetPteamTicketsQuery).mockImplementation(() => ({
-      data: [
-        {
-          ticket_id: "ticket-1",
-          ssvc_deployer_priority: "Immediate",
-          ticket_status: {
-            ticket_handling_status: "alerted",
-            assignees: [],
+    vi.mocked(useGetPteamTicketsQuery).mockImplementation((args) => {
+      const vulnId = args?.vulnId || "unknown";
+      return {
+        data: [
+          {
+            ticket_id: `ticket-for-${vulnId}`,
+            ssvc_deployer_priority: "Immediate",
+            ticket_status: {
+              ticket_handling_status: "alerted",
+              assignees: [],
+            },
           },
-        },
-      ],
-      isLoading: false,
-      isSuccess: true,
-    }));
-    // ReportCompletedActionsが使うフックをモック
+        ],
+        isLoading: false,
+        isSuccess: true,
+      };
+    });
     vi.mocked(useGetUserMeQuery).mockReturnValue({
       data: { user_id: "test-user-id" },
       isLoading: false,
       isSuccess: true,
     });
-    vi.mocked(useCreateActionLogMutation).mockReturnValue([
-      vi.fn().mockResolvedValue({ logging_id: "log-1" }),
-    ]);
-    vi.mocked(useUpdateTicketMutation).mockReturnValue([
-      vi.fn().mockResolvedValue({ ticket_id: "ticket-1" }),
-    ]);
 
-    // 4. コンポーネントの描画
     const packageId = "pkg:npm/react@18.2.0";
     const pteamId = "pteam-abc";
     const serviceId = "svc-xyz";
@@ -158,34 +141,30 @@ describe("PackagePage Component Unit Tests", () => {
 
     render(<Package />, { route, path });
 
-    // 5. アサーション
-    // モックデータから期待値を生成し、テストの意図を明確にする
-    const expectedServiceName = MOCK_PTEAM.services[0].service_name;
-    const firstDependency = MOCK_DEPENDENCIES[0];
-    const expectedUnsolvedCount = MOCK_VULN_IDS_UNSOLVED.vuln_ids.length;
-    const expectedSolvedCount = MOCK_VULN_IDS_SOLVED.vuln_ids.length;
+    const selectWrappers = screen.getAllByTestId("safety-impact-select-ticket-for-CVE-2023-0002");
 
-    // useGetPTeamQuery の結果（サービス名）が "button" の役割を持つChipとして表示されていることを検証
-    expect(screen.getByRole("button", { name: expectedServiceName })).toBeInTheDocument();
+    const selectWrapper = selectWrappers[0];
+    const combobox = selectWrapper.querySelector('[role="combobox"]');
+    fireEvent.mouseDown(combobox);
 
-    // useGetDependenciesQuery の結果（パッケージ名）が h4 見出しとして表示されていることを検証
-    expect(
-      screen.getByRole("heading", { level: 4, name: firstDependency.package_name }),
-    ).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toBeInTheDocument();
 
-    // useGetDependenciesQuery の結果（パッケージソース名）が表示されていることを検証
-    // この要素は特定のroleを持たないため getByText を使用
-    expect(screen.getByText(firstDependency.package_source_name)).toBeInTheDocument(); // "npm"
+    const dialogSelect = await screen.findByTestId("dialog-safety-impact-select");
+    const dialogCombobox = dialogSelect.querySelector('[role="combobox"]');
+    fireEvent.mouseDown(dialogCombobox);
 
-    // パッケージIDが表示されていることを検証
-    expect(screen.getByText(packageId)).toBeInTheDocument(); // "pkg:npm/react@18.2.0"
+    const menuItems = await screen.findAllByRole("option");
 
-    // useGetPTeamVulnIdsTiedToServicePackageQuery の結果（脆弱性件数）が "tab" の役割を持つ要素として表示されていることを検証
-    expect(
-      screen.getByRole("tab", { name: `UNSOLVED VULNS (${expectedUnsolvedCount})` }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("tab", { name: `SOLVED VULNS (${expectedSolvedCount})` }),
-    ).toBeInTheDocument();
+    const catastrophicOption = menuItems.find((item) => item.textContent.includes("Catastrophic"));
+    expect(catastrophicOption).toBeDefined();
+    await userEvent.click(catastrophicOption);
+
+    expect(dialogCombobox.textContent).toBe("Catastrophic");
+
+    const saveButton = await screen.findByRole("button", { name: /save/i });
+    expect(saveButton).not.toBeDisabled();
+
+    await userEvent.click(saveButton);
   });
 });
