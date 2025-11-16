@@ -1,5 +1,4 @@
 import { http, HttpResponse } from "msw";
-import React from "react";
 
 import { Package } from "./PackagePage";
 
@@ -9,7 +8,9 @@ const packageId = "pkg-uuid-456";
 const mockPTeam = {
   pteam_id: pteamId,
   pteam_name: "Example Team",
-  services: [{ service_id: serviceId, service_name: "My Production Service" }],
+  services: [
+    { service_id: serviceId, service_name: "My Production Service", service_safety_impact: "high" },
+  ],
 };
 const mockDependencies = [
   {
@@ -220,39 +221,10 @@ const successHandlers = [
   }),
 ];
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.children.key !== this.props.children.key) {
-      this.setState({ hasError: false, error: null });
-    }
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: 20, border: "2px dashed red", color: "red" }}>
-          <h2>コンポーネントがエラーをスローしました (これは正常なテストです):</h2>
-          <pre>{this.state.error?.message || JSON.stringify(this.state.error)}</pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
 export default {
   title: "Package/PackagePage",
   component: Package,
   tags: ["autodocs"],
-  parameters: {
-    layout: "fullscreen",
-  },
 };
 
 export const Default = {
@@ -278,40 +250,6 @@ export const Loading = {
           await new Promise(() => {});
         }),
         successHandlers[1],
-        successHandlers[2],
-        successHandlers[3],
-        successHandlers[4],
-        successHandlers[5],
-        successHandlers[6],
-        successHandlers[7],
-        successHandlers[8],
-      ],
-    },
-    router: {
-      memoryRouterProps: {
-        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
-      },
-      path: "/package/:packageId",
-      useRoutes: true,
-    },
-  },
-};
-
-export const DependenciesError = {
-  decorators: [
-    (Story, context) => (
-      <ErrorBoundary key={JSON.stringify(context.args)}>
-        <Story />
-      </ErrorBoundary>
-    ),
-  ],
-  parameters: {
-    msw: {
-      handlers: [
-        successHandlers[0],
-        http.get(`*/pteams/${pteamId}/dependencies`, () => {
-          return HttpResponse.json({ message: "Internal Server Error" }, { status: 500 });
-        }),
         successHandlers[2],
         successHandlers[3],
         successHandlers[4],
