@@ -193,29 +193,41 @@ class TrivyCDXParser(SBOMParser):
         )
 
     @staticmethod
-    def _get_source_dependencies(
-        ref: BomRef,
+    def _get_source_dependencies_dict(
         sbom_bom: Bom,
-    ) -> list[Dependency]:
-        source_dependencies: list[Dependency] = []
+    ) -> dict[BomRef, list]:
+        source_dependencies_dict: dict[BomRef, list] = {}
         for dependency1 in sbom_bom.dependencies:
             for dependency2 in dependency1.dependencies:
-                if dependency2.ref == ref:
-                    source_dependencies.append(dependency1)
-        return source_dependencies
+                if dependency2.ref in source_dependencies_dict.keys():
+                    source_dependencies_dict[dependency2.ref].append(dependency1)
+                else:
+                    source_dependencies_dict[dependency2.ref] = [dependency1]
+        return source_dependencies_dict
+
+    @staticmethod
+    def _get_source_dependencies(
+        ref: BomRef,
+        source_dependencies_dict: dict[BomRef, list],
+    ) -> list[Dependency]:
+        if ref in source_dependencies_dict.keys():
+            return source_dependencies_dict[ref]
+        return []
 
     @staticmethod
     def _recursive_get_target_components(
         target_dependency: Dependency,
         sbom_bom: Bom,
         all_components: list[Component],
+        source_dependencies_dict: dict[BomRef, list],
         current_ref: set[BomRef],
     ) -> list[Component]:
         components: list[Component] = list()
         if target_dependency.ref in current_ref:
             return components
+
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
-            target_dependency.ref, sbom_bom
+            target_dependency.ref, source_dependencies_dict
         )
         for source_dependency in source_dependencies:
             if source_dependency.ref in current_ref:
@@ -234,6 +246,7 @@ class TrivyCDXParser(SBOMParser):
                     source_dependency,
                     sbom_bom,
                     all_components,
+                    source_dependencies_dict,
                     current_ref | {target_dependency.ref},
                 )
             )
@@ -244,10 +257,11 @@ class TrivyCDXParser(SBOMParser):
         component: Component,
         sbom_bom: Bom,
         all_components: list[Component],
+        source_dependencies_dict: dict[BomRef, list],
     ) -> list[Component]:
         target_components: list[Component] = list()
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
-            component.bom_ref, sbom_bom
+            component.bom_ref, source_dependencies_dict
         )
 
         for dep in source_dependencies:
@@ -260,7 +274,7 @@ class TrivyCDXParser(SBOMParser):
                 target_components.append(source_component)
             target_components.extend(
                 TrivyCDXParser._recursive_get_target_components(
-                    dep, sbom_bom, all_components, set()
+                    dep, sbom_bom, all_components, source_dependencies_dict, set()
                 )
             )
 
@@ -297,6 +311,10 @@ class TrivyCDXParser(SBOMParser):
             if not any(dependency.ref == component.bom_ref for component in all_components):
                 raise ValueError(f"Missing dependency: {dependency.ref.value}")
 
+        source_dependencies_dict: dict[BomRef, list] = TrivyCDXParser._get_source_dependencies_dict(
+            sbom_bom
+        )
+
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
         for component in all_components:
@@ -309,7 +327,7 @@ class TrivyCDXParser(SBOMParser):
             if not component.version:
                 continue  # maybe directory or image
             target_components: list[Component] = cls._get_target_components(
-                component, sbom_bom, all_components
+                component, sbom_bom, all_components, source_dependencies_dict
             )
             if not (package_info := TrivyCDXParser._to_package_info(component, target_components)):
                 continue  # omit not packages
