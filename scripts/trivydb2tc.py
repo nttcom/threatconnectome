@@ -93,6 +93,7 @@ allow_list = [
     # b"debian 9",
     # b"erlang::GitHub Security Advisory Erlang",
     b"go::GitHub Security Advisory Go",
+    b"go::The Go Vulnerability Database",
     # b"k8s::Official Kubernetes CVE Feed",
     b"maven::GitHub Security Advisory Maven",
     b"maven::GitLab Advisory Database Community",
