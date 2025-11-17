@@ -97,7 +97,7 @@ class TrivyCDXParser(SBOMParser):
         if len(target_components) == 0:
             return None
         if len(target_components) == 1:
-            return target_components.pop()
+            return target_components[0]
         for component in target_components:
             trivy_class = TrivyCDXParser._get_propety_value(component, "aquasecurity:trivy:Class")
             if trivy_class is not None and trivy_class == "os-pkgs":
@@ -107,7 +107,7 @@ class TrivyCDXParser(SBOMParser):
             if trivy_type is not None:
                 return component
 
-        return target_components.pop()
+        return target_components[-1]
 
     @staticmethod
     def _is_os_pkgtype(pkg_type: str | None) -> bool:
