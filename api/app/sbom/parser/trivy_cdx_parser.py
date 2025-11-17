@@ -9,7 +9,6 @@ from cyclonedx.model.component import Component
 from cyclonedx.model.dependency import Dependency
 
 from app.sbom.parser.artifact import Artifact
-from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.os_purl_utils import is_os_purl
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
@@ -94,7 +93,7 @@ class TrivyCDXParser(SBOMParser):
         return None
 
     @staticmethod
-    def _find_pkg_mgr(target_components: set[Component]) -> Component | None:
+    def _find_pkg_mgr(target_components: list[Component]) -> Component | None:
         if len(target_components) == 0:
             return None
         if len(target_components) == 1:
@@ -132,7 +131,7 @@ class TrivyCDXParser(SBOMParser):
         return pkg_type in OS_PACKAGE_TYPES
 
     @staticmethod
-    def _to_package_info(component: Component, target_components: set[Component]) -> dict | None:
+    def _to_package_info(component: Component, target_components: list[Component]) -> dict | None:
         if not component.purl:
             return None
         pkg_name = (
@@ -207,29 +206,36 @@ class TrivyCDXParser(SBOMParser):
 
     @staticmethod
     def _recursive_get_target_components(
-        dependency: Dependency,
+        target_dependency: Dependency,
         sbom_bom: Bom,
         all_components: list[Component],
         current_ref: set[BomRef],
-    ) -> set[Component]:
-        components: set[Component] = set()
-        if dependency.ref in current_ref:
+    ) -> list[Component]:
+        components: list[Component] = list()
+        if target_dependency.ref in current_ref:
             return components
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
-            dependency.ref, sbom_bom
+            target_dependency.ref, sbom_bom
         )
-        for dep in source_dependencies:
-            if dep.ref in current_ref:
+        for source_dependency in source_dependencies:
+            if source_dependency.ref in current_ref:
                 continue
-            component = TrivyCDXParser._get_component_by_dependency(dep, all_components)
+            component = TrivyCDXParser._get_component_by_dependency(
+                source_dependency, all_components
+            )
             if (
                 component is not None
                 and component.type is not None
                 and component.type.value != "library"
             ):
-                components.add(component)
-            components |= TrivyCDXParser._recursive_get_target_components(
-                dep, sbom_bom, all_components, current_ref | {dep.ref}
+                components.append(component)
+            components.extend(
+                TrivyCDXParser._recursive_get_target_components(
+                    source_dependency,
+                    sbom_bom,
+                    all_components,
+                    current_ref | {target_dependency.ref},
+                )
             )
         return components
 
@@ -238,8 +244,8 @@ class TrivyCDXParser(SBOMParser):
         component: Component,
         sbom_bom: Bom,
         all_components: list[Component],
-    ) -> set[Component]:
-        target_components: set[Component] = set()
+    ) -> list[Component]:
+        target_components: list[Component] = list()
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
             component.bom_ref, sbom_bom
         )
@@ -251,9 +257,11 @@ class TrivyCDXParser(SBOMParser):
                 and source_component.type is not None
                 and source_component.type.value != "library"
             ):
-                target_components.add(source_component)
-            target_components |= TrivyCDXParser._recursive_get_target_components(
-                dep, sbom_bom, all_components, set()
+                target_components.append(source_component)
+            target_components.extend(
+                TrivyCDXParser._recursive_get_target_components(
+                    dep, sbom_bom, all_components, set()
+                )
             )
 
         return target_components
@@ -300,7 +308,7 @@ class TrivyCDXParser(SBOMParser):
                 continue
             if not component.version:
                 continue  # maybe directory or image
-            target_components: set[Component] = cls._get_target_components(
+            target_components: list[Component] = cls._get_target_components(
                 component, sbom_bom, all_components
             )
             if not (package_info := TrivyCDXParser._to_package_info(component, target_components)):
@@ -328,7 +336,7 @@ class TrivyCDXParser(SBOMParser):
                     continue
                 new_target = (target_component.name, component.version)
                 if new_target in artifact.targets:
-                    error_message("conflicted target:", artifacts_key, new_target)
+                    continue
                 else:
                     artifact.targets.add(new_target)
             artifact.versions.add(component.version)
