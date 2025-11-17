@@ -44,7 +44,7 @@ export function TwoFactorAuth() {
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {(step === "2fa" || step === "loading") &&
-                "メールに送信された6桁のコードを入力してください"}
+                "SMSで送信された6桁のコードを入力してください"}
               {step === "main" && "認証に成功しました。"}
             </Typography>
           </Box>
