@@ -358,3 +358,85 @@ class TestTrivyCDXParser:
         assert artifact.package_manager == ""
         assert len(artifact.targets) == 1
         assert list(artifact.targets)[0] == ("wolfi", "15.1.0-r1")
+
+    def test_it_should_create_target_with_dependent_across_multiple_generations(self):
+        sbom = {
+            "metadata": {
+                "component": {
+                    "bom-ref": "test0_ref",
+                    "type": "application",
+                    "name": "test0_name",
+                },
+            },
+            "components": [
+                {
+                    "bom-ref": "test1_ref",
+                    "name": "test1_name",
+                    "type": "application",
+                    "properties": [],
+                },
+                {
+                    "bom-ref": "test2_ref",
+                    "purl": "pkg:pypi/cryptography@39.0.2",
+                    "name": "test2_name",
+                    "version": "39.0.2",
+                    "type": "library",
+                    "properties": [],
+                },
+                {
+                    "bom-ref": "test3_ref",
+                    "purl": "pkg:pypi/cryptography@39.0.2",
+                    "name": "test3_name",
+                    "version": "39.0.2",
+                    "type": "library",
+                    "properties": [],
+                },
+                {
+                    "bom-ref": "test4_ref",
+                    "purl": "pkg:pypi/cryptography@39.0.2",
+                    "name": "test4_name",
+                    "version": "39.0.2",
+                    "type": "library",
+                    "properties": [],
+                },
+            ],
+            "dependencies": [
+                {
+                    "ref": "test0_ref",
+                    "dependsOn": ["test1_ref"],
+                },
+                {
+                    "ref": "test1_ref",
+                    "dependsOn": ["test2_ref"],
+                },
+                {
+                    "ref": "test2_ref",
+                    "dependsOn": ["test3_ref"],
+                },
+                {
+                    "ref": "test3_ref",
+                    "dependsOn": ["test4_ref"],
+                },
+            ],
+        }
+        sbom_info = SBOMInfo(
+            spec_name="CycloneDX",
+            spec_version="1.5",
+            tool_name="trivy",
+            tool_version="0.52.0",
+        )
+        sbom_bom = Bom.from_json(sbom)
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        assert len(artifacts) == 3
+
+        artifact0 = artifacts[0]
+        assert artifact0.package_name == "test2_name"
+        assert len(artifact0.targets) == 1
+
+        artifact1 = artifacts[1]
+        assert artifact1.package_name == "test3_name"
+        assert len(artifact1.targets) == 1
+
+        artifact2 = artifacts[2]
+        assert artifact2.package_name == "test4_name"
+        assert len(artifact2.targets) == 1
