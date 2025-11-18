@@ -19,5 +19,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.js"],
+    coverage: {
+      provider: "istanbul",
+      reports: ["text", "html"],
+      all: false,
+    },
   },
 });
