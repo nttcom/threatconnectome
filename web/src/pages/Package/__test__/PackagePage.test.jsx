@@ -36,6 +36,10 @@ vi.mock("../../../hooks/auth");
 
 vi.mock("../../../services/tcApi", async (importOriginal) => {
   const actual = await importOriginal();
+  // updateTicket用の成功モックを追加
+  const mockUpdateTicket = vi.fn(() => ({
+    unwrap: () => Promise.resolve(),
+  }));
   return {
     ...actual,
     useGetPTeamQuery: vi.fn(),
@@ -47,6 +51,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     useGetVulnActionsQuery: vi.fn(),
     useGetPteamTicketsQuery: vi.fn(),
     useGetUserMeQuery: vi.fn(),
+    useUpdateTicketMutation: () => [mockUpdateTicket],
   };
 });
 
@@ -71,15 +76,6 @@ describe("PackagePage Component Unit Tests", () => {
     render(<Package />, { route, path });
   });
 
-  // --- テストケース 1: 初期描画の検証 ---
-  it("should render correctly with successful API calls", async () => {
-    // API呼び出しを経て、主要な要素が描画されていることを確認
-    // (例: パッケージ名や脆弱性情報など)
-    expect(await screen.findByText("react")).toBeInTheDocument();
-    // expect(screen.getByText("CVE-2023-0002")).toBeInTheDocument();
-    // expect(screen.getByText("CVE-2023-0003")).toBeInTheDocument();
-  });
-
   // --- テストケース: APIフック呼び出しの検証 ---
   it("should call all required API hooks on initial render", async () => {
     // 画面のレンダリングが安定するまで待機
@@ -98,6 +94,15 @@ describe("PackagePage Component Unit Tests", () => {
       expect(useGetPteamTicketsQuery).toHaveBeenCalled();
       expect(useGetUserMeQuery).toHaveBeenCalled();
     });
+  });
+
+  // --- テストケース 1: 初期描画の検証 ---
+  it("should render correctly with successful API calls", async () => {
+    // API呼び出しを経て、主要な要素が描画されていることを確認
+    // (例: パッケージ名や脆弱性情報など)
+    expect(await screen.findByText("react")).toBeInTheDocument();
+    // expect(screen.getByText("CVE-2023-0002")).toBeInTheDocument();
+    // expect(screen.getByText("CVE-2023-0003")).toBeInTheDocument();
   });
 
   // --- テストケース 2: ダイアログ表示の検証 ---
