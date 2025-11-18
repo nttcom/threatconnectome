@@ -48,6 +48,12 @@ def headers(user: dict) -> dict:
     return get_access_token_headers(user["email"], user["pass"])
 
 
+def headers_with_api_key(user: dict) -> dict:
+    headers_with_api = headers(user)
+    headers_with_api["X-API-Key"] = os.getenv("VULN_API_KEY")
+    return headers_with_api
+
+
 def file_upload_headers(user: dict) -> dict:
     return get_file_upload_headers(user["email"], user["pass"])
 
@@ -66,7 +72,9 @@ def create_vuln(
     user: dict,
     vuln: dict,
 ) -> dict:
-    response = requests.put(f'{api_url}/vulns/{vuln["vuln_id"]}', headers=headers(user), json=vuln)
+    response = requests.put(
+        f'{api_url}/vulns/{vuln["vuln_id"]}', headers=headers_with_api_key(user), json=vuln
+    )
 
     if response.status_code != 200:
         raise HTTPError(response)
