@@ -34,12 +34,13 @@ import { MOCK_VULN_IDS_UNSOLVED, setupApiMocks } from "./apiMocks";
 // ------------------------------
 vi.mock("../../../hooks/auth");
 
+const mockUpdateTicket = vi.fn(() => ({
+  unwrap: () => Promise.resolve(),
+}));
+
 vi.mock("../../../services/tcApi", async (importOriginal) => {
   const actual = await importOriginal();
   // updateTicket用の成功モックを追加
-  const mockUpdateTicket = vi.fn(() => ({
-    unwrap: () => Promise.resolve(),
-  }));
   return {
     ...actual,
     useGetPTeamQuery: vi.fn(),
@@ -118,7 +119,7 @@ describe("PackagePage Component Unit Tests", () => {
   });
 
   // --- テストケース 3: ダイアログ内での操作と保存ボタンの状態検証 ---
-  it("should enable the save button after selecting an option in the dialog", async () => {
+  it("should enable the save button after selecting an option in the dialog and call mutation on save", async () => {
     // 1. ダイアログを開く
     const selectWrappers = screen.getAllByTestId(
       `safety-impact-select-ticket-for-${MOCK_VULN_IDS_UNSOLVED.vuln_ids[0]}`,
@@ -145,5 +146,10 @@ describe("PackagePage Component Unit Tests", () => {
 
     // 6. 保存ボタンをクリック（操作が完了することを確認）
     await userEvent.click(saveButton);
+
+    // 7. useUpdateTicketMutation が呼び出されたことを検証
+    await waitFor(() => {
+      expect(mockUpdateTicket).toHaveBeenCalled();
+    });
   });
 });
