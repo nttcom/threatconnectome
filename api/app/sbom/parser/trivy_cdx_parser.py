@@ -107,7 +107,7 @@ class TrivyCDXParser(SBOMParser):
             if trivy_type is not None:
                 return component
 
-        return target_components[-1]
+        return target_components[0]
 
     @staticmethod
     def _is_os_pkgtype(pkg_type: str | None) -> bool:
