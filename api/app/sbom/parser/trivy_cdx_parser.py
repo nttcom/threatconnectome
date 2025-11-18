@@ -222,7 +222,7 @@ class TrivyCDXParser(SBOMParser):
         source_dependencies_dict: dict[BomRef, list],
         current_ref: set[BomRef],
     ) -> list[Component]:
-        components: list[Component] = list()
+        components: list[Component] = []
         if target_dependency.ref in current_ref:
             return components
 
@@ -259,7 +259,7 @@ class TrivyCDXParser(SBOMParser):
         all_components: list[Component],
         source_dependencies_dict: dict[BomRef, list],
     ) -> list[Component]:
-        target_components: list[Component] = list()
+        target_components: list[Component] = []
         source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
             component.bom_ref, source_dependencies_dict
         )
