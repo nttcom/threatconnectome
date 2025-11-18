@@ -11,10 +11,21 @@
 import userEvent from "@testing-library/user-event";
 import { describe, it, vi, beforeEach } from "vitest";
 
-import { fireEvent, render, screen } from "../../../utils/__tests__/test-utils";
+import {
+  useGetDependenciesQuery,
+  useGetPTeamMembersQuery,
+  useGetPTeamQuery,
+  useGetPTeamTicketCountsTiedToServicePackageQuery,
+  useGetPTeamVulnIdsTiedToServicePackageQuery,
+  useGetPteamTicketsQuery,
+  useGetUserMeQuery,
+  useGetVulnActionsQuery,
+  useGetVulnQuery,
+} from "../../../services/tcApi";
+import { fireEvent, render, screen, waitFor } from "../../../utils/__tests__/test-utils";
 import { Package } from "../PackagePage";
 
-import { setupApiMocks } from "./apiMocks";
+import { MOCK_VULN_IDS_UNSOLVED, setupApiMocks } from "./apiMocks";
 
 // ------------------------------
 // 外部フック / サービスのモック設定
@@ -69,6 +80,26 @@ describe("PackagePage Component Unit Tests", () => {
     // expect(screen.getByText("CVE-2023-0003")).toBeInTheDocument();
   });
 
+  // --- テストケース: APIフック呼び出しの検証 ---
+  it("should call all required API hooks on initial render", async () => {
+    // 画面のレンダリングが安定するまで待機
+    await screen.findByText("react");
+
+    // waitForを使用して、非同期のフック呼び出しが完了するのを待つ
+    await waitFor(() => {
+      // モックされた各APIフックが少なくとも1回は呼び出されたことを検証
+      expect(useGetPTeamQuery).toHaveBeenCalled();
+      expect(useGetDependenciesQuery).toHaveBeenCalled();
+      expect(useGetPTeamVulnIdsTiedToServicePackageQuery).toHaveBeenCalled();
+      expect(useGetPTeamTicketCountsTiedToServicePackageQuery).toHaveBeenCalled();
+      expect(useGetPTeamMembersQuery).toHaveBeenCalled();
+      expect(useGetVulnQuery).toHaveBeenCalled();
+      expect(useGetVulnActionsQuery).toHaveBeenCalled();
+      expect(useGetPteamTicketsQuery).toHaveBeenCalled();
+      expect(useGetUserMeQuery).toHaveBeenCalled();
+    });
+  });
+
   // --- テストケース 2: ダイアログ表示の検証 ---
   it("should open the dialog when the safety/impact select is clicked", async () => {
     // 1. CVE に紐づくセレクトボックスを取得し、クリック操作を行う
@@ -84,7 +115,9 @@ describe("PackagePage Component Unit Tests", () => {
   // --- テストケース 3: ダイアログ内での操作と保存ボタンの状態検証 ---
   it("should enable the save button after selecting an option in the dialog", async () => {
     // 1. ダイアログを開く
-    const selectWrappers = screen.getAllByTestId("safety-impact-select-ticket-for-CVE-2023-0002");
+    const selectWrappers = screen.getAllByTestId(
+      `safety-impact-select-ticket-for-${MOCK_VULN_IDS_UNSOLVED.vuln_ids[0]}`,
+    );
     const combobox = selectWrappers[0].querySelector('[role="combobox"]');
     fireEvent.mouseDown(combobox);
     await screen.findByRole("dialog"); // ダイアログの表示を待つ
