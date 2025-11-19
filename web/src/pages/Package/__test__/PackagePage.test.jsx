@@ -131,38 +131,32 @@ describe("PackagePage Component Unit Tests", () => {
   });
 
   // --- テストケース 4: チケットステータス変更の検証 ---
-  it("should call updateTicket mutation when status is changed via TicketHandlingStatusSelector", async () => {
-    // 1. 脆弱性 CVE-2023-0002 に関連するチケットのステータスボタンを探す
-    // TicketHandlingStatusSelector の初期ステータスは "Alerted" と想定
-    // 複数の "Alerted" ボタンが存在するため、findAllByRoleで全て取得し、最初の要素を操作対象とする
+  // --- チケットステータス変更のパラメータ化テスト ---
+  const statusCases = [
+    { name: "Acknowledge", expectMutation: true },
+    { name: "Complete", dialogText: "Select the actions you have completed" },
+    { name: "Schedule", dialogText: "Set schedule" },
+  ];
+
+  async function openStatusMenuAndSelect(optionName) {
     const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
     await userEvent.click(statusButtons[0]);
+    const option = await screen.findByRole("menuitem", { name: optionName });
+    await userEvent.click(option);
+  }
 
-    // 2. 表示されたメニューから "Acknowledge" を選択
-    const acknowledgeOption = await screen.findByRole("menuitem", { name: "Acknowledge" });
-    await userEvent.click(acknowledgeOption);
-
-    // 3. useUpdateTicketMutation が正しい引数で呼び出されたことを検証
-    expect(mockUpdateTicket).toHaveBeenCalled();
-  });
-  it("should open the complete dialog when status is changed to 'Complete' via TicketHandlingStatusSelector", async () => {
-    const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
-    await userEvent.click(statusButtons[0]);
-
-    const completeOption = await screen.findByRole("menuitem", { name: "Complete" });
-    await userEvent.click(completeOption);
-
-    // 「Select the actions you have completed」が表示されるダイアログを検証
-    expect(await screen.findByText("Select the actions you have completed")).toBeInTheDocument();
-  });
-  it("should open the schedule dialog when status is changed to 'Schedule' via TicketHandlingStatusSelector", async () => {
-    const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
-    await userEvent.click(statusButtons[0]);
-
-    const scheduleOption = await screen.findByRole("menuitem", { name: "Schedule" });
-    await userEvent.click(scheduleOption);
-
-    // 「Set schedule」と書かれたダイアログが表示されることを検証
-    expect(await screen.findByText("Set schedule")).toBeInTheDocument();
-  });
+  describe.each(statusCases)(
+    "TicketHandlingStatusSelector status change: $name",
+    ({ name, expectMutation, dialogText }) => {
+      it(`should handle status change to '${name}'`, async () => {
+        await openStatusMenuAndSelect(name);
+        if (expectMutation) {
+          expect(mockUpdateTicket).toHaveBeenCalled();
+        }
+        if (dialogText) {
+          expect(await screen.findByText(dialogText)).toBeInTheDocument();
+        }
+      });
+    },
+  );
 });
