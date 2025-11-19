@@ -4,11 +4,9 @@ import Firebase from "../utils/Firebase";
 import Supabase from "../utils/Supabase";
 import { blobToDataURL } from "../utils/func";
 
-import type { ActionLogRequest, ActionLogResponse } from "../../types/types.gen.ts";
-
 const _responseListToDictConverter =
   (keyName, valueName = undefined) =>
-  (data) => {
+  (data, meta, arg) => {
     return data.reduce((ret, item) => {
       /* convert array to dict,
        *    [{x: a, y: b}, ...] => {a: {x: a, y: b}, ...} // if keyName = "x"
@@ -51,7 +49,7 @@ export const tcApi = createApi({
   }),
   endpoints: (builder) => ({
     /* Action Log */
-    createActionLog: builder.mutation<ActionLogResponse, ActionLogRequest>({
+    createActionLog: builder.mutation({
       query: (data) => ({
         url: "actionlogs",
         method: "POST",
@@ -71,14 +69,14 @@ export const tcApi = createApi({
           limit: limit,
         },
       }),
-      providesTags: () => [{ type: "Service", id: "ALL" }],
+      providesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
     getDependency: builder.query({
       query: ({ pteamId, dependencyId }) => ({
         url: `pteams/${pteamId}/dependencies/${dependencyId}`,
         method: "GET",
       }),
-      providesTags: (arg) => [
+      providesTags: (result, error, arg) => [
         { type: "Service", id: "ALL" },
         { type: "Dependency", id: arg.dependencyId },
       ],
@@ -87,7 +85,7 @@ export const tcApi = createApi({
     /* Insight  */
     getInsight: builder.query({
       query: (ticketId) => `tickets/${ticketId}/insight`,
-      providesTags: () => [
+      providesTags: (result, error, ticketId) => [
         { type: "Service", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Ticket", id: "ALL" },
@@ -97,7 +95,7 @@ export const tcApi = createApi({
     /* PTeam */
     getPTeam: builder.query({
       query: (pteamId) => `pteams/${pteamId}`,
-      providesTags: (result, pteamId) => [
+      providesTags: (result, error, pteamId) => [
         { type: "PTeam", id: pteamId },
         ...(result?.services.reduce(
           (ret, service) => [...ret, { type: "Service", id: service.service_id }],
@@ -111,7 +109,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: () => [{ type: "PTeamAccountRole", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamAccountRole", id: "ALL" }],
     }),
     updatePTeam: builder.mutation({
       query: ({ pteamId, data }) => ({
@@ -119,7 +117,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (arg) => [
+      invalidatesTags: (result, error, arg) => [
         { type: "PTeam", id: arg.pteamId },
         { type: "PTeam", id: "ALL" },
       ],
@@ -130,7 +128,7 @@ export const tcApi = createApi({
       query: (invitationId) => ({
         url: `pteams/invitation/${invitationId}`,
       }),
-      providesTags: (result) => [
+      providesTags: (result, error, invitationId) => [
         { type: "PTeam", id: result?.pteam_id },
         { type: "PTeamInvitation", id: "ALL" },
       ],
@@ -141,7 +139,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: () => [{ type: "PTeamInvitation", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "PTeamInvitation", id: "ALL" }],
     }),
     applyPTeamInvitation: builder.mutation({
       query: (data) => ({
@@ -149,7 +147,7 @@ export const tcApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: () => [
+      invalidatesTags: (result, error, arg) => [
         { type: "PTeamAccountRole", id: "ALL" },
         { type: "PTeamInvitation", id: "ALL" },
       ],
@@ -158,7 +156,7 @@ export const tcApi = createApi({
     /* PTeam Member */
     getPTeamMembers: builder.query({
       query: (pteamId) => `pteams/${pteamId}/members`,
-      providesTags: (result) => [
+      providesTags: (result, error, pteamId) => [
         ...(result
           ? Object.keys(result).reduce(
               (ret, userId) => [...ret, { type: "Account", id: userId }],
@@ -175,7 +173,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/members/${userId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (arg) => [
+      invalidatesTags: (result, error, arg) => [
         { type: "PTeamAccountRole", id: `${arg.pteamId}:${arg.userId}` },
         { type: "PTeamAccountRole", id: "ALL" },
       ],
@@ -186,7 +184,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (arg) => [
+      invalidatesTags: (result, error, arg) => [
         { type: "PTeamAccountRole", id: `${arg.pteamId}:${arg.userId}` },
         { type: "PTeamAccountRole", id: "ALL" },
       ],
@@ -195,7 +193,7 @@ export const tcApi = createApi({
     /* PTeam Service */
     getPTeamServices: builder.query({
       query: (pteamId) => `pteams/${pteamId}/services`,
-      providesTags: (result) => [
+      providesTags: (result, error, pteamId) => [
         ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
         { type: "Service", id: "ALL" },
       ],
@@ -206,7 +204,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, arg) =>
+      invalidatesTags: (result, error, arg) =>
         result
           ? [
               { type: "Service", id: arg.serviceId },
@@ -219,7 +217,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result) => [
+      invalidatesTags: (result, error, arg) => [
         ...(result?.map((service) => ({ type: "Service", id: service.service_id })) ?? []),
         { type: "Service", id: "ALL" },
       ],
@@ -236,7 +234,7 @@ export const tcApi = createApi({
           related_ticket_status: relatedTicketStatus,
         },
       }),
-      providesTags: () => [
+      providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
@@ -254,7 +252,7 @@ export const tcApi = createApi({
           related_ticket_status: relatedTicketStatus,
         },
       }),
-      providesTags: () => [
+      providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
@@ -268,7 +266,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
       }),
-      providesTags: (arg) => [
+      providesTags: (result, error, arg) => [
         { type: "Service", id: "ALL" },
         { type: "Service.thumbnail", id: arg.serviceId },
       ],
@@ -284,7 +282,7 @@ export const tcApi = createApi({
           body: imageFileData,
         };
       },
-      invalidatesTags: (arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
     }),
 
     deletePTeamServiceThumbnail: builder.mutation({
@@ -292,7 +290,7 @@ export const tcApi = createApi({
         url: `pteams/${pteamId}/services/${serviceId}/thumbnail`,
         method: "DELETE",
       }),
-      invalidatesTags: (arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service.thumbnail", id: arg.serviceId }],
     }),
 
     /* PTeam packages Summary */
@@ -302,7 +300,7 @@ export const tcApi = createApi({
         method: "GET",
         params: { service_id: serviceId },
       }),
-      providesTags: () => [
+      providesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
@@ -323,7 +321,7 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: () => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (result, error, arg) => [{ type: "Service", id: "ALL" }],
     }),
 
     /* Ticket */
@@ -341,7 +339,7 @@ export const tcApi = createApi({
           cve_ids: cveIds,
         },
       }),
-      providesTags: (result) => [
+      providesTags: (result, error, arg) => [
         ...(result?.tickets?.map((ticket) => ({ type: "Ticket", id: ticket.ticket_id })) ?? []),
         { type: "Service", id: "ALL" },
         { type: "Ticket", id: "ALL" },
@@ -359,7 +357,7 @@ export const tcApi = createApi({
           package_id: packageId,
         },
       }),
-      providesTags: (result) => [
+      providesTags: (result, error, arg) => [
         ...(result ? result.map((ticket) => ({ type: "TicketStatus", id: ticket.ticket_id })) : []),
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
@@ -367,15 +365,26 @@ export const tcApi = createApi({
       ],
     }),
 
-    updateTicket: builder.mutation({
+    updateTicketSafetyImpact: builder.mutation({
       query: ({ pteamId, ticketId, data }) => ({
         url: `pteams/${pteamId}/tickets/${ticketId}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (arg) => [
+      invalidatesTags: (result, error, arg) => [
         { type: "Ticket", id: "ALL" },
         { type: "Ticket", id: arg.ticketId },
+      ],
+    }),
+
+    /* Ticket Status */
+    updateTicketStatus: builder.mutation({
+      query: ({ pteamId, ticketId, data }) => ({
+        url: `pteams/${pteamId}/tickets/${ticketId}/ticketstatuses`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, arg) => [
         { type: "TicketStatus", id: "ALL" },
         { type: "TicketStatus", id: arg.ticketId },
       ],
@@ -384,7 +393,7 @@ export const tcApi = createApi({
     /* User */
     getUserMe: builder.query({
       query: () => "users/me",
-      providesTags: (result) => [
+      providesTags: (result, error, _) => [
         { type: "Account", id: result?.user_id },
         ...(result?.pteam_roles.reduce(
           (ret, pteam_role) => [
@@ -413,7 +422,7 @@ export const tcApi = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (arg) => [{ type: "Account", id: arg.userId }],
+      invalidatesTags: (result, error, arg) => [{ type: "Account", id: arg.userId }],
     }),
     deleteUser: builder.mutation({
       query: () => ({
@@ -428,7 +437,7 @@ export const tcApi = createApi({
         url: "vulns",
         params: params,
       }),
-      providesTags: (result) => [
+      providesTags: (result, error, arg) => [
         ...(result?.vulns.reduce((ret, vuln) => [...ret, { type: "Vuln", id: vuln.vuln_id }], []) ??
           []),
         { type: "Vuln", id: "ALL" },
@@ -437,7 +446,7 @@ export const tcApi = createApi({
     }),
     getVuln: builder.query({
       query: (vulnId) => `/vulns/${vulnId}`,
-      providesTags: (vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
+      providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
 
     /* Vuln Action */
@@ -446,7 +455,7 @@ export const tcApi = createApi({
         url: `vulns/${vulnId}/actions`,
         method: "GET",
       }),
-      providesTags: (result) => [
+      providesTags: (result, error, arg) => [
         ...(result?.reduce(
           (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
           [],
@@ -499,7 +508,8 @@ export const {
   useUploadSBOMFileMutation,
   useGetTicketsQuery,
   useGetPteamTicketsQuery,
-  useUpdateTicketMutation,
+  useUpdateTicketSafetyImpactMutation,
+  useUpdateTicketStatusMutation,
   useGetUserMeQuery,
   useGetVulnsQuery,
   useGetVulnQuery,
