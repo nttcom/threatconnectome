@@ -155,4 +155,14 @@ describe("PackagePage Component Unit Tests", () => {
     // 「Select the actions you have completed」が表示されるダイアログを検証
     expect(await screen.findByText("Select the actions you have completed")).toBeInTheDocument();
   });
+  it("should open the schedule dialog when status is changed to 'Schedule' via TicketHandlingStatusSelector", async () => {
+    const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
+    await userEvent.click(statusButtons[0]);
+
+    const scheduleOption = await screen.findByRole("menuitem", { name: "Schedule" });
+    await userEvent.click(scheduleOption);
+
+    // 「Set schedule」と書かれたダイアログが表示されることを検証
+    expect(await screen.findByText("Set schedule")).toBeInTheDocument();
+  });
 });
