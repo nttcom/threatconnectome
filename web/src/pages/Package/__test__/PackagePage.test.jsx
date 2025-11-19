@@ -118,37 +118,40 @@ describe("PackagePage Component Unit Tests", () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  // --- テストケース 3: ダイアログ内での操作と保存ボタンの状態検証 ---
-  it("should enable the save button after selecting an option in the dialog and call mutation on save", async () => {
-    // 1. ダイアログを開く
-    const selectWrappers = screen.getAllByTestId(
-      `safety-impact-select-ticket-for-${MOCK_VULN_IDS_UNSOLVED.vuln_ids[0]}`,
-    );
-    const combobox = selectWrappers[0].querySelector('[role="combobox"]');
-    fireEvent.mouseDown(combobox);
-    await screen.findByRole("dialog"); // ダイアログの表示を待つ
+  // --- パラメータ化テスト: 全選択肢で保存API呼び出し検証 ---
+  const options = ["Catastrophic", "Critical", "Marginal", "Negligible"];
+  describe.each(options)("ダイアログで '%s' を選択した場合", (option) => {
+    it(`should enable the save button after selecting '${option}' in the dialog and call mutation on save`, async () => {
+      // 1. ダイアログを開く
+      const selectWrappers = screen.getAllByTestId(
+        `safety-impact-select-ticket-for-${MOCK_VULN_IDS_UNSOLVED.vuln_ids[0]}`,
+      );
+      const combobox = selectWrappers[0].querySelector('[role="combobox"]');
+      fireEvent.mouseDown(combobox);
+      await screen.findByRole("dialog");
 
-    // 2. ダイアログ内のセレクトボックスを開く
-    const dialogSelect = await screen.findByTestId("dialog-safety-impact-select");
-    const dialogCombobox = dialogSelect.querySelector('[role="combobox"]');
-    fireEvent.mouseDown(dialogCombobox);
+      // 2. ダイアログ内のセレクトボックスを開く
+      const dialogSelect = await screen.findByTestId("dialog-safety-impact-select");
+      const dialogCombobox = dialogSelect.querySelector('[role="combobox"]');
+      fireEvent.mouseDown(dialogCombobox);
 
-    // 3. "Catastrophic" オプションを選択
-    const catastrophicOption = await screen.findByRole("option", { name: "Catastrophic" });
-    await userEvent.click(catastrophicOption);
+      // 3. option オプションを選択
+      const optionNode = await screen.findByRole("option", { name: option });
+      await userEvent.click(optionNode);
 
-    // 4. 選択が反映されたことを確認
-    expect(dialogCombobox.textContent).toBe("Catastrophic");
+      // 4. 選択が反映されたことを確認
+      expect(dialogCombobox.textContent).toBe(option);
 
-    // 5. 保存ボタンが活性化されていることを検証
-    const saveButton = await screen.findByRole("button", { name: /save/i });
-    expect(saveButton).not.toBeDisabled();
+      // 5. 保存ボタンが活性化されていることを検証
+      const saveButton = await screen.findByRole("button", { name: /save/i });
+      expect(saveButton).not.toBeDisabled();
 
-    // 6. 保存ボタンをクリック（操作が完了することを確認）
-    await userEvent.click(saveButton);
+      // 6. 保存ボタンをクリック
+      await userEvent.click(saveButton);
 
-    // 7. useUpdateTicketMutation が呼び出されたことを検証
-    expect(mockUpdateTicket).toHaveBeenCalled();
+      // 7. useUpdateTicketMutation が呼び出されたことを検証
+      expect(mockUpdateTicket).toHaveBeenCalled();
+    });
   });
 
   // --- テストケース 4: チケットステータス変更の検証 ---
