@@ -82,18 +82,20 @@ describe("PackagePage Component Unit Tests", () => {
     // 画面のレンダリングが安定するまで待機
     await screen.findByText("react");
 
-    // waitForを使用して、非同期のフック呼び出しが完了するのを待つ
+    // モックされた各APIフックが少なくとも1回は呼び出されたことを検証（配列＋forEachで簡潔化）
+    const apiHooks = [
+      useGetPTeamQuery,
+      useGetDependenciesQuery,
+      useGetPTeamVulnIdsTiedToServicePackageQuery,
+      useGetPTeamTicketCountsTiedToServicePackageQuery,
+      useGetPTeamMembersQuery,
+      useGetVulnQuery,
+      useGetVulnActionsQuery,
+      useGetPteamTicketsQuery,
+      useGetUserMeQuery,
+    ];
     await waitFor(() => {
-      // モックされた各APIフックが少なくとも1回は呼び出されたことを検証
-      expect(useGetPTeamQuery).toHaveBeenCalled();
-      expect(useGetDependenciesQuery).toHaveBeenCalled();
-      expect(useGetPTeamVulnIdsTiedToServicePackageQuery).toHaveBeenCalled();
-      expect(useGetPTeamTicketCountsTiedToServicePackageQuery).toHaveBeenCalled();
-      expect(useGetPTeamMembersQuery).toHaveBeenCalled();
-      expect(useGetVulnQuery).toHaveBeenCalled();
-      expect(useGetVulnActionsQuery).toHaveBeenCalled();
-      expect(useGetPteamTicketsQuery).toHaveBeenCalled();
-      expect(useGetUserMeQuery).toHaveBeenCalled();
+      apiHooks.forEach((fn) => expect(fn).toHaveBeenCalled());
     });
   });
 
