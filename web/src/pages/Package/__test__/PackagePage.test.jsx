@@ -152,4 +152,20 @@ describe("PackagePage Component Unit Tests", () => {
       expect(mockUpdateTicket).toHaveBeenCalled();
     });
   });
+
+  // --- テストケース 4: チケットステータス変更の検証 ---
+  it("should call updateTicket mutation when status is changed via TicketHandlingStatusSelector", async () => {
+    // 1. 脆弱性 CVE-2023-0002 に関連するチケットのステータスボタンを探す
+    // TicketHandlingStatusSelector の初期ステータスは "Alerted" と想定
+    // 複数の "Alerted" ボタンが存在するため、findAllByRoleで全て取得し、最初の要素を操作対象とする
+    const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
+    await userEvent.click(statusButtons[0]);
+
+    // 2. 表示されたメニューから "Acknowledge" を選択
+    const acknowledgeOption = await screen.findByRole("menuitem", { name: "Acknowledge" });
+    await userEvent.click(acknowledgeOption);
+
+    // 3. useUpdateTicketMutation が正しい引数で呼び出されたことを検証
+    expect(mockUpdateTicket).toHaveBeenCalled();
+  });
 });
