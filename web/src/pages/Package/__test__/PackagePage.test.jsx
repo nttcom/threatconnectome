@@ -145,4 +145,14 @@ describe("PackagePage Component Unit Tests", () => {
     // 3. useUpdateTicketMutation が正しい引数で呼び出されたことを検証
     expect(mockUpdateTicket).toHaveBeenCalled();
   });
+  it("should open the complete dialog when status is changed to 'Complete' via TicketHandlingStatusSelector", async () => {
+    const statusButtons = await screen.findAllByRole("button", { name: "Alerted" });
+    await userEvent.click(statusButtons[0]);
+
+    const completeOption = await screen.findByRole("menuitem", { name: "Complete" });
+    await userEvent.click(completeOption);
+
+    // 「Select the actions you have completed」が表示されるダイアログを検証
+    expect(await screen.findByText("Select the actions you have completed")).toBeInTheDocument();
+  });
 });
