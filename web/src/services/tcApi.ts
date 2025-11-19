@@ -4,10 +4,7 @@ import Firebase from "../utils/Firebase";
 import Supabase from "../utils/Supabase";
 import { blobToDataURL } from "../utils/func";
 
-import type {
-  ActionLogRequest,
-  ActionLogResponse,
-} from "../../types/types.gen.ts";
+import type { ActionLogRequest, ActionLogResponse } from "../../types/types.gen.ts";
 
 const _responseListToDictConverter =
   (keyName, valueName = undefined) =>
