@@ -15,7 +15,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_user,
     create_vuln,
-    headers,
+    headers_with_api_key,
 )
 
 client = TestClient(app)
@@ -37,7 +37,7 @@ class TestCreateAction:
         # When
         client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -89,7 +89,7 @@ class TestCreateAction:
 
         client.put(
             f"/vulns/{no_fixed_versions_vuln_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=no_fixed_versions_vuln_request,
         )
 
@@ -117,7 +117,7 @@ class TestCreateAction:
         }
         client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -151,7 +151,7 @@ class TestUpdateAction:
 
         response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -168,7 +168,7 @@ class TestUpdateAction:
         # When
         client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -191,7 +191,7 @@ class TestUpdateAction:
         # When
         client.put(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_update_request,
         )
 
@@ -226,7 +226,7 @@ class TestDeleteAction:
 
         response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -236,7 +236,7 @@ class TestDeleteAction:
         # When
         response = client.delete(
             f"/actions/{self.action_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
         )
 
         # Then
@@ -286,7 +286,7 @@ class TestDeleteAction:
 
         client.put(
             f"/vulns/{no_fixed_versions_vuln_id}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=no_fixed_versions_vuln_request,
         )
 
@@ -300,7 +300,7 @@ class TestDeleteAction:
         # Create an action and trigger ticket creation
         action_response = client.post(
             "/actions",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
             json=action_create_request,
         )
 
@@ -327,7 +327,7 @@ class TestDeleteAction:
         # When
         client.delete(
             f"/actions/{action_response.json()['action_id']}",
-            headers=headers(USER1),
+            headers=headers_with_api_key(USER1),
         )
 
         # Then

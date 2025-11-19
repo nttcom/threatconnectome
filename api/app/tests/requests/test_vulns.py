@@ -17,6 +17,7 @@ from app.tests.medium.utils import (
     create_pteam,
     create_user,
     headers,
+    headers_with_api_key,
 )
 
 client = TestClient(app)
@@ -106,7 +107,9 @@ class TestUpdateVuln:
         current_time = datetime.now(timezone.utc)
 
         # When
-        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=self.request1)
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
+        )
 
         # Then
         assert response.status_code == 200
@@ -154,7 +157,9 @@ class TestUpdateVuln:
             ],
         }
         # When
-        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request2)
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=request2
+        )
         # Then
         assert response.status_code == 200
         assert response.json()["exploitation"] == models.ExploitationEnum.NONE
@@ -166,7 +171,7 @@ class TestUpdateVuln:
         current_time = datetime.now(timezone.utc)
         # When
         response = client.put(
-            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=self.request1
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
         )
 
         # Then
@@ -203,7 +208,7 @@ class TestUpdateVuln:
 
         # When
         response = client.put(
-            f"/vulns/{default_vuln_id}", headers=headers(USER1), json=self.request1
+            f"/vulns/{default_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
         )
 
         # Then
@@ -230,7 +235,7 @@ class TestUpdateVuln:
         }
         # When
         response = client.put(
-            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=title_none_request
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=title_none_request
         )
 
         # Then
@@ -260,7 +265,7 @@ class TestUpdateVuln:
         }
         # When
         response = client.put(
-            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=detail_none_request
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=detail_none_request
         )
 
         # Then
@@ -293,7 +298,9 @@ class TestUpdateVuln:
         }
         # When
         response = client.put(
-            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=out_of_range_cvss_request
+            f"/vulns/{new_vuln_id}",
+            headers=headers_with_api_key(USER1),
+            json=out_of_range_cvss_request,
         )
 
         # Then
@@ -321,7 +328,9 @@ class TestUpdateVuln:
         }
         # When
         response = client.put(
-            f"/vulns/{new_vuln_id}", headers=headers(USER1), json=out_of_range_cvss_request
+            f"/vulns/{new_vuln_id}",
+            headers=headers_with_api_key(USER1),
+            json=out_of_range_cvss_request,
         )
 
         # Then
@@ -334,7 +343,7 @@ class TestUpdateVuln:
 
         # When
         response = client.put(
-            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER2), json=self.request1
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER2), json=self.request1
         )
 
         # Then
@@ -370,7 +379,9 @@ class TestUpdateVuln:
         request[f"{field_name}"] = None
 
         # When
-        response = client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request)
+        response = client.put(
+            f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=request
+        )
 
         assert response.status_code == 400
         assert response.json()["detail"] == f"Cannot specify None for {field_name}"
@@ -392,7 +403,9 @@ class TestUpdateVuln:
 
         # When
         response = client.put(
-            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=invalid_request
+            f"/vulns/{self.vuln1.vuln_id}",
+            headers=headers_with_api_key(USER1),
+            json=invalid_request,
         )
 
         assert response.status_code == 400
@@ -408,12 +421,30 @@ class TestUpdateVuln:
 
         # When
         response = client.put(
-            f"/vulns/{self.vuln1.vuln_id}", headers=headers(USER1), json=invalid_request
+            f"/vulns/{self.vuln1.vuln_id}",
+            headers=headers_with_api_key(USER1),
+            json=invalid_request,
         )
 
         # Then
         assert response.status_code == 400
         assert response.json()["detail"] == "cvss_v3_score is out of range"
+
+    def test_raise_401_if_invalid_api_key(self, testdb: Session, update_setup):
+        # Given
+        invalid_headers = headers(USER1)
+        invalid_headers["X-API-Key"] = "invalid"
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}",
+            headers=invalid_headers,
+            json=self.request1,
+        )
+
+        # Then
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid API Key"
 
 
 class TestGetVuln:
@@ -446,7 +477,7 @@ class TestGetVuln:
         }
 
         response = client.put(
-            f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1
+            f"/vulns/{self.new_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
         )
         self.created_time = datetime.fromisoformat(
             response.json()["created_at"].replace("Z", "+00:00")
@@ -505,6 +536,7 @@ class TestGetVulns:
         self.user1 = create_user(USER1)
         self.user2 = create_user(USER2)
         self.headers_user = headers(USER1)
+        self.headers_with_api_key = headers_with_api_key(USER1)
 
     def create_vuln_request(self, index: int, cvss_v3_score: float = 7.5) -> dict:
         return {
@@ -550,7 +582,9 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
             created_times.append(
                 datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
@@ -603,7 +637,7 @@ class TestGetVulns:
         number_of_vulns = 5
         for i in range(number_of_vulns):
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{uuid4()}", headers=self.headers_with_api_key, json=vuln_request)
 
         # When
         response = client.get("/vulns?offset=0&limit=2", headers=self.headers_user)
@@ -623,7 +657,9 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
             created_times.append(
                 datetime.fromisoformat(response.json()["created_at"].replace("Z", "+00:00"))
@@ -668,7 +704,7 @@ class TestGetVulns:
         for i in range(len(scores)):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -700,7 +736,7 @@ class TestGetVulns:
         for i in range(len(scores)):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i, scores[i])
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -730,7 +766,7 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -759,7 +795,7 @@ class TestGetVulns:
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
-                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
             )
             vuln_ids.append(vuln_id)
             put_response_data.append(put_response.json())
@@ -822,7 +858,7 @@ class TestGetVulns:
                         }
                     ],
                 }
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -868,7 +904,7 @@ class TestGetVulns:
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
-                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
             )
             vuln_ids.append(vuln_id)
             put_response_data.append(put_response.json())
@@ -931,7 +967,7 @@ class TestGetVulns:
                         }
                     ],
                 }
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -1010,7 +1046,9 @@ class TestGetVulns:
             ],
         }
         vuln_id_sbom = uuid4()
-        client.put(f"/vulns/{vuln_id_sbom}", headers=self.headers_user, json=vuln_request_sbom)
+        client.put(
+            f"/vulns/{vuln_id_sbom}", headers=self.headers_with_api_key, json=vuln_request_sbom
+        )
         vuln_ids.append(vuln_id_sbom)
 
         vuln_request_other: dict[str, Any] = {
@@ -1030,7 +1068,9 @@ class TestGetVulns:
             ],
         }
         vuln_id_other = uuid4()
-        client.put(f"/vulns/{vuln_id_other}", headers=self.headers_user, json=vuln_request_other)
+        client.put(
+            f"/vulns/{vuln_id_other}", headers=self.headers_with_api_key, json=vuln_request_other
+        )
         vuln_ids.append(vuln_id_other)
 
         # When: filter pteam_id
@@ -1057,7 +1097,7 @@ class TestGetVulns:
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
-                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
             )
             vuln_ids.append(vuln_id)
             put_response_data.append(put_response.json())
@@ -1089,7 +1129,7 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -1106,7 +1146,9 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            response = client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            response = client.put(
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
+            )
             vuln_ids.append(vuln_id)
 
         created_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
@@ -1221,7 +1263,7 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i)
             if i == 0:
                 put_response = client.put(
-                    f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                    f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
                 )
             else:
                 put_response = client.put(
@@ -1260,7 +1302,7 @@ class TestGetVulns:
         for i in range(number_of_vulns):
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
             vuln_ids.append(vuln_id)
 
         # When
@@ -1281,7 +1323,7 @@ class TestGetVulns:
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
-                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
             )
             vuln_ids.append(vuln_id)
             put_response_data.append(put_response.json())
@@ -1316,7 +1358,7 @@ class TestGetVulns:
             vuln_id = uuid4()
             vuln_request = self.create_vuln_request(i)
             put_response = client.put(
-                f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request
+                f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request
             )
             vuln_ids.append(vuln_id)
             put_response_data.append(put_response.json())
@@ -1352,7 +1394,7 @@ class TestGetVulns:
             vuln_request = self.create_vuln_request(i, data["cvss_v3_score"])
             if "cve_id" in data:
                 vuln_request["cve_id"] = data["cve_id"]
-            client.put(f"/vulns/{vuln_id}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{vuln_id}", headers=self.headers_with_api_key, json=vuln_request)
 
             update_params = {"vuln_id": str(vuln_id)}
             update_fields = []
@@ -1924,7 +1966,7 @@ class TestGetVulns:
         number_of_vulns = 5
         for i in range(number_of_vulns):
             vuln_request = self.create_vuln_request(i)
-            client.put(f"/vulns/{uuid4()}", headers=self.headers_user, json=vuln_request)
+            client.put(f"/vulns/{uuid4()}", headers=self.headers_with_api_key, json=vuln_request)
 
         # When: Get with limit=2
         response = client.get("/vulns?offset=0&limit=2", headers=self.headers_user)
@@ -1961,11 +2003,13 @@ class TestDeleteVuln:
         }
 
         # Create a vuln to delete
-        client.put(f"/vulns/{self.new_vuln_id}", headers=headers(USER1), json=self.request1)
+        client.put(
+            f"/vulns/{self.new_vuln_id}", headers=headers_with_api_key(USER1), json=self.request1
+        )
 
     def test_it_should_delete_vuln_when_vuln_id_exists(self):
         # When
-        response = client.delete(f"/vulns/{self.new_vuln_id}", headers=headers(USER1))
+        response = client.delete(f"/vulns/{self.new_vuln_id}", headers=headers_with_api_key(USER1))
 
         # Then
         assert response.status_code == 204  # No Content
@@ -1978,19 +2022,34 @@ class TestDeleteVuln:
         non_existent_vuln_id = uuid4()
 
         # When
-        response = client.delete(f"/vulns/{non_existent_vuln_id}", headers=headers(USER1))
+        response = client.delete(
+            f"/vulns/{non_existent_vuln_id}", headers=headers_with_api_key(USER1)
+        )
 
         # Then
         assert response.status_code == 404
         assert response.json()["detail"] == "No such vuln"
 
+    def test_raise_401_if_invalid_api_key(self):
+        # Given
+        invalid_headers = headers(USER1)
+        invalid_headers["X-API-Key"] = "invalid"
+
+        # When
+        response = client.delete(f"/vulns/{self.new_vuln_id}", headers=invalid_headers)
+
+        # Then
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid API Key"
+
 
 class TestGetVulnActions:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb: Session):
-        # Given
+        # Givend
         self.user1 = create_user(USER1)
         self.headers_user = headers(USER1)
+        self.headers_with_api_key = headers_with_api_key(USER1)
         self.vuln_id = uuid4()
         self.vuln_request = {
             "title": "Example vuln",
@@ -2010,7 +2069,7 @@ class TestGetVulnActions:
         }
         # Create a vulnerability
         response = client.put(
-            f"/vulns/{self.vuln_id}", headers=self.headers_user, json=self.vuln_request
+            f"/vulns/{self.vuln_id}", headers=self.headers_with_api_key, json=self.vuln_request
         )
         assert response.status_code == 200
 
@@ -2023,7 +2082,7 @@ class TestGetVulnActions:
             "recommended": True,
         }
         # Add an action to the vulnerability
-        response = client.post("/actions", headers=self.headers_user, json=action_request)
+        response = client.post("/actions", headers=self.headers_with_api_key, json=action_request)
         action_id = response.json()["action_id"]
 
         # When

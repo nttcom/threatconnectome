@@ -14,10 +14,10 @@ export function AccountSettings(props) {
   const [updateUser] = useUpdateUserMutation();
   const skip = useSkipUntilAuthUserIsReady();
 
-  const handleSelectYear = async (event) => {
+  const handleUpdateUser = async (request) => {
     updateUser({
       userId: userMe.user_id,
-      data: { years: event.target.value },
+      data: request,
     })
       .unwrap()
       .then((succeeded) => {
@@ -30,7 +30,7 @@ export function AccountSettings(props) {
     <AccountSettingsDialog
       accountSettingOpen={accountSettingOpen}
       setAccountSettingOpen={setAccountSettingOpen}
-      onSelectYear={handleSelectYear}
+      onUpdateUser={handleUpdateUser}
       userMe={userMe}
     />
   );

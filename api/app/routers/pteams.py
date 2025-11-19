@@ -21,6 +21,10 @@ from app.business.ssvc_business import (
     get_vuln_ids_summary_by_service_and_package_id,
 )
 from app.business.ticket_business import fix_ticket_ssvc_priority
+from app.constants import (
+    MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+    MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+)
 from app.database import get_db, open_db_session
 from app.detector import ecosystem_analyzer
 from app.notification.alert import notify_sbom_upload_ended
@@ -29,8 +33,31 @@ from app.routers.validators.account_validator import (
     check_pteam_admin_authority,
     check_pteam_membership,
 )
+from app.routers.validators.field_validator import strip_and_validate_field_length
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.utility import timezone_tool, unicode_tool
+
+# Local constants for pteam-specific fields
+MAX_PTEAM_NAME_LENGTH_IN_HALF = 50
+MAX_CONTACT_INFO_LENGTH_IN_HALF = 255
+
+# Common error messages for pteam validation
+PTEAM_NAME_TOO_LONG_MESSAGE = (
+    f"Too long team name. Max length is {MAX_PTEAM_NAME_LENGTH_IN_HALF} in half-width "
+    f"or {int(MAX_PTEAM_NAME_LENGTH_IN_HALF / 2)} in full-width"
+)
+CONTACT_INFO_TOO_LONG_MESSAGE = (
+    f"Too long contact info. Max length is {MAX_CONTACT_INFO_LENGTH_IN_HALF} in half-width "
+    f"or {int(MAX_CONTACT_INFO_LENGTH_IN_HALF / 2)} in full-width"
+)
+WEBHOOK_URL_TOO_LONG_MESSAGE = (
+    f"Too long Slack webhook URL. Max length is {MAX_WEBHOOK_URL_LENGTH_IN_HALF} "
+    f"in half-width or {int(MAX_WEBHOOK_URL_LENGTH_IN_HALF / 2)} in full-width"
+)
+EMAIL_ADDRESS_TOO_LONG_MESSAGE = (
+    f"Too long email address. Max length is {MAX_EMAIL_ADDRESS_LENGTH_IN_HALF} "
+    f"in half-width or {int(MAX_EMAIL_ADDRESS_LENGTH_IN_HALF / 2)} in full-width"
+)
 
 router = APIRouter(prefix="/pteams", tags=["pteams"])
 
@@ -1006,24 +1033,64 @@ def create_pteam(
 ):
     """
     Create a pteam.
+    - pteam_name
+      * max length: 50 in half-width or 25 in full-width
+    - contact_info
+      * max length: 255 in half-width or 127 in full-width
+    - webhook_url
+      * max length: 255 in half-width or 127 in full-width
+    - address
+      * max length: 255 in half-width or 127 in full-width
     """
+    # Validate pteam_name
+    pteam_name = strip_and_validate_field_length(
+        data.pteam_name,
+        MAX_PTEAM_NAME_LENGTH_IN_HALF,
+        PTEAM_NAME_TOO_LONG_MESSAGE,
+    )
 
+    # Validate contact_info
+    contact_info = strip_and_validate_field_length(
+        data.contact_info,
+        MAX_CONTACT_INFO_LENGTH_IN_HALF,
+        CONTACT_INFO_TOO_LONG_MESSAGE,
+    )
+
+    # Validate webhook_url
+    validated_webhook_url = ""
     if data.alert_slack and data.alert_slack.webhook_url:
-        validate_slack_webhook_url(data.alert_slack.webhook_url)
+        webhook_url = strip_and_validate_field_length(
+            data.alert_slack.webhook_url,
+            MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+            WEBHOOK_URL_TOO_LONG_MESSAGE,
+        )
+        validate_slack_webhook_url(webhook_url)
+        validated_webhook_url = webhook_url
+
+    # Validate email address
+    validated_email_address = ""
+    if data.alert_mail and data.alert_mail.address:
+        email_address = strip_and_validate_field_length(
+            data.alert_mail.address,
+            MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+            EMAIL_ADDRESS_TOO_LONG_MESSAGE,
+        )
+        validated_email_address = email_address
+
     pteam = models.PTeam(
-        pteam_name=data.pteam_name.strip(),
-        contact_info=data.contact_info.strip(),
+        pteam_name=pteam_name,
+        contact_info=contact_info,
         alert_ssvc_priority=data.alert_ssvc_priority,
     )
     pteam.alert_slack = models.PTeamSlack(
         pteam_id=pteam.pteam_id,
         enable=data.alert_slack.enable if data.alert_slack else True,
-        webhook_url=data.alert_slack.webhook_url if data.alert_slack else "",
+        webhook_url=validated_webhook_url,
     )
     pteam.alert_mail = models.PTeamMail(
         pteam_id=pteam.pteam_id,
         enable=data.alert_mail.enable if data.alert_mail else True,
-        address=data.alert_mail.address if data.alert_mail else "",
+        address=validated_email_address,
     )
     persistence.create_pteam(db, pteam)
 
@@ -1343,6 +1410,14 @@ def update_pteam(
 ):
     """
     Update a pteam.
+    - pteam_name
+      * max length: 50 in half-width or 25 in full-width
+    - contact_info
+      * max length: 255 in half-width or 127 in full-width
+    - webhook_url
+      * max length: 255 in half-width or 127 in full-width
+    - address
+      * max length: 255 in half-width or 127 in full-width
 
     Note: monitoring tags cannot be update with this api. use (add|update|remove)_pteamtag instead.
     """
@@ -1379,11 +1454,16 @@ def update_pteam(
         )
 
     if data.alert_slack and data.alert_slack.webhook_url:
-        validate_slack_webhook_url(data.alert_slack.webhook_url)
+        webhook_url = strip_and_validate_field_length(
+            data.alert_slack.webhook_url,
+            MAX_WEBHOOK_URL_LENGTH_IN_HALF,
+            WEBHOOK_URL_TOO_LONG_MESSAGE,
+        )
+        validate_slack_webhook_url(webhook_url)
         pteam.alert_slack = models.PTeamSlack(
             pteam_id=pteam.pteam_id,
             enable=data.alert_slack.enable,
-            webhook_url=data.alert_slack.webhook_url,
+            webhook_url=webhook_url,
         )
     elif data.alert_slack and data.alert_slack.webhook_url == "":
         pteam.alert_slack = models.PTeamSlack(
@@ -1393,13 +1473,33 @@ def update_pteam(
         )
 
     if data.pteam_name is not None:
-        pteam.pteam_name = data.pteam_name
+        update_pteam_name = strip_and_validate_field_length(
+            data.pteam_name,
+            MAX_PTEAM_NAME_LENGTH_IN_HALF,
+            PTEAM_NAME_TOO_LONG_MESSAGE,
+        )
+        pteam.pteam_name = update_pteam_name
     if data.contact_info is not None:
-        pteam.contact_info = data.contact_info
+        update_contact_info = strip_and_validate_field_length(
+            data.contact_info,
+            MAX_CONTACT_INFO_LENGTH_IN_HALF,
+            CONTACT_INFO_TOO_LONG_MESSAGE,
+        )
+        pteam.contact_info = update_contact_info
     if data.alert_ssvc_priority is not None:
         pteam.alert_ssvc_priority = data.alert_ssvc_priority
     if data.alert_mail is not None:
-        pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
+        if data.alert_mail.address:
+            email_address = strip_and_validate_field_length(
+                data.alert_mail.address,
+                MAX_EMAIL_ADDRESS_LENGTH_IN_HALF,
+                EMAIL_ADDRESS_TOO_LONG_MESSAGE,
+            )
+            mail_data = data.alert_mail.__dict__.copy()
+            mail_data["address"] = email_address
+            pteam.alert_mail = models.PTeamMail(**mail_data)
+        else:
+            pteam.alert_mail = models.PTeamMail(**data.alert_mail.__dict__)
 
     db.commit()
 
@@ -1496,7 +1596,14 @@ def delete_member(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam member")
     pteam.pteam_roles.remove(target_role)
 
+    account_default_pteam = persistence.get_account_default_pteam_by_user_id_and_pteam_id(
+        db, user_id, pteam_id
+    )
+    if account_default_pteam is not None:
+        persistence.delete_account_default_pteam(db, account_default_pteam)
+
     db.flush()
+
     if command.missing_pteam_admin(db, pteam):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Removing last ADMIN is not allowed"

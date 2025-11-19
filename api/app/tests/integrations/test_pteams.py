@@ -36,6 +36,7 @@ from app.tests.medium.utils import (
     create_user,
     create_vuln,
     headers,
+    headers_with_api_key,
     set_ticket_status,
     upload_pteam_packages,
 )
@@ -1209,7 +1210,9 @@ class TestPostUploadSBOMFileCycloneDX:
                     }
                 ],
             }
-            client.put(f"/vulns/{new_vuln_id}", headers=headers(USER1), json=request_vuln)
+            client.put(
+                f"/vulns/{new_vuln_id}", headers=headers_with_api_key(USER1), json=request_vuln
+            )
 
             # register package
             bg_create_tags_from_sbom_json(

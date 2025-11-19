@@ -22,7 +22,7 @@ export function OutletWithCheckedParams() {
 
   useEffect(() => {
     if (!userMe || userMeIsFetching) return;
-    navigateSpecifiedPteam(location, userMe.pteam_roles, navigate);
+    navigateSpecifiedPteam(location, userMe, navigate);
   }, [navigate, location, userMe, userMeIsFetching]);
 
   if (skip) return <></>;

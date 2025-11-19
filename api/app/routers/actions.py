@@ -6,6 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
+from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business import ticket_business
 from app.database import get_db
@@ -16,7 +17,12 @@ router = APIRouter(prefix="/actions", tags=["actions"])
 NO_SUCH_ACTION = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln action")
 
 
-@router.post("", response_model=schemas.ActionResponse)
+@router.post(
+    "",
+    response_model=schemas.ActionResponse,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
 def create_action(
     request: schemas.ActionCreateRequest,
     current_user: models.Account = Depends(get_current_user),
@@ -65,7 +71,12 @@ def get_action(
     return schemas.ActionResponse(**action_dict)
 
 
-@router.put("/{action_id}", response_model=schemas.ActionResponse)
+@router.put(
+    "/{action_id}",
+    response_model=schemas.ActionResponse,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
 def update_action(
     action_id: UUID,
     data: schemas.ActionUpdateRequest,
@@ -107,7 +118,12 @@ def update_action(
     return schemas.ActionResponse(**action_dict)
 
 
-@router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{action_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
 def delete_action(
     action_id: UUID,
     current_user: models.Account = Depends(get_current_user),

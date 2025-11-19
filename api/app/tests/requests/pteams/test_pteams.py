@@ -85,139 +85,165 @@ def test_it_should_return_403_when_get_pteam_by_not_member():
     assert response.reason_phrase == "Forbidden"
 
 
-def test_create_pteam():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    assert pteam1.pteam_name == PTEAM1["pteam_name"]
-    assert pteam1.contact_info == PTEAM1["contact_info"]
-    assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
-    assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
-    assert pteam1.pteam_id != ZERO_FILLED_UUID
+class TestCreatePteam:
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    user_me = response.json()
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
-        pteam1.pteam_id
-    }
+    def test_create_pteam(self):
+        """Test basic pteam creation functionality"""
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        assert pteam1.pteam_name == PTEAM1["pteam_name"]
+        assert pteam1.contact_info == PTEAM1["contact_info"]
+        assert pteam1.alert_slack.webhook_url == PTEAM1["alert_slack"]["webhook_url"]
+        assert pteam1.alert_ssvc_priority == PTEAM1["alert_ssvc_priority"]
+        assert pteam1.pteam_id != ZERO_FILLED_UUID
 
-    pteam2 = create_pteam(USER1, PTEAM2)
-    assert pteam2.pteam_name == PTEAM2["pteam_name"]
-    assert pteam2.contact_info == PTEAM2["contact_info"]
-    assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
-    assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
-    assert pteam2.pteam_id != ZERO_FILLED_UUID
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        user_me = response.json()
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    user_me = response.json()
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
-        pteam1.pteam_id,
-        pteam2.pteam_id,
-    }
+        pteam2 = create_pteam(USER1, PTEAM2)
+        assert pteam2.pteam_name == PTEAM2["pteam_name"]
+        assert pteam2.contact_info == PTEAM2["contact_info"]
+        assert pteam2.alert_slack.webhook_url == PTEAM2["alert_slack"]["webhook_url"]
+        assert pteam2.alert_ssvc_priority == PTEAM2["alert_ssvc_priority"]
+        assert pteam2.pteam_id != ZERO_FILLED_UUID
 
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        user_me = response.json()
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in user_me["pteam_roles"]} == {
+            pteam1.pteam_id,
+            pteam2.pteam_id,
+        }
 
-def test_create_pteam__by_default():
-    create_user(USER1)
-    _pteam = PTEAM1.copy()
-    del _pteam["contact_info"]
-    del _pteam["alert_slack"]
-    del _pteam["alert_ssvc_priority"]
-    del _pteam["alert_mail"]
-    pteam1 = create_pteam(USER1, _pteam)
-    assert pteam1.contact_info == ""
-    assert pteam1.alert_slack.enable is True
-    assert pteam1.alert_slack.webhook_url == ""
-    assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
-    assert pteam1.alert_mail.enable is True
-    assert pteam1.alert_mail.address == ""
+    @pytest.mark.parametrize(
+        "field_name, test_value",
+        [
+            # pteam_name tests (max 255 half-width chars) - valid cases
+            ("pteam_name", "a" * 50),
+            ("pteam_name", "あ" * 25),
+            # contact_info tests (max 255 half-width chars) - valid cases
+            ("contact_info", "a" * 255),
+            ("contact_info", "あ" * 127),
+            # webhook_url tests (max 255 half-width chars) - valid cases
+            ("webhook_url", "https://hooks.slack.com/services/" + "a" * 222),
+            # email address tests (max 255 half-width chars) - valid cases
+            ("email_address", "a" * 245 + "@test.com"),
+        ],
+    )
+    def test_return_200_with_valid_character_limits(self, field_name, test_value):
+        """Test that valid character limits are accepted for PTeam creation"""
+        # Given
+        create_user(USER1)
 
+        if field_name == "webhook_url":
+            request_data = {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {**PTEAM1, "alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {**PTEAM1, field_name: test_value}
 
-def test_it_should_return_401_when_create_pteam_without_auth():
-    create_user(USER1)
-    request = {**PTEAM1}
-    response = client.post("/pteams", json=request)  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
+        # When
+        response = client.post("/pteams", headers=headers(USER1), json=request_data)
 
+        # Then
+        assert response.status_code == 200
 
-def test_it_should_success_create_pteam_when_duplicate_pteam_name():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    pteam2 = create_pteam(USER1, PTEAM1)
-    assert pteam1.pteam_id != pteam2.pteam_id
-    del pteam1.pteam_id, pteam2.pteam_id
-    assert pteam1 == pteam2
+    @pytest.mark.parametrize(
+        "field_name, test_value, expected_error_message",
+        [
+            # pteam_name tests (max 255 half-width chars) - invalid cases
+            (
+                "pteam_name",
+                "a" * 51,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            (
+                "pteam_name",
+                "あ" * 26,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            # contact_info tests (max 255 half-width chars) - invalid cases
+            (
+                "contact_info",
+                "a" * 256,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            (
+                "contact_info",
+                "あ" * 128,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # webhook_url tests (max 255 half-width chars) - invalid cases
+            (
+                "webhook_url",
+                "https://hooks.slack.com/services/" + "a" * 223,
+                "Too long Slack webhook URL. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # email address tests (max 255 half-width chars) - invalid cases
+            (
+                "email_address",
+                "a" * 247 + "@test.com",
+                "Too long email address. Max length is 255 in half-width or 127 in full-width",
+            ),
+        ],
+    )
+    def test_return_400_with_invalid_character_limits(
+        self, field_name, test_value, expected_error_message
+    ):
+        """Test that invalid character limits are rejected for PTeam creation"""
+        # Given
+        create_user(USER1)
 
+        if field_name == "webhook_url":
+            request_data = {**PTEAM1, "alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {**PTEAM1, "alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {**PTEAM1, field_name: test_value}
 
-def test_update_pteam():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+        # When
+        response = client.post("/pteams", headers=headers(USER1), json=request_data)
 
-    request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
-    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_name"] == PTEAM2["pteam_name"]
-    assert data["contact_info"] == PTEAM2["contact_info"]
-    assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
-    assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
-    assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
-    assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
-    assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_error_message
 
+    def test_create_pteam__by_default(self):
+        """Test pteam creation with default values"""
+        create_user(USER1)
+        _pteam = PTEAM1.copy()
+        del _pteam["contact_info"]
+        del _pteam["alert_slack"]
+        del _pteam["alert_ssvc_priority"]
+        del _pteam["alert_mail"]
+        pteam1 = create_pteam(USER1, _pteam)
+        assert pteam1.contact_info == ""
+        assert pteam1.alert_slack.enable is True
+        assert pteam1.alert_slack.webhook_url == ""
+        assert pteam1.alert_ssvc_priority == DEFAULT_ALERT_SSVC_PRIORITY
+        assert pteam1.alert_mail.enable is True
+        assert pteam1.alert_mail.address == ""
 
-def test_it_should_return_403_when_update_pteam_by_not_admin():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+    def test_it_should_return_401_when_create_pteam_without_auth(self):
+        """Test that unauthorized requests are rejected"""
+        create_user(USER1)
+        request = {**PTEAM1}
+        response = client.post("/pteams", json=request)  # no headers
+        assert response.status_code == 401
+        assert response.reason_phrase == "Unauthorized"
 
-    request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
-    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request)
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
-
-
-def test_update_pteam_empty_data():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-
-    empty_data = {
-        "pteam_name": "",
-        "contact_info": "",
-        "alert_slack": {"enable": False, "webhook_url": ""},
-    }
-
-    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=empty_data)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_name"] == ""
-    assert data["contact_info"] == ""
-    assert data["alert_slack"]["webhook_url"] == ""
-    assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
-
-
-@pytest.mark.parametrize(
-    "field_name, expected_response_detail",
-    [
-        ("pteam_name", "Cannot specify None for pteam_name"),
-        ("contact_info", "Cannot specify None for contact_info"),
-        ("alert_slack", "Cannot specify None for alert_slack"),
-        ("alert_ssvc_priority", "Cannot specify None for alert_ssvc_priority"),
-        ("alert_mail", "Cannot specify None for alert_mail"),
-    ],
-)
-def test_update_pteam_should_return_400_when_required_fields_is_None(
-    field_name, expected_response_detail
-):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    request = {field_name: None}
-    response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
-    assert response.status_code == 400
-    assert response.json()["detail"] == expected_response_detail
+    def test_it_should_success_create_pteam_when_duplicate_pteam_name(self):
+        """Test that duplicate pteam names are allowed"""
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        pteam2 = create_pteam(USER1, PTEAM1)
+        assert pteam1.pteam_id != pteam2.pteam_id
+        del pteam1.pteam_id, pteam2.pteam_id
+        assert pteam1 == pteam2
 
 
 def test_it_should_return_400_when_try_delete_last_admin():
@@ -239,157 +265,188 @@ def test_it_should_return_400_when_try_delete_last_admin():
     assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
 
-def test_delete_member__last_admin_another():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+class TestDeleteMember:
+    def test_delete_member__last_admin_another(self):
+        user1 = create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    # invite another member (not ADMIN)
-    create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+        # invite another member (not ADMIN)
+        create_user(USER2)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # try leaving the pteam
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
+        # try leaving the pteam
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
+        )
+        assert response.status_code == 400
+        assert response.reason_phrase == "Bad Request"
+        assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
+    def test_delete_member__not_last_admin(self):
+        user1 = create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-def test_delete_member__not_last_admin():
-    user1 = create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {
+            pteam1.pteam_id
+        }
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert {UUID(pteam["pteam"]["pteam_id"]) for pteam in data["pteam_roles"]} == {pteam1.pteam_id}
+        # invite another member (not ADMIN)
+        user2 = create_user(USER2)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # invite another member (not ADMIN)
-    user2 = create_user(USER2)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+        # make the other member ADMIN
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
+        assert response.status_code == 200
 
-    # make the other member ADMIN
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
-    assert response.status_code == 200
+        # try leaving pteam
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
+        )
+        assert response.status_code == 204
 
-    # try leaving pteam
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER1)
-    )
-    assert response.status_code == 204
+        response = client.get("/users/me", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["user_id"] == str(user1.user_id)
+        assert data["pteam_roles"] == []
 
-    response = client.get("/users/me", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["user_id"] == str(user1.user_id)
-    assert data["pteam_roles"] == []
+        # user1 does not belong to pteam1
+        response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
+        assert response.status_code == 200
+        members_map = {UUID(x["user_id"]): x for x in response.json()}
+        assert members_map.get(user1.user_id) is None
 
-    # user1 does not belong to pteam1
-    response = client.get(f"/pteams/{pteam1.pteam_id}/members", headers=headers(USER2))
-    assert response.status_code == 200
-    members_map = {UUID(x["user_id"]): x for x in response.json()}
-    assert members_map.get(user1.user_id) is None
+    def test_delete_member__by_admin(self):
+        user1 = create_user(USER1)
+        user2 = create_user(USER2)
+        user3 = create_user(USER3)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER3, invitation.invitation_id)
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
 
+        # kickout the other ADMIN
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-def test_delete_member__by_admin():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    user3 = create_user(USER3)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER3, invitation.invitation_id)
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
+        # kickout member
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-    # kickout the other ADMIN
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 400
+        assert response.reason_phrase == "Bad Request"
+        assert response.json()["detail"] == "Removing last ADMIN is not allowed"
 
-    # kickout member
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+    def test_delete_member__by_admin_myself(self):
+        create_user(USER1)
+        user2 = create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        # invite another ADMIN
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
+            headers=headers(USER1),
+            json={"is_admin": True},
+        )
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 400
-    assert response.reason_phrase == "Bad Request"
-    assert response.json()["detail"] == "Removing last ADMIN is not allowed"
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2)
+        )
+        assert response.status_code == 204
 
+    def test_delete_member__by_not_admin(self):
+        user1 = create_user(USER1)
+        user2 = create_user(USER2)
+        user3 = create_user(USER3)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER3, invitation.invitation_id)
 
-def test_delete_member__by_admin_myself():
-    create_user(USER1)
-    user2 = create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    # invite another ADMIN
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    response = client.put(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}",
-        headers=headers(USER1),
-        json={"is_admin": True},
-    )
+        # kickout ADMIN
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER2)
-    )
-    assert response.status_code == 204
+        # kickout another member
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
+        # kickout myself
+        response = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
+        )
+        assert response.status_code == 204
 
-def test_delete_member__by_not_admin():
-    user1 = create_user(USER1)
-    user2 = create_user(USER2)
-    user3 = create_user(USER3)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER3, invitation.invitation_id)
+    def test_it_should_delete_the_account_default_pteam_table_when_deleting_a_user(self):
+        # Given
+        create_user(USER1)
+        user2 = create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
-    # kickout ADMIN
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user1.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        # Set the default pteam for the user2
+        request = {"default_pteam_id": str(pteam1.pteam_id)}
+        response_put_users = client.put(
+            f"/users/{user2.user_id}", headers=headers(USER2), json=request
+        )
 
-    # kickout another member
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        # When
+        response_delete_users = client.delete(
+            f"/pteams/{pteam1.pteam_id}/members/{user2.user_id}", headers=headers(USER1)
+        )
 
-    # kickout myself
-    response = client.delete(
-        f"/pteams/{pteam1.pteam_id}/members/{user3.user_id}", headers=headers(USER3)
-    )
-    assert response.status_code == 204
+        # Then
+        assert response_delete_users.status_code == 204
+
+        # before deleting
+        assert response_put_users.json()["default_pteam_id"] == str(pteam1.pteam_id)
+
+        # after deleting
+        response_get_users_me = client.get("/users/me", headers=headers(USER2))
+        assert response_get_users_me.status_code == 200
+        assert response_get_users_me.json()["default_pteam_id"] is None
 
 
 class TestGetPteamMembers:
@@ -673,3 +730,190 @@ class TestDeletePteam:
 
         assert delete_pteam_response.status_code == 404
         assert delete_pteam_response.json()["detail"] == "No such pteam"
+
+
+class TestUpdatePteam:
+
+    @pytest.mark.parametrize(
+        "field_name, test_value",
+        [
+            # pteam_name tests (max 50 half-width chars) - valid cases
+            ("pteam_name", "a" * 50),
+            ("pteam_name", "あ" * 25),
+            # contact_info tests (max 255 half-width chars) - valid cases
+            ("contact_info", "a" * 255),
+            ("contact_info", "あ" * 127),
+            # webhook_url tests (max 255 half-width chars) - valid cases
+            ("webhook_url", "https://hooks.slack.com/services/" + "a" * 222),
+            # email address tests (max 255 half-width chars) - valid cases
+            ("email_address", "a" * 245 + "@test.com"),
+        ],
+    )
+    def test_return_200_with_valid_character_limits(self, field_name, test_value):
+        """Test that valid character limits are accepted for PTeam fields"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        if field_name == "webhook_url":
+            request_data = {"alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {"alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {field_name: test_value}
+
+        # When
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request_data
+        )
+
+        # Then
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize(
+        "field_name, test_value, expected_error_message",
+        [
+            # pteam_name tests (max 50 half-width chars) - invalid cases
+            (
+                "pteam_name",
+                "a" * 51,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            (
+                "pteam_name",
+                "あ" * 26,
+                "Too long team name. Max length is 50 in half-width or 25 in full-width",
+            ),
+            # contact_info tests (max 255 half-width chars) - invalid cases
+            (
+                "contact_info",
+                "a" * 256,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            (
+                "contact_info",
+                "あ" * 128,
+                "Too long contact info. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # webhook_url tests (max 255 half-width chars) - invalid cases
+            (
+                "webhook_url",
+                "https://hooks.slack.com/services/" + "a" * 223,
+                "Too long Slack webhook URL. Max length is 255 in half-width or 127 in full-width",
+            ),
+            # email address tests (max 255 half-width chars) - invalid cases
+            (
+                "email_address",
+                "a" * 247 + "@test.com",
+                "Too long email address. Max length is 255 in half-width or 127 in full-width",
+            ),
+        ],
+    )
+    def test_return_400_with_invalid_character_limits(
+        self, field_name, test_value, expected_error_message
+    ):
+        """Test that invalid character limits are rejected for PTeam fields"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        if field_name == "webhook_url":
+            request_data = {"alert_slack": {"enable": True, "webhook_url": test_value}}
+        elif field_name == "email_address":
+            request_data = {"alert_mail": {"enable": True, "address": test_value}}
+        else:
+            request_data = {field_name: test_value}
+
+        # When
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request_data
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_error_message
+
+    def test_return_200_update_pteam(self):
+        """Test basic update functionality with all fields"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
+
+        # When
+        response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_name"] == PTEAM2["pteam_name"]
+        assert data["contact_info"] == PTEAM2["contact_info"]
+        assert data["alert_slack"]["enable"] == PTEAM2["alert_slack"]["enable"]
+        assert data["alert_slack"]["webhook_url"] == PTEAM2["alert_slack"]["webhook_url"]
+        assert data["alert_ssvc_priority"] == PTEAM2["alert_ssvc_priority"]
+        assert data["alert_mail"]["enable"] == PTEAM2["alert_mail"]["enable"]
+        assert data["alert_mail"]["address"] == PTEAM2["alert_mail"]["address"]
+
+    def test_it_should_return_403_when_update_pteam_by_not_admin(self):
+        """Test that non-admin users cannot update pteam"""
+        # Given
+        create_user(USER1)
+        create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
+        request = schemas.PTeamUpdateRequest(**PTEAM2).model_dump()
+
+        # When
+        response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2), json=request)
+
+        # Then
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
+
+    def test_return_200_with_empty_data(self):
+        """Test update with empty data preserves some fields"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        empty_data = {
+            "pteam_name": "",
+            "contact_info": "",
+            "alert_slack": {"enable": False, "webhook_url": ""},
+        }
+
+        # When
+        response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=empty_data)
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_name"] == ""
+        assert data["contact_info"] == ""
+        assert data["alert_slack"]["webhook_url"] == ""
+        assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
+
+    @pytest.mark.parametrize(
+        "field_name, expected_response_detail",
+        [
+            ("pteam_name", "Cannot specify None for pteam_name"),
+            ("contact_info", "Cannot specify None for contact_info"),
+            ("alert_slack", "Cannot specify None for alert_slack"),
+            ("alert_ssvc_priority", "Cannot specify None for alert_ssvc_priority"),
+            ("alert_mail", "Cannot specify None for alert_mail"),
+        ],
+    )
+    def test_return_400_with_none_fields(self, field_name, expected_response_detail):
+        """Test that None values are rejected for required fields"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        request = {field_name: None}
+
+        # When
+        response = client.put(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1), json=request)
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == expected_response_detail

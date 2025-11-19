@@ -30,6 +30,7 @@ from app.tests.medium.utils import (
     create_vuln,
     get_tickets_related_to_vuln_package,
     headers,
+    headers_with_api_key,
     invite_to_pteam,
 )
 
@@ -44,7 +45,7 @@ class TestActionLog:
             action_with_vuln = {**action, "vuln_id": str(vuln_id)}
             response = client.post(
                 "/actions",
-                headers=headers(user),
+                headers=headers_with_api_key(user),
                 json=action_with_vuln,
             )
             if response.status_code != 200:
@@ -453,7 +454,7 @@ class TestGetVulnLogs:
         action_with_vuln = {**action, "vuln_id": str(vuln_id)}
         response = client.post(
             "/actions",
-            headers=headers(user),
+            headers=headers_with_api_key(user),
             json=action_with_vuln,
         )
         if response.status_code != 200:
