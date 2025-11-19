@@ -148,9 +148,7 @@ describe("PackagePage Component Unit Tests", () => {
     await userEvent.click(saveButton);
 
     // 7. useUpdateTicketMutation が呼び出されたことを検証
-    await waitFor(() => {
-      expect(mockUpdateTicket).toHaveBeenCalled();
-    });
+    expect(mockUpdateTicket).toHaveBeenCalled();
   });
 
   // --- テストケース 4: チケットステータス変更の検証 ---
