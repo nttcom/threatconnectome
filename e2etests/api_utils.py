@@ -51,7 +51,8 @@ def headers(user: dict) -> dict:
 def headers_with_api_key(user: dict) -> dict:
     headers_with_api = headers(user)
     headers_with_api["X-API-Key"] = os.getenv("VULN_API_KEY")
-    print("VULN_API_KEY", os.getenv("VULN_API_KEY"))
+    print("test_print")
+    print("API_KEY", os.getenv("VULN_API_KEY"))
     return headers_with_api
 
 
