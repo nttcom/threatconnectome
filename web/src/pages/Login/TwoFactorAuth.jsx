@@ -96,6 +96,7 @@ export function TwoFactorAuth() {
                       htmlInput: {
                         inputMode: "numeric",
                         maxLength: 6,
+                        "aria-label": "Authentication code input",
                         style: {
                           textAlign: "center",
                           letterSpacing: "0.5em",
@@ -171,7 +172,7 @@ export function TwoFactorAuth() {
                   setCode("");
                   setCodeError(null);
                   setStep("2fa");
-                  setCanResend(false);
+                  setCanResend(true);
                   setTimer(0);
                 }}
               >
