@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 
 import { useAuth } from "../../hooks/auth";
 
@@ -24,21 +25,31 @@ export function TwoFactorAuth(props) {
   const [canResend, setCanResend] = useState(true);
   const [timer, setTimer] = useState(0);
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
-  const [verificationId, setVerificationId] = useState(authData[1]);
+  const [verificationId, setVerificationId] = useState(authData.verificationId);
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
   useEffect(() => {
-    let interval = null;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else {
+    if (!canResend && timer === 0) {
       setCanResend(true);
+      return;
     }
-    return () => clearInterval(interval);
-  }, [timer]);
+
+    if (!canResend && timer > 0) {
+      let interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [canResend]);
 
   const handleCodeChange = (e) => {
     const sanitized = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -50,14 +61,14 @@ export function TwoFactorAuth(props) {
   const handleVerify = (e) => {
     e.preventDefault();
     setCodeError(null);
-    verifySmsForLogin(authData[0], verificationId, code)
+    verifySmsForLogin(authData.resolver, verificationId, code)
       .then(() => {
         setIsLoading(true);
         navigateInternalPage();
       })
       .catch((error) => {
         if (error.code === "auth/invalid-verification-code") {
-          setCodeError("コードが正しくありません。もう一度お試しください。");
+          setCodeError("The code is incorrect. Please try again.");
         } else {
           setCodeError(error);
         }
@@ -65,11 +76,15 @@ export function TwoFactorAuth(props) {
   };
 
   const handleResend = async () => {
-    const resendVerificationId = await sendSmsCodeAgain(authData[2], authData[3]);
+    const resendVerificationId = await sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth);
     setVerificationId(resendVerificationId);
     setTimer(5);
     setCanResend(false);
-    setNotification({ open: true, message: "認証コードを再送信しました。", type: "info" });
+    setNotification({
+      open: true,
+      message: "The authentication code has been resent.",
+      type: "info",
+    });
   };
 
   const handleCloseNotification = () => {
@@ -84,17 +99,17 @@ export function TwoFactorAuth(props) {
         <Paper elevation={3} sx={{ p: 3 }}>
           <Box textAlign="center" mb={3}>
             <Typography variant="h6" gutterBottom>
-              二要素認証
+              Two-factor authentication
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              "SMSで送信された6桁のコードを入力してください"
+              Please enter the 6-digit code sent via SMS.
             </Typography>
           </Box>
           <Box component="form" onSubmit={handleVerify}>
             <Stack spacing={2}>
               <TextField
                 fullWidth
-                label="認証コード"
+                label="Authentication code"
                 value={code}
                 onChange={handleCodeChange}
                 placeholder="123456"
@@ -121,10 +136,10 @@ export function TwoFactorAuth(props) {
                 {isLoading ? (
                   <>
                     <CircularProgress size={18} sx={{ mr: 1 }} />
-                    コードを確認しています...
+                    Checking the code...
                   </>
                 ) : (
-                  "認証する"
+                  "Authenticate"
                 )}
               </Button>
               <Stack
@@ -133,7 +148,7 @@ export function TwoFactorAuth(props) {
                 sx={{ alignItems: "center", justifyContent: "center" }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  コードが届きませんか？
+                  Did you receive the code?
                 </Typography>
                 <Button
                   id="recaptcha-container-invisible-resend"
@@ -145,10 +160,10 @@ export function TwoFactorAuth(props) {
                   {canResend ? (
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                       <Refresh fontSize="small" />
-                      <span>コードを再送信</span>
+                      <span>Resend the code</span>
                     </Stack>
                   ) : (
-                    `再送信まで ${timer}秒`
+                    `Resend in ${timer} seconds`
                   )}
                 </Button>
               </Stack>
@@ -169,3 +184,8 @@ export function TwoFactorAuth(props) {
     </Box>
   );
 }
+
+TwoFactorAuth.propTypes = {
+  authData: PropTypes.object.isRequired,
+  navigateInternalPage: PropTypes.func.isRequired,
+};

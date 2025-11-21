@@ -111,7 +111,7 @@ export function Login() {
     const data = new FormData(event.currentTarget);
     const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
     if (authData === undefined) return;
-    if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && Array.isArray(authData)) {
+    if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && authData?.mfa) {
       // Firebase SMS multi-factor auth
       setIsShowSmsCode(true);
       setAuthData(authData);
