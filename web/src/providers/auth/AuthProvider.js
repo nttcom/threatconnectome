@@ -60,4 +60,7 @@ export class AuthProvider {
   verifySmsForEnrollment() {
     throw new Error("Not implemented");
   }
+  async sendSmsCodeAgain() {
+    throw new Error("Not implemented");
+  }
 }

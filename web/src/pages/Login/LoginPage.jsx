@@ -23,9 +23,13 @@ import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi
 import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
 
+import { TwoFactorAuth } from "./TwoFactorAuth";
+
 export function Login() {
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [visible, setVisible] = useState(false);
+  const [isShowSmsCode, setIsShowSmsCode] = useState(false);
+  const [authData, setAuthData] = useState([]);
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const dispatch = useDispatch();
@@ -107,7 +111,13 @@ export function Login() {
     const data = new FormData(event.currentTarget);
     const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
     if (authData === undefined) return;
-    navigateInternalPage();
+    if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && Array.isArray(authData)) {
+      // Firebase SMS multi-factor auth
+      setIsShowSmsCode(true);
+      setAuthData(authData);
+    } else {
+      navigateInternalPage();
+    }
   };
 
   const handleLoginWithSaml = () => {
@@ -152,103 +162,112 @@ export function Login() {
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
-      <Box
-        alignItems="center"
-        component="form"
-        display="flex"
-        flexDirection="column"
-        mt={1}
-        onSubmit={handleLoginWithEmail}
-      >
-        <Typography component="h1" mb={1} variant="h5">
-          Threatconnectome
-        </Typography>
-        <TextField
-          autoComplete="email"
-          fullWidth
-          id="email"
-          label="Email Address"
-          margin="normal"
-          name="email"
-          required
-        />
-        <TextField
-          autoComplete="current-password"
-          fullWidth
-          id="password"
-          label="Password"
-          margin="normal"
-          name="password"
-          required
-          type={visible ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setVisible(!visible)}>
-                  {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        <Link component="button" type="button" onClick={handleResetPassword}>
-          Forgot password?
-        </Link>
-        <Button
-          fullWidth
-          type="submit"
-          variant="contained"
-          sx={{ textTransform: "none", mb: 2, mt: 3 }}
-        >
-          Log In with Email
-        </Button>
-      </Box>
-      {/* show saml login button if samlProviderId is set as env */}
-      {Firebase.getSamlProvider() != null && (
+      {!isShowSmsCode && (
         <>
-          <Divider />
-          <Button
-            fullWidth
-            onClick={handleLoginWithSaml}
-            variant="contained"
-            sx={{ textTransform: "none", mb: 2, mt: 2 }}
+          <Box
+            alignItems="center"
+            component="form"
+            display="flex"
+            flexDirection="column"
+            mt={1}
+            onSubmit={handleLoginWithEmail}
           >
-            Log In with SAML
-          </Button>
+            <Typography component="h1" mb={1} variant="h5">
+              Threatconnectome
+            </Typography>
+            <TextField
+              autoComplete="email"
+              fullWidth
+              id="email"
+              label="Email Address"
+              margin="normal"
+              name="email"
+              required
+            />
+            <TextField
+              autoComplete="current-password"
+              fullWidth
+              id="password"
+              label="Password"
+              margin="normal"
+              name="password"
+              required
+              type={visible ? "text" : "password"}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setVisible(!visible)}>
+                      {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Link component="button" type="button" onClick={handleResetPassword}>
+              Forgot password?
+            </Link>
+            <Button
+              // id="recaptcha-container-visible"
+              fullWidth
+              type="submit"
+              variant="contained"
+              sx={{ textTransform: "none", mb: 2, mt: 3 }}
+            >
+              Log In with Email
+            </Button>
+            <div id="recaptcha-container-visible-login"></div>
+          </Box>
+          {/* show saml login button if samlProviderId is set as env */}
+          {Firebase.getSamlProvider() != null && (
+            <>
+              <Divider />
+              <Button
+                fullWidth
+                onClick={handleLoginWithSaml}
+                variant="contained"
+                sx={{ textTransform: "none", mb: 2, mt: 2 }}
+              >
+                Log In with SAML
+              </Button>
+            </>
+          )}
+          {/* show Keycloak login button if KEYCLOAK_ENABLED is true */}
+          {/* currently, work with supabase only */}
+          {import.meta.env.VITE_AUTH_SERVICE === "supabase" &&
+            (import.meta.env.VITE_KEYCLOAK_ENABLED || "false").toLowerCase() === "true" && (
+              <>
+                <Divider />
+                <Button
+                  fullWidth
+                  onClick={handleLoginWithKeycloak}
+                  variant="contained"
+                  sx={{ textTransform: "none", mb: 2, mt: 2 }}
+                >
+                  Log In with Keycloak
+                </Button>
+              </>
+            )}
+          <Divider />
+          <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
+            <Typography mr={1}>No metemcyber account?</Typography>
+            <Link component="button" onClick={handleSignUp} variant="body1">
+              Sign up
+            </Link>
+          </Box>
+          <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
+            <Typography color={message.type === "error" ? "error" : "textPrimary"}>
+              {message.text}
+            </Typography>
+          </Box>
+          <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
+            This service is in closed beta. LOGIN is only available for email addresses of
+            authorized organizations.
+          </Typography>
         </>
       )}
-      {/* show Keycloak login button if KEYCLOAK_ENABLED is true */}
-      {/* currently, work with supabase only */}
-      {import.meta.env.VITE_AUTH_SERVICE === "supabase" &&
-        (import.meta.env.VITE_KEYCLOAK_ENABLED || "false").toLowerCase() === "true" && (
-          <>
-            <Divider />
-            <Button
-              fullWidth
-              onClick={handleLoginWithKeycloak}
-              variant="contained"
-              sx={{ textTransform: "none", mb: 2, mt: 2 }}
-            >
-              Log In with Keycloak
-            </Button>
-          </>
-        )}
-      <Divider />
-      <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
-        <Typography mr={1}>No metemcyber account?</Typography>
-        <Link component="button" onClick={handleSignUp} variant="body1">
-          Sign up
-        </Link>
-      </Box>
-      <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
-        <Typography color={message.type === "error" ? "error" : "textPrimary"}>
-          {message.text}
-        </Typography>
-      </Box>
-      <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
-        This service is in closed beta. LOGIN is only available for email addresses of authorized
-        organizations.
-      </Typography>
+      {isShowSmsCode && (
+        <TwoFactorAuth authData={authData} navigateInternalPage={navigateInternalPage} />
+      )}
     </Container>
   );
 }
