@@ -47,6 +47,40 @@ class FirebaseAuthError extends AuthError {
   }
 }
 
+async function startSmsLoginFlow(auth, error) {
+  const resolver = getMultiFactorResolver(auth, error);
+  for (const hint of resolver.hints) {
+    if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
+      const phoneInfoOptions = {
+        multiFactorHint: hint,
+        session: resolver.session,
+      };
+
+      //Todo: RecaptchaVerifier will be implemented later.
+      const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
+        size: "normal",
+        callback: (response) => {
+          // reCAPTCHA solved, you can proceed with
+          // phoneAuthProvider.verifyPhoneNumber(...).
+          console.log("success");
+        },
+      });
+
+      try {
+        const phoneAuthProvider = new PhoneAuthProvider(auth);
+        const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+          phoneInfoOptions,
+          recaptchaVerifier,
+        );
+        return [resolver, verificationId, phoneInfoOptions, auth];
+      } catch (error) {
+        recaptchaVerifier.clear();
+        throw error;
+      }
+    }
+  }
+}
+
 export class FirebaseProvider extends AuthProvider {
   onAuthStateChanged({ signInCallback, signOutCallback }) {
     const unsubscribe = onAuthStateChanged(Firebase.getAuth(), (user) => {
@@ -78,45 +112,11 @@ export class FirebaseProvider extends AuthProvider {
       })
       .catch(async (error) => {
         if (error.code == "auth/multi-factor-auth-required") {
-          startSmsLoginFlow();
+          return await startSmsLoginFlow(auth, error);
         } else {
           throw new FirebaseAuthError(error);
         }
       });
-  }
-
-  async startSmsLoginFlow() {
-    const resolver = getMultiFactorResolver(auth, error);
-    for (const hint of resolver.hints) {
-      if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
-        const phoneInfoOptions = {
-          multiFactorHint: hint,
-          session: resolver.session,
-        };
-        const phoneAuthProvider = new PhoneAuthProvider(auth);
-
-        //Todo: RecaptchaVerifier will be implemented later.
-        const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible", {
-          size: "invisible",
-          callback: (response) => {
-            // reCAPTCHA solved, you can proceed with
-            // phoneAuthProvider.verifyPhoneNumber(...).
-            console.log("success");
-          },
-        });
-
-        try {
-          const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-            phoneInfoOptions,
-            recaptchaVerifier,
-          );
-          return [resolver, verificationId];
-        } catch (error) {
-          recaptchaVerifier.clear();
-          throw error;
-        }
-      }
-    }
   }
 
   async signInWithSamlPopup() {
@@ -205,14 +205,18 @@ export class FirebaseProvider extends AuthProvider {
     const currentUser = auth.currentUser;
 
     //Todo: RecaptchaVerifier will be implemented later.
-    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible", {
-      size: "invisible",
-      callback: (response) => {
-        // reCAPTCHA solved, you can proceed with
-        // phoneAuthProvider.verifyPhoneNumber(...).
-        console.log("success");
+    const recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container-visible-register-phone-number",
+      {
+        size: "normal",
+        callback: (response) => {
+          // reCAPTCHA solved, you can proceed with
+          // phoneAuthProvider.verifyPhoneNumber(...).
+          console.log("success");
+        },
       },
-    });
+    );
 
     try {
       const multiFactorSession = await multiFactor(currentUser).getSession();
@@ -237,7 +241,7 @@ export class FirebaseProvider extends AuthProvider {
     }
   }
 
-  verifySmsForLogin(resolver, verificationId, verificationCode) {
+  async verifySmsForLogin(resolver, verificationId, verificationCode) {
     const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
@@ -253,5 +257,28 @@ export class FirebaseProvider extends AuthProvider {
 
     // Complete enrollment.
     multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+  }
+
+  async sendSmsCodeAgain(phoneInfoOptions, auth) {
+    //Todo: RecaptchaVerifier will be implemented later.
+    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
+      size: "invisible",
+      callback: (response) => {
+        // reCAPTCHA solved, you can proceed with
+        // phoneAuthProvider.verifyPhoneNumber(...).
+        console.log("success");
+      },
+    });
+
+    try {
+      const phoneAuthProvider = new PhoneAuthProvider(auth);
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier,
+      );
+      return verificationId;
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

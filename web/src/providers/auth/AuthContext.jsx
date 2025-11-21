@@ -24,6 +24,7 @@ export function AuthProvider(props) {
   const verifySmsForEnrollment = authProvider.verifySmsForEnrollment;
   const deletePhoneNumber = authProvider.deletePhoneNumber;
   const verifySmsForLogin = authProvider.verifySmsForLogin;
+  const sendSmsCodeAgain = authProvider.sendSmsCodeAgain;
 
   return (
     <AuthContext.Provider
@@ -43,6 +44,7 @@ export function AuthProvider(props) {
         deletePhoneNumber,
         verifySmsForLogin,
         verifySmsForEnrollment,
+        sendSmsCodeAgain,
       }}
     >
       {children}
