@@ -71,7 +71,13 @@ async function startSmsLoginFlow(auth, error) {
           phoneInfoOptions,
           recaptchaVerifier,
         );
-        return [resolver, verificationId, phoneInfoOptions, auth];
+        return {
+          mfa: true,
+          resolver: resolver,
+          verificationId: verificationId,
+          phoneInfoOptions: phoneInfoOptions,
+          auth: auth,
+        };
       } catch (error) {
         recaptchaVerifier.clear();
         throw error;
