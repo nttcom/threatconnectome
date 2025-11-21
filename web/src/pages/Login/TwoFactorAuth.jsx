@@ -18,7 +18,7 @@ import { useAuth } from "../../hooks/auth";
 export function TwoFactorAuth(props) {
   const { authData, navigateInternalPage } = props;
 
-  const [step, setStep] = useState("2fa");
+  const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState(null);
   const [canResend, setCanResend] = useState(true);
@@ -52,7 +52,7 @@ export function TwoFactorAuth(props) {
     setCodeError(null);
     verifySmsForLogin(authData[0], verificationId, code)
       .then(() => {
-        setStep("loading");
+        setIsLoading(true);
         navigateInternalPage();
       })
       .catch((error) => {
@@ -90,85 +90,80 @@ export function TwoFactorAuth(props) {
               "SMSで送信された6桁のコードを入力してください"
             </Typography>
           </Box>
-
-          {(step === "2fa" || step === "loading") && (
-            <>
-              <Box component="form" onSubmit={handleVerify}>
-                <Stack spacing={2}>
-                  <TextField
-                    fullWidth
-                    label="認証コード"
-                    value={code}
-                    onChange={handleCodeChange}
-                    placeholder="123456"
-                    slotProps={{
-                      htmlInput: {
-                        inputMode: "numeric",
-                        maxLength: 6,
-                        "aria-label": "Authentication code input",
-                        style: {
-                          textAlign: "center",
-                          letterSpacing: "0.5em",
-                        },
-                      },
-                    }}
-                    error={Boolean(codeError)}
-                    helperText={codeError}
-                  />
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    disabled={code.length !== 6 || step === "loading"}
-                    type="submit"
-                  >
-                    {step === "loading" ? (
-                      <>
-                        <CircularProgress size={18} sx={{ mr: 1 }} />
-                        コードを確認しています...
-                      </>
-                    ) : (
-                      "認証する"
-                    )}
-                  </Button>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ alignItems: "center", justifyContent: "center" }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      コードが届きませんか？
-                    </Typography>
-                    <Button
-                      id="recaptcha-container-invisible-resend"
-                      size="small"
-                      disabled={!canResend}
-                      onClick={handleResend}
-                      sx={{ fontWeight: "bold" }}
-                    >
-                      {canResend ? (
-                        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                          <Refresh fontSize="small" />
-                          <span>コードを再送信</span>
-                        </Stack>
-                      ) : (
-                        `再送信まで ${timer}秒`
-                      )}
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-              <Snackbar
-                open={notification.open}
-                autoHideDuration={4000}
-                onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          <Box component="form" onSubmit={handleVerify}>
+            <Stack spacing={2}>
+              <TextField
+                fullWidth
+                label="認証コード"
+                value={code}
+                onChange={handleCodeChange}
+                placeholder="123456"
+                slotProps={{
+                  htmlInput: {
+                    inputMode: "numeric",
+                    maxLength: 6,
+                    "aria-label": "Authentication code input",
+                    style: {
+                      textAlign: "center",
+                      letterSpacing: "0.5em",
+                    },
+                  },
+                }}
+                error={Boolean(codeError)}
+                helperText={codeError}
+              />
+              <Button
+                variant="contained"
+                fullWidth
+                disabled={code.length !== 6 || isLoading}
+                type="submit"
               >
-                <Alert severity={notification.type} variant="filled">
-                  {notification.message}
-                </Alert>
-              </Snackbar>
-            </>
-          )}
+                {isLoading ? (
+                  <>
+                    <CircularProgress size={18} sx={{ mr: 1 }} />
+                    コードを確認しています...
+                  </>
+                ) : (
+                  "認証する"
+                )}
+              </Button>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", justifyContent: "center" }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  コードが届きませんか？
+                </Typography>
+                <Button
+                  id="recaptcha-container-invisible-resend"
+                  size="small"
+                  disabled={!canResend}
+                  onClick={handleResend}
+                  sx={{ fontWeight: "bold" }}
+                >
+                  {canResend ? (
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <Refresh fontSize="small" />
+                      <span>コードを再送信</span>
+                    </Stack>
+                  ) : (
+                    `再送信まで ${timer}秒`
+                  )}
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+          <Snackbar
+            open={notification.open}
+            autoHideDuration={4000}
+            onClose={handleCloseNotification}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert severity={notification.type} variant="filled">
+              {notification.message}
+            </Alert>
+          </Snackbar>
         </Paper>
       </Container>
     </Box>
