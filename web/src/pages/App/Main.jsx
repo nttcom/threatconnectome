@@ -2,11 +2,7 @@ import { styled } from "@mui/material/styles";
 
 import { drawerWidth } from "../../utils/const";
 
-interface MainProps {
-  open: boolean;
-}
-
-const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<MainProps>(
+const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
   ({ theme, open }) => ({
     display: "flex",
     justifyContent: "center",
