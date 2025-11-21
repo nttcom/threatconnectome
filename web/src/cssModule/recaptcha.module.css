@@ -6,6 +6,6 @@
 }
 
 #recaptcha-container-visible-login iframe {
-  width: 100% !important;
-  height: auto !important;
+  width: 304px !important;
+  height: 78px !important;
 }
