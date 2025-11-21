@@ -1,6 +1,15 @@
 import CloseIcon from "@mui/icons-material/Close";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Divider,
+  IconButton,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -41,6 +50,34 @@ export function AccountSettingsDialog(props) {
               </Typography>
               <DialogContentText>{userMe.user_id}</DialogContentText>
             </Box>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    Years of work experience in security
+                  </Typography>
+                  <Tooltip title="Please select years of your work experience in security to support security response.">
+                    <IconButton size="small">
+                      <HelpOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Select
+                  size="small"
+                  value={userMe.years}
+                  onChange={(e) => {
+                    onUpdateUser({ years: e.target.value });
+                  }}
+                  sx={{ minWidth: 130 }}
+                >
+                  <MenuItem value={0}>0+ year</MenuItem>
+                  <MenuItem value={2}>2+ years</MenuItem>
+                  <MenuItem value={5}>5+ years</MenuItem>
+                  <MenuItem value={7}>7+ years</MenuItem>
+                </Select>
+              </Box>
+            </Box>
+            <Divider />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Team
@@ -53,7 +90,6 @@ export function AccountSettingsDialog(props) {
                 ))}
               </Stack>
             </Box>
-
             <Box>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
@@ -87,33 +123,6 @@ export function AccountSettingsDialog(props) {
               </Select>
             </Box>
 
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Box>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    Years of work experience in security
-                  </Typography>
-                  <Tooltip title="Please select years of your work experience in security to support security response.">
-                    <IconButton size="small">
-                      <HelpOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-                <Select
-                  size="small"
-                  value={userMe.years}
-                  onChange={(e) => {
-                    onUpdateUser({ years: e.target.value });
-                  }}
-                  sx={{ minWidth: 130 }}
-                >
-                  <MenuItem value={0}>0+ year</MenuItem>
-                  <MenuItem value={2}>2+ years</MenuItem>
-                  <MenuItem value={5}>5+ years</MenuItem>
-                  <MenuItem value={7}>7+ years</MenuItem>
-                </Select>
-              </Box>
-            </Box>
             <Box>
               <DeleteAccountDialog userMe={userMe} />
             </Box>
