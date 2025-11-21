@@ -59,10 +59,9 @@ async function startSmsLoginFlow(auth, error) {
       //Todo: RecaptchaVerifier will be implemented later.
       const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
         size: "normal",
-        callback: (response) => {
-          // reCAPTCHA solved, you can proceed with
-          // phoneAuthProvider.verifyPhoneNumber(...).
-          console.log("success");
+        "expired-callback": () => {
+          const now = new Date();
+          console.log("reCAPTCHA expired. Please refresh and try again." + now);
         },
       });
 
@@ -216,11 +215,6 @@ export class FirebaseProvider extends AuthProvider {
       "recaptcha-container-visible-register-phone-number",
       {
         size: "normal",
-        callback: (response) => {
-          // reCAPTCHA solved, you can proceed with
-          // phoneAuthProvider.verifyPhoneNumber(...).
-          console.log("success");
-        },
       },
     );
 
@@ -266,14 +260,8 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
-    //Todo: RecaptchaVerifier will be implemented later.
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
       size: "invisible",
-      callback: (response) => {
-        // reCAPTCHA solved, you can proceed with
-        // phoneAuthProvider.verifyPhoneNumber(...).
-        console.log("success");
-      },
     });
 
     try {
