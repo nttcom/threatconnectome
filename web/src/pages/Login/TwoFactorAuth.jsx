@@ -13,13 +13,20 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
-export function TwoFactorAuth() {
+import { useAuth } from "../../hooks/auth";
+
+export function TwoFactorAuth(props) {
+  const { authData, navigateInternalPage } = props;
+
   const [step, setStep] = useState("2fa");
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState(null);
   const [canResend, setCanResend] = useState(true);
   const [timer, setTimer] = useState(0);
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [verificationId, setVerificationId] = useState(authData[1]);
+
+  const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
   useEffect(() => {
     let interval = null;
@@ -42,20 +49,24 @@ export function TwoFactorAuth() {
   };
   const handleVerify = (e) => {
     e.preventDefault();
-    const MOCK_VALID_CODE = "123456";
     setCodeError(null);
-    setStep("loading");
-    setTimeout(() => {
-      if (code === MOCK_VALID_CODE) {
-        setStep("main");
-      } else {
-        setCodeError("コードが正しくありません。もう一度お試しください。");
-        setStep("2fa");
-      }
-    }, 1000);
+    verifySmsForLogin(authData[0], verificationId, code)
+      .then(() => {
+        setStep("loading");
+        navigateInternalPage();
+      })
+      .catch((error) => {
+        if (error.code === "auth/invalid-verification-code") {
+          setCodeError("コードが正しくありません。もう一度お試しください。");
+        } else {
+          setCodeError(error);
+        }
+      });
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    const resendVerificationId = await sendSmsCodeAgain(authData[2], authData[3]);
+    setVerificationId(resendVerificationId);
     setTimer(5);
     setCanResend(false);
     setNotification({ open: true, message: "認証コードを再送信しました。", type: "info" });
@@ -73,12 +84,10 @@ export function TwoFactorAuth() {
         <Paper elevation={3} sx={{ p: 3 }}>
           <Box textAlign="center" mb={3}>
             <Typography variant="h6" gutterBottom>
-              {step === "main" ? "ログイン完了" : "二要素認証"}
+              二要素認証
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {(step === "2fa" || step === "loading") &&
-                "SMSで送信された6桁のコードを入力してください"}
-              {step === "main" && "認証に成功しました。"}
+              "SMSで送信された6桁のコードを入力してください"
             </Typography>
           </Box>
 
@@ -130,6 +139,7 @@ export function TwoFactorAuth() {
                       コードが届きませんか？
                     </Typography>
                     <Button
+                      id="recaptcha-container-invisible-resend"
                       size="small"
                       disabled={!canResend}
                       onClick={handleResend}
@@ -158,27 +168,6 @@ export function TwoFactorAuth() {
                 </Alert>
               </Snackbar>
             </>
-          )}
-
-          {step === "main" && (
-            <Box>
-              <Typography variant="body2" gutterBottom>
-                認証に成功しました。実際のアプリケーションでは、このあとメイン画面に遷移させてください。
-              </Typography>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => {
-                  setCode("");
-                  setCodeError(null);
-                  setStep("2fa");
-                  setCanResend(true);
-                  setTimer(0);
-                }}
-              >
-                もう一度試す
-              </Button>
-            </Box>
           )}
         </Paper>
       </Container>
