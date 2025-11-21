@@ -1,0 +1,9 @@
+#recaptcha-container-visible-login {
+  display: block;
+  margin-top: 16px;
+}
+
+#recaptcha-container-visible-login iframe {
+  height: 78px !important;
+  width: 100% !important;
+}
