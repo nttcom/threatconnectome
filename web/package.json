@@ -72,9 +72,10 @@
   },
   "scripts": {
     "build": "vite build",
-    "check": "npm run check:eslint && npm run check:prettier",
+    "check": "npm run check:eslint && npm run check:prettier && npm run check:tsc",
     "check:eslint": "eslint --max-warnings=0 './src/**/*.{js,jsx,ts,tsx}'",
     "check:prettier": "prettier --check './src/**/*.{js,jsx,ts,tsx}'",
+    "check:tsc": "tsc --noEmit",
     "dev": "vite dev",
     "fix": "npm run format && npm run lint",
     "format": "prettier --write './src/**/*.{js,jsx,ts,tsx}'",
