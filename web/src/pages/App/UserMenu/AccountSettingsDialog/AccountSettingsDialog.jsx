@@ -1,11 +1,13 @@
 import CloseIcon from "@mui/icons-material/Close";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import {
+  Alert,
   Box,
   Divider,
   IconButton,
   MenuItem,
   Select,
+  Snackbar,
   Stack,
   Tooltip,
   Typography,
@@ -15,11 +17,27 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
+import { useState } from "react";
 
-import { DeleteAccountDialog } from "./DeleteAccountDialog";
+import { DeleteAccountDialog } from "../DeleteAccountDialog";
+
+import { TwoFactorAuthSection } from "./TwoFactorAuthSection/TwoFactorAuthSection";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onUpdateUser, userMe } = props;
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const handleShowSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const handleClose = () => {
     setAccountSettingOpen(false);
@@ -77,6 +95,9 @@ export function AccountSettingsDialog(props) {
                 </Select>
               </Box>
             </Box>
+
+            <TwoFactorAuthSection onShowSnackbar={handleShowSnackbar} />
+
             <Divider />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
@@ -128,6 +149,17 @@ export function AccountSettingsDialog(props) {
             </Box>
           </Stack>
         </DialogContent>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled">
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Dialog>
     </>
   );
