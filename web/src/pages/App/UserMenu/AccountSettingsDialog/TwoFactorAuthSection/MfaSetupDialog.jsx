@@ -31,17 +31,17 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
+  const resetState = () => {
+    setStep(0);
+    setCountryCode("+81");
+    setPhoneNumber("");
+    setCode("");
+    setError("");
+  };
+
   const handleClose = () => {
     if (loading) return;
     onClose();
-    // Reset state after dialog is closed
-    setTimeout(() => {
-      setStep(0);
-      setCountryCode("+81");
-      setPhoneNumber("");
-      setCode("");
-      setError("");
-    }, 200);
   };
 
   const handleSendCode = () => {
@@ -90,7 +90,13 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      slotProps={{ transition: { onExited: resetState } }}
+    >
       <DialogTitle>
         {step === 0 ? "Setup SMS Authentication" : "Enter Verification Code"}
       </DialogTitle>
@@ -112,7 +118,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               >
                 {COUNTRY_CODES.map((option) => (
                   <MenuItem key={option.code} value={option.code}>
-                    {option.code}
+                    {option.label}
                   </MenuItem>
                 ))}
               </Select>
