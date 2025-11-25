@@ -1,5 +1,6 @@
+import { http, HttpResponse } from "msw";
+
 import PackagePage from "./PackagePage";
-// 全てのmockデータをインポート
 import {
   mockVulnerabilities,
   mockMembers,
@@ -8,7 +9,13 @@ import {
   mockDefaultSafetyImpact,
   mockSsvcCounts,
   mockTabCounts,
+  mockPTeam,
+  mockDependencies,
 } from "./mockData";
+
+const pteamId = "pteam-abc-123";
+const serviceId = "service-a";
+const packageId = "pkg-uuid-456";
 
 export default {
   title: "demo/PackagePage",
@@ -16,44 +23,74 @@ export default {
   parameters: {
     layout: "fullscreen",
   },
-  // argTypesは最新のpropsを反映
-  argTypes: {
-    packageData: { control: "object" },
-    packageReferences: { control: "object" },
-    defaultSafetyImpact: { control: "text" },
-    ssvcCounts: { control: "object" },
-    tabCounts: { control: "object" },
-    initialVulnerabilities: { control: "object" },
-    members: { control: "object" },
+};
+
+// const Template = (args) => <PackagePage {...args} />;
+
+export const Default = {
+  args: {
+    packageData: mockPackageData,
+    packageReferences: mockPackageReferences,
+    defaultSafetyImpact: mockDefaultSafetyImpact,
+    ssvcCounts: mockSsvcCounts,
+    tabCounts: mockTabCounts,
+    initialVulnerabilities: mockVulnerabilities,
+    members: mockMembers,
+    serviceId: serviceId,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}`, () => {
+          return HttpResponse.json(mockPTeam);
+        }),
+        http.get(`*/pteams/${pteamId}/dependencies`, () => {
+          return HttpResponse.json(mockDependencies);
+        }),
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
   },
 };
 
-const Template = (args) => <PackagePage {...args} />;
-
-// Defaultストーリー
-export const Default = Template.bind({});
-Default.args = {
-  packageData: mockPackageData,
-  packageReferences: mockPackageReferences,
-  defaultSafetyImpact: mockDefaultSafetyImpact,
-  ssvcCounts: mockSsvcCounts,
-  tabCounts: mockTabCounts,
-  initialVulnerabilities: mockVulnerabilities,
-  members: mockMembers,
+export const EmptyState = {
+  args: {
+    packageData: mockPackageData,
+    packageReferences: [],
+    defaultSafetyImpact: mockDefaultSafetyImpact,
+    ssvcCounts: { immediate: 0, high: 0, medium: 0, low: 0 },
+    tabCounts: { unsolved: 0, solved: 42 },
+    initialVulnerabilities: [],
+    members: mockMembers,
+    serviceId: serviceId,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}`, () => {
+          return HttpResponse.json(mockPTeam);
+        }),
+        http.get(`*/pteams/${pteamId}/dependencies`, () => {
+          return HttpResponse.json([]);
+        }),
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
 };
 
-// EmptyStateストーリー
-export const EmptyState = Template.bind({});
-EmptyState.args = {
-  ...Default.args,
-  packageReferences: [],
-  initialVulnerabilities: [],
-  ssvcCounts: { immediate: 0, high: 0, medium: 0, low: 0 },
-  tabCounts: { unsolved: 0, solved: 42 },
-};
-
-// WithPaginationストーリー
-export const WithPagination = Template.bind({});
 const manyVulnerabilities = [
   ...mockVulnerabilities,
   ...Array.from({ length: 15 }, (_, i) => ({
@@ -63,15 +100,41 @@ const manyVulnerabilities = [
     updated_at: "2025-09-01",
     affected_versions: ["1.0.0"],
     patched_versions: ["1.0.1"],
-    // --- クリック時にエラーが出ないよう、詳細情報を追加 ---
     cveId: `CVE-2025-EXTRA-${i}`,
     description: "This is a generated description for testing pagination.",
     mitigation: "Generated mitigation advice.",
-    tasks: [], // タスク0件のケースをテスト
+    tasks: [],
   })),
 ];
-WithPagination.args = {
-  ...Default.args,
-  initialVulnerabilities: manyVulnerabilities,
-  tabCounts: { unsolved: manyVulnerabilities.length, solved: 42 },
+
+export const WithPagination = {
+  args: {
+    packageData: mockPackageData,
+    packageReferences: mockPackageReferences,
+    defaultSafetyImpact: mockDefaultSafetyImpact,
+    ssvcCounts: mockSsvcCounts,
+    tabCounts: { unsolved: manyVulnerabilities.length, solved: 42 },
+    initialVulnerabilities: manyVulnerabilities,
+    members: mockMembers,
+    serviceId: serviceId,
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}`, () => {
+          return HttpResponse.json(mockPTeam);
+        }),
+        http.get(`*/pteams/${pteamId}/dependencies`, () => {
+          return HttpResponse.json(mockDependencies);
+        }),
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
 };

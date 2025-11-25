@@ -1,4 +1,3 @@
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Table,
   TableBody,
@@ -12,19 +11,25 @@ import {
   Chip,
   Tabs,
   Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Stack,
   Paper,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
 } from "@mui/material";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
+import { grey } from "@mui/material/colors";
 import { useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+
+import { UUIDTypography } from "../../components/UUIDTypography";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useGetDependenciesQuery, useGetPTeamQuery } from "../../services/tcApi";
+import { PackageReferences } from "../Package/PackageReferences";
 
 import VulnerabilitySplitDialog from "./VulnerabilitySplitDialog";
 
 // import VulnerabilityDialog from "./VulnerabilityDialog";
-
-// --- ヘルパーコンポーネント (変更なし) ---
 
 function SSVCPriorityChip({ priority, count }) {
   const styles = {
@@ -38,66 +43,17 @@ function SSVCPriorityChip({ priority, count }) {
   return <Chip label={label} size="small" sx={styles[priority] || styles.none} />;
 }
 
-function UUIDTypography({ children }) {
-  return (
-    <Typography sx={{ fontFamily: "monospace", color: "text.secondary" }}>{children}</Typography>
-  );
-}
-
-function PackageReferences({ references = [] }) {
-  if (!references.length) return null;
-  return (
-    <Accordion
-      disableGutters
-      elevation={0}
-      sx={{
-        mt: 2,
-        bgcolor: "background.paper",
-        border: "1px solid",
-        borderColor: "divider",
-        borderRadius: 1,
-        "&:before": { display: "none" },
-      }}
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="body2">Show/Hide References</Typography>
-      </AccordionSummary>
-      <AccordionDetails sx={{ p: 0 }}>
-        <TableContainer sx={{ maxHeight: 200 }}>
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Target</TableCell>
-                <TableCell>Version</TableCell>
-                <TableCell>Service</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {references.map((ref, index) => (
-                <TableRow key={`${ref.target}-${index}`}>
-                  <TableCell>{ref.target}</TableCell>
-                  <TableCell>{ref.version}</TableCell>
-                  <TableCell>{ref.service}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
 // ------------------------------------------------------------------
 
 export default function PackagePage({
   packageData = {},
   packageReferences = [],
-  defaultSafetyImpact = "Not Set", // defaultSafetyImpactをpropsで受け取る
+  defaultSafetyImpact = "Not Set",
   ssvcCounts = {},
   tabCounts = {},
   initialVulnerabilities = [],
   members = [],
+  serviceId = "service-id-from-props",
 }) {
   const [vulnerabilities, setVulnerabilities] = useState(initialVulnerabilities);
   const [selectedVuln, setSelectedVuln] = useState(null);
@@ -114,21 +70,118 @@ export default function PackagePage({
   };
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+
+  const skipByAuth = useSkipUntilAuthUserIsReady();
+
+  const params = new URLSearchParams(useLocation().search);
+  const pteamId = params.get("pteamId");
+  const getPTeamReady = !skipByAuth && pteamId;
+  const { packageId } = useParams();
+  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
+
+  const offset = 0;
+  const limit = 1000;
+  const {
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
+  const {
+    data: serviceDependencies = [],
+    error: serviceDependenciesError,
+    isLoading: serviceDependenciesIsLoading,
+  } = useGetDependenciesQuery(
+    { pteamId, serviceId, packageId, offset, limit },
+    { skip: !getDependenciesReady },
+  );
+
+  const serviceDict = pteam?.services?.find((service) => service.service_id === serviceId);
+  const references =
+    serviceDependencies?.map((dependency) => ({
+      dependencyId: dependency.dependency_id,
+      target: dependency.target,
+      version: dependency.package_version,
+      service: serviceDict?.service_name,
+      package_name: dependency.package_name,
+      package_source_name: dependency.package_source_name,
+      package_manager: dependency.package_manager,
+      ecosystem: dependency.package_ecosystem,
+    })) || [];
+
+  const [open, setOpen] = useState(false);
+  const handleTooltipOpen = () => {
+    if (!isMdUp) setOpen(true);
+  };
+  const handleTooltipClose = () => {
+    if (!isMdUp) setOpen(false);
+  };
+
+  const firstPackageDependency = serviceDependencies?.[0] || packageData;
+
   return (
     <Box sx={{ p: 3 }}>
-      {/* ページヘッダー */}
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <Chip label={packageData.serviceName || "Service"} size="small" />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
-            {packageData.packageName || "Package"}
-          </Typography>
+      <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
+        <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+          <Box>
+            {isMdUp ? (
+              <Tooltip title={serviceDict?.service_name}>
+                <Chip
+                  label={serviceDict?.service_name}
+                  variant="outlined"
+                  sx={{
+                    borderRadius: "2px",
+                    border: `1px solid ${grey[700]}`,
+                    borderLeft: `5px solid ${grey[700]}`,
+                    mr: 1,
+                    mb: 1,
+                  }}
+                />
+              </Tooltip>
+            ) : (
+              <ClickAwayListener onClickAway={handleTooltipClose}>
+                <Tooltip
+                  onClose={handleTooltipClose}
+                  open={open}
+                  disableFocusListener
+                  disableHoverListener
+                  disableTouchListener
+                  title={serviceDict?.service_name}
+                >
+                  <Chip
+                    label={serviceDict?.service_name}
+                    variant="outlined"
+                    sx={{
+                      borderRadius: "2px",
+                      border: `1px solid ${grey[700]}`,
+                      borderLeft: `5px solid ${grey[700]}`,
+                      mr: 1,
+                      mb: 1,
+                    }}
+                    onClick={handleTooltipOpen}
+                  />
+                </Tooltip>
+              </ClickAwayListener>
+            )}
+          </Box>
+          <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
+            <Typography variant="h4" sx={{ fontWeight: 900 }}>
+              {firstPackageDependency?.package_name || packageData.packageName || "Package"}
+            </Typography>
+            <Chip
+              label={firstPackageDependency?.package_ecosystem || packageData.ecosystem || "N/A"}
+              sx={{ ml: 1 }}
+            />
+          </Box>
+          <UUIDTypography sx={{ mr: 2, mb: 1 }}>
+            {packageId || packageData.packageUUID}
+          </UUIDTypography>
+          <PackageReferences
+            references={references.length > 0 ? references : packageReferences}
+            serviceDict={serviceDict}
+          />
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip label={packageData.packageManager || "Manager"} variant="outlined" size="small" />
-          <UUIDTypography>{packageData.packageUUID || "UUID"}</UUIDTypography>
-        </Box>
-        <PackageReferences references={packageReferences} />
       </Box>
 
       {/* グローバルコントロール */}
