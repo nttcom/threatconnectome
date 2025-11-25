@@ -85,6 +85,84 @@ export const Default = {
           }
           return HttpResponse.json(null, { status: 404 });
         }),
+        http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
+          const url = new URL(request.url);
+          const vulnId = url.searchParams.get("vuln_id");
+
+          // Mock: CVE-2024-001 has 2 tickets, CVE-2024-002 has 1 ticket, others have 0
+          if (vulnId === "vuln-001") {
+            return HttpResponse.json([
+              {
+                ticket_id: "ticket-001",
+                vuln_id: vulnId,
+                dependency_id: packageId,
+                service_id: serviceId,
+                pteam_id: pteamId,
+                ssvc_deployer_priority: "immediate",
+                ticket_safety_impact: "catastrophic",
+                ticket_safety_impact_change_reason: "Critical vulnerability",
+                ticket_status: {
+                  status_id: "status-001",
+                  ticket_handling_status: "alerted",
+                  user_id: "user-001",
+                  created_at: "2025-11-25T16:51:50.032Z",
+                  updated_at: "2025-11-25T16:51:50.032Z",
+                  assignees: [],
+                  note: "Initial alert",
+                  scheduled_at: "2025-11-25T16:51:50.032Z",
+                  action_logs: [],
+                },
+              },
+              {
+                ticket_id: "ticket-002",
+                vuln_id: vulnId,
+                dependency_id: packageId,
+                service_id: serviceId,
+                pteam_id: pteamId,
+                ssvc_deployer_priority: "out_of_cycle",
+                ticket_safety_impact: "major",
+                ticket_safety_impact_change_reason: "Needs attention",
+                ticket_status: {
+                  status_id: "status-002",
+                  ticket_handling_status: "acknowledged",
+                  user_id: "user-002",
+                  created_at: "2025-11-26T10:00:00.032Z",
+                  updated_at: "2025-11-26T10:00:00.032Z",
+                  assignees: ["user-003"],
+                  note: "Under investigation",
+                  scheduled_at: null,
+                  action_logs: [],
+                },
+              },
+            ]);
+          } else if (vulnId === "vuln-002") {
+            return HttpResponse.json([
+              {
+                ticket_id: "ticket-003",
+                vuln_id: vulnId,
+                dependency_id: packageId,
+                service_id: serviceId,
+                pteam_id: pteamId,
+                ssvc_deployer_priority: "scheduled",
+                ticket_safety_impact: "minor",
+                ticket_safety_impact_change_reason: "Low priority",
+                ticket_status: {
+                  status_id: "status-003",
+                  ticket_handling_status: "scheduled",
+                  user_id: "user-001",
+                  created_at: "2025-11-20T08:00:00.032Z",
+                  updated_at: "2025-11-20T08:00:00.032Z",
+                  assignees: [],
+                  note: "Scheduled for next sprint",
+                  scheduled_at: "2025-12-01T00:00:00.032Z",
+                  action_logs: [],
+                },
+              },
+            ]);
+          }
+
+          return HttpResponse.json([]);
+        }),
       ],
     },
     router: {
@@ -144,6 +222,9 @@ export const EmptyState = {
         }),
         http.get(`*/vulns/*`, () => {
           return HttpResponse.json(null, { status: 404 });
+        }),
+        http.get(`*/pteams/${pteamId}/tickets`, () => {
+          return HttpResponse.json([]);
         }),
       ],
     },
@@ -227,12 +308,12 @@ export const WithPagination = {
         }),
         http.get(`*/vulns/:vulnId`, ({ params }) => {
           const vulnId = params.vulnId;
-          
+
           // Check if it's in mockVulnDetails
           if (mockVulnDetails[vulnId]) {
             return HttpResponse.json(mockVulnDetails[vulnId]);
           }
-          
+
           // Generate extra vulnerabilities dynamically
           if (vulnId.startsWith("vuln-extra-")) {
             const index = parseInt(vulnId.split("-").pop());
@@ -250,8 +331,38 @@ export const WithPagination = {
               created_by: "user-generated",
             });
           }
-          
+
           return HttpResponse.json(null, { status: 404 });
+        }),
+        http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
+          const url = new URL(request.url);
+          const vulnId = url.searchParams.get("vuln_id");
+
+          // Mock: Generate 1-3 tickets per vulnerability randomly
+          const numTickets = vulnId ? (vulnId.charCodeAt(vulnId.length - 1) % 3) + 1 : 0;
+          const tickets = Array.from({ length: numTickets }, (_, i) => ({
+            ticket_id: `ticket-${vulnId}-${i}`,
+            vuln_id: vulnId,
+            dependency_id: packageId,
+            service_id: serviceId,
+            pteam_id: pteamId,
+            ssvc_deployer_priority: ["immediate", "out_of_cycle", "scheduled", "defer"][i % 4],
+            ticket_safety_impact: ["catastrophic", "major", "minor", "negligible"][i % 4],
+            ticket_safety_impact_change_reason: `Ticket ${i + 1} for ${vulnId}`,
+            ticket_status: {
+              status_id: `status-${vulnId}-${i}`,
+              ticket_handling_status: ["alerted", "acknowledged", "scheduled"][i % 3],
+              user_id: `user-${i % 3}`,
+              created_at: "2025-11-25T16:51:50.032Z",
+              updated_at: "2025-11-25T16:51:50.032Z",
+              assignees: i === 0 ? ["user-001"] : [],
+              note: `Mock ticket ${i + 1}`,
+              scheduled_at: i === 2 ? "2025-12-01T00:00:00.032Z" : null,
+              action_logs: [],
+            },
+          }));
+
+          return HttpResponse.json(tickets);
         }),
       ],
     },
