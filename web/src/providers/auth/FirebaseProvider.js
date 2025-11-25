@@ -56,14 +56,8 @@ async function startSmsLoginFlow(auth, error) {
         session: resolver.session,
       };
 
-      //Todo: RecaptchaVerifier will be implemented later.
       const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
         size: "normal",
-        callback: (response) => {
-          // reCAPTCHA solved, you can proceed with
-          // phoneAuthProvider.verifyPhoneNumber(...).
-          console.log("success");
-        },
       });
 
       try {
@@ -210,17 +204,11 @@ export class FirebaseProvider extends AuthProvider {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
 
-    //Todo: RecaptchaVerifier will be implemented later.
     const recaptchaVerifier = new RecaptchaVerifier(
       auth,
       "recaptcha-container-visible-register-phone-number",
       {
         size: "normal",
-        callback: (response) => {
-          // reCAPTCHA solved, you can proceed with
-          // phoneAuthProvider.verifyPhoneNumber(...).
-          console.log("success");
-        },
       },
     );
 
@@ -266,14 +254,8 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
-    //Todo: RecaptchaVerifier will be implemented later.
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
       size: "invisible",
-      callback: (response) => {
-        // reCAPTCHA solved, you can proceed with
-        // phoneAuthProvider.verifyPhoneNumber(...).
-        console.log("success");
-      },
     });
 
     try {
