@@ -43,12 +43,15 @@ export const Default = {
   parameters: {
     msw: {
       handlers: [
+        // getPTeam
         http.get(`*/pteams/${pteamId}`, () => {
           return HttpResponse.json(mockPTeam);
         }),
+        // getDependencies
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json(mockDependencies);
         }),
+        // getPTeamVulnIdsTiedToServicePackage
         http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
           const url = new URL(request.url);
           const status = url.searchParams.get("related_ticket_status");
@@ -75,6 +78,7 @@ export const Default = {
             },
           });
         }),
+        // getVuln
         http.get(`*/vulns/:vulnId`, ({ params }) => {
           const vulnId = params.vulnId;
           const vulnDetail = mockVulnDetails[vulnId];
@@ -83,6 +87,7 @@ export const Default = {
           }
           return HttpResponse.json(null, { status: 404 });
         }),
+        // getPteamTickets
         http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
           const url = new URL(request.url);
           const vulnId = url.searchParams.get("vuln_id");
@@ -217,12 +222,15 @@ export const EmptyState = {
   parameters: {
     msw: {
       handlers: [
+        // getPTeam
         http.get(`*/pteams/${pteamId}`, () => {
           return HttpResponse.json(mockPTeam);
         }),
+        // getDependencies
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json([]);
         }),
+        // getPTeamVulnIdsTiedToServicePackage
         http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
           return HttpResponse.json({
             pteam_id: pteamId,
@@ -232,6 +240,7 @@ export const EmptyState = {
             vuln_ids: [],
           });
         }),
+        // getPTeamTicketCountsTiedToServicePackage
         http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
           const url = new URL(request.url);
           const status = url.searchParams.get("related_ticket_status");
@@ -248,9 +257,11 @@ export const EmptyState = {
             },
           });
         }),
+        // getVuln
         http.get(`*/vulns/*`, () => {
           return HttpResponse.json(null, { status: 404 });
         }),
+        // getPteamTickets
         http.get(`*/pteams/${pteamId}/tickets`, () => {
           return HttpResponse.json([]);
         }),
@@ -296,12 +307,15 @@ export const WithPagination = {
   parameters: {
     msw: {
       handlers: [
+        // getPTeam
         http.get(`*/pteams/${pteamId}`, () => {
           return HttpResponse.json(mockPTeam);
         }),
+        // getDependencies
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json(mockDependencies);
         }),
+        // getPTeamVulnIdsTiedToServicePackage
         http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
           const url = new URL(request.url);
           const status = url.searchParams.get("related_ticket_status");
@@ -334,6 +348,7 @@ export const WithPagination = {
             },
           });
         }),
+        // getVuln
         http.get(`*/vulns/:vulnId`, ({ params }) => {
           const vulnId = params.vulnId;
 
@@ -362,6 +377,7 @@ export const WithPagination = {
 
           return HttpResponse.json(null, { status: 404 });
         }),
+        // getPteamTickets
         http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
           const url = new URL(request.url);
           const vulnId = url.searchParams.get("vuln_id");
