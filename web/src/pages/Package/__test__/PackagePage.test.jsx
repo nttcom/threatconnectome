@@ -109,6 +109,27 @@ describe("PackagePage Component Unit Tests", () => {
     // expect(screen.getByText("CVE-2023-0003")).toBeInTheDocument();
   });
 
+  // --- テストケース: テーブルヘッダーの表示検証 ---
+  it("should display all column headers in the ticket table", async () => {
+    // API呼び出しが完了し、テーブルが表示されるのを待つ
+    await screen.findByText("react");
+
+    const columnHeaders = [
+      "Target",
+      "Package manager",
+      "Safety Impact",
+      "Status",
+      "Due date",
+      "Assignees",
+      "SSVC",
+    ];
+
+    columnHeaders.forEach((header) => {
+      // getAllByTextを使用して複数の要素を取得し、そのうちの少なくとも1つが存在することを確認
+      expect(screen.getAllByText(header)[0]).toBeInTheDocument();
+    });
+  });
+
   // --- テストケース 2: ダイアログ表示の検証 ---
   it("should open the dialog when the safety/impact select is clicked", async () => {
     // 1. CVE に紐づくセレクトボックスを取得し、クリック操作を行う
