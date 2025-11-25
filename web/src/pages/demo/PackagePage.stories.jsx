@@ -11,6 +11,8 @@ import {
   mockTabCounts,
   mockPTeam,
   mockDependencies,
+  mockVulnIdsUnsolved,
+  mockVulnIdsSolved,
 } from "./mockData";
 
 const pteamId = "pteam-abc-123";
@@ -47,6 +49,16 @@ export const Default = {
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json(mockDependencies);
         }),
+        http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
+          const url = new URL(request.url);
+          const status = url.searchParams.get("related_ticket_status");
+          if (status === "unsolved") {
+            return HttpResponse.json(mockVulnIdsUnsolved);
+          } else if (status === "solved") {
+            return HttpResponse.json(mockVulnIdsSolved);
+          }
+          return HttpResponse.json(mockVulnIdsUnsolved);
+        }),
       ],
     },
     router: {
@@ -78,6 +90,15 @@ export const EmptyState = {
         }),
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json([]);
+        }),
+        http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
+          return HttpResponse.json({
+            pteam_id: pteamId,
+            service_id: serviceId,
+            package_id: packageId,
+            related_ticket_status: "unsolved",
+            vuln_ids: [],
+          });
         }),
       ],
     },
@@ -126,6 +147,22 @@ export const WithPagination = {
         }),
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json(mockDependencies);
+        }),
+        http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
+          const url = new URL(request.url);
+          const status = url.searchParams.get("related_ticket_status");
+          if (status === "unsolved") {
+            return HttpResponse.json({
+              pteam_id: pteamId,
+              service_id: serviceId,
+              package_id: packageId,
+              related_ticket_status: "unsolved",
+              vuln_ids: manyVulnerabilities.map((v) => v.id),
+            });
+          } else if (status === "solved") {
+            return HttpResponse.json(mockVulnIdsSolved);
+          }
+          return HttpResponse.json(mockVulnIdsUnsolved);
         }),
       ],
     },
