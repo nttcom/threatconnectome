@@ -30,7 +30,7 @@ export function TwoFactorAuth(props) {
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
   useEffect(() => {
-    if (!canResend && timer > 0) {
+    if (!canResend) {
       let interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
