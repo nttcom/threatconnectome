@@ -1,6 +1,5 @@
 import { http, HttpResponse } from "msw";
 
-import PackagePage from "./PackagePage";
 import {
   mockVulnerabilities,
   mockMembers,
@@ -13,7 +12,9 @@ import {
   mockDependencies,
   mockVulnIdsUnsolved,
   mockVulnIdsSolved,
-} from "./mockData";
+} from "../mockData";
+
+import PackagePage from "./PackagePage";
 
 const pteamId = "pteam-abc-123";
 const serviceId = "service-a";
