@@ -4,6 +4,7 @@ import { grey } from "@mui/material/colors";
 import { useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
+import { TabPanel } from "../../../components/TabPanel";
 import { UUIDTypography } from "../../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
@@ -11,6 +12,7 @@ import {
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
 } from "../../../services/tcApi";
+import { a11yProps } from "../../../utils/func";
 import { PackageReferences } from "../../Package/PackageReferences";
 import VulnerabilitySplitDialog from "../VulnerabilitySplitDialog";
 
@@ -190,24 +192,29 @@ export default function PackagePage({
         }}
       >
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label={`Unsolved vulns (${numUnsolved || 0})`} />
-          <Tab label={`Solved vulns (${numSolved || 0})`} />
+          <Tab label={`Unsolved vulns (${numUnsolved || 0})`} {...a11yProps(0)} />
+          <Tab label={`Solved vulns (${numSolved || 0})`} {...a11yProps(1)} />
         </Tabs>
       </Box>
 
-      <VulnerabilityTable
-        vulnerabilities={vulnerabilities}
-        ssvcCounts={ssvcCounts}
-        defaultSafetyImpact={defaultSafetyImpact}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        onPageChange={setPage}
-        onRowsPerPageChange={(newRowsPerPage) => {
-          setRowsPerPage(newRowsPerPage);
-          setPage(0);
-        }}
-        onRowClick={handleRowClick}
-      />
+      <TabPanel value={tabValue} index={0}>
+        <VulnerabilityTable
+          vulnerabilities={vulnerabilities}
+          ssvcCounts={ssvcCounts}
+          defaultSafetyImpact={defaultSafetyImpact}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newRowsPerPage) => {
+            setRowsPerPage(newRowsPerPage);
+            setPage(0);
+          }}
+          onRowClick={handleRowClick}
+        />
+      </TabPanel>
+      <TabPanel value={tabValue} index={1}>
+        Solved vulns table
+      </TabPanel>
 
       {/* ダイアログ */}
       {/* {selectedVuln && (
