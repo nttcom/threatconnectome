@@ -215,8 +215,8 @@ export function Login() {
             >
               Log In with Email
             </Button>
+            <div id="recaptcha-container-visible-login"></div>
           </Box>
-          <div id="recaptcha-container-visible-login"></div>
           {/* show saml login button if samlProviderId is set as env */}
           {Firebase.getSamlProvider() != null && (
             <>
