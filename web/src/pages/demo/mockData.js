@@ -131,8 +131,8 @@ export const mockPTeam = {
   pteam_id: "pteam-sample-id-for-storybook",
   pteam_name: "Storybook PTeam",
   services: [
-    { service_id: "service-a", service_name: "Service Alpha" },
-    { service_id: "service-b", service_name: "Service Bravo" },
+    { service_id: "service-a", service_name: "Service Alpha", service_safety_impact: "Medium" },
+    { service_id: "service-b", service_name: "Service Bravo", service_safety_impact: "High" },
   ],
 };
 
