@@ -23,11 +23,7 @@ import VulnerabilityTable from "./VulnerabilityTable";
 
 // ------------------------------------------------------------------
 
-export default function PackagePage({
-  packageData = {},
-  packageReferences = [],
-  defaultSafetyImpact = "Not Set",
-}) {
+export default function PackagePage({ packageData = {}, packageReferences = [] }) {
   const [selectedVuln, setSelectedVuln] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -100,6 +96,7 @@ export default function PackagePage({
   );
 
   const serviceDict = pteam?.services?.find((service) => service.service_id === serviceId);
+  console.log("serviceDict:", serviceDict);
   const references =
     serviceDependencies?.map((dependency) => ({
       dependencyId: dependency.dependency_id,
@@ -208,7 +205,7 @@ export default function PackagePage({
       <TabPanel value={tabValue} index={0}>
         <VulnerabilityTable
           vulnIds={vulnIdsUnSolved?.vuln_ids || []}
-          defaultSafetyImpact={defaultSafetyImpact}
+          defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
           page={page}
           rowsPerPage={rowsPerPage}
           ticketCounts={ticketCountsUnsolved?.ssvc_priority_count || {}}
@@ -223,7 +220,7 @@ export default function PackagePage({
       <TabPanel value={tabValue} index={1}>
         <VulnerabilityTable
           vulnIds={vulnIdsSolved?.vuln_ids || []}
-          defaultSafetyImpact={defaultSafetyImpact}
+          defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
           page={page}
           rowsPerPage={rowsPerPage}
           ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
