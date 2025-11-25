@@ -184,3 +184,49 @@ export const mockVulnIdsSolved = {
   related_ticket_status: "solved",
   vuln_ids: ["vuln-003"],
 };
+
+// --- Vuln Details Map (API Response Format) ---
+export const mockVulnDetails = {
+  "vuln-001": {
+    title: "setuptools: Path Traversal Vulnerability",
+    cve_id: "CVE-2023-12345",
+    detail:
+      "A path traversal vulnerability in setuptools allows an attacker to access arbitrary files on the filesystem by crafting a malicious package.",
+    exploitation: "active",
+    automatable: "yes",
+    cvss_v3_score: 7.5,
+    vulnerable_packages: [],
+    vuln_id: "vuln-001",
+    created_at: "2025-10-01T00:00:00Z",
+    updated_at: "2025-10-21T00:00:00Z",
+    created_by: "user-001",
+  },
+  "vuln-002": {
+    title: "pypa/setuptools: Remote code execution",
+    cve_id: "CVE-2022-54321",
+    detail:
+      "A critical RCE vulnerability exists in the pypa/setuptools library, allowing unauthenticated attackers to execute arbitrary code.",
+    exploitation: "active",
+    automatable: "yes",
+    cvss_v3_score: 9.8,
+    vulnerable_packages: [],
+    vuln_id: "vuln-002",
+    created_at: "2025-09-15T00:00:00Z",
+    updated_at: "2025-10-20T00:00:00Z",
+    created_by: "user-002",
+  },
+  "vuln-003": {
+    title: "Log4j: Remote Code Execution (Log4Shell)",
+    cve_id: "CVE-2021-44228",
+    detail:
+      "Apache Log4j2 <=2.14.1 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints.",
+    exploitation: "active",
+    automatable: "yes",
+    cvss_v3_score: 10.0,
+    vulnerable_packages: [],
+    vuln_id: "vuln-003",
+    created_at: "2025-08-01T00:00:00Z",
+    updated_at: "2025-10-19T00:00:00Z",
+    created_by: "user-003",
+  },
+};
