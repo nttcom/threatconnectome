@@ -22,7 +22,7 @@ import {
   useGetVulnActionsQuery,
   useGetVulnQuery,
 } from "../../../services/tcApi";
-import { fireEvent, render, screen, waitFor } from "../../../utils/__tests__/test-utils";
+import { fireEvent, render, screen, waitFor, within } from "../../../utils/__tests__/test-utils";
 import { Package } from "../PackagePage";
 
 import { setupApiMocks } from "./apiMocks";
@@ -197,4 +197,23 @@ describe("PackagePage Component Unit Tests", () => {
       });
     },
   );
+
+  // --- テストケース: ドロワー表示の検証 ---
+  it("should open the drawer when a details button is clicked", async () => {
+    // 1. "Details" ボタンが表示されるまで待機
+    const detailsButtons = await screen.findAllByRole("button", { name: "Details" });
+    expect(detailsButtons[0]).toBeInTheDocument();
+
+    // 2. 最初の "Details" ボタンをクリック
+    await userEvent.click(detailsButtons[0]);
+
+    // 3. ドロワーが表示され、その中に動的に生成された脆弱性タイトルが含まれていることを検証
+    const drawer = await screen.findByRole("presentation");
+    expect(drawer).toBeInTheDocument();
+
+    // within を使ってドロワーのコンテキスト内でテキストを検索
+    // "Vulnerability" という文字列が含まれているか確認
+    const title = await within(drawer).findByText(/Vulnerability/);
+    expect(title).toBeInTheDocument();
+  });
 });
