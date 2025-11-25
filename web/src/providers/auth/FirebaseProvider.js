@@ -56,12 +56,15 @@ async function startSmsLoginFlow(auth, error) {
         session: resolver.session,
       };
 
-      //Todo: RecaptchaVerifier will be implemented later.
       const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
-        size: "normal",
+        size: "compact",
         "expired-callback": () => {
           const now = new Date();
           console.log("reCAPTCHA expired. Please refresh and try again." + now);
+        },
+        "error-callback": () => {
+          const now = new Date();
+          console.log("reCAPTCHA error. Please refresh and try again." + now);
         },
       });
 
@@ -209,7 +212,6 @@ export class FirebaseProvider extends AuthProvider {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
 
-    //Todo: RecaptchaVerifier will be implemented later.
     const recaptchaVerifier = new RecaptchaVerifier(
       auth,
       "recaptcha-container-visible-register-phone-number",
