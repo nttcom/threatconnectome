@@ -60,6 +60,22 @@ export const Default = {
           }
           return HttpResponse.json(mockVulnIdsUnsolved);
         }),
+        http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
+          const url = new URL(request.url);
+          const status = url.searchParams.get("related_ticket_status");
+          return HttpResponse.json({
+            pteam_id: pteamId,
+            service_id: serviceId,
+            package_id: packageId,
+            related_ticket_status: status || "unsolved",
+            ssvc_priority_count: {
+              immediate: 2,
+              out_of_cycle: 3,
+              scheduled: 5,
+              defer: 1,
+            },
+          });
+        }),
       ],
     },
     router: {
@@ -99,6 +115,22 @@ export const EmptyState = {
             package_id: packageId,
             related_ticket_status: "unsolved",
             vuln_ids: [],
+          });
+        }),
+        http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
+          const url = new URL(request.url);
+          const status = url.searchParams.get("related_ticket_status");
+          return HttpResponse.json({
+            pteam_id: pteamId,
+            service_id: serviceId,
+            package_id: packageId,
+            related_ticket_status: status || "unsolved",
+            ssvc_priority_count: {
+              immediate: 0,
+              out_of_cycle: 0,
+              scheduled: 0,
+              defer: 0,
+            },
           });
         }),
       ],
@@ -164,6 +196,22 @@ export const WithPagination = {
             return HttpResponse.json(mockVulnIdsSolved);
           }
           return HttpResponse.json(mockVulnIdsUnsolved);
+        }),
+        http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
+          const url = new URL(request.url);
+          const status = url.searchParams.get("related_ticket_status");
+          return HttpResponse.json({
+            pteam_id: pteamId,
+            service_id: serviceId,
+            package_id: packageId,
+            related_ticket_status: status || "unsolved",
+            ssvc_priority_count: {
+              immediate: 5,
+              out_of_cycle: 8,
+              scheduled: 10,
+              defer: 3,
+            },
+          });
         }),
       ],
     },
