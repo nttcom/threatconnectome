@@ -12,6 +12,7 @@ import {
   mockDependencies,
   mockVulnIdsUnsolved,
   mockVulnIdsSolved,
+  mockVulnDetails,
 } from "../mockData";
 
 import PackagePage from "./PackagePage";
@@ -76,6 +77,14 @@ export const Default = {
             },
           });
         }),
+        http.get(`*/vulns/:vulnId`, ({ params }) => {
+          const vulnId = params.vulnId;
+          const vulnDetail = mockVulnDetails[vulnId];
+          if (vulnDetail) {
+            return HttpResponse.json(vulnDetail);
+          }
+          return HttpResponse.json(null, { status: 404 });
+        }),
       ],
     },
     router: {
@@ -132,6 +141,9 @@ export const EmptyState = {
               defer: 0,
             },
           });
+        }),
+        http.get(`*/vulns/*`, () => {
+          return HttpResponse.json(null, { status: 404 });
         }),
       ],
     },
@@ -212,6 +224,34 @@ export const WithPagination = {
               defer: 3,
             },
           });
+        }),
+        http.get(`*/vulns/:vulnId`, ({ params }) => {
+          const vulnId = params.vulnId;
+          
+          // Check if it's in mockVulnDetails
+          if (mockVulnDetails[vulnId]) {
+            return HttpResponse.json(mockVulnDetails[vulnId]);
+          }
+          
+          // Generate extra vulnerabilities dynamically
+          if (vulnId.startsWith("vuln-extra-")) {
+            const index = parseInt(vulnId.split("-").pop());
+            return HttpResponse.json({
+              title: `Additional Vulnerability ${index + 1}`,
+              cve_id: `CVE-2025-EXTRA-${index}`,
+              detail: "This is a generated description for testing pagination.",
+              exploitation: "poc",
+              automatable: "no",
+              cvss_v3_score: 5.0 + (index % 5),
+              vulnerable_packages: [],
+              vuln_id: vulnId,
+              created_at: "2025-08-01T00:00:00Z",
+              updated_at: "2025-09-01T00:00:00Z",
+              created_by: "user-generated",
+            });
+          }
+          
+          return HttpResponse.json(null, { status: 404 });
         }),
       ],
     },
