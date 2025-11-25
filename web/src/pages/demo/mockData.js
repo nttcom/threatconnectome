@@ -195,7 +195,14 @@ export const mockVulnDetails = {
     exploitation: "active",
     automatable: "yes",
     cvss_v3_score: 7.5,
-    vulnerable_packages: [],
+    vulnerable_packages: [
+      {
+        ecosystem: "npm",
+        affected_name: "setuptools",
+        affected_versions: ["1.2.0", "1.1.9"],
+        fixed_versions: ["1.2.1"],
+      },
+    ],
     vuln_id: "vuln-001",
     created_at: "2025-10-01T00:00:00Z",
     updated_at: "2025-10-21T00:00:00Z",
@@ -209,7 +216,14 @@ export const mockVulnDetails = {
     exploitation: "active",
     automatable: "yes",
     cvss_v3_score: 9.8,
-    vulnerable_packages: [],
+    vulnerable_packages: [
+      {
+        ecosystem: "npm",
+        affected_name: "setuptools",
+        affected_versions: ["2.0.0", "1.9.9"],
+        fixed_versions: ["2.1.0"],
+      },
+    ],
     vuln_id: "vuln-002",
     created_at: "2025-09-15T00:00:00Z",
     updated_at: "2025-10-20T00:00:00Z",
@@ -223,7 +237,14 @@ export const mockVulnDetails = {
     exploitation: "active",
     automatable: "yes",
     cvss_v3_score: 10.0,
-    vulnerable_packages: [],
+    vulnerable_packages: [
+      {
+        ecosystem: "npm",
+        affected_name: "log4j",
+        affected_versions: ["2.14.1", "2.14.0"],
+        fixed_versions: ["2.15.0", "2.16.0"],
+      },
+    ],
     vuln_id: "vuln-003",
     created_at: "2025-08-01T00:00:00Z",
     updated_at: "2025-10-19T00:00:00Z",
