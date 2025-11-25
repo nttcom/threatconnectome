@@ -10,6 +10,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
   useGetDependenciesQuery,
   useGetPTeamQuery,
+  useGetPTeamTicketCountsTiedToServicePackageQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
 } from "../../../services/tcApi";
 import { a11yProps } from "../../../utils/func";
@@ -26,12 +27,7 @@ export default function PackagePage({
   packageData = {},
   packageReferences = [],
   defaultSafetyImpact = "Not Set",
-  ssvcCounts = {},
-  initialVulnerabilities = [],
-  members = [],
-  serviceId = "service-id-from-props",
 }) {
-  const [vulnerabilities, setVulnerabilities] = useState(initialVulnerabilities);
   const [selectedVuln, setSelectedVuln] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -39,11 +35,6 @@ export default function PackagePage({
 
   const handleRowClick = (vulnerability) => setSelectedVuln(vulnerability);
   const handleCloseDialog = () => setSelectedVuln(null);
-  const handleSaveChanges = (updatedVulnerability) => {
-    setVulnerabilities((current) =>
-      current.map((v) => (v.id === updatedVulnerability.id ? updatedVulnerability : v)),
-    );
-  };
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
   const theme = useTheme();
@@ -53,6 +44,7 @@ export default function PackagePage({
 
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
+  const serviceId = params.get("serviceId");
   const getPTeamReady = !skipByAuth && pteamId;
   const { packageId } = useParams();
   const getDependenciesReady = !skipByAuth && pteamId && serviceId;
@@ -88,6 +80,14 @@ export default function PackagePage({
     isLoading: vulnIdsSolvedIsLoading,
   } = useGetPTeamVulnIdsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    { skip: !getVulnIdsReady },
+  );
+  const {
+    data: ticketCountsUnSolved,
+    error: ticketCountsUnSolvedError,
+    isLoading: ticketCountsUnSolvedIsLoading,
+  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
     { skip: !getVulnIdsReady },
   );
 
@@ -199,11 +199,11 @@ export default function PackagePage({
 
       <TabPanel value={tabValue} index={0}>
         <VulnerabilityTable
-          vulnerabilities={vulnerabilities}
-          ssvcCounts={ssvcCounts}
+          vulnIds={vulnIdsUnSolved?.vuln_ids || []}
           defaultSafetyImpact={defaultSafetyImpact}
           page={page}
           rowsPerPage={rowsPerPage}
+          ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
           onPageChange={setPage}
           onRowsPerPageChange={(newRowsPerPage) => {
             setRowsPerPage(newRowsPerPage);
