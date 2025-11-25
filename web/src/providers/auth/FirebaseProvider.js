@@ -71,6 +71,8 @@ async function startSmsLoginFlow(auth, error) {
           console.log("reCAPTCHA error. Please refresh and try again. " + now);
         },
       });
+      var widgetId = recaptchaVerifier.render();
+      grecaptcha.reset(widgetId);
 
       try {
         const phoneAuthProvider = new PhoneAuthProvider(auth);
