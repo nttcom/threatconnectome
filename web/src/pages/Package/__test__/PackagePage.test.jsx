@@ -121,6 +121,21 @@ describe("PackagePage Component Unit Tests", () => {
     expect(dialog).toBeInTheDocument();
   });
 
+  // --- テストケース: ツールチップ表示の検証 ---
+  it("should display a tooltip on hover when a reason is available", async () => {
+    // 1. ツールチップを表示するアイコンが表示されるまで待機
+    const infoIcons = await screen.findAllByTestId("info-icon-ticket-for-CVE-2023-0002");
+    expect(infoIcons[0]).toBeInTheDocument();
+
+    // 2. アイコンにマウスをホバー
+    await userEvent.hover(infoIcons[0]);
+
+    // 3. ツールチップが表示され、期待されるテキストが含まれていることを検証
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toBeInTheDocument();
+    expect(screen.getByText("Why was it changed from the default safety impact?")).toBeInTheDocument();
+  });
+
   // --- パラメータ化テスト: 全選択肢で保存API呼び出し検証（分離ファイルからインポート） ---
   const options = ["Catastrophic", "Critical", "Marginal", "Negligible"];
   describe.each(options)("ダイアログで '%s' を選択した場合", (option) => {

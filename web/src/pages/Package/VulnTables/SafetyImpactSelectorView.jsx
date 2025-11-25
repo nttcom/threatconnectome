@@ -156,7 +156,11 @@ export function SafetyImpactSelectorView(props) {
       {fixedTicketSafetyImpactChangeReason !== null && (
         <StyledTooltip arrow title={tooltipContent}>
           <IconButton size="small">
-            <InfoOutlinedIcon color="primary" fontSize="small" />
+            <InfoOutlinedIcon
+              color="primary"
+              fontSize="small"
+              data-testid={`info-icon-${testId}`}
+            />
           </IconButton>
         </StyledTooltip>
       )}
