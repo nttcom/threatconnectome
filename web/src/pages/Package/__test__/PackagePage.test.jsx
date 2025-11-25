@@ -133,7 +133,9 @@ describe("PackagePage Component Unit Tests", () => {
     // 3. ツールチップが表示され、期待されるテキストが含まれていることを検証
     const tooltip = await screen.findByRole("tooltip");
     expect(tooltip).toBeInTheDocument();
-    expect(screen.getByText("Why was it changed from the default safety impact?")).toBeInTheDocument();
+    expect(
+      screen.getByText("Why was it changed from the default safety impact?"),
+    ).toBeInTheDocument();
   });
 
   // --- パラメータ化テスト: 全選択肢で保存API呼び出し検証（分離ファイルからインポート） ---
