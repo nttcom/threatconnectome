@@ -57,7 +57,7 @@ async function startSmsLoginFlow(auth, error) {
       };
 
       const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
-        size: "compact",
+        size: "normal",
         "expired-callback": () => {
           const now = new Date();
           console.log("reCAPTCHA expired. Please refresh and try again." + now);
