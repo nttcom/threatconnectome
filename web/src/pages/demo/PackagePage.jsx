@@ -24,7 +24,11 @@ import { useLocation, useParams } from "react-router-dom";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetDependenciesQuery, useGetPTeamQuery } from "../../services/tcApi";
+import {
+  useGetDependenciesQuery,
+  useGetPTeamQuery,
+  useGetPTeamVulnIdsTiedToServicePackageQuery,
+} from "../../services/tcApi";
 import { PackageReferences } from "../Package/PackageReferences";
 
 import VulnerabilitySplitDialog from "./VulnerabilitySplitDialog";
@@ -50,7 +54,6 @@ export default function PackagePage({
   packageReferences = [],
   defaultSafetyImpact = "Not Set",
   ssvcCounts = {},
-  tabCounts = {},
   initialVulnerabilities = [],
   members = [],
   serviceId = "service-id-from-props",
@@ -83,6 +86,8 @@ export default function PackagePage({
 
   const offset = 0;
   const limit = 1000;
+  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
+
   const {
     data: pteam,
     error: pteamError,
@@ -95,6 +100,22 @@ export default function PackagePage({
   } = useGetDependenciesQuery(
     { pteamId, serviceId, packageId, offset, limit },
     { skip: !getDependenciesReady },
+  );
+  const {
+    data: vulnIdsUnSolved,
+    error: vulnIdsUnSolvedError,
+    isLoading: vulnIdsUnSolvedIsLoading,
+  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { skip: !getVulnIdsReady },
+  );
+  const {
+    data: vulnIdsSolved,
+    error: vulnIdsSolvedError,
+    isLoading: vulnIdsSolvedIsLoading,
+  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    { skip: !getVulnIdsReady },
   );
 
   const serviceDict = pteam?.services?.find((service) => service.service_id === serviceId);
@@ -119,6 +140,9 @@ export default function PackagePage({
   };
 
   const firstPackageDependency = serviceDependencies?.[0] || packageData;
+
+  const numUnsolved = vulnIdsUnSolved?.vuln_ids?.length ?? 0;
+  const numSolved = vulnIdsSolved?.vuln_ids?.length ?? 0;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -195,8 +219,8 @@ export default function PackagePage({
         }}
       >
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label={`Unsolved (${tabCounts.unsolved || 0})`} />
-          <Tab label={`Solved (${tabCounts.solved || 0})`} />
+          <Tab label={`Unsolved vulns (${numUnsolved || 0})`} />
+          <Tab label={`Solved vulns (${numSolved || 0})`} />
         </Tabs>
       </Box>
 

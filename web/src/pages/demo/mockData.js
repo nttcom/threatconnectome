@@ -166,3 +166,21 @@ export const mockDependencies = [
     vuln_matching_ecosystem: "npm",
   },
 ];
+
+// --- Vuln IDs (Unsolved) ---
+export const mockVulnIdsUnsolved = {
+  pteam_id: "pteam-abc-123",
+  service_id: "service-a",
+  package_id: "pkg-uuid-456",
+  related_ticket_status: "unsolved",
+  vuln_ids: ["vuln-001", "vuln-002"],
+};
+
+// --- Vuln IDs (Solved) ---
+export const mockVulnIdsSolved = {
+  pteam_id: "pteam-abc-123",
+  service_id: "service-a",
+  package_id: "pkg-uuid-456",
+  related_ticket_status: "solved",
+  vuln_ids: ["vuln-003"],
+};
