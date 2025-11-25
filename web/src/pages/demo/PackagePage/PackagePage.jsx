@@ -15,22 +15,14 @@ import {
 } from "../../../services/tcApi";
 import { a11yProps } from "../../../utils/func";
 import { PackageReferences } from "../../Package/PackageReferences";
-import VulnerabilitySplitDialog from "../VulnerabilitySplitDialog";
 
 import VulnerabilityTable from "./VulnerabilityTable";
 
-// import VulnerabilityDialog from "./VulnerabilityDialog";
-
-// ------------------------------------------------------------------
-
-export default function PackagePage({ packageData = {}, packageReferences = [] }) {
-  const [selectedVuln, setSelectedVuln] = useState(null);
+export default function PackagePage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabValue, setTabValue] = useState(0);
 
-  const handleRowClick = (vulnerability) => setSelectedVuln(vulnerability);
-  const handleCloseDialog = () => setSelectedVuln(null);
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
   const theme = useTheme();
@@ -117,7 +109,7 @@ export default function PackagePage({ packageData = {}, packageReferences = [] }
     if (!isMdUp) setOpen(false);
   };
 
-  const firstPackageDependency = serviceDependencies?.[0] || packageData;
+  const firstPackageDependency = serviceDependencies?.[0] || {};
 
   const numUnsolved = vulnIdsUnSolved?.vuln_ids?.length ?? 0;
   const numSolved = vulnIdsSolved?.vuln_ids?.length ?? 0;
@@ -169,18 +161,13 @@ export default function PackagePage({ packageData = {}, packageReferences = [] }
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {firstPackageDependency?.package_name || packageData.packageName || "Package"}
+              {firstPackageDependency?.package_name || "Package"}
             </Typography>
-            <Chip
-              label={firstPackageDependency?.package_ecosystem || packageData.ecosystem || "N/A"}
-              sx={{ ml: 1 }}
-            />
+            <Chip label={firstPackageDependency?.package_ecosystem || "N/A"} sx={{ ml: 1 }} />
           </Box>
-          <UUIDTypography sx={{ mr: 2, mb: 1 }}>
-            {packageId || packageData.packageUUID}
-          </UUIDTypography>
+          <UUIDTypography sx={{ mr: 2, mb: 1 }}>{packageId || ""}</UUIDTypography>
           <PackageReferences
-            references={references.length > 0 ? references : packageReferences}
+            references={references.length > 0 ? references : []}
             serviceDict={serviceDict}
           />
         </Box>
@@ -214,7 +201,6 @@ export default function PackagePage({ packageData = {}, packageReferences = [] }
             setRowsPerPage(newRowsPerPage);
             setPage(0);
           }}
-          onRowClick={handleRowClick}
         />
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
@@ -229,22 +215,8 @@ export default function PackagePage({ packageData = {}, packageReferences = [] }
             setRowsPerPage(newRowsPerPage);
             setPage(0);
           }}
-          onRowClick={handleRowClick}
         />
       </TabPanel>
-
-      {/* ダイアログ */}
-      {/* {selectedVuln && (
-        <VulnerabilityDialog
-          open={!!selectedVuln}
-          onClose={handleCloseDialog}
-          vulnerability={selectedVuln}
-          members={members}
-          onSave={handleSaveChanges}
-        />
-      )} */}
-
-      <VulnerabilitySplitDialog open={!!selectedVuln} onClose={handleCloseDialog} />
     </Box>
   );
 }

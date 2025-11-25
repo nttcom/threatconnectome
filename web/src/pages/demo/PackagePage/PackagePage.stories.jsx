@@ -7,7 +7,6 @@ import {
   mockPackageReferences,
   mockDefaultSafetyImpact,
   mockSsvcCounts,
-  mockTabCounts,
   mockPTeam,
   mockDependencies,
   mockVulnIdsUnsolved,
@@ -30,16 +29,6 @@ export default {
 };
 
 export const Default = {
-  args: {
-    packageData: mockPackageData,
-    packageReferences: mockPackageReferences,
-    defaultSafetyImpact: mockDefaultSafetyImpact,
-    ssvcCounts: mockSsvcCounts,
-    tabCounts: mockTabCounts,
-    initialVulnerabilities: mockVulnerabilities,
-    members: mockMembers,
-    serviceId: serviceId,
-  },
   parameters: {
     msw: {
       handlers: [
