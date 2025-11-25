@@ -234,9 +234,9 @@ export const Default = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
       },
-      path: "/package/:packageId",
+      path: "/packages/:packageId",
       useRoutes: true,
     },
   },
@@ -261,9 +261,9 @@ export const Loading = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
       },
-      path: "/package/:packageId",
+      path: "/packages/:packageId",
       useRoutes: true,
     },
   },
@@ -273,9 +273,9 @@ export const NoPTeamId = {
   parameters: {
     router: {
       memoryRouterProps: {
-        initialEntries: [`/package/${packageId}?serviceId=${serviceId}`],
+        initialEntries: [`/packages/${packageId}?serviceId=${serviceId}`],
       },
-      path: "/package/:packageId",
+      path: "/packages/:packageId",
       useRoutes: true,
     },
   },
@@ -306,9 +306,9 @@ export const NoVulnerabilities = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/package/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
       },
-      path: "/package/:packageId",
+      path: "/packages/:packageId",
       useRoutes: true,
     },
   },

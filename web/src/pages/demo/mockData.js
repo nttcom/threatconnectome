@@ -98,25 +98,71 @@ export const mockVulnerabilities = [
 export const mockMembers = [
   { id: "user1", name: "Taro Yamada" },
   { id: "user2", name: "Hanako Suzuki" },
-  { id: "user3", name: "Jiro Sato" },
-  { id: "user4", name: "Sachiko Tanaka" },
+  { id: "user3", name: "John Doe" },
 ];
 
 export const mockPackageData = {
-  serviceName: "Monolith Service",
-  packageName: "log4j-core",
-  packageManager: "Maven",
-  packageUUID: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+  serviceName: "Frontend WebApp",
+  packageName: "react",
+  packageManager: "npm",
+  packageUUID: "pkg:npm/react@18.2.0",
 };
 
 export const mockPackageReferences = [
-  { target: "webapp/pom.xml", version: "2.14.1", service: "Frontend Service" },
-  { target: "backend-api/pom.xml", version: "2.14.1", service: "Backend API" },
-  { target: "notification-batch/pom.xml", version: "2.13.0", service: "Notification Batch" },
+  { target: "webapp-main", version: "1.2.3", service: "Service A" },
+  { target: "webapp-sub", version: "4.5.6", service: "Service B" },
 ];
 
-export const mockDefaultSafetyImpact = "Medium";
+export const mockDefaultSafetyImpact = "High";
 
-export const mockSsvcCounts = { immediate: 2, "out-of-cycle": 1, scheduled: 1, defer: 0 };
+export const mockSsvcCounts = {
+  immediate: 1,
+  "out-of-cycle": 2,
+  scheduled: 5,
+  defer: 3,
+};
 
-export const mockTabCounts = { unsolved: 4, solved: 42 };
+export const mockTabCounts = {
+  unsolved: 11,
+  solved: 42,
+};
+
+export const mockPTeam = {
+  pteam_id: "pteam-sample-id-for-storybook",
+  pteam_name: "Storybook PTeam",
+  services: [
+    { service_id: "service-a", service_name: "Service Alpha" },
+    { service_id: "service-b", service_name: "Service Bravo" },
+  ],
+};
+
+export const mockDependencies = [
+  {
+    dependency_id: "dep-001",
+    service_id: "service-a",
+    package_version_id: "pkg-ver-001",
+    package_id: "pkg-uuid-456",
+    package_manager: "npm",
+    target: "webapp-main",
+    dependency_mission_impact: "High",
+    package_name: "setuptools",
+    package_source_name: "npmjs",
+    package_version: "1.2.3",
+    package_ecosystem: "npm",
+    vuln_matching_ecosystem: "npm",
+  },
+  {
+    dependency_id: "dep-002",
+    service_id: "service-b",
+    package_version_id: "pkg-ver-002",
+    package_id: "pkg-uuid-456",
+    package_manager: "npm",
+    target: "webapp-sub",
+    dependency_mission_impact: "Medium",
+    package_name: "setuptools",
+    package_source_name: "npmjs",
+    package_version: "4.5.6",
+    package_ecosystem: "npm",
+    vuln_matching_ecosystem: "npm",
+  },
+];
