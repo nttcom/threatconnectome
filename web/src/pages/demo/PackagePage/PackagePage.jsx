@@ -83,11 +83,19 @@ export default function PackagePage({
     { skip: !getVulnIdsReady },
   );
   const {
-    data: ticketCountsUnSolved,
-    error: ticketCountsUnSolvedError,
-    isLoading: ticketCountsUnSolvedIsLoading,
+    data: ticketCountsUnsolved,
+    error: ticketCountsUnsolvedError,
+    isLoading: ticketCountsUnsolvedIsLoading,
   } = useGetPTeamTicketCountsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { skip: !getVulnIdsReady },
+  );
+  const {
+    data: ticketCountsSolved,
+    error: ticketCountsSolvedError,
+    isLoading: ticketCountsSolvedIsLoading,
+  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
     { skip: !getVulnIdsReady },
   );
 
@@ -203,7 +211,7 @@ export default function PackagePage({
           defaultSafetyImpact={defaultSafetyImpact}
           page={page}
           rowsPerPage={rowsPerPage}
-          ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
+          ticketCounts={ticketCountsUnsolved?.ssvc_priority_count || {}}
           onPageChange={setPage}
           onRowsPerPageChange={(newRowsPerPage) => {
             setRowsPerPage(newRowsPerPage);
@@ -213,7 +221,19 @@ export default function PackagePage({
         />
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
-        Solved vulns table
+        <VulnerabilityTable
+          vulnIds={vulnIdsSolved?.vuln_ids || []}
+          defaultSafetyImpact={defaultSafetyImpact}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newRowsPerPage) => {
+            setRowsPerPage(newRowsPerPage);
+            setPage(0);
+          }}
+          onRowClick={handleRowClick}
+        />
       </TabPanel>
 
       {/* ダイアログ */}

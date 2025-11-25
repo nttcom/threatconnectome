@@ -29,8 +29,6 @@ export default {
   },
 };
 
-// const Template = (args) => <PackagePage {...args} />;
-
 export const Default = {
   args: {
     packageData: mockPackageData,
@@ -89,7 +87,13 @@ export const Default = {
           const url = new URL(request.url);
           const vulnId = url.searchParams.get("vuln_id");
 
-          // Mock: CVE-2024-001 has 2 tickets, CVE-2024-002 has 1 ticket, others have 0
+          // Note: In real API, tickets are filtered by vuln_ids from /vuln_ids endpoint
+          // which already filters by related_ticket_status (solved/unsolved)
+          // So we return all tickets for the vulnerability here
+
+          // Mock: vuln-001 has 2 tickets (1 unsolved: alerted, 1 solved: completed)
+          // Mock: vuln-002 has 1 ticket (1 solved: completed)
+          // Mock: vuln-003 has 1 ticket (1 solved: completed)
           if (vulnId === "vuln-001") {
             return HttpResponse.json([
               {
@@ -124,7 +128,7 @@ export const Default = {
                 ticket_safety_impact_change_reason: "Needs attention",
                 ticket_status: {
                   status_id: "status-002",
-                  ticket_handling_status: "acknowledged",
+                  ticket_handling_status: "completed",
                   user_id: "user-002",
                   created_at: "2025-11-26T10:00:00.032Z",
                   updated_at: "2025-11-26T10:00:00.032Z",
@@ -148,13 +152,37 @@ export const Default = {
                 ticket_safety_impact_change_reason: "Low priority",
                 ticket_status: {
                   status_id: "status-003",
-                  ticket_handling_status: "scheduled",
+                  ticket_handling_status: "completed",
                   user_id: "user-001",
                   created_at: "2025-11-20T08:00:00.032Z",
                   updated_at: "2025-11-20T08:00:00.032Z",
                   assignees: [],
                   note: "Scheduled for next sprint",
                   scheduled_at: "2025-12-01T00:00:00.032Z",
+                  action_logs: [],
+                },
+              },
+            ]);
+          } else if (vulnId === "vuln-003") {
+            return HttpResponse.json([
+              {
+                ticket_id: "ticket-004",
+                vuln_id: vulnId,
+                dependency_id: packageId,
+                service_id: serviceId,
+                pteam_id: pteamId,
+                ssvc_deployer_priority: "defer",
+                ticket_safety_impact: "negligible",
+                ticket_safety_impact_change_reason: "Resolved",
+                ticket_status: {
+                  status_id: "status-004",
+                  ticket_handling_status: "completed",
+                  user_id: "user-001",
+                  created_at: "2025-11-18T08:00:00.032Z",
+                  updated_at: "2025-11-24T08:00:00.032Z",
+                  assignees: [],
+                  note: "Completed",
+                  scheduled_at: null,
                   action_logs: [],
                 },
               },
@@ -338,7 +366,12 @@ export const WithPagination = {
           const url = new URL(request.url);
           const vulnId = url.searchParams.get("vuln_id");
 
+          // Note: In real API, tickets are filtered by vuln_ids from /vuln_ids endpoint
+          // which already filters by related_ticket_status (solved/unsolved)
+          // So we return all tickets for the vulnerability here
+
           // Mock: Generate 1-3 tickets per vulnerability randomly
+          // Mix of completed and non-completed tickets
           const numTickets = vulnId ? (vulnId.charCodeAt(vulnId.length - 1) % 3) + 1 : 0;
           const tickets = Array.from({ length: numTickets }, (_, i) => ({
             ticket_id: `ticket-${vulnId}-${i}`,
@@ -351,7 +384,9 @@ export const WithPagination = {
             ticket_safety_impact_change_reason: `Ticket ${i + 1} for ${vulnId}`,
             ticket_status: {
               status_id: `status-${vulnId}-${i}`,
-              ticket_handling_status: ["alerted", "acknowledged", "scheduled"][i % 3],
+              // Mix of completed and non-completed tickets
+              ticket_handling_status:
+                i % 2 === 0 ? "completed" : ["alerted", "acknowledged", "scheduled"][i % 3],
               user_id: `user-${i % 3}`,
               created_at: "2025-11-25T16:51:50.032Z",
               updated_at: "2025-11-25T16:51:50.032Z",
