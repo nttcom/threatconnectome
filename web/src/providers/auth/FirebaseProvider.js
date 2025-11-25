@@ -71,7 +71,6 @@ async function startSmsLoginFlow(auth, error) {
           console.log("reCAPTCHA error. Please refresh and try again. " + now);
         },
       });
-      recaptchaVerifier.clear();
 
       try {
         const phoneAuthProvider = new PhoneAuthProvider(auth);
