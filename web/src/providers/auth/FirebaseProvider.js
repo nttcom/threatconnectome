@@ -111,7 +111,7 @@ export class FirebaseProvider extends AuthProvider {
         return new AuthData(result);
       })
       .catch(async (error) => {
-        if (error.code == "auth/multi-factor-auth-required") {
+        if (error.code === "auth/multi-factor-auth-required") {
           return await startSmsLoginFlow(auth, error);
         } else {
           throw new FirebaseAuthError(error);
@@ -230,8 +230,8 @@ export class FirebaseProvider extends AuthProvider {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
     const multiFactorUser = multiFactor(currentUser);
-    for (const facter of multiFactorUser.enrolledFactors) {
-      multiFactorUser.unenroll(facter);
+    for (const factor of multiFactorUser.enrolledFactors) {
+      multiFactorUser.unenroll(factor);
     }
   }
 
@@ -266,7 +266,7 @@ export class FirebaseProvider extends AuthProvider {
       );
       return verificationId;
     } catch (error) {
-      console.log(error);
+      throw new FirebaseAuthError(error);
     }
   }
 }
