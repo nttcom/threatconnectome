@@ -207,7 +207,6 @@ export function Login() {
               Forgot password?
             </Link>
             <Button
-              // id="recaptcha-container-visible"
               fullWidth
               type="submit"
               variant="contained"
