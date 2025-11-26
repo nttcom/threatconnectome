@@ -7,7 +7,7 @@ services:
     command: >
         sh -c "
         (cd app && alembic upgrade head) &&
-        uvicorn app.main:app --host 0.0.0.0 --port 80 --root-path /api
+        hypercorn app.main:app --bind 0.0.0.0:8080 --root-path /api
         "
     depends_on:
       firebase:
@@ -35,7 +35,7 @@ services:
       - traefik.http.routers.api.service=api
       - traefik.http.routers.api.middlewares=api@docker
       - traefik.http.middlewares.api.stripPrefix.prefixes=/api
-      - traefik.http.services.api.loadBalancer.server.port=80
+      - traefik.http.services.api.loadBalancer.server.port=8080
     restart: always
     volumes:
       - ./api/app:/app:ro

@@ -5,12 +5,10 @@ services:
       context: ./api
       dockerfile: ../api-test.dockerfile
     command:
-      - uvicorn
+      - hypercorn
       - app.main:app
-      - --host
-      - 0.0.0.0
-      - --port
-      - "80"
+      - --bind
+      - 0.0.0.0:8080
       - --root-path
       - /api
     depends_on:
