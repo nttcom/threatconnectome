@@ -5,11 +5,11 @@ name = "pypi"
 
 [packages]
 alembic = "*"
-fastapi = "==0.116.1"
+fastapi = "*"
 firebase-admin = "*"
 psycopg2 = "*"
 protobuf = "<5.0"
-pydantic = "==2.11.9"
+pydantic = "*"
 python-multipart = "*"
 requests = "*"
 slack-sdk = "*"
