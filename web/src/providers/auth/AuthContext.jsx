@@ -20,6 +20,11 @@ export function AuthProvider(props) {
   const verifyPasswordResetCode = authProvider.verifyPasswordResetCode;
   const confirmPasswordReset = authProvider.confirmPasswordReset;
   const applyActionCode = authProvider.applyActionCode;
+  const registerPhoneNumber = authProvider.registerPhoneNumber;
+  const verifySmsForEnrollment = authProvider.verifySmsForEnrollment;
+  const deletePhoneNumber = authProvider.deletePhoneNumber;
+  const verifySmsForLogin = authProvider.verifySmsForLogin;
+  const sendSmsCodeAgain = authProvider.sendSmsCodeAgain;
 
   return (
     <AuthContext.Provider
@@ -35,6 +40,11 @@ export function AuthProvider(props) {
         verifyPasswordResetCode,
         confirmPasswordReset,
         applyActionCode,
+        registerPhoneNumber,
+        deletePhoneNumber,
+        verifySmsForLogin,
+        verifySmsForEnrollment,
+        sendSmsCodeAgain,
       }}
     >
       {children}
