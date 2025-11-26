@@ -8,7 +8,7 @@ services:
       - hypercorn
       - app.main:app
       - --bind
-      - 0.0.0.0:8080
+      - 0.0.0.0:80
       - --root-path
       - /api
     depends_on:
