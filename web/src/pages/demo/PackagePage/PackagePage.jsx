@@ -88,7 +88,6 @@ export default function PackagePage() {
   );
 
   const serviceDict = pteam?.services?.find((service) => service.service_id === serviceId);
-  console.log("serviceDict:", serviceDict);
   const references =
     serviceDependencies?.map((dependency) => ({
       dependencyId: dependency.dependency_id,
