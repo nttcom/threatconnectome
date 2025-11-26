@@ -11,6 +11,11 @@ import {
   signInWithPopup,
   signOut,
   verifyPasswordResetCode,
+  multiFactor,
+  RecaptchaVerifier,
+  PhoneAuthProvider,
+  PhoneMultiFactorGenerator,
+  getMultiFactorResolver,
 } from "firebase/auth";
 
 import Firebase from "../../utils/Firebase";
@@ -39,6 +44,40 @@ function _errorToMessage(error) {
 class FirebaseAuthError extends AuthError {
   constructor(error) {
     super(error, error.code, _errorToMessage(error.code));
+  }
+}
+
+async function startSmsLoginFlow(auth, error) {
+  const resolver = getMultiFactorResolver(auth, error);
+  for (const hint of resolver.hints) {
+    if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
+      const phoneInfoOptions = {
+        multiFactorHint: hint,
+        session: resolver.session,
+      };
+
+      const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
+        size: "normal",
+      });
+
+      try {
+        const phoneAuthProvider = new PhoneAuthProvider(auth);
+        const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+          phoneInfoOptions,
+          recaptchaVerifier,
+        );
+        return {
+          mfa: true,
+          resolver: resolver,
+          verificationId: verificationId,
+          phoneInfoOptions: phoneInfoOptions,
+          auth: auth,
+        };
+      } catch (error) {
+        recaptchaVerifier.clear();
+        throw error;
+      }
+    }
   }
 }
 
@@ -71,8 +110,12 @@ export class FirebaseProvider extends AuthProvider {
       .then((result) => {
         return new AuthData(result);
       })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
+      .catch(async (error) => {
+        if (error.code === "auth/multi-factor-auth-required") {
+          return await startSmsLoginFlow(auth, error);
+        } else {
+          throw new FirebaseAuthError(error);
+        }
       });
   }
 
@@ -148,5 +191,82 @@ export class FirebaseProvider extends AuthProvider {
       .catch((error) => {
         throw new FirebaseAuthError(error);
       });
+  }
+
+  async registerPhoneNumber(phoneNumber) {
+    const e164Pattern = /^\+[1-9]\d{1,14}$/;
+    if (!e164Pattern.test(phoneNumber)) {
+      throw new Error(
+        "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
+      );
+    }
+
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+
+    const recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container-visible-register-phone-number",
+      {
+        size: "normal",
+      },
+    );
+
+    try {
+      const multiFactorSession = await multiFactor(currentUser).getSession();
+      const phoneInfoOptions = {
+        phoneNumber: phoneNumber,
+        session: multiFactorSession,
+      };
+      const phoneAuthProvider = new PhoneAuthProvider(auth);
+      return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
+    } catch (error) {
+      recaptchaVerifier.clear();
+      throw error;
+    }
+  }
+
+  async deletePhoneNumber() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const multiFactorUser = multiFactor(currentUser);
+    for (const factor of multiFactorUser.enrolledFactors) {
+      multiFactorUser.unenroll(factor);
+    }
+  }
+
+  async verifySmsForLogin(resolver, verificationId, verificationCode) {
+    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+
+    // Complete sign-in.
+    return resolver.resolveSignIn(multiFactorAssertion);
+  }
+
+  verifySmsForEnrollment(verificationId, verificationCode) {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+
+    // Complete enrollment.
+    multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+  }
+
+  async sendSmsCodeAgain(phoneInfoOptions, auth) {
+    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
+      size: "invisible",
+    });
+
+    try {
+      const phoneAuthProvider = new PhoneAuthProvider(auth);
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier,
+      );
+      return verificationId;
+    } catch (error) {
+      throw new FirebaseAuthError(error);
+    }
   }
 }
