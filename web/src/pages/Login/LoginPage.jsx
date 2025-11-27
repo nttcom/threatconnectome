@@ -30,6 +30,7 @@ export function Login() {
   const [visible, setVisible] = useState(false);
   const [isShowSmsCode, setIsShowSmsCode] = useState(false);
   const [authData, setAuthData] = useState([]);
+  const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const dispatch = useDispatch();
@@ -51,6 +52,20 @@ export function Login() {
     setMessage({ text: location.state?.message, type: location.state?.messageType });
     signOut();
   }, [dispatch, location, signOut]);
+
+  useEffect(() => {
+    const recaptcha_element = document.getElementById("recaptcha-container-visible-login");
+    if (!recaptcha_element) return;
+
+    const check = () => {
+      setIsRecaptchaVisible(recaptcha_element.childElementCount > 0);
+    };
+
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(recaptcha_element, { childList: true });
+    return () => observer.disconnect();
+  }, []);
 
   const showMessage = (text, type = "error") => {
     setMessage({ text, type });
@@ -206,18 +221,20 @@ export function Login() {
             <Link component="button" type="button" onClick={handleResetPassword}>
               Forgot password?
             </Link>
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              sx={{ textTransform: "none", mb: 2, mt: 3 }}
-            >
-              Log In with Email
-            </Button>
+            {!isRecaptchaVisible && (
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                sx={{ textTransform: "none", mb: 2, mt: 3 }}
+              >
+                Log In with Email
+              </Button>
+            )}
             <div id="recaptcha-container-visible-login"></div>
           </Box>
           {/* show saml login button if samlProviderId is set as env */}
-          {Firebase.getSamlProvider() != null && (
+          {!isRecaptchaVisible && Firebase.getSamlProvider() != null && (
             <>
               <Divider />
               <Button
