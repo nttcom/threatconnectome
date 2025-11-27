@@ -12,9 +12,11 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useAuth } from "../../hooks/auth";
+import { useSmsResend } from "../../hooks/useSmsResend";
+import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
 export function TwoFactorAuth(props) {
   const { authData, navigateInternalPage } = props;
@@ -22,32 +24,16 @@ export function TwoFactorAuth(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState(null);
-  const [canResend, setCanResend] = useState(true);
-  const [timer, setTimer] = useState(0);
-  const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
   const [verificationId, setVerificationId] = useState(authData.verificationId);
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
-  useEffect(() => {
-    if (!canResend) {
-      let interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setCanResend(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [canResend]);
+  const { canResend, timer, notification, startResendTimer, showNotification, closeNotification } =
+    useSmsResend(5);
 
   const handleCodeChange = (e) => {
-    const sanitized = e.target.value.replace(/\D/g, "").slice(0, 6);
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
     setCode(sanitized);
     if (codeError) {
       setCodeError(null);
@@ -71,19 +57,16 @@ export function TwoFactorAuth(props) {
   };
 
   const handleResend = async () => {
-    setTimer(5);
-    setCanResend(false);
+    setCode("");
+    setCodeError(null);
+    startResendTimer();
     const resendVerificationId = await sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth);
     setVerificationId(resendVerificationId);
-    setNotification({
-      open: true,
-      message: "The authentication code has been resent.",
-      type: "info",
-    });
+    showNotification("The authentication code has been resent.", "info");
   };
 
   const handleCloseNotification = () => {
-    setNotification({ ...notification, open: false });
+    closeNotification();
   };
 
   return (
@@ -148,7 +131,7 @@ export function TwoFactorAuth(props) {
                 <Button
                   id="recaptcha-container-invisible-resend"
                   size="small"
-                  disabled={!canResend}
+                  disabled={!canResend || isLoading}
                   onClick={handleResend}
                   sx={{ fontWeight: "bold" }}
                 >

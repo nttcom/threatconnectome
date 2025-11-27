@@ -1,4 +1,6 @@
+import { Refresh } from "@mui/icons-material";
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -7,11 +9,16 @@ import {
   DialogTitle,
   MenuItem,
   Select,
+  Snackbar,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+
+import { useSmsResend } from "../../../../../hooks/useSmsResend";
+import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 
 const COUNTRY_CODES = [
   { code: "+81", label: "JP (+81)" },
@@ -31,12 +38,23 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
+  const {
+    canResend,
+    timer,
+    notification,
+    startResendTimer,
+    resetResendState,
+    showNotification,
+    closeNotification,
+  } = useSmsResend(5);
+
   const resetState = () => {
     setStep(0);
     setCountryCode("+81");
     setPhoneNumber("");
     setCode("");
     setError("");
+    resetResendState();
   };
 
   const handleClose = () => {
@@ -48,6 +66,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     setError("");
     setCode("");
+    resetResendState();
     setTimeout(() => {
       setLoading(false);
       setStep(1);
@@ -73,20 +92,33 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   const handleCodeChange = (e) => {
-    const val = e.target.value;
-    if (/^\d*$/.test(val)) {
-      setCode(val);
-      if (error) {
-        setError("");
-      }
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
+    setCode(sanitized);
+    if (error) {
+      setError("");
     }
   };
 
   const handlePhoneNumberChange = (e) => {
-    const val = e.target.value;
-    if (/^\d*$/.test(val)) {
-      setPhoneNumber(val);
-    }
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "");
+    setPhoneNumber(sanitized);
+  };
+
+  const handleResend = () => {
+    setLoading(true);
+    setCode("");
+    setError("");
+    setTimeout(() => {
+      setLoading(false);
+      startResendTimer();
+      showNotification("The verification code has been resent.", "info");
+    }, 1500);
+  };
+
+  const handleCloseNotification = () => {
+    closeNotification();
   };
 
   return (
@@ -162,9 +194,35 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 },
               }}
             />
-            <Button size="small" onClick={() => setStep(0)} disabled={loading} sx={{ mt: 2 }}>
-              Change Phone Number
-            </Button>
+            <Stack spacing={2} sx={{ mt: 2, alignItems: "center" }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", justifyContent: "center" }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Did you receive the code?
+                </Typography>
+                <Button
+                  size="small"
+                  disabled={!canResend || loading}
+                  onClick={handleResend}
+                  sx={{ fontWeight: "bold" }}
+                >
+                  {canResend ? (
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <Refresh fontSize="small" />
+                      <span>Resend Code</span>
+                    </Stack>
+                  ) : (
+                    `Resend in ${timer} seconds`
+                  )}
+                </Button>
+              </Stack>
+              <Button size="small" onClick={() => setStep(0)} disabled={loading}>
+                Change Phone Number
+              </Button>
+            </Stack>
           </>
         )}
       </DialogContent>
@@ -180,6 +238,16 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           {loading ? "Processing..." : step === 0 ? "Send Code" : "Verify & Enable"}
         </Button>
       </DialogActions>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={notification.type} variant="filled">
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 }
