@@ -65,8 +65,7 @@ export function TwoFactorAuth(props) {
         if (error.code === "auth/invalid-verification-code") {
           setCodeError("The code is incorrect. Please try again.");
         } else {
-          console.error("Authentication error");
-          setCodeError("An error occurred during authentication. Please try again.");
+          setCodeError(error);
         }
       });
   };

@@ -240,7 +240,12 @@ export class FirebaseProvider extends AuthProvider {
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
     // Complete sign-in.
-    return resolver.resolveSignIn(multiFactorAssertion);
+    try {
+      return resolver.resolveSignIn(multiFactorAssertion);
+    } catch (error) {
+      console.error("Authentication error:", error);
+      throw new FirebaseAuthError(error);
+    }
   }
 
   verifySmsForEnrollment(verificationId, verificationCode) {
