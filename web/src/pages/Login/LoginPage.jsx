@@ -231,7 +231,16 @@ export function Login() {
                 Log In with Email
               </Button>
             )}
-            <Box id="recaptcha-container-visible-login" sx={{ mt: 3, mb: 5, width: "100%" }} />
+            <Box
+              id="recaptcha-container-visible-login"
+              sx={{
+                mt: isRecaptchaVisible ? 3 : 0,
+                mb: isRecaptchaVisible ? 5 : 0,
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            />
           </Box>
           {/* show saml login button if samlProviderId is set as env */}
           {!isRecaptchaVisible && Firebase.getSamlProvider() != null && (
