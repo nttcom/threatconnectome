@@ -75,7 +75,7 @@ async function startSmsLoginFlow(auth, error) {
         };
       } catch (error) {
         recaptchaVerifier.clear();
-        throw error;
+        throw new FirebaseAuthError(error);
       }
     }
   }
@@ -222,7 +222,7 @@ export class FirebaseProvider extends AuthProvider {
       return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
     } catch (error) {
       recaptchaVerifier.clear();
-      throw error;
+      throw new FirebaseAuthError(error);
     }
   }
 
