@@ -190,51 +190,53 @@ export function Login() {
             <Typography component="h1" mb={1} variant="h5">
               Threatconnectome
             </Typography>
-            <TextField
-              autoComplete="email"
-              fullWidth
-              id="email"
-              label="Email Address"
-              margin="normal"
-              name="email"
-              required
-            />
-            <TextField
-              autoComplete="current-password"
-              fullWidth
-              id="password"
-              label="Password"
-              margin="normal"
-              name="password"
-              required
-              type={visible ? "text" : "password"}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setVisible(!visible)}>
-                      {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Link component="button" type="button" onClick={handleResetPassword}>
-              Forgot password?
-            </Link>
             {!isRecaptchaVisible && (
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                sx={{ textTransform: "none", mb: 2, mt: 3 }}
-              >
-                Log In with Email
-              </Button>
+              <>
+                <TextField
+                  autoComplete="email"
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  margin="normal"
+                  name="email"
+                  required
+                />
+                <TextField
+                  autoComplete="current-password"
+                  fullWidth
+                  id="password"
+                  label="Password"
+                  margin="normal"
+                  name="password"
+                  required
+                  type={visible ? "text" : "password"}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setVisible(!visible)}>
+                          {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Link component="button" type="button" onClick={handleResetPassword}>
+                  Forgot password?
+                </Link>
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
+                  sx={{ textTransform: "none", mb: 2, mt: 3 }}
+                >
+                  Log In with Email
+                </Button>
+              </>
             )}
             <Box
               id="recaptcha-container-visible-login"
               sx={{
-                mt: isRecaptchaVisible ? 3 : 0,
+                mt: isRecaptchaVisible ? 10 : 0,
                 mb: isRecaptchaVisible ? 5 : 0,
                 width: "100%",
                 display: "flex",
