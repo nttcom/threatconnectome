@@ -236,7 +236,7 @@ export function Login() {
             <Box
               id="recaptcha-container-visible-login"
               sx={{
-                mt: isRecaptchaVisible ? 10 : 0,
+                mt: isRecaptchaVisible ? 5 : 0,
                 mb: isRecaptchaVisible ? 5 : 0,
                 width: "100%",
                 display: "flex",
