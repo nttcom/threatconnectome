@@ -260,14 +260,22 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
+    console.log("testes 2");
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
       size: "invisible",
     });
+    console.log("testes 3");
 
     const phoneAuthProvider = new PhoneAuthProvider(auth);
+    console.log("testes 4");
     return await phoneAuthProvider
       .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
+      .then((verificationId) => {
+        console.log("testes 5");
+        return verificationId;
+      })
       .catch((error) => {
+        console.log("testes 6");
         throw new FirebaseAuthError(error);
       });
   }
