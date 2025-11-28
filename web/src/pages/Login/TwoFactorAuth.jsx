@@ -39,6 +39,7 @@ export function TwoFactorAuth(props) {
       setCodeError(null);
     }
   };
+
   const handleVerify = (e) => {
     e.preventDefault();
     setCodeError(null);
@@ -48,21 +49,26 @@ export function TwoFactorAuth(props) {
         navigateInternalPage();
       })
       .catch((error) => {
-        if (error.code === "auth/invalid-verification-code") {
-          setCodeError("The code is incorrect. Please try again.");
-        } else {
-          setCodeError(error);
-        }
+        setCodeError(error.message);
       });
   };
 
   const handleResend = async () => {
-    setCode("");
-    setCodeError(null);
-    startResendTimer();
-    const resendVerificationId = await sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth);
-    setVerificationId(resendVerificationId);
-    showNotification("The verification code has been resent.", "info");
+    setTimer(5);
+    setCanResend(false);
+
+    sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
+      .then((resendVerificationId) => {
+        setVerificationId(resendVerificationId);
+        setNotification({
+          open: true,
+          message: "The verification code has been resent.",
+          type: "info",
+        });
+      })
+      .catch((error) => {
+        setCodeError(error.message);
+      });
   };
 
   const handleCloseNotification = () => {
