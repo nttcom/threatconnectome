@@ -20,8 +20,9 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
-
 import { TwoFactorAuthSection } from "./TwoFactorAuthSection/TwoFactorAuthSection";
+
+import { useAuth } from "../../../../hooks/auth";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onUpdateUser, userMe } = props;
@@ -30,6 +31,8 @@ export function AccountSettingsDialog(props) {
     message: "",
     severity: "success",
   });
+
+  const { isAuthenticatedWithSaml } = useAuth();
 
   const handleShowSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -96,7 +99,9 @@ export function AccountSettingsDialog(props) {
               </Box>
             </Box>
 
-            <TwoFactorAuthSection onShowSnackbar={handleShowSnackbar} />
+            {import.meta.env.VITE_AUTH_SERVICE === "firebase" && !isAuthenticatedWithSaml() && (
+              <TwoFactorAuthSection onShowSnackbar={handleShowSnackbar} />
+            )}
 
             <Divider />
             <Box>

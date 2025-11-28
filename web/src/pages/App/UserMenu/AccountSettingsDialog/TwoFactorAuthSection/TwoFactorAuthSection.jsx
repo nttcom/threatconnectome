@@ -5,10 +5,15 @@ import { useState } from "react";
 import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
 
+import { useAuth } from "../../../../../hooks/auth";
+
 export function TwoFactorAuthSection({ onShowSnackbar }) {
-  const [isEnabled, setIsEnabled] = useState(false);
+  const { deletePhoneNumber, isSmsAuthenticationEnabled } = useAuth();
+
+  const [isEnabled, setIsEnabled] = useState(isSmsAuthenticationEnabled());
   const [setupOpen, setSetupOpen] = useState(false);
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
+
   const handleToggleTwoFactor = (event) => {
     if (event.target.checked) {
       setSetupOpen(true);
@@ -16,15 +21,22 @@ export function TwoFactorAuthSection({ onShowSnackbar }) {
       setDisableConfirmOpen(true);
     }
   };
+
   const handleSuccess = () => {
     setIsEnabled(true);
     onShowSnackbar("SMS authentication enabled successfully!", "success");
   };
 
   const handleDisableConfirm = () => {
-    setIsEnabled(false);
-    setDisableConfirmOpen(false);
-    onShowSnackbar("SMS authentication disabled.", "info");
+    deletePhoneNumber()
+      .then(() => {
+        setIsEnabled(false);
+        setDisableConfirmOpen(false);
+        onShowSnackbar("SMS authentication disabled.", "info");
+      })
+      .catch((error) => {
+        onShowSnackbar(error.message, "error");
+      });
   };
 
   return (

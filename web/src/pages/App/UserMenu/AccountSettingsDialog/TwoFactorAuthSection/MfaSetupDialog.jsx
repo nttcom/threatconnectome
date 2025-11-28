@@ -1,6 +1,7 @@
 import { Refresh } from "@mui/icons-material";
 import {
   Alert,
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -15,10 +16,11 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useSmsResend } from "../../../../../hooks/useSmsResend";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
+import { useAuth } from "../../../../../hooks/auth";
 
 const COUNTRY_CODES = [
   { code: "+81", label: "JP (+81)" },
@@ -28,8 +30,6 @@ const COUNTRY_CODES = [
   { code: "+82", label: "KR (+82)" },
 ];
 
-const DEMO_CORRECT_CODE = "123456";
-
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
@@ -37,6 +37,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [authData, setAuthData] = useState(null);
+  const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
+
+  const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
   const {
     canResend,
@@ -47,6 +51,22 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     showNotification,
     closeNotification,
   } = useSmsResend(5);
+
+  useEffect(() => {
+    const recaptcha_element = document.getElementById(
+      "recaptcha-container-visible-register-phone-number",
+    );
+    if (!recaptcha_element) return;
+
+    const check = () => {
+      setIsRecaptchaVisible(recaptcha_element.childElementCount > 0);
+    };
+
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(recaptcha_element, { childList: true });
+    return () => observer.disconnect();
+  }, []);
 
   const resetState = () => {
     setStep(0);
@@ -62,33 +82,35 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     onClose();
   };
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     setLoading(true);
     setError("");
-    setCode("");
     resetResendState();
-    setTimeout(() => {
-      setLoading(false);
-      setStep(1);
-    }, 1500);
+    registerPhoneNumber(countryCode + phoneNumber)
+      .then((auth) => {
+        setAuthData(auth);
+        setLoading(false);
+        setStep(1);
+      })
+      .catch((error) => {
+        setError(error.message);
+        setLoading(false);
+      });
   };
 
   const handleVerifyCode = () => {
-    if (code === DEMO_CORRECT_CODE) {
-      setLoading(true);
-      setError("");
-      setTimeout(() => {
+    setLoading(true);
+    setError("");
+    verifySmsForEnrollment(authData.verificationId, code)
+      .then(() => {
         onSuccess();
-        setLoading(false);
         handleClose();
-      }, 1500);
-    } else {
-      setLoading(true);
-      setTimeout(() => {
-        setError("Invalid verification code. Please try again.");
         setLoading(false);
-      }, 1500);
-    }
+      })
+      .catch((error) => {
+        setError(error.message);
+        setLoading(false);
+      });
   };
 
   const handleCodeChange = (e) => {
@@ -104,17 +126,28 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "");
     setPhoneNumber(sanitized);
+    if (error) {
+      setError("");
+    }
   };
 
   const handleResend = () => {
     setLoading(true);
-    setCode("");
     setError("");
-    setTimeout(() => {
-      setLoading(false);
-      startResendTimer();
-      showNotification("The verification code has been resent.", "info");
-    }, 1500);
+    sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
+      .then((resendVerificationId) => {
+        setAuthData((prevAuthData) => ({
+          ...prevAuthData,
+          verificationId: resendVerificationId,
+        }));
+        setLoading(false);
+        startResendTimer();
+        showNotification("The verification code has been resent.", "info");
+      })
+      .catch((error) => {
+        setError(error.message);
+        setLoading(false);
+      });
   };
 
   const handleCloseNotification = () => {
@@ -163,6 +196,8 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 onChange={handlePhoneNumberChange}
                 placeholder="9012345678"
                 disabled={loading}
+                error={!!error}
+                helperText={error}
               />
             </Stack>
           </>
@@ -183,7 +218,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               disabled={loading}
               error={!!error}
               helperText={error}
-              placeholder={DEMO_CORRECT_CODE}
+              placeholder="123456"
               slotProps={{
                 htmlInput: {
                   maxLength: 6,
@@ -204,6 +239,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                   Did you receive the code?
                 </Typography>
                 <Button
+                  id="recaptcha-container-invisible-resend"
                   size="small"
                   disabled={!canResend || loading}
                   onClick={handleResend}
@@ -227,16 +263,32 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={step === 0 ? handleSendCode : handleVerifyCode}
-          variant="contained"
-          disabled={loading || (step === 0 ? !phoneNumber : !(code.length === 6))}
-        >
-          {loading ? "Processing..." : step === 0 ? "Send Code" : "Verify & Enable"}
-        </Button>
+        {step === 0 && (
+          <Box
+            id="recaptcha-container-visible-register-phone-number"
+            sx={{
+              mt: isRecaptchaVisible ? 5 : 0,
+              mb: isRecaptchaVisible ? 5 : 0,
+              width: "50%",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
+        )}
+        {!isRecaptchaVisible && (
+          <>
+            <Button onClick={handleClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={step === 0 ? handleSendCode : handleVerifyCode}
+              variant="contained"
+              disabled={loading || (step === 0 ? !phoneNumber : !(code.length === 6))}
+            >
+              {loading ? "Processing..." : step === 0 ? "Send Code" : "Verify & Enable"}
+            </Button>
+          </>
+        )}
       </DialogActions>
       <Snackbar
         open={notification.open}
