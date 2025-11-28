@@ -133,6 +133,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
 
   const handleResend = () => {
     setLoading(true);
+    startResendTimer();
     setError("");
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
@@ -141,7 +142,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           verificationId: resendVerificationId,
         }));
         setLoading(false);
-        startResendTimer();
         showNotification("The verification code has been resent.", "info");
       })
       .catch((error) => {
