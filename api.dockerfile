@@ -10,4 +10,4 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install pipenv
 RUN python -m pipenv sync --system
 USER tcuser
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["hypercorn", "app.main:app", "--bind", "0.0.0.0:80"]

@@ -37,7 +37,7 @@ def create_app():
         CORSMiddleware,
         allow_credentials=True,
         allow_headers=["*"],
-        allow_methods=["DELETE", "GET", "OPTION", "POST", "PUT"],
+        allow_methods=["DELETE", "GET", "OPTIONS", "POST", "PUT"],
         allow_origin_regex=r"https:\/\/threatconnectome--.+-[0-9a-z]{8}\.(firebaseapp\.com|web\.app)",
         allow_origins=origins,
     )
