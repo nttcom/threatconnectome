@@ -34,6 +34,9 @@ function _errorToMessage(error) {
       "auth/user-disabled": "Disabled user.",
       "auth/user-not-found": "User not found.",
       "auth/wrong-password": "Wrong password.",
+      "auth/invalid-verification-code": "The code is incorrect. Please try again.",
+      "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
+      "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
     }[error.code || error] ||
     error.message ||
     error.code ||
@@ -75,7 +78,7 @@ async function startSmsLoginFlow(auth, error) {
         };
       } catch (error) {
         recaptchaVerifier.clear();
-        throw error;
+        throw new FirebaseAuthError(error);
       }
     }
   }
@@ -219,19 +222,27 @@ export class FirebaseProvider extends AuthProvider {
         session: multiFactorSession,
       };
       const phoneAuthProvider = new PhoneAuthProvider(auth);
-      return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier,
+      ); // Send SMS verification code.
+      return { verificationId: verificationId, phoneInfoOptions: phoneInfoOptions, auth: auth };
     } catch (error) {
       recaptchaVerifier.clear();
-      throw error;
+      throw new FirebaseAuthError(error);
     }
   }
 
   async deletePhoneNumber() {
-    const auth = Firebase.getAuth();
-    const currentUser = auth.currentUser;
-    const multiFactorUser = multiFactor(currentUser);
-    for (const factor of multiFactorUser.enrolledFactors) {
-      multiFactorUser.unenroll(factor);
+    try {
+      const auth = Firebase.getAuth();
+      const currentUser = auth.currentUser;
+      const multiFactorUser = multiFactor(currentUser);
+      for (const factor of multiFactorUser.enrolledFactors) {
+        await multiFactorUser.unenroll(factor);
+      }
+    } catch (error) {
+      throw new FirebaseAuthError(error);
     }
   }
 
@@ -243,14 +254,18 @@ export class FirebaseProvider extends AuthProvider {
     return resolver.resolveSignIn(multiFactorAssertion);
   }
 
-  verifySmsForEnrollment(verificationId, verificationCode) {
-    const auth = Firebase.getAuth();
-    const currentUser = auth.currentUser;
-    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
-    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+  async verifySmsForEnrollment(verificationId, verificationCode) {
+    try {
+      const auth = Firebase.getAuth();
+      const currentUser = auth.currentUser;
+      const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+      const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
-    // Complete enrollment.
-    multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+      // Complete enrollment.
+      await multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+    } catch (error) {
+      throw new FirebaseAuthError(error);
+    }
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
@@ -266,7 +281,30 @@ export class FirebaseProvider extends AuthProvider {
       );
       return verificationId;
     } catch (error) {
+      recaptchaVerifier.clear();
       throw new FirebaseAuthError(error);
     }
+  }
+
+  isSmsAuthenticationEnabled() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const multiFactorUser = multiFactor(currentUser);
+    for (const factor of multiFactorUser.enrolledFactors) {
+      if (factor.factorId === "phone") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isAuthenticatedWithSaml() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    console.log(currentUser.providerData);
+    const isSamlUser = currentUser.providerData.some((provider) =>
+      provider.providerId.startsWith("saml."),
+    );
+    return isSamlUser;
   }
 }
