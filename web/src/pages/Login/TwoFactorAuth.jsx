@@ -62,7 +62,7 @@ export function TwoFactorAuth(props) {
     startResendTimer();
     const resendVerificationId = await sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth);
     setVerificationId(resendVerificationId);
-    showNotification("The authentication code has been resent.", "info");
+    showNotification("The verification code has been resent.", "info");
   };
 
   const handleCloseNotification = () => {
@@ -87,7 +87,7 @@ export function TwoFactorAuth(props) {
             <Stack spacing={2}>
               <TextField
                 fullWidth
-                label="Authentication code"
+                label="Verification code"
                 value={code}
                 onChange={handleCodeChange}
                 placeholder="123456"
@@ -95,7 +95,7 @@ export function TwoFactorAuth(props) {
                   htmlInput: {
                     inputMode: "numeric",
                     maxLength: 6,
-                    "aria-label": "Authentication code input",
+                    "aria-label": "Verification code input",
                     style: {
                       textAlign: "center",
                       letterSpacing: "0.5em",
