@@ -81,7 +81,6 @@ export function TwoFactorAuth(props) {
         });
       })
       .catch((error) => {
-        console.log("testes 1");
         setCodeError(error.message);
       });
   };

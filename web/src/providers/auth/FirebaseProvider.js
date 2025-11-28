@@ -25,9 +25,6 @@ import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 function _errorToMessage(error) {
   // TODO: should fill missing codes
   // https://firebase.google.com/docs/reference/js/auth?hl=ja#autherrorcodes
-  console.log("testes 8");
-  console.log("testes 8" + error.code);
-  console.log("testes 8" + error.message);
   return (
     {
       "auth/email-already-in-use": "Email already in use",
@@ -49,7 +46,6 @@ function _errorToMessage(error) {
 
 class FirebaseAuthError extends AuthError {
   constructor(error) {
-    console.error("testes 7:", error);
     super(error, error.code, _errorToMessage(error.code));
     console.error("Authentication error:", this.message);
   }
@@ -264,22 +260,17 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
-    console.log("testes 2");
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
       size: "invisible",
     });
-    console.log("testes 3");
 
     const phoneAuthProvider = new PhoneAuthProvider(auth);
-    console.log("testes 4");
     return await phoneAuthProvider
       .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
       .then((verificationId) => {
-        console.log("testes 5");
         return verificationId;
       })
       .catch((error) => {
-        console.log("testes 6");
         throw new FirebaseAuthError(error);
       });
   }
