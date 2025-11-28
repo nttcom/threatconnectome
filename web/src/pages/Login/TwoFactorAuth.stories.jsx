@@ -45,19 +45,3 @@ export const InvalidCode = () => {
     </AuthContext.Provider>
   );
 };
-
-export const GenericError = () => {
-  const mockAuthContext = {
-    verifySmsForLogin: () => {
-      const error = new Error("Network error occurred");
-      return Promise.reject(error);
-    },
-    sendSmsCodeAgain: () => Promise.resolve("new-verification-id-67890"),
-  };
-
-  return (
-    <AuthContext.Provider value={mockAuthContext}>
-      <TwoFactorAuth authData={mockAuthData} navigateInternalPage={mockNavigateInternalPage} />
-    </AuthContext.Provider>
-  );
-};
