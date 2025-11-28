@@ -2,10 +2,11 @@ import { Box, Switch, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useAuth } from "../../../../../hooks/auth";
+
 import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
 
-import { useAuth } from "../../../../../hooks/auth";
 
 export function TwoFactorAuthSection({ onShowSnackbar }) {
   const { deletePhoneNumber, isSmsAuthenticationEnabled } = useAuth();

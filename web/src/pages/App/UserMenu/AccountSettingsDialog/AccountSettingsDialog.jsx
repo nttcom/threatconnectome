@@ -19,10 +19,11 @@ import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { useAuth } from "../../../../hooks/auth";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
+
 import { TwoFactorAuthSection } from "./TwoFactorAuthSection/TwoFactorAuthSection";
 
-import { useAuth } from "../../../../hooks/auth";
 
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onUpdateUser, userMe } = props;

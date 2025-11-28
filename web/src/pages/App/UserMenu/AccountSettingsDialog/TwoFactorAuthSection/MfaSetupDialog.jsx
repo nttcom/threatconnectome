@@ -18,9 +18,9 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
+import { useAuth } from "../../../../../hooks/auth";
 import { useSmsResend } from "../../../../../hooks/useSmsResend";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
-import { useAuth } from "../../../../../hooks/auth";
 
 const COUNTRY_CODES = [
   { code: "+81", label: "JP (+81)" },
