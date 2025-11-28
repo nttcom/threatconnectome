@@ -79,7 +79,10 @@ describe("TestUserMenu", () => {
   describe("Rendering", () => {
     it("UserMenu renders", () => {
       const mockSignOut = vi.fn();
-      useAuth.mockReturnValue({ signOut: mockSignOut });
+      useAuth.mockReturnValue({
+        signOut: mockSignOut,
+        isAuthenticatedWithSaml: vi.fn().mockReturnValue(false),
+      });
 
       const mockSkipUntilAuthUserIsReady = false;
       useSkipUntilAuthUserIsReady.mockReturnValue(mockSkipUntilAuthUserIsReady);
@@ -93,7 +96,10 @@ describe("TestUserMenu", () => {
     it("should render Logout and Settings buttons when the user menu is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const mockSignOut = vi.fn();
-      useAuth.mockReturnValue({ signOut: mockSignOut });
+      useAuth.mockReturnValue({
+        signOut: mockSignOut,
+        isAuthenticatedWithSaml: vi.fn().mockReturnValue(false),
+      });
 
       const mockSkipUntilAuthUserIsReady = false;
       useSkipUntilAuthUserIsReady.mockReturnValue(mockSkipUntilAuthUserIsReady);
@@ -118,7 +124,10 @@ describe("TestUserMenu", () => {
       vi.mocked(useNavigate).mockReturnValue(mockNavigate);
 
       const mockSignOut = vi.fn();
-      useAuth.mockReturnValue({ signOut: mockSignOut });
+      useAuth.mockReturnValue({
+        signOut: mockSignOut,
+        isAuthenticatedWithSaml: vi.fn().mockReturnValue(false),
+      });
 
       const mockSkipUntilAuthUserIsReady = false;
       useSkipUntilAuthUserIsReady.mockReturnValue(mockSkipUntilAuthUserIsReady);
