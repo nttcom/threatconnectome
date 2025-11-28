@@ -34,6 +34,8 @@ function _errorToMessage(error) {
       "auth/user-disabled": "Disabled user.",
       "auth/user-not-found": "User not found.",
       "auth/wrong-password": "Wrong password.",
+      "auth/invalid-verification-code": "The code is incorrect. Please try again.",
+      "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
     }[error.code || error] ||
     error.message ||
     error.code ||
@@ -44,6 +46,7 @@ function _errorToMessage(error) {
 class FirebaseAuthError extends AuthError {
   constructor(error) {
     super(error, error.code, _errorToMessage(error.code));
+    console.error("Authentication error:", this.message);
   }
 }
 
@@ -240,12 +243,9 @@ export class FirebaseProvider extends AuthProvider {
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
     // Complete sign-in.
-    try {
-      return resolver.resolveSignIn(multiFactorAssertion);
-    } catch (error) {
-      console.error("Authentication error:", error);
+    return await resolver.resolveSignIn(multiFactorAssertion).catch((error) => {
       throw new FirebaseAuthError(error);
-    }
+    });
   }
 
   verifySmsForEnrollment(verificationId, verificationCode) {
