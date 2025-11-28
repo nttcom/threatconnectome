@@ -24,7 +24,6 @@ import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
 import { TwoFactorAuthSection } from "./TwoFactorAuthSection/TwoFactorAuthSection";
 
-
 export function AccountSettingsDialog(props) {
   const { accountSettingOpen, setAccountSettingOpen, onUpdateUser, userMe } = props;
   const [snackbar, setSnackbar] = useState({

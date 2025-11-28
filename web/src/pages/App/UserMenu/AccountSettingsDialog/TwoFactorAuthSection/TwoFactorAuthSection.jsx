@@ -7,7 +7,6 @@ import { useAuth } from "../../../../../hooks/auth";
 import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
 
-
 export function TwoFactorAuthSection({ onShowSnackbar }) {
   const { deletePhoneNumber, isSmsAuthenticationEnabled } = useAuth();
 
