@@ -34,6 +34,9 @@ function _errorToMessage(error) {
       "auth/user-disabled": "Disabled user.",
       "auth/user-not-found": "User not found.",
       "auth/wrong-password": "Wrong password.",
+      "auth/invalid-verification-code": "The code is incorrect. Please try again.",
+      "auth/code-expired": "Session is invalid or has expired. Please try again.",
+      "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
     }[error.code || error] ||
     error.message ||
     error.code ||
@@ -44,6 +47,7 @@ function _errorToMessage(error) {
 class FirebaseAuthError extends AuthError {
   constructor(error) {
     super(error, error.code, _errorToMessage(error.code));
+    console.error("Authentication error:", this.message);
   }
 }
 
@@ -75,7 +79,7 @@ async function startSmsLoginFlow(auth, error) {
         };
       } catch (error) {
         recaptchaVerifier.clear();
-        throw error;
+        throw new FirebaseAuthError(error);
       }
     }
   }
@@ -222,7 +226,7 @@ export class FirebaseProvider extends AuthProvider {
       return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
     } catch (error) {
       recaptchaVerifier.clear();
-      throw error;
+      throw new FirebaseAuthError(error);
     }
   }
 
@@ -240,7 +244,9 @@ export class FirebaseProvider extends AuthProvider {
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
     // Complete sign-in.
-    return resolver.resolveSignIn(multiFactorAssertion);
+    return await resolver.resolveSignIn(multiFactorAssertion).catch((error) => {
+      throw new FirebaseAuthError(error);
+    });
   }
 
   verifySmsForEnrollment(verificationId, verificationCode) {
@@ -258,15 +264,14 @@ export class FirebaseProvider extends AuthProvider {
       size: "invisible",
     });
 
-    try {
-      const phoneAuthProvider = new PhoneAuthProvider(auth);
-      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-        phoneInfoOptions,
-        recaptchaVerifier,
-      );
-      return verificationId;
-    } catch (error) {
-      throw new FirebaseAuthError(error);
-    }
+    const phoneAuthProvider = new PhoneAuthProvider(auth);
+    return await phoneAuthProvider
+      .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
+      .then((verificationId) => {
+        return verificationId;
+      })
+      .catch((error) => {
+        throw new FirebaseAuthError(error);
+      });
   }
 }
