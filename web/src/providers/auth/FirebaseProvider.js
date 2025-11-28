@@ -25,6 +25,9 @@ import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 function _errorToMessage(error) {
   // TODO: should fill missing codes
   // https://firebase.google.com/docs/reference/js/auth?hl=ja#autherrorcodes
+  console.log("testes 8");
+  console.log("testes 8" + error.code);
+  console.log("testes 8" + error.message);
   return (
     {
       "auth/email-already-in-use": "Email already in use",
@@ -46,6 +49,7 @@ function _errorToMessage(error) {
 
 class FirebaseAuthError extends AuthError {
   constructor(error) {
+    console.error("testes 7:", error);
     super(error, error.code, _errorToMessage(error.code));
     console.error("Authentication error:", this.message);
   }
