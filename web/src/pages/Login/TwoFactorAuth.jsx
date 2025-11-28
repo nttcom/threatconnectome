@@ -54,17 +54,12 @@ export function TwoFactorAuth(props) {
   };
 
   const handleResend = async () => {
-    setTimer(5);
-    setCanResend(false);
+    startResendTimer();
 
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
-        setNotification({
-          open: true,
-          message: "The verification code has been resent.",
-          type: "info",
-        });
+        showNotification("The authentication code has been resent.", "info");
       })
       .catch((error) => {
         setCodeError(error.message);
