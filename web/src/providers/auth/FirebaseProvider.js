@@ -35,6 +35,7 @@ function _errorToMessage(error) {
       "auth/user-not-found": "User not found.",
       "auth/wrong-password": "Wrong password.",
       "auth/invalid-verification-code": "The code is incorrect. Please try again.",
+      "auth/code-expired": "Session is invalid or has expired. Please try again.",
       "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
     }[error.code || error] ||
     error.message ||
@@ -263,15 +264,11 @@ export class FirebaseProvider extends AuthProvider {
       size: "invisible",
     });
 
-    try {
-      const phoneAuthProvider = new PhoneAuthProvider(auth);
-      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-        phoneInfoOptions,
-        recaptchaVerifier,
-      );
-      return verificationId;
-    } catch (error) {
-      throw new FirebaseAuthError(error);
-    }
+    const phoneAuthProvider = new PhoneAuthProvider(auth);
+    return await phoneAuthProvider
+      .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
+      .catch((error) => {
+        throw new FirebaseAuthError(error);
+      });
   }
 }
