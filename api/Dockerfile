@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 LABEL description="Metemcyber Threatconnectome"
 LABEL version="0.1.0"
