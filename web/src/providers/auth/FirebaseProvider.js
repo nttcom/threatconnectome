@@ -274,9 +274,14 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
+    if (window.recaptchaForResend) {
+      window.recaptchaForResend.clear();
+      window.recaptchaForResend = null;
+    }
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
       size: "invisible",
     });
+    window.recaptchaForResend = recaptchaVerifier;
 
     const phoneAuthProvider = new PhoneAuthProvider(auth);
     return await phoneAuthProvider
