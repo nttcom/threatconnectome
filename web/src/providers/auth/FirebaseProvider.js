@@ -304,7 +304,6 @@ export class FirebaseProvider extends AuthProvider {
   isAuthenticatedWithSaml() {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
-    console.log(currentUser.providerData);
     const isSamlUser = currentUser.providerData.some((provider) =>
       provider.providerId.startsWith("saml."),
     );
