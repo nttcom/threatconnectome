@@ -60,7 +60,7 @@ export function TwoFactorAuth(props) {
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
-        showNotification("The authentication code has been resent.", "info");
+        showNotification("The verification code has been resent.", "info");
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
