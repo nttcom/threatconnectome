@@ -25,6 +25,7 @@ export function TwoFactorAuth(props) {
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState(null);
   const [verificationId, setVerificationId] = useState(authData.verificationId);
+  const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
@@ -60,6 +61,7 @@ export function TwoFactorAuth(props) {
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
         showNotification("The authentication code has been resent.", "info");
+        setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
         setCodeError(error.message);
@@ -145,6 +147,11 @@ export function TwoFactorAuth(props) {
                     `Resend in ${timer} seconds`
                   )}
                 </Button>
+                <div
+                  id="recaptcha-container-invisible-resend"
+                  key={recaptchaResendKey}
+                  style={{ display: "none" }}
+                />
               </Stack>
             </Stack>
           </Box>
