@@ -7,9 +7,8 @@ services:
     command: >
         sh -c "
         (cd app && alembic upgrade head) &&
-        hypercorn app.main:app --bind 0.0.0.0:80 --root-path /api --access-logfile
-        - --access-logfile
-        - "-"
+        hypercorn app.main:app --bind 0.0.0.0:80 --root-path /api --access-logfile -
+        "
     depends_on:
       firebase:
         condition: service_started
