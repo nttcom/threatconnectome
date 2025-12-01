@@ -263,13 +263,15 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
       </DialogContent>
       <DialogActions>
+        <Button onClick={handleClose} disabled={loading}>
+          Cancel
+        </Button>
         {step === 0 && (
           <Box
             id="recaptcha-container-visible-register-phone-number"
             sx={{
               mt: isRecaptchaVisible ? 5 : 0,
               mb: isRecaptchaVisible ? 5 : 0,
-              width: "50%",
               display: "flex",
               justifyContent: "center",
             }}
@@ -277,9 +279,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
         {!isRecaptchaVisible && (
           <>
-            <Button onClick={handleClose} disabled={loading}>
-              Cancel
-            </Button>
             <Button
               onClick={step === 0 ? handleSendCode : handleVerifyCode}
               variant="contained"
