@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
@@ -31,7 +31,12 @@ import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 
-export function Package() {
+// Lazy load the new VulnerabilityTable component
+const VulnerabilityTable = React.lazy(() => import("./VulnerabilityTable/VulnerabilityTable.jsx"));
+
+export function Package({ useSplitView = false }) {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabValue, setTabValue] = useState(0);
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -144,6 +149,10 @@ export function Package() {
     ecosystem: dependency.package_ecosystem,
   }));
 
+  if (!serviceDependencies || serviceDependencies.length === 0) {
+    return <>No dependencies found for this package.</>;
+  }
+
   const firstPackageDependency = serviceDependencies[0];
 
   const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
@@ -221,24 +230,58 @@ export function Package() {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <PTeamVulnsPerPackage
-            pteamId={pteamId}
-            service={serviceDict}
-            packageId={packageId}
-            references={references}
-            vulnIds={vulnIdsUnSolved.vuln_ids}
-            ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
-          />
+          {useSplitView ? (
+            <React.Suspense fallback={<>Loading...</>}>
+              <VulnerabilityTable
+                vulnIds={vulnIdsUnSolved?.vuln_ids || []}
+                defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
+                onPageChange={setPage}
+                onRowsPerPageChange={(newRowsPerPage) => {
+                  setRowsPerPage(newRowsPerPage);
+                  setPage(0);
+                }}
+              />
+            </React.Suspense>
+          ) : (
+            <PTeamVulnsPerPackage
+              pteamId={pteamId}
+              service={serviceDict}
+              packageId={packageId}
+              references={references}
+              vulnIds={vulnIdsUnSolved.vuln_ids}
+              ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
+            />
+          )}
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <PTeamVulnsPerPackage
-            pteamId={pteamId}
-            service={serviceDict}
-            packageId={packageId}
-            references={references}
-            vulnIds={vulnIdsSolved.vuln_ids}
-            ticketCounts={ticketCountsSolved.ssvc_priority_count}
-          />
+          {useSplitView ? (
+            <React.Suspense fallback={<>Loading...</>}>
+              <VulnerabilityTable
+                vulnIds={vulnIdsSolved?.vuln_ids || []}
+                defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
+                onPageChange={setPage}
+                onRowsPerPageChange={(newRowsPerPage) => {
+                  setRowsPerPage(newRowsPerPage);
+                  setPage(0);
+                }}
+              />
+            </React.Suspense>
+          ) : (
+            <PTeamVulnsPerPackage
+              pteamId={pteamId}
+              service={serviceDict}
+              packageId={packageId}
+              references={references}
+              vulnIds={vulnIdsSolved.vuln_ids}
+              ticketCounts={ticketCountsSolved.ssvc_priority_count}
+            />
+          )}
         </TabPanel>
       </Box>
     </>
