@@ -242,7 +242,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                   Did you receive the code?
                 </Typography>
                 <Button
-                  id="recaptcha-container-invisible-resend"
                   size="small"
                   disabled={!canResend || loading}
                   onClick={handleResend}
@@ -257,6 +256,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                     `Resend in ${timer} seconds`
                   )}
                 </Button>
+                <div id="recaptcha-container-invisible-resend" style={{ display: "none" }} />
               </Stack>
               <Button size="small" onClick={() => setStep(0)} disabled={loading}>
                 Change Phone Number
@@ -282,7 +282,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
         {!isRecaptchaVisible && (
           <>
-            {console.log(isRecaptchaVisible)}
+            {/* {console.log(isRecaptchaVisible)} */}
             <Button
               onClick={step === 0 ? handleSendCode : handleVerifyCode}
               variant="contained"

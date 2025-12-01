@@ -274,13 +274,19 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
+    const containerId = "recaptcha-container-invisible-resend";
     console.log("start", window.recaptchaForResend);
     if (window.recaptchaForResend) {
       window.recaptchaForResend.clear();
       window.recaptchaForResend = null;
     }
     console.log("end", window.recaptchaForResend);
-    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
+    const containerElement = document.getElementById(containerId);
+    if (containerElement) {
+      containerElement.innerHTML = "";
+    }
+
+    const recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
       size: "invisible",
     });
     window.recaptchaForResend = recaptchaVerifier;
