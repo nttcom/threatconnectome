@@ -88,7 +88,7 @@ const successHandlers = [
 ];
 
 export default {
-  title: "Package/PackagePage",
+  title: "PackagePage",
   component: Package,
   tags: ["autodocs"],
   argTypes: {
