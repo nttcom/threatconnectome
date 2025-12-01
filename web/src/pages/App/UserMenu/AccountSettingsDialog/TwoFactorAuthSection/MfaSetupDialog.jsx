@@ -136,7 +136,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     startResendTimer();
     setError("");
-    setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
         setAuthData((prevAuthData) => ({
@@ -145,6 +144,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         }));
         setLoading(false);
         showNotification("The verification code has been resent.", "info");
+        setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
         console.log("handleResend: error");
@@ -264,7 +264,14 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                   style={{ display: "none" }}
                 />
               </Stack>
-              <Button size="small" onClick={() => setStep(0)} disabled={loading}>
+              <Button
+                size="small"
+                onClick={() => {
+                  setStep(0);
+                  setIsRecaptchaVisible(false);
+                }}
+                disabled={loading}
+              >
                 Change Phone Number
               </Button>
             </Stack>
