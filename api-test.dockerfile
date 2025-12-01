@@ -10,4 +10,4 @@ RUN python -m pip install --upgrade pip
 RUN python -m pip install pipenv
 RUN python -m pipenv sync --dev --system
 USER tcuser
-CMD ["hypercorn", "app.main:app", "--bind", "0.0.0.0:80"]
+CMD ["hypercorn", "app.main:app", "--bind", "0.0.0.0:8080"]
