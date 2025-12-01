@@ -281,10 +281,14 @@ export class FirebaseProvider extends AuthProvider {
       window.recaptchaForResend = null;
     }
     console.log("end", window.recaptchaForResend);
-    const containerElement = document.getElementById(containerId);
-    if (containerElement) {
-      containerElement.innerHTML = "";
-    }
+    // const containerElement = document.getElementById(containerId);
+    // console.log(containerElement);
+    // if (containerElement) {
+    //   containerElement.innerHTML = "";
+    //   console.log(" containerElement.innerHTML = ");
+    // } else {
+    //   console.error("Container element not found!");
+    // }
 
     const recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
       size: "invisible",

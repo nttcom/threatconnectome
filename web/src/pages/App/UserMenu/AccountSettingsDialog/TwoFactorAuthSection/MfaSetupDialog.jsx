@@ -39,6 +39,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [error, setError] = useState("");
   const [authData, setAuthData] = useState(null);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
+  const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -66,7 +67,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     const observer = new MutationObserver(check);
     observer.observe(recaptcha_element, { childList: true });
     return () => observer.disconnect();
-  }, []);
+  }, [loading]);
 
   const resetState = () => {
     setStep(0);
@@ -135,6 +136,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     startResendTimer();
     setError("");
+    setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
         setAuthData((prevAuthData) => ({
@@ -256,7 +258,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                     `Resend in ${timer} seconds`
                   )}
                 </Button>
-                <div id="recaptcha-container-invisible-resend" style={{ display: "none" }} />
+                <div
+                  id="recaptcha-container-invisible-resend"
+                  key={recaptchaResendKey}
+                  style={{ display: "none" }}
+                />
               </Stack>
               <Button size="small" onClick={() => setStep(0)} disabled={loading}>
                 Change Phone Number
@@ -282,7 +288,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
         {!isRecaptchaVisible && (
           <>
-            {/* {console.log(isRecaptchaVisible)} */}
+            {console.log(isRecaptchaVisible)}
             <Button
               onClick={step === 0 ? handleSendCode : handleVerifyCode}
               variant="contained"
