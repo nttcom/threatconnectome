@@ -1,19 +1,31 @@
-import { Typography, Box, Chip, Tabs, Tab, useMediaQuery, useTheme, Tooltip } from "@mui/material";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
+import {
+  Box,
+  Divider,
+  Tab,
+  Tabs,
+  Typography,
+  Chip,
+  Tooltip,
+  ClickAwayListener,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../../components/TabPanel";
 import { UUIDTypography } from "../../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
-  useGetDependenciesQuery,
   useGetPTeamQuery,
-  useGetPTeamTicketCountsTiedToServicePackageQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
+  useGetPTeamTicketCountsTiedToServicePackageQuery,
+  useGetDependenciesQuery,
 } from "../../../services/tcApi";
-import { a11yProps } from "../../../utils/func";
+import { APIError } from "../../../utils/APIError";
+import { noPTeamMessage } from "../../../utils/const";
+import { a11yProps, errorToString } from "../../../utils/func";
 import { PackageReferences } from "../../Package/PackageReferences";
 
 import VulnerabilityTable from "./VulnerabilityTable";
@@ -23,31 +35,20 @@ export default function PackagePage() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabValue, setTabValue] = useState(0);
 
-  const handleTabChange = (event, newValue) => setTabValue(newValue);
-
-  const theme = useTheme();
-  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
-
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
+  const { packageId } = useParams();
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
-  const getPTeamReady = !skipByAuth && pteamId;
-  const { packageId } = useParams();
   const getDependenciesReady = !skipByAuth && pteamId && serviceId;
+  const getPTeamReady = !skipByAuth && pteamId;
+  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
 
   const offset = 0;
   const limit = 1000;
-  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
-
   const {
-    data: pteam,
-    error: pteamError,
-    isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
-  const {
-    data: serviceDependencies = [],
+    data: serviceDependencies,
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
@@ -55,13 +56,10 @@ export default function PackagePage() {
     { skip: !getDependenciesReady },
   );
   const {
-    data: vulnIdsUnSolved,
-    error: vulnIdsUnSolvedError,
-    isLoading: vulnIdsUnSolvedIsLoading,
-  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
-    { skip: !getVulnIdsReady },
-  );
+    data: pteam,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
   const {
     data: vulnIdsSolved,
     error: vulnIdsSolvedError,
@@ -71,10 +69,10 @@ export default function PackagePage() {
     { skip: !getVulnIdsReady },
   );
   const {
-    data: ticketCountsUnsolved,
-    error: ticketCountsUnsolvedError,
-    isLoading: ticketCountsUnsolvedIsLoading,
-  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    data: vulnIdsUnsolved,
+    error: vulnIdsUnsolvedError,
+    isLoading: vulnIdsUnsolvedIsLoading,
+  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
     { skip: !getVulnIdsReady },
   );
@@ -86,21 +84,20 @@ export default function PackagePage() {
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
     { skip: !getVulnIdsReady },
   );
-
-  const serviceDict = pteam?.services?.find((service) => service.service_id === serviceId);
-  const references =
-    serviceDependencies?.map((dependency) => ({
-      dependencyId: dependency.dependency_id,
-      target: dependency.target,
-      version: dependency.package_version,
-      service: serviceDict?.service_name,
-      package_name: dependency.package_name,
-      package_source_name: dependency.package_source_name,
-      package_manager: dependency.package_manager,
-      ecosystem: dependency.package_ecosystem,
-    })) || [];
+  const {
+    data: ticketCountsUnsolved,
+    error: ticketCountsUnsolvedError,
+    isLoading: ticketCountsUnsolvedIsLoading,
+  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
+    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { skip: !getVulnIdsReady },
+  );
 
   const [open, setOpen] = useState(false);
+
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
   };
@@ -108,20 +105,69 @@ export default function PackagePage() {
     if (!isMdUp) setOpen(false);
   };
 
-  const firstPackageDependency = serviceDependencies?.[0] || {};
+  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!getVulnIdsReady) return <></>;
+  if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
+  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (serviceDependenciesError)
+    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
+  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
+  if (vulnIdsSolvedError)
+    throw new APIError(errorToString(vulnIdsSolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (vulnIdsSolvedIsLoading) return <>Now loading vulnIdsSolved...</>;
+  if (vulnIdsUnsolvedError)
+    throw new APIError(errorToString(vulnIdsUnsolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage",
+    });
+  if (vulnIdsUnsolvedIsLoading) return <>Now loading vulnIdsUnsolved...</>;
+  if (ticketCountsSolvedError)
+    throw new APIError(errorToString(ticketCountsSolvedError), {
+      api: "getPTeamTicketCountsTiedToServicePackage",
+    });
+  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
+  if (ticketCountsUnsolvedError)
+    throw new APIError(errorToString(ticketCountsUnsolvedError), {
+      api: "getPTeamTicketCountsTiedToServicePackage",
+    });
+  if (ticketCountsUnsolvedIsLoading) return <>Now loading ticketCountsUnsolved...</>;
 
-  const numUnsolved = vulnIdsUnSolved?.vuln_ids?.length ?? 0;
-  const numSolved = vulnIdsSolved?.vuln_ids?.length ?? 0;
+  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
+  const references = serviceDependencies.map((dependency) => ({
+    dependencyId: dependency.dependency_id,
+    target: dependency.target,
+    version: dependency.package_version,
+    service: serviceDict.service_name,
+    package_name: dependency.package_name,
+    package_source_name: dependency.package_source_name,
+    package_manager: dependency.package_manager,
+    ecosystem: dependency.package_ecosystem,
+  }));
+
+  if (!serviceDependencies || serviceDependencies.length === 0) {
+    return <>No dependencies found for this package.</>;
+  }
+
+  const firstPackageDependency = serviceDependencies[0];
+
+  const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
+  const numUnsolved = vulnIdsUnsolved.vuln_ids?.length ?? 0;
+
+  const handleTabChange = (event, value) => setTabValue(value);
+
+  // CodeBlock is not implemented
+  const visibleCodeBlock = false;
 
   return (
-    <Box sx={{ p: 3 }}>
+    <>
       <Box alignItems="center" display="flex" flexDirection="row" mt={3} mb={2}>
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             {isMdUp ? (
-              <Tooltip title={serviceDict?.service_name}>
+              <Tooltip title={serviceDict.service_name}>
                 <Chip
-                  label={serviceDict?.service_name}
+                  label={serviceDict.service_name}
                   variant="outlined"
                   sx={{
                     borderRadius: "2px",
@@ -140,10 +186,10 @@ export default function PackagePage() {
                   disableFocusListener
                   disableHoverListener
                   disableTouchListener
-                  title={serviceDict?.service_name}
+                  title={serviceDict.service_name}
                 >
                   <Chip
-                    label={serviceDict?.service_name}
+                    label={serviceDict.service_name}
                     variant="outlined"
                     sx={{
                       borderRadius: "2px",
@@ -160,62 +206,53 @@ export default function PackagePage() {
           </Box>
           <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {firstPackageDependency?.package_name || "Package"}
+              {firstPackageDependency.package_name}
             </Typography>
-            <Chip label={firstPackageDependency?.package_ecosystem || "N/A"} sx={{ ml: 1 }} />
+            <Chip label={firstPackageDependency.package_ecosystem} sx={{ ml: 1 }} />
           </Box>
-          <UUIDTypography sx={{ mr: 2, mb: 1 }}>{packageId || ""}</UUIDTypography>
-          <PackageReferences
-            references={references.length > 0 ? references : []}
-            serviceDict={serviceDict}
-          />
+          <Typography mr={1} mb={1} variant="caption">
+            <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
+          </Typography>
+          <PackageReferences references={references} serviceDict={serviceDict} />
         </Box>
       </Box>
-
-      {/* グローバルコントロール */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label={`Unsolved vulns (${numUnsolved || 0})`} {...a11yProps(0)} />
-          <Tab label={`Solved vulns (${numSolved || 0})`} {...a11yProps(1)} />
-        </Tabs>
+      <Divider />
+      <Box sx={{ width: "100%" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_vuln_tabs">
+            <Tab label={`UNSOLVED VULNS (${numUnsolved})`} {...a11yProps(0)} />
+            <Tab label={`SOLVED VULNS (${numSolved})`} {...a11yProps(1)} />
+          </Tabs>
+        </Box>
+        <TabPanel value={tabValue} index={0}>
+          <VulnerabilityTable
+            vulnIds={vulnIdsUnsolved?.vuln_ids || []}
+            defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            ticketCounts={ticketCountsUnsolved?.ssvc_priority_count || {}}
+            onPageChange={setPage}
+            onRowsPerPageChange={(newRowsPerPage) => {
+              setRowsPerPage(newRowsPerPage);
+              setPage(0);
+            }}
+          />
+        </TabPanel>
+        <TabPanel value={tabValue} index={1}>
+          <VulnerabilityTable
+            vulnIds={vulnIdsSolved?.vuln_ids || []}
+            defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
+            onPageChange={setPage}
+            onRowsPerPageChange={(newRowsPerPage) => {
+              setRowsPerPage(newRowsPerPage);
+              setPage(0);
+            }}
+          />
+        </TabPanel>
       </Box>
-
-      <TabPanel value={tabValue} index={0}>
-        <VulnerabilityTable
-          vulnIds={vulnIdsUnSolved?.vuln_ids || []}
-          defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          ticketCounts={ticketCountsUnsolved?.ssvc_priority_count || {}}
-          onPageChange={setPage}
-          onRowsPerPageChange={(newRowsPerPage) => {
-            setRowsPerPage(newRowsPerPage);
-            setPage(0);
-          }}
-        />
-      </TabPanel>
-      <TabPanel value={tabValue} index={1}>
-        <VulnerabilityTable
-          vulnIds={vulnIdsSolved?.vuln_ids || []}
-          defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
-          onPageChange={setPage}
-          onRowsPerPageChange={(newRowsPerPage) => {
-            setRowsPerPage(newRowsPerPage);
-            setPage(0);
-          }}
-        />
-      </TabPanel>
-    </Box>
+    </>
   );
 }
