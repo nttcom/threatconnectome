@@ -38,6 +38,7 @@ function _errorToMessage(error) {
       "auth/code-expired": "Session is invalid or has expired. Please try again.",
       "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
       "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
+      "auth/requires-recent-login": "Please log out and sign in again before trying.",
     }[error.code || error] ||
     error.message ||
     error.code ||
@@ -284,6 +285,8 @@ export class FirebaseProvider extends AuthProvider {
         return verificationId;
       })
       .catch((error) => {
+        console.log("sendSmsCodeAgain:error");
+        console.log(error);
         recaptchaVerifier.clear();
         throw new FirebaseAuthError(error);
       });

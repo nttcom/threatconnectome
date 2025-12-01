@@ -145,6 +145,9 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         showNotification("The verification code has been resent.", "info");
       })
       .catch((error) => {
+        console.log("handleResend: error");
+        console.log(error);
+        console.log(error.message);
         setError(error.message);
         setLoading(false);
       });
@@ -279,6 +282,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         )}
         {!isRecaptchaVisible && (
           <>
+            {console.log(isRecaptchaVisible)}
             <Button
               onClick={step === 0 ? handleSendCode : handleVerifyCode}
               variant="contained"
