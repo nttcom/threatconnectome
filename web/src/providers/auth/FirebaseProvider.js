@@ -275,20 +275,11 @@ export class FirebaseProvider extends AuthProvider {
 
   async sendSmsCodeAgain(phoneInfoOptions, auth) {
     const containerId = "recaptcha-container-invisible-resend";
-    console.log("start", window.recaptchaForResend);
+
     if (window.recaptchaForResend) {
       window.recaptchaForResend.clear();
       window.recaptchaForResend = null;
     }
-    console.log("end", window.recaptchaForResend);
-    // const containerElement = document.getElementById(containerId);
-    // console.log(containerElement);
-    // if (containerElement) {
-    //   containerElement.innerHTML = "";
-    //   console.log(" containerElement.innerHTML = ");
-    // } else {
-    //   console.error("Container element not found!");
-    // }
 
     const recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
       size: "invisible",
@@ -302,8 +293,6 @@ export class FirebaseProvider extends AuthProvider {
         return verificationId;
       })
       .catch((error) => {
-        console.log("sendSmsCodeAgain:error");
-        console.log(error);
         recaptchaVerifier.clear();
         throw new FirebaseAuthError(error);
       });

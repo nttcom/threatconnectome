@@ -148,9 +148,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
-        console.log("handleResend: error");
-        console.log(error);
-        console.log(error.message);
         setError(error.message);
         setLoading(false);
       });
