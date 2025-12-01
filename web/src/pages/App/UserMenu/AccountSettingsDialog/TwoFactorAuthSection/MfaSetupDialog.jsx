@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  fabClasses,
   MenuItem,
   Select,
   Snackbar,
@@ -76,6 +77,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setCode("");
     setError("");
     resetResendState();
+    setIsRecaptchaVisible(false);
   };
 
   const handleClose = () => {
@@ -283,27 +285,35 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           Cancel
         </Button>
         {step === 0 && (
-          <Box
-            id="recaptcha-container-visible-register-phone-number"
-            sx={{
-              mt: isRecaptchaVisible ? 5 : 0,
-              mb: isRecaptchaVisible ? 5 : 0,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          />
-        )}
-        {!isRecaptchaVisible && (
           <>
-            {console.log(isRecaptchaVisible)}
-            <Button
-              onClick={step === 0 ? handleSendCode : handleVerifyCode}
-              variant="contained"
-              disabled={loading || (step === 0 ? !phoneNumber : !(code.length === 6))}
-            >
-              {loading ? "Processing..." : step === 0 ? "Send Code" : "Verify & Enable"}
-            </Button>
+            <Box
+              id="recaptcha-container-visible-register-phone-number"
+              sx={{
+                mt: isRecaptchaVisible ? 2 : 0,
+                mb: isRecaptchaVisible ? 2 : 0,
+                display: "flex",
+                justifyContent: "center",
+              }}
+            />
+            {!isRecaptchaVisible && (
+              <Button
+                onClick={handleSendCode}
+                variant="contained"
+                disabled={loading || !phoneNumber}
+              >
+                {loading ? "Processing..." : "Send Code"}
+              </Button>
+            )}
           </>
+        )}
+        {step === 1 && (
+          <Button
+            onClick={handleVerifyCode}
+            variant="contained"
+            disabled={loading || !(code.length === 6)}
+          >
+            {loading ? "Processing..." : "Verify & Enable"}
+          </Button>
         )}
       </DialogActions>
       <Snackbar
