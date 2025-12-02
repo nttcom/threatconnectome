@@ -6,6 +6,7 @@ class Firebase {
     this.auth = null;
     this.providerId = null;
     this.samlProvider = null;
+    this.recaptchaForResend = null;
   }
 
   getAuth() {
@@ -49,6 +50,14 @@ class Firebase {
 
   async getBearerToken() {
     return await this.getAuth()?.currentUser?.getIdToken();
+  }
+
+  getRecaptchaForResend() {
+    return this.recaptchaForResend;
+  }
+
+  setRecaptchaForResend(element) {
+    this.recaptchaForResend = element;
   }
 }
 
