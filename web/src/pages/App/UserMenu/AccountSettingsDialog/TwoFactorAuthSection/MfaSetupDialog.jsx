@@ -37,7 +37,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [authData, setAuthData] = useState(null);
+  const [mfaData, setMfaData] = useState(null);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
 
@@ -89,8 +89,8 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setError("");
     resetResendState();
     registerPhoneNumber(countryCode + phoneNumber)
-      .then((auth) => {
-        setAuthData(auth);
+      .then((mfa) => {
+        setMfaData(mfa);
         setLoading(false);
         setStep(1);
       })
@@ -103,7 +103,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const handleVerifyCode = () => {
     setLoading(true);
     setError("");
-    verifySmsForEnrollment(authData.verificationId, code)
+    verifySmsForEnrollment(mfaData.verificationId, code)
       .then(() => {
         onSuccess();
         handleClose();
@@ -137,10 +137,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     startResendTimer();
     setError("");
-    sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
+    sendSmsCodeAgain(mfa.phoneInfoOptions, mfaData.auth)
       .then((resendVerificationId) => {
-        setAuthData((prevAuthData) => ({
-          ...prevAuthData,
+        setMfaData((prevMfaData) => ({
+          ...prevMfaData,
           verificationId: resendVerificationId,
         }));
         setLoading(false);
