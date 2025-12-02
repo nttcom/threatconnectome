@@ -285,8 +285,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
             <Box
               id="recaptcha-container-visible-register-phone-number"
               sx={{
-                mt: isRecaptchaVisible ? 2 : 0,
-                mb: isRecaptchaVisible ? 2 : 0,
                 display: "flex",
                 justifyContent: "center",
               }}
