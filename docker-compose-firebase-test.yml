@@ -4,13 +4,6 @@ services:
     build:
       context: ./api
       dockerfile: ../api-test.dockerfile
-    command:
-      - hypercorn
-      - app.main:app
-      - --bind
-      - 0.0.0.0:80
-      - --root-path
-      - /api
     depends_on:
       testdb:
         condition: service_healthy
