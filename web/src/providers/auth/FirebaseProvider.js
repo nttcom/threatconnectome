@@ -53,7 +53,7 @@ class FirebaseAuthError extends AuthError {
   }
 }
 
-async function startSmsLoginFlow(auth, error) {
+async function startSmsLoginFlow(auth, error, recaptchaId) {
   const resolver = getMultiFactorResolver(auth, error);
   for (const hint of resolver.hints) {
     if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
@@ -62,7 +62,7 @@ async function startSmsLoginFlow(auth, error) {
         session: resolver.session,
       };
 
-      const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
+      const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
         size: "normal",
       });
 
@@ -109,7 +109,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async signInWithEmailAndPassword({ email, password }) {
+  async signInWithEmailAndPassword({ email, password, recaptchaId }) {
     const auth = Firebase.getAuth();
     return await setPersistence(auth, browserSessionPersistence)
       .then(() => signInWithEmailAndPassword(auth, email, password))
@@ -118,7 +118,7 @@ export class FirebaseProvider extends AuthProvider {
       })
       .catch(async (error) => {
         if (error.code === "auth/multi-factor-auth-required") {
-          return await startSmsLoginFlow(auth, error);
+          return await startSmsLoginFlow(auth, error, recaptchaId);
         } else {
           throw new FirebaseAuthError(error);
         }
@@ -199,7 +199,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async registerPhoneNumber(phoneNumber) {
+  async registerPhoneNumber(phoneNumber, recaptchaId) {
     const e164Pattern = /^\+[1-9]\d{1,14}$/;
     if (!e164Pattern.test(phoneNumber)) {
       throw new Error(
@@ -210,13 +210,9 @@ export class FirebaseProvider extends AuthProvider {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
 
-    const recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container-visible-register-phone-number",
-      {
-        size: "normal",
-      },
-    );
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
+      size: "normal",
+    });
 
     try {
       const multiFactorSession = await multiFactor(currentUser).getSession();
@@ -273,8 +269,7 @@ export class FirebaseProvider extends AuthProvider {
     }
   }
 
-  async sendSmsCodeAgain(phoneInfoOptions, auth) {
-    const containerId = "recaptcha-container-invisible-resend";
+  async sendSmsCodeAgain(phoneInfoOptions, auth, recaptchaId) {
     const recaptchaForResend = Firebase.getRecaptchaForResend();
 
     if (recaptchaForResend) {
@@ -282,7 +277,7 @@ export class FirebaseProvider extends AuthProvider {
       Firebase.setRecaptchaForResend(null);
     }
 
-    const recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
       size: "invisible",
     });
     Firebase.setRecaptchaForResend(recaptchaVerifier);

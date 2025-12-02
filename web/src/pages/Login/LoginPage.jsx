@@ -72,7 +72,11 @@ export function Login() {
   };
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
+    return await signInWithEmailAndPassword({
+      email,
+      password,
+      recaptchaId: "recaptcha-container-visible-login",
+    }).catch((authError) => {
       showMessage(authError.message);
       return undefined;
     });

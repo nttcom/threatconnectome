@@ -81,7 +81,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     setError("");
     unlockAction();
-    registerPhoneNumber(countryCode + phoneNumber)
+    registerPhoneNumber(
+      countryCode + phoneNumber,
+      "recaptcha-container-visible-register-phone-number",
+    )
       .then((mfa) => {
         setMfaData(mfa);
         setLoading(false);
@@ -130,7 +133,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     lockAction();
     setError("");
-    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth)
+    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth, "recaptcha-container-invisible-resend")
       .then((resendVerificationId) => {
         setMfaData((prevMfaData) => ({
           ...prevMfaData,

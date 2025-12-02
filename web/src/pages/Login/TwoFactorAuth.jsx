@@ -57,7 +57,11 @@ export function TwoFactorAuth(props) {
   const handleResend = async () => {
     lockAction();
 
-    sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
+    sendSmsCodeAgain(
+      authData.phoneInfoOptions,
+      authData.auth,
+      "recaptcha-container-invisible-resend",
+    )
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
         setNotification({
