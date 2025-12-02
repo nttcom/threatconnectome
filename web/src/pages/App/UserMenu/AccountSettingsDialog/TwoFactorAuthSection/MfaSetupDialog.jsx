@@ -35,7 +35,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [countryCode, setCountryCode] = useState("+81");
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [code, setCode] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [mfaData, setMfaData] = useState(null);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
@@ -66,7 +66,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setStep(0);
     setCountryCode("+81");
     setPhoneNumber("");
-    setCode("");
+    setVerificationCode("");
     setError("");
     unlockAction();
     setIsRecaptchaVisible(false);
@@ -99,7 +99,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const handleVerifyCode = () => {
     setLoading(true);
     setError("");
-    verifySmsForEnrollment(mfaData.verificationId, code)
+    verifySmsForEnrollment(mfaData.verificationId, verificationCode)
       .then(() => {
         onSuccess();
         handleClose();
@@ -114,7 +114,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const handleCodeChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
-    setCode(sanitized);
+    setVerificationCode(sanitized);
     if (error) {
       setError("");
     }
@@ -216,7 +216,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               label="Verification Code"
               fullWidth
               variant="outlined"
-              value={code}
+              value={verificationCode}
               onChange={handleCodeChange}
               disabled={loading}
               error={!!error}
@@ -306,7 +306,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           <Button
             onClick={handleVerifyCode}
             variant="contained"
-            disabled={loading || !(code.length === 6)}
+            disabled={loading || !(verificationCode.length === 6)}
           >
             {loading ? "Processing..." : "Verify & Enable"}
           </Button>
