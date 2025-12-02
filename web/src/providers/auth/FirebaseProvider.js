@@ -37,6 +37,8 @@ function _errorToMessage(error) {
       "auth/invalid-verification-code": "The code is incorrect. Please try again.",
       "auth/code-expired": "Session is invalid or has expired. Please try again.",
       "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
+      "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
+      "auth/requires-recent-login": "Please log out and sign in again before trying.",
     }[error.code || error] ||
     error.message ||
     error.code ||
@@ -51,7 +53,7 @@ class FirebaseAuthError extends AuthError {
   }
 }
 
-async function startSmsLoginFlow(auth, error) {
+async function startSmsLoginFlow(auth, error, recaptchaId) {
   const resolver = getMultiFactorResolver(auth, error);
   for (const hint of resolver.hints) {
     if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
@@ -60,7 +62,7 @@ async function startSmsLoginFlow(auth, error) {
         session: resolver.session,
       };
 
-      const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-visible-login", {
+      const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
         size: "normal",
       });
 
@@ -107,7 +109,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async signInWithEmailAndPassword({ email, password }) {
+  async signInWithEmailAndPassword({ email, password, recaptchaId }) {
     const auth = Firebase.getAuth();
     return await setPersistence(auth, browserSessionPersistence)
       .then(() => signInWithEmailAndPassword(auth, email, password))
@@ -116,7 +118,7 @@ export class FirebaseProvider extends AuthProvider {
       })
       .catch(async (error) => {
         if (error.code === "auth/multi-factor-auth-required") {
-          return await startSmsLoginFlow(auth, error);
+          return await startSmsLoginFlow(auth, error, recaptchaId);
         } else {
           throw new FirebaseAuthError(error);
         }
@@ -197,7 +199,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async registerPhoneNumber(phoneNumber) {
+  async registerPhoneNumber(phoneNumber, recaptchaId) {
     const e164Pattern = /^\+[1-9]\d{1,14}$/;
     if (!e164Pattern.test(phoneNumber)) {
       throw new Error(
@@ -208,13 +210,9 @@ export class FirebaseProvider extends AuthProvider {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
 
-    const recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container-visible-register-phone-number",
-      {
-        size: "normal",
-      },
-    );
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
+      size: "normal",
+    });
 
     try {
       const multiFactorSession = await multiFactor(currentUser).getSession();
@@ -223,7 +221,11 @@ export class FirebaseProvider extends AuthProvider {
         session: multiFactorSession,
       };
       const phoneAuthProvider = new PhoneAuthProvider(auth);
-      return phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier); // Send SMS verification code.
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier,
+      ); // Send SMS verification code.
+      return { verificationId: verificationId, phoneInfoOptions: phoneInfoOptions, auth: auth };
     } catch (error) {
       recaptchaVerifier.clear();
       throw new FirebaseAuthError(error);
@@ -231,11 +233,15 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async deletePhoneNumber() {
-    const auth = Firebase.getAuth();
-    const currentUser = auth.currentUser;
-    const multiFactorUser = multiFactor(currentUser);
-    for (const factor of multiFactorUser.enrolledFactors) {
-      multiFactorUser.unenroll(factor);
+    try {
+      const auth = Firebase.getAuth();
+      const currentUser = auth.currentUser;
+      const multiFactorUser = multiFactor(currentUser);
+      for (const factor of multiFactorUser.enrolledFactors) {
+        await multiFactorUser.unenroll(factor);
+      }
+    } catch (error) {
+      throw new FirebaseAuthError(error);
     }
   }
 
@@ -249,20 +255,32 @@ export class FirebaseProvider extends AuthProvider {
     });
   }
 
-  verifySmsForEnrollment(verificationId, verificationCode) {
-    const auth = Firebase.getAuth();
-    const currentUser = auth.currentUser;
-    const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
-    const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+  async verifySmsForEnrollment(verificationId, verificationCode) {
+    try {
+      const auth = Firebase.getAuth();
+      const currentUser = auth.currentUser;
+      const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
+      const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
-    // Complete enrollment.
-    multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+      // Complete enrollment.
+      await multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
+    } catch (error) {
+      throw new FirebaseAuthError(error);
+    }
   }
 
-  async sendSmsCodeAgain(phoneInfoOptions, auth) {
-    const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container-invisible-resend", {
+  async sendSmsCodeAgain(phoneInfoOptions, auth, recaptchaId) {
+    const recaptchaForResend = Firebase.getRecaptchaForResend();
+
+    if (recaptchaForResend) {
+      recaptchaForResend.clear();
+      Firebase.setRecaptchaForResend(null);
+    }
+
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
       size: "invisible",
     });
+    Firebase.setRecaptchaForResend(recaptchaVerifier);
 
     const phoneAuthProvider = new PhoneAuthProvider(auth);
     return await phoneAuthProvider
@@ -271,7 +289,29 @@ export class FirebaseProvider extends AuthProvider {
         return verificationId;
       })
       .catch((error) => {
+        recaptchaVerifier.clear();
         throw new FirebaseAuthError(error);
       });
+  }
+
+  isSmsAuthenticationEnabled() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const multiFactorUser = multiFactor(currentUser);
+    for (const factor of multiFactorUser.enrolledFactors) {
+      if (factor.factorId === "phone") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isAuthenticatedWithSaml() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const isSamlUser = currentUser.providerData.some((provider) =>
+      provider.providerId.startsWith("saml."),
+    );
+    return isSamlUser;
   }
 }

@@ -102,6 +102,7 @@ describe("TestLoginPage", () => {
 
       const emailValue = "user1@localhost.localdomain";
       const passwordValue = "secret keyword";
+      const recaptchaId = "recaptcha-container-visible-login";
 
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
       const passwordField = screen.getByLabelText(/^Password/);
@@ -114,6 +115,7 @@ describe("TestLoginPage", () => {
       expect(mockSignInWithEmailAndPassword).toBeCalledWith({
         email: emailValue,
         password: passwordValue,
+        recaptchaId: recaptchaId,
       });
     });
 

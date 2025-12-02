@@ -54,13 +54,19 @@ export class AuthProvider {
   async deletePhoneNumber() {
     throw new Error("Not implemented");
   }
-  verifySmsForLogin() {
+  async verifySmsForLogin() {
     throw new Error("Not implemented");
   }
-  verifySmsForEnrollment() {
+  async verifySmsForEnrollment() {
     throw new Error("Not implemented");
   }
   async sendSmsCodeAgain() {
+    throw new Error("Not implemented");
+  }
+  isSmsAuthenticationEnabled() {
+    throw new Error("Not implemented");
+  }
+  isAuthenticatedWithSaml() {
     throw new Error("Not implemented");
   }
 }

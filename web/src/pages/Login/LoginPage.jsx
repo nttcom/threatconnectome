@@ -33,6 +33,8 @@ export function Login() {
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
+  const recaptchaId = "recaptcha-container-visible-login";
+
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,7 +56,7 @@ export function Login() {
   }, [dispatch, location, signOut]);
 
   useEffect(() => {
-    const recaptcha_element = document.getElementById("recaptcha-container-visible-login");
+    const recaptcha_element = document.getElementById(recaptchaId);
     if (!recaptcha_element) return;
 
     const check = () => {
@@ -72,7 +74,11 @@ export function Login() {
   };
 
   const callSignInWithEmailAndPassword = async (email, password) => {
-    return await signInWithEmailAndPassword({ email, password }).catch((authError) => {
+    return await signInWithEmailAndPassword({
+      email,
+      password,
+      recaptchaId: recaptchaId,
+    }).catch((authError) => {
       showMessage(authError.message);
       return undefined;
     });
@@ -234,7 +240,7 @@ export function Login() {
               </>
             )}
             <Box
-              id="recaptcha-container-visible-login"
+              id={recaptchaId}
               sx={{
                 mt: isRecaptchaVisible ? 5 : 0,
                 mb: isRecaptchaVisible ? 5 : 0,
