@@ -114,6 +114,7 @@ describe("TestLoginPage", () => {
       expect(mockSignInWithEmailAndPassword).toBeCalledWith({
         email: emailValue,
         password: passwordValue,
+        recaptchaId: "recaptcha-container-visible-login",
       });
     });
 
