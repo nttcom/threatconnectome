@@ -46,10 +46,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
 
   const { canExecute, timer, lockAction, unlockAction } = useActionLock(5);
 
+  const recaptchaIdForRegisterPhoneNumber = "recaptcha-container-visible-register-phone-number";
+  const recaptchaIdForResend = "recaptcha-container-invisible-resend";
+
   useEffect(() => {
-    const recaptcha_element = document.getElementById(
-      "recaptcha-container-visible-register-phone-number",
-    );
+    const recaptcha_element = document.getElementById(recaptchaIdForRegisterPhoneNumber);
     if (!recaptcha_element) return;
 
     const check = () => {
@@ -81,10 +82,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     setError("");
     unlockAction();
-    registerPhoneNumber(
-      countryCode + phoneNumber,
-      "recaptcha-container-visible-register-phone-number",
-    )
+    registerPhoneNumber(countryCode + phoneNumber, recaptchaIdForRegisterPhoneNumber)
       .then((mfa) => {
         setMfaData(mfa);
         setLoading(false);
@@ -133,7 +131,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     lockAction();
     setError("");
-    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth, "recaptcha-container-invisible-resend")
+    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth, recaptchaIdForResend)
       .then((resendVerificationId) => {
         setMfaData((prevMfaData) => ({
           ...prevMfaData,
@@ -257,7 +255,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                   )}
                 </Button>
                 <div
-                  id="recaptcha-container-invisible-resend"
+                  id={recaptchaIdForResend}
                   key={recaptchaResendKey}
                   style={{ display: "none" }}
                 />
@@ -283,7 +281,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         {step === 0 && (
           <>
             <Box
-              id="recaptcha-container-visible-register-phone-number"
+              id={recaptchaIdForRegisterPhoneNumber}
               sx={{
                 display: "flex",
                 justifyContent: "center",

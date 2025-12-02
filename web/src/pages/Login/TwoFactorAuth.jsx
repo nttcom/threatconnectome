@@ -32,6 +32,8 @@ export function TwoFactorAuth(props) {
 
   const { canExecute, timer, lockAction } = useActionLock(5);
 
+  const recaptchaId = "recaptcha-container-invisible-resend";
+
   const handleCodeChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
@@ -57,11 +59,7 @@ export function TwoFactorAuth(props) {
   const handleResend = async () => {
     lockAction();
 
-    sendSmsCodeAgain(
-      authData.phoneInfoOptions,
-      authData.auth,
-      "recaptcha-container-invisible-resend",
-    )
+    sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth, recaptchaId)
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
         setNotification({
@@ -154,11 +152,7 @@ export function TwoFactorAuth(props) {
                     `Resend in ${timer} seconds`
                   )}
                 </Button>
-                <div
-                  id="recaptcha-container-invisible-resend"
-                  key={recaptchaResendKey}
-                  style={{ display: "none" }}
-                />
+                <div id={recaptchaId} key={recaptchaResendKey} style={{ display: "none" }} />
               </Stack>
             </Stack>
           </Box>
