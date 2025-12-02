@@ -132,7 +132,6 @@ export function TwoFactorAuth(props) {
                   Did you receive the code?
                 </Typography>
                 <Button
-                  id="recaptcha-container-invisible-resend"
                   size="small"
                   disabled={!canResend || isLoading}
                   onClick={handleResend}
