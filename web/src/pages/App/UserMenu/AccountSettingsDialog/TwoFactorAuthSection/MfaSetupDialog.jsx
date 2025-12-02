@@ -137,7 +137,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     startResendTimer();
     setError("");
-    sendSmsCodeAgain(mfa.phoneInfoOptions, mfaData.auth)
+    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth)
       .then((resendVerificationId) => {
         setMfaData((prevMfaData) => ({
           ...prevMfaData,
