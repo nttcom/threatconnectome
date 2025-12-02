@@ -15,7 +15,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { useAuth } from "../../hooks/auth";
-import { useSmsResend } from "../../hooks/useSmsResend";
+import { useActionLock } from "../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
 export function TwoFactorAuth(props) {
@@ -26,11 +26,11 @@ export function TwoFactorAuth(props) {
   const [codeError, setCodeError] = useState(null);
   const [verificationId, setVerificationId] = useState(authData.verificationId);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
+  const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
-  const { canResend, timer, notification, startResendTimer, showNotification, closeNotification } =
-    useSmsResend(5);
+  const { canExecute, timer, lockAction } = useActionLock(5);
 
   const handleCodeChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
@@ -55,12 +55,16 @@ export function TwoFactorAuth(props) {
   };
 
   const handleResend = async () => {
-    startResendTimer();
+    lockAction();
 
     sendSmsCodeAgain(authData.phoneInfoOptions, authData.auth)
       .then((resendVerificationId) => {
         setVerificationId(resendVerificationId);
-        showNotification("The verification code has been resent.", "info");
+        setNotification({
+          open: true,
+          message: "The verification code has been resent.",
+          type: "info",
+        });
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
@@ -69,7 +73,7 @@ export function TwoFactorAuth(props) {
   };
 
   const handleCloseNotification = () => {
-    closeNotification();
+    setNotification({ ...notification, open: false });
   };
 
   return (
@@ -133,11 +137,11 @@ export function TwoFactorAuth(props) {
                 </Typography>
                 <Button
                   size="small"
-                  disabled={!canResend || isLoading}
+                  disabled={!canExecute || isLoading}
                   onClick={handleResend}
                   sx={{ fontWeight: "bold" }}
                 >
-                  {canResend ? (
+                  {canExecute ? (
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                       <Refresh fontSize="small" />
                       <span>Resend the code</span>

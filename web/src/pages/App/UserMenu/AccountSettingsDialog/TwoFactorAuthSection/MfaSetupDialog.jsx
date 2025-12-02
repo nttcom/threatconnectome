@@ -19,7 +19,7 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "../../../../../hooks/auth";
-import { useSmsResend } from "../../../../../hooks/useSmsResend";
+import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 
 const COUNTRY_CODES = [
@@ -40,18 +40,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [mfaData, setMfaData] = useState(null);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
+  const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
-  const {
-    canResend,
-    timer,
-    notification,
-    startResendTimer,
-    resetResendState,
-    showNotification,
-    closeNotification,
-  } = useSmsResend(5);
+  const { canExecute, timer, lockAction, unlockAction } = useActionLock(5);
 
   useEffect(() => {
     const recaptcha_element = document.getElementById(
@@ -75,7 +68,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setPhoneNumber("");
     setCode("");
     setError("");
-    resetResendState();
+    unlockAction();
     setIsRecaptchaVisible(false);
   };
 
@@ -87,7 +80,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const handleSendCode = async () => {
     setLoading(true);
     setError("");
-    resetResendState();
+    unlockAction();
     registerPhoneNumber(countryCode + phoneNumber)
       .then((mfa) => {
         setMfaData(mfa);
@@ -135,7 +128,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
 
   const handleResend = () => {
     setLoading(true);
-    startResendTimer();
+    lockAction();
     setError("");
     sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth)
       .then((resendVerificationId) => {
@@ -144,7 +137,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           verificationId: resendVerificationId,
         }));
         setLoading(false);
-        showNotification("The verification code has been resent.", "info");
+        setNotification({
+          open: true,
+          message: "The verification code has been resent.",
+          type: "info",
+        });
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
@@ -154,7 +151,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   const handleCloseNotification = () => {
-    closeNotification();
+    setNotification({ ...notification, open: false });
   };
 
   return (
@@ -243,11 +240,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 </Typography>
                 <Button
                   size="small"
-                  disabled={!canResend || loading}
+                  disabled={!canExecute || loading}
                   onClick={handleResend}
                   sx={{ fontWeight: "bold" }}
                 >
-                  {canResend ? (
+                  {canExecute ? (
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                       <Refresh fontSize="small" />
                       <span>Resend Code</span>
