@@ -1,4 +1,3 @@
-import { Refresh } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -18,6 +17,9 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
+import { SmsResendButton } from "../../../../../components/SmsResendButton";
+import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshootingTips";
+import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTroubleshootingToggleButton";
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
@@ -41,6 +43,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -71,6 +74,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setError("");
     unlockAction();
     setIsRecaptchaVisible(false);
+    setIsHelpExpanded(false);
   };
 
   const handleClose = () => {
@@ -155,6 +159,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setNotification({ ...notification, open: false });
   };
 
+  const handleToggleHelp = () => {
+    setIsHelpExpanded((prev) => !prev);
+  };
+
   return (
     <Dialog
       open={open}
@@ -230,46 +238,53 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 },
               }}
             />
-            <Stack spacing={2} sx={{ mt: 2, alignItems: "center" }}>
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ alignItems: "center", justifyContent: "center" }}
-              >
+            <Stack spacing={2} sx={{ mt: 2, alignItems: "flex-start", width: "100%" }}>
+              <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
                   Did you receive the code?
                 </Typography>
-                <Button
-                  size="small"
-                  disabled={!canExecute || loading}
-                  onClick={handleResend}
-                  sx={{ fontWeight: "bold" }}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-start",
+                    rowGap: 1,
+                    width: "100%",
+                  }}
                 >
-                  {canExecute ? (
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                      <Refresh fontSize="small" />
-                      <span>Resend Code</span>
-                    </Stack>
-                  ) : (
-                    `Resend in ${timer} seconds`
-                  )}
-                </Button>
+                  <SmsResendButton
+                    canExecute={canExecute}
+                    isBusy={loading}
+                    timer={timer}
+                    onResend={handleResend}
+                  />
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setStep(0);
+                      setIsRecaptchaVisible(false);
+                      setIsHelpExpanded(false);
+                    }}
+                    disabled={loading}
+                  >
+                    Change Phone Number
+                  </Button>
+                  <SmsTroubleshootingToggleButton
+                    expanded={isHelpExpanded}
+                    onToggle={handleToggleHelp}
+                    disabled={loading}
+                  />
+                </Stack>
+                {isHelpExpanded && <SmsTroubleshootingTips />}
                 <div
                   id={recaptchaIdForResend}
                   key={recaptchaResendKey}
                   style={{ display: "none" }}
                 />
               </Stack>
-              <Button
-                size="small"
-                onClick={() => {
-                  setStep(0);
-                  setIsRecaptchaVisible(false);
-                }}
-                disabled={loading}
-              >
-                Change Phone Number
-              </Button>
             </Stack>
           </>
         )}

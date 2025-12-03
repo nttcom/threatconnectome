@@ -1,4 +1,3 @@
-import { Refresh } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -14,6 +13,9 @@ import {
 import PropTypes from "prop-types";
 import { useState } from "react";
 
+import { SmsResendButton } from "../../components/SmsResendButton";
+import { SmsTroubleshootingTips } from "../../components/SmsTroubleshootingTips";
+import { SmsTroubleshootingToggleButton } from "../../components/SmsTroubleshootingToggleButton";
 import { useAuth } from "../../hooks/auth";
 import { useActionLock } from "../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
@@ -27,6 +29,7 @@ export function TwoFactorAuth(props) {
   const [verificationId, setVerificationId] = useState(authData.verificationId);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
@@ -76,6 +79,10 @@ export function TwoFactorAuth(props) {
 
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
+  };
+
+  const handleToggleHelp = () => {
+    setIsHelpExpanded((prev) => !prev);
   };
 
   return (
@@ -129,29 +136,34 @@ export function TwoFactorAuth(props) {
                   "Authenticate"
                 )}
               </Button>
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ alignItems: "center", justifyContent: "center" }}
-              >
+              <Stack spacing={1.5} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
                   Did you receive the code?
                 </Typography>
-                <Button
-                  size="small"
-                  disabled={!canExecute || isLoading}
-                  onClick={handleResend}
-                  sx={{ fontWeight: "bold" }}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-start",
+                    rowGap: 1,
+                    width: "100%",
+                  }}
                 >
-                  {canExecute ? (
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                      <Refresh fontSize="small" />
-                      <span>Resend the code</span>
-                    </Stack>
-                  ) : (
-                    `Resend in ${timer} seconds`
-                  )}
-                </Button>
+                  <SmsResendButton
+                    canExecute={canExecute}
+                    isBusy={isLoading}
+                    timer={timer}
+                    onResend={handleResend}
+                  />
+                  <SmsTroubleshootingToggleButton
+                    expanded={isHelpExpanded}
+                    onToggle={handleToggleHelp}
+                    disabled={isLoading}
+                  />
+                </Stack>
+                {isHelpExpanded && <SmsTroubleshootingTips />}
                 <div id={recaptchaId} key={recaptchaResendKey} style={{ display: "none" }} />
               </Stack>
             </Stack>
