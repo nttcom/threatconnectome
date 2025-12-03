@@ -35,6 +35,13 @@ export const serviceImageWidthSize = 720;
 export const serviceImageHeightSize = 480;
 export const serviceImageMaxSize = 512 * 1024;
 
+export const TROUBLESHOOTING_TIPS = [
+  "The phone number entered is accurate.",
+  "Your device has sufficient network coverage and is not in airplane mode.",
+  "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
+  "The message has not been placed in your spam or junk folder.",
+];
+
 export const actionTypeChipColors = {
   elimination: "error",
   mitigation: "warning",

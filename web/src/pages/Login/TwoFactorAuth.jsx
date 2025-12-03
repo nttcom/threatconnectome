@@ -16,14 +16,8 @@ import { useState } from "react";
 
 import { useAuth } from "../../hooks/auth";
 import { useActionLock } from "../../hooks/useActionLock";
+import { TROUBLESHOOTING_TIPS } from "../../utils/const";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
-
-const TROUBLESHOOTING_TIPS = [
-  "The phone number entered is accurate.",
-  "Your device has sufficient network coverage and is not in airplane mode.",
-  "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
-  "The message has not been placed in your spam or junk folder.",
-];
 
 export function TwoFactorAuth(props) {
   const { authData, navigateInternalPage } = props;

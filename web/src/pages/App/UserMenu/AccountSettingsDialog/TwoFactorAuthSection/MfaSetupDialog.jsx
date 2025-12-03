@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
+import { TROUBLESHOOTING_TIPS } from "../../../../../utils/const";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 
 const COUNTRY_CODES = [
@@ -28,13 +29,6 @@ const COUNTRY_CODES = [
   { code: "+44", label: "UK (+44)" },
   { code: "+86", label: "CN (+86)" },
   { code: "+82", label: "KR (+82)" },
-];
-
-const TROUBLESHOOTING_TIPS = [
-  "The phone number entered is accurate.",
-  "Your device has sufficient network coverage and is not in airplane mode.",
-  "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
-  "The message has not been placed in your spam or junk folder.",
 ];
 
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
