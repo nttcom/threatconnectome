@@ -1,4 +1,4 @@
-import { Refresh } from "@mui/icons-material";
+import { ExpandLess, ExpandMore, Refresh } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -30,6 +30,13 @@ const COUNTRY_CODES = [
   { code: "+82", label: "KR (+82)" },
 ];
 
+const TROUBLESHOOTING_TIPS = [
+  "The phone number entered is accurate.",
+  "Your device has sufficient network coverage and is not in airplane mode.",
+  "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
+  "The message has not been placed in your spam or junk folder.",
+];
+
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
@@ -41,6 +48,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -71,6 +79,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setError("");
     unlockAction();
     setIsRecaptchaVisible(false);
+    setIsHelpExpanded(false);
   };
 
   const handleClose = () => {
@@ -155,6 +164,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setNotification({ ...notification, open: false });
   };
 
+  const handleToggleHelp = () => {
+    setIsHelpExpanded((prev) => !prev);
+  };
+
   return (
     <Dialog
       open={open}
@@ -230,46 +243,104 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 },
               }}
             />
-            <Stack spacing={2} sx={{ mt: 2, alignItems: "center" }}>
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ alignItems: "center", justifyContent: "center" }}
-              >
+            <Stack spacing={2} sx={{ mt: 2, alignItems: "flex-start", width: "100%" }}>
+              <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
                   Did you receive the code?
                 </Typography>
-                <Button
-                  size="small"
-                  disabled={!canExecute || loading}
-                  onClick={handleResend}
-                  sx={{ fontWeight: "bold" }}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-start",
+                    rowGap: 1,
+                    width: "100%",
+                  }}
                 >
-                  {canExecute ? (
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                      <Refresh fontSize="small" />
-                      <span>Resend Code</span>
-                    </Stack>
-                  ) : (
-                    `Resend in ${timer} seconds`
-                  )}
-                </Button>
+                  <Button
+                    size="small"
+                    disabled={!canExecute || loading}
+                    onClick={handleResend}
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    {canExecute ? (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                        <Refresh fontSize="small" />
+                        <span>Resend Code</span>
+                      </Stack>
+                    ) : (
+                      `Resend in ${timer} seconds`
+                    )}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setStep(0);
+                      setIsRecaptchaVisible(false);
+                      setIsHelpExpanded(false);
+                    }}
+                    disabled={loading}
+                  >
+                    Change Phone Number
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={handleToggleHelp}
+                    disabled={loading}
+                    sx={{
+                      minWidth: 0,
+                      p: 0,
+                      textTransform: "none",
+                      alignItems: "center",
+                      display: "inline-flex",
+                      flexBasis: "100%",
+                      justifyContent: "flex-start",
+                      "& .MuiButton-startIcon": { marginRight: 0.5 },
+                    }}
+                    startIcon={
+                      isHelpExpanded ? (
+                        <ExpandLess fontSize="small" />
+                      ) : (
+                        <ExpandMore fontSize="small" />
+                      )
+                    }
+                  >
+                    {isHelpExpanded ? "HIDE TROUBLESHOOTING TIPS" : "VIEW TROUBLESHOOTING TIPS"}
+                  </Button>
+                </Stack>
+                {isHelpExpanded && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      mt: 1,
+                      pl: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }} gutterBottom>
+                      If the verification SMS does not arrive, please verify the following:
+                    </Typography>
+                    <Box
+                      component="ol"
+                      sx={{ pl: 4, m: 0, fontSize: (theme) => theme.typography.body2.fontSize }}
+                    >
+                      {TROUBLESHOOTING_TIPS.map((tip) => (
+                        <Box component="li" key={tip} sx={{ mb: 0.5 }}>
+                          {tip}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
                 <div
                   id={recaptchaIdForResend}
                   key={recaptchaResendKey}
                   style={{ display: "none" }}
                 />
               </Stack>
-              <Button
-                size="small"
-                onClick={() => {
-                  setStep(0);
-                  setIsRecaptchaVisible(false);
-                }}
-                disabled={loading}
-              >
-                Change Phone Number
-              </Button>
             </Stack>
           </>
         )}

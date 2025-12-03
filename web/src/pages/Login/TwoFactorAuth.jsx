@@ -1,4 +1,4 @@
-import { Refresh } from "@mui/icons-material";
+import { ExpandLess, ExpandMore, Refresh } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -18,6 +18,13 @@ import { useAuth } from "../../hooks/auth";
 import { useActionLock } from "../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
+const TROUBLESHOOTING_TIPS = [
+  "The phone number entered is accurate.",
+  "Your device has sufficient network coverage and is not in airplane mode.",
+  "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
+  "The message has not been placed in your spam or junk folder.",
+];
+
 export function TwoFactorAuth(props) {
   const { authData, navigateInternalPage } = props;
 
@@ -27,6 +34,7 @@ export function TwoFactorAuth(props) {
   const [verificationId, setVerificationId] = useState(authData.verificationId);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
 
@@ -76,6 +84,10 @@ export function TwoFactorAuth(props) {
 
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
+  };
+
+  const handleToggleHelp = () => {
+    setIsHelpExpanded((prev) => !prev);
   };
 
   return (
@@ -129,29 +141,85 @@ export function TwoFactorAuth(props) {
                   "Authenticate"
                 )}
               </Button>
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ alignItems: "center", justifyContent: "center" }}
-              >
+              <Stack spacing={1.5} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
                   Did you receive the code?
                 </Typography>
-                <Button
-                  size="small"
-                  disabled={!canExecute || isLoading}
-                  onClick={handleResend}
-                  sx={{ fontWeight: "bold" }}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-start",
+                    rowGap: 1,
+                    width: "100%",
+                  }}
                 >
-                  {canExecute ? (
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                      <Refresh fontSize="small" />
-                      <span>Resend the code</span>
-                    </Stack>
-                  ) : (
-                    `Resend in ${timer} seconds`
-                  )}
-                </Button>
+                  <Button
+                    size="small"
+                    disabled={!canExecute || isLoading}
+                    onClick={handleResend}
+                    sx={{ fontWeight: "bold" }}
+                  >
+                    {canExecute ? (
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                        <Refresh fontSize="small" />
+                        <span>Resend the code</span>
+                      </Stack>
+                    ) : (
+                      `Resend in ${timer} seconds`
+                    )}
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={handleToggleHelp}
+                    disabled={isLoading}
+                    sx={{
+                      minWidth: 0,
+                      p: 0,
+                      textTransform: "none",
+                      alignItems: "center",
+                      display: "inline-flex",
+                      flexBasis: "100%",
+                      justifyContent: "flex-start",
+                      "& .MuiButton-startIcon": { marginRight: 0.5 },
+                    }}
+                    startIcon={
+                      isHelpExpanded ? (
+                        <ExpandLess fontSize="small" />
+                      ) : (
+                        <ExpandMore fontSize="small" />
+                      )
+                    }
+                  >
+                    {isHelpExpanded ? "HIDE TROUBLESHOOTING TIPS" : "VIEW TROUBLESHOOTING TIPS"}
+                  </Button>
+                </Stack>
+                {isHelpExpanded && (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      mt: 1,
+                      pl: 1,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }} gutterBottom>
+                      If the verification SMS does not arrive, please verify the following:
+                    </Typography>
+                    <Box
+                      component="ol"
+                      sx={{ pl: 4, m: 0, fontSize: (theme) => theme.typography.body2.fontSize }}
+                    >
+                      {TROUBLESHOOTING_TIPS.map((tip) => (
+                        <Box component="li" key={tip} sx={{ mb: 0.5 }}>
+                          {tip}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
                 <div id={recaptchaId} key={recaptchaResendKey} style={{ display: "none" }} />
               </Stack>
             </Stack>
