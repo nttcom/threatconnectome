@@ -309,7 +309,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                       )
                     }
                   >
-                    {isHelpExpanded ? "HIDE TROUBLESHOOTING TIPS" : "VIEW TROUBLESHOOTING TIPS"}
+                    {isHelpExpanded ? "Hide troubleshooting tips" : "View troubleshooting tips"}
                   </Button>
                 </Stack>
                 {isHelpExpanded && (

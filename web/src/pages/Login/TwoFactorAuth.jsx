@@ -179,7 +179,6 @@ export function TwoFactorAuth(props) {
                     sx={{
                       minWidth: 0,
                       p: 0,
-                      textTransform: "none",
                       alignItems: "center",
                       display: "inline-flex",
                       flexBasis: "100%",
@@ -194,7 +193,7 @@ export function TwoFactorAuth(props) {
                       )
                     }
                   >
-                    {isHelpExpanded ? "HIDE TROUBLESHOOTING TIPS" : "VIEW TROUBLESHOOTING TIPS"}
+                    {isHelpExpanded ? "Hide troubleshooting tips" : "View troubleshooting tips"}
                   </Button>
                 </Stack>
                 {isHelpExpanded && (
