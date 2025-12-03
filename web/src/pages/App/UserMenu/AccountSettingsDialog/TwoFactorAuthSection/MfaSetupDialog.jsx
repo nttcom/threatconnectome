@@ -1,4 +1,3 @@
-import { ExpandLess, ExpandMore, Refresh } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -18,9 +17,11 @@ import {
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 
+import { SmsResendButton } from "../../../../../components/SmsResendButton";
+import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshootingTips";
+import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTroubleshootingToggleButton";
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
-import { TROUBLESHOOTING_TIPS } from "../../../../../utils/const";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 
 const COUNTRY_CODES = [
@@ -253,21 +254,12 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                     width: "100%",
                   }}
                 >
-                  <Button
-                    size="small"
-                    disabled={!canExecute || loading}
-                    onClick={handleResend}
-                    sx={{ fontWeight: "bold" }}
-                  >
-                    {canExecute ? (
-                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                        <Refresh fontSize="small" />
-                        <span>Resend Code</span>
-                      </Stack>
-                    ) : (
-                      `Resend in ${timer} seconds`
-                    )}
-                  </Button>
+                  <SmsResendButton
+                    canExecute={canExecute}
+                    isBusy={loading}
+                    timer={timer}
+                    onResend={handleResend}
+                  />
                   <Button
                     size="small"
                     variant="text"
@@ -280,55 +272,13 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                   >
                     Change Phone Number
                   </Button>
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={handleToggleHelp}
+                  <SmsTroubleshootingToggleButton
+                    expanded={isHelpExpanded}
+                    onToggle={handleToggleHelp}
                     disabled={loading}
-                    sx={{
-                      minWidth: 0,
-                      p: 0,
-                      textTransform: "none",
-                      alignItems: "center",
-                      display: "inline-flex",
-                      flexBasis: "100%",
-                      justifyContent: "flex-start",
-                      "& .MuiButton-startIcon": { marginRight: 0.5 },
-                    }}
-                    startIcon={
-                      isHelpExpanded ? (
-                        <ExpandLess fontSize="small" />
-                      ) : (
-                        <ExpandMore fontSize="small" />
-                      )
-                    }
-                  >
-                    {isHelpExpanded ? "Hide troubleshooting tips" : "View troubleshooting tips"}
-                  </Button>
+                  />
                 </Stack>
-                {isHelpExpanded && (
-                  <Box
-                    sx={{
-                      width: "100%",
-                      mt: 1,
-                      pl: 1,
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }} gutterBottom>
-                      If the verification SMS does not arrive, please verify the following:
-                    </Typography>
-                    <Box
-                      component="ol"
-                      sx={{ pl: 4, m: 0, fontSize: (theme) => theme.typography.body2.fontSize }}
-                    >
-                      {TROUBLESHOOTING_TIPS.map((tip) => (
-                        <Box component="li" key={tip} sx={{ mb: 0.5 }}>
-                          {tip}
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                )}
+                {isHelpExpanded && <SmsTroubleshootingTips />}
                 <div
                   id={recaptchaIdForResend}
                   key={recaptchaResendKey}
