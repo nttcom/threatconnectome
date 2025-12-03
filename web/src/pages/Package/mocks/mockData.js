@@ -217,7 +217,7 @@ export function createPackagePageHandlers(config) {
       return HttpResponse.json([]);
     }),
 
-    // getMembers
+    // getPTeamMembers
     http.get(`*/pteams/${pteamId}/members`, () => {
       return HttpResponse.json(mockMembersList);
     }),
