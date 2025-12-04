@@ -139,7 +139,6 @@ def create_vuln(
 
 def create_actionlog(
     user: dict,
-    action_id: UUID | str | None,
     action: str,
     action_type: str,
     recommended: bool,
@@ -161,8 +160,6 @@ def create_actionlog(
         "ticket_id": str(ticket_id),
         "executed_at": str(executed_at) if executed_at else None,
     }
-    if action_id is not None:
-        request["action_id"] = str(action_id)
 
     response = client.post("/actionlogs", headers=headers(user), json=request)
 

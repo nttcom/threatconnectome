@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app import models, schemas
+from app import models
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
 from app.routers.pteams import bg_create_tags_from_sbom_json
@@ -30,7 +30,6 @@ from app.tests.medium.utils import (
     create_vuln,
     get_tickets_related_to_vuln_package,
     headers,
-    headers_with_api_key,
     invite_to_pteam,
 )
 
@@ -39,19 +38,6 @@ client = TestClient(app)
 
 class TestActionLog:
     class Common:
-        def create_action(
-            self, user: dict, vuln_id: str | UUID, action: dict
-        ) -> schemas.ActionResponse:
-            action_with_vuln = {**action, "vuln_id": str(vuln_id)}
-            response = client.post(
-                "/actions",
-                headers=headers_with_api_key(user),
-                json=action_with_vuln,
-            )
-            if response.status_code != 200:
-                raise HTTPError(response)
-            return schemas.ActionResponse(**response.json())
-
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self, testdb):
             self.user1 = create_user(USER1)
@@ -96,7 +82,6 @@ class TestActionLog:
                 "action_type": "elimination",
                 "recommended": True,
             }
-            self.action1 = self.create_action(USER1, self.vuln1.vuln_id, self.action_data)
 
             self.ticket1 = get_tickets_related_to_vuln_package(
                 USER1,
@@ -111,7 +96,6 @@ class TestActionLog:
             now = datetime.now(timezone.utc)
             actionlog1 = create_actionlog(
                 USER1,
-                self.action1.action_id,
                 self.action_data["action"],
                 self.action_data["action_type"],
                 self.action_data["recommended"],
@@ -124,11 +108,10 @@ class TestActionLog:
             )
 
             assert actionlog1.logging_id != ZERO_FILLED_UUID
-            assert actionlog1.action_id == self.action1.action_id
             assert str(actionlog1.vuln_id) == str(self.vuln1.vuln_id)
-            assert actionlog1.action == self.action1.action
-            assert actionlog1.action_type == self.action1.action_type
-            assert actionlog1.recommended == self.action1.recommended
+            assert actionlog1.action == self.action_data["action"]
+            assert actionlog1.action_type == self.action_data["action_type"]
+            assert actionlog1.recommended == self.action_data["recommended"]
             assert actionlog1.user_id == self.user1.user_id
             assert actionlog1.pteam_id == self.pteam1.pteam_id
             assert str(actionlog1.service_id) == self.service1["service_id"]
@@ -137,56 +120,10 @@ class TestActionLog:
             assert actionlog1.executed_at == now
             assert actionlog1.created_at > now
 
-        def test_create_log_without_action_id(self):
-            now = datetime.now(timezone.utc)
-            actionlog = create_actionlog(
-                USER1,
-                None,  # action_id = None
-                self.action_data["action"],
-                self.action_data["action_type"],
-                self.action_data["recommended"],
-                self.vuln1.vuln_id,
-                self.user1.user_id,
-                self.pteam1.pteam_id,
-                self.service1["service_id"],
-                self.ticket1["ticket_id"],
-                now,
-            )
-            assert actionlog.logging_id != ZERO_FILLED_UUID
-            assert actionlog.action_id is None
-            assert actionlog.action == self.action1.action
-            assert actionlog.action_type == self.action1.action_type
-            assert actionlog.recommended == self.action1.recommended
-            assert str(actionlog.vuln_id) == str(self.vuln1.vuln_id)
-            assert actionlog.user_id == self.user1.user_id
-            assert actionlog.pteam_id == self.pteam1.pteam_id
-            assert str(actionlog.service_id) == self.service1["service_id"]
-            assert str(actionlog.ticket_id) == self.ticket1["ticket_id"]
-            assert actionlog.email == USER1["email"]
-            assert actionlog.executed_at == now
-            assert actionlog.created_at > now
-
-        def test_create_log_with_wrong_action(self):
-            with pytest.raises(HTTPError, match="400: Bad Request"):
-                create_actionlog(
-                    USER1,
-                    uuid4(),  # wrong action_id
-                    self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
-                    self.vuln1.vuln_id,
-                    self.user1.user_id,
-                    self.pteam1.pteam_id,
-                    self.service1["service_id"],
-                    self.ticket1["ticket_id"],
-                    None,
-                )
-
         def test_it_shoud_return_400_when_create_actionlog_with_wrong_vuln(self):
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
-                    self.action1.action_id,
                     self.action_data["action"],
                     self.action_data["action_type"],
                     self.action_data["recommended"],
@@ -202,7 +139,6 @@ class TestActionLog:
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
-                    self.action1.action_id,
                     self.action_data["action"],
                     self.action_data["action_type"],
                     self.action_data["recommended"],
@@ -218,7 +154,6 @@ class TestActionLog:
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
-                    self.action1.action_id,
                     self.action_data["action"],
                     self.action_data["action_type"],
                     self.action_data["recommended"],
@@ -234,7 +169,6 @@ class TestActionLog:
             with pytest.raises(HTTPError, match="403: Forbidden"):
                 create_actionlog(
                     USER2,  # call by USER2
-                    self.action1.action_id,
                     self.action_data["action"],
                     self.action_data["action_type"],
                     self.action_data["recommended"],
@@ -250,35 +184,11 @@ class TestActionLog:
             with pytest.raises(HTTPError, match="400: Bad Request"):
                 create_actionlog(
                     USER1,
-                    self.action1.action_id,
                     self.action_data["action"],
                     self.action_data["action_type"],
                     self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user2.user_id,  # USER2
-                    self.pteam1.pteam_id,
-                    self.service1["service_id"],
-                    self.ticket1["ticket_id"],
-                    None,
-                )
-
-        def test_it_should_return_400_when_create_log_with_action_not_belong_specified_vuln(self):
-            vuln2 = create_vuln(USER1, VULN2)
-            action_data = {
-                "action": "Do something else",
-                "action_type": "elimination",
-                "recommended": True,
-            }
-            action2 = self.create_action(USER1, vuln2.vuln_id, action_data)
-            with pytest.raises(HTTPError, match="400: Bad Request"):
-                create_actionlog(
-                    USER1,
-                    action2.action_id,  # action2
-                    self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
-                    self.vuln1.vuln_id,
-                    self.user1.user_id,
                     self.pteam1.pteam_id,
                     self.service1["service_id"],
                     self.ticket1["ticket_id"],
@@ -299,8 +209,6 @@ class TestActionLog:
                 "action_type": "elimination",
                 "recommended": True,
             }
-            action2a = self.create_action(USER1, vuln2.vuln_id, action_data1)
-            action2b = self.create_action(USER1, vuln2.vuln_id, action_data2)
             ticket2 = get_tickets_related_to_vuln_package(
                 USER1,
                 self.pteam1.pteam_id,
@@ -313,10 +221,9 @@ class TestActionLog:
 
             actionlog1 = create_actionlog(
                 USER1,
-                action2a.action_id,
-                action2a.action,
-                action2a.action_type,
-                action2a.recommended,
+                action_data1["action"],
+                action_data1["action_type"],
+                action_data1["recommended"],
                 vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -326,10 +233,9 @@ class TestActionLog:
             )
             actionlog2 = create_actionlog(
                 USER1,
-                action2b.action_id,
-                action2b.action,
-                action2b.action_type,
-                action2b.recommended,
+                action_data2["action"],
+                action_data2["action_type"],
+                action_data2["recommended"],
                 vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -355,10 +261,9 @@ class TestActionLog:
 
             actionlog1 = create_actionlog(
                 USER1,
-                self.action1.action_id,
-                self.action1.action,
-                self.action1.action_type,
-                self.action1.recommended,
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -397,10 +302,9 @@ class TestActionLog:
 
             actionlog2 = create_actionlog(
                 USER2,
-                self.action1.action_id,
-                self.action1.action,
-                self.action1.action_type,
-                self.action1.recommended,
+                self.action_data["action"],
+                self.action_data["action_type"],
+                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user2.user_id,
                 pteam2.pteam_id,
@@ -448,19 +352,6 @@ class TestActionLog:
 
 
 class TestGetVulnLogs:
-    def create_action(
-        self, user: dict, vuln_id: str | UUID, action: dict
-    ) -> schemas.ActionResponse:
-        action_with_vuln = {**action, "vuln_id": str(vuln_id)}
-        response = client.post(
-            "/actions",
-            headers=headers_with_api_key(user),
-            json=action_with_vuln,
-        )
-        if response.status_code != 200:
-            raise HTTPError(response)
-        return schemas.ActionResponse(**response.json())
-
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self, testdb):
         self.user1 = create_user(USER1)
@@ -503,7 +394,6 @@ class TestGetVulnLogs:
             "action_type": "elimination",
             "recommended": True,
         }
-        self.action1 = self.create_action(USER1, self.vuln1.vuln_id, self.action_data)
 
         self.ticket1 = get_tickets_related_to_vuln_package(
             USER1,
@@ -524,8 +414,6 @@ class TestGetVulnLogs:
             "action_type": "elimination",
             "recommended": True,
         }
-        action2a = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
-        action2b = self.create_action(USER1, self.vuln1.vuln_id, action_data2)
 
         ticket = self.ticket1
 
@@ -535,10 +423,9 @@ class TestGetVulnLogs:
 
         actionlog1 = create_actionlog(
             USER1,
-            action2a.action_id,
-            action2a.action,
-            action2a.action_type,
-            action2a.recommended,
+            action_data1["action"],
+            action_data1["action_type"],
+            action_data1["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -548,10 +435,9 @@ class TestGetVulnLogs:
         )
         actionlog2 = create_actionlog(
             USER1,
-            action2b.action_id,
-            action2b.action,
-            action2b.action_type,
-            action2b.recommended,
+            action_data2["action"],
+            action_data2["action_type"],
+            action_data2["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -579,14 +465,12 @@ class TestGetVulnLogs:
             "action_type": "elimination",
             "recommended": True,
         }
-        action1 = self.create_action(USER1, self.vuln1.vuln_id, action_data1)
 
         create_actionlog(
             USER1,
-            action1.action_id,
-            action1.action,
-            action1.action_type,
-            action1.recommended,
+            action_data1["action"],
+            action_data1["action_type"],
+            action_data1["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -600,14 +484,12 @@ class TestGetVulnLogs:
             "action_type": "mitigation",
             "recommended": True,
         }
-        other_action = self.create_action(USER1, vuln2.vuln_id, other_action_data)
 
         other_actionlog = create_actionlog(
             USER1,
-            other_action.action_id,
-            other_action.action,
-            other_action.action_type,
-            other_action.recommended,
+            other_action_data["action"],
+            other_action_data["action_type"],
+            other_action_data["recommended"],
             vuln2.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
