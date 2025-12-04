@@ -9,7 +9,6 @@ from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.auth.supabase_auth_module import SupabaseAuthModule
 from app.routers import (
     actionlogs,
-    actions,
     auth,
     external,
     pteams,
@@ -45,7 +44,6 @@ def create_app():
     # Register routersx
     app.include_router(auth.router)  # place auth on the top for comfortable docs
     app.include_router(actionlogs.router)
-    app.include_router(actions.router)
     app.include_router(external.router)
     app.include_router(pteams.router)
     app.include_router(users.router)

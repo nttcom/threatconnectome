@@ -25,7 +25,7 @@ def fix_ticket_by_threat(db: Session, threat: models.Threat):
 
 
 def _check_need_ticket(db: Session, threat: models.Threat) -> bool:
-    return _check_has_fixed_version(db, threat) or len(threat.vuln.vuln_actions) > 0
+    return _check_has_fixed_version(db, threat)
 
 
 def _check_has_fixed_version(db: Session, threat: models.Threat) -> bool:
