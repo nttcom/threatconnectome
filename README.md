@@ -36,21 +36,25 @@ Teams registerd in demo environment as following:
 
 ## :rocket: Quick Start
 
-Spin up the local demo with the shortest path.
+Just clone this project and move to `threatconnectome`.
 
 ```bash
 git clone https://github.com/nttcom/threatconnectome
 cd threatconnectome
+```
+
+:partying_face: Try it out!
+
+```bash
+# Note: You need docker installed and running to be able to run this script.
 ./demo_start.sh
 ```
 
-> To stop the services:
+> To stop a running service:
 >
 > ```bash
 > ./demo_stop.sh
 > ```
-
-Make sure Docker (Docker Compose) is installed and running.
 
 Need the full setup guide? See [docs/setup.md](docs/setup.md).
 

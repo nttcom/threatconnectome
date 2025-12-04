@@ -19,8 +19,6 @@
 git clone https://github.com/nttcom/threatconnectome.git
 ```
 
-> Setting up an on-premises Supabase stack? See [docs/setup_supabase.md](setup_supabase.md).
-
 ### Set up environment variables
 
 Copy .env.firebase.example, change it to .env and edit the contents
@@ -56,8 +54,6 @@ vi .env  # change default values
   - Place the Authentication credential file the path of `FIREBASE_CRED`
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
-> Supabase-specific environment variables are documented in [docs/setup_supabase.md](setup_supabase.md).
-
 ### Set up production environment variables
 
 In the default configuration, the test server links to the development API running on `localhost` and the build links to the production API.
@@ -92,8 +88,6 @@ To change this so that builds also link to the development environment API, the 
   - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
-> For Supabase production variables, see [docs/setup_supabase.md](setup_supabase.md).
-
 ### Database settings
 
 `docker-compose-prod.yml` is for public environment. Parts that have been commented out, are depending on whether the firebase local emulator is needed to be deplyed or not.
@@ -115,32 +109,11 @@ https://firebase.google.com/docs/cli/targets
 
 ### Web UI
 
-````bash
+```bash
 cd ./web
 npm ci
->
-> Supabase compose workflows are covered in [docs/setup_supabase.md](setup_supabase.md).
->
-> ```bash
-> sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
-> ```
->
-> :house: **Run Docker Compose for on-premises environment**
->
-> In an on-premises environment, use docker-compose-supabase-local.yml instead of docker-compose-local.yml.
->
-> - For local development environmrnt:
->
-> ```bash
-> cd ..
-> sudo docker compose -f docker-compose-supabase-local.yml up -d --build  # to start containers
-> ```
->
-> And set up database if it is the first time to start.
->
-> ```bash
-> sudo docker compose -f docker-compose-supabase-local.yml exec api sh -c "cd app && alembic upgrade head"
-> ```
+npm run build  # to build what is specified in package.json
+```
 
 ### Log in to Web UI
 
@@ -177,8 +150,6 @@ Stop Docker Compose from running.
 > ```bash
 > sudo docker compose -f docker-compose-firebase-local.yml down
 > ```
->
-> Supabase shutdown steps are listed in [docs/setup_supabase.md](setup_supabase.md).
 
 ## :wrench: Troubleshooting
 
@@ -194,7 +165,7 @@ For example, if api is restarting, error can be targeted by:
 
 ```bash
 $ sudo docker compose logs api  # -f option is to follow log output
-````
+```
 
 ### Unable to successfully build Web UI
 
@@ -219,8 +190,6 @@ If you want to run it, please type the following command
 cd ./web
 npm run start  # to check operation and launch the >webpage when developing Web UI
 ```
-
-> Supabase development environment notes are available in [docs/setup_supabase.md](setup_supabase.md).
 
 ## :test_tube: Testing
 
