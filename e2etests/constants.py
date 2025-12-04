@@ -34,18 +34,12 @@ PTEAM2 = {
 }
 ACTION1 = {
     "action": "action one",
-    "action_type": "elimination",
-    "recommended": True,
 }
 ACTION2 = {
     "action": "action two",
-    "action_type": "mitigation",
-    "recommended": False,
 }
 ACTION3 = {
     "action": "action three",
-    "action_type": "rejection",
-    "recommended": False,
 }
 PACKAGE1 = {
     "package_name": "axios",

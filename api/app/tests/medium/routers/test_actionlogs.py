@@ -79,8 +79,6 @@ class TestActionLog:
             self.vuln1 = create_vuln(USER1, VULN1)
             self.action_data = {
                 "action": "Do something",
-                "action_type": "elimination",
-                "recommended": True,
             }
 
             self.ticket1 = get_tickets_related_to_vuln_package(
@@ -97,8 +95,6 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 self.action_data["action"],
-                self.action_data["action_type"],
-                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -110,8 +106,6 @@ class TestActionLog:
             assert actionlog1.logging_id != ZERO_FILLED_UUID
             assert str(actionlog1.vuln_id) == str(self.vuln1.vuln_id)
             assert actionlog1.action == self.action_data["action"]
-            assert actionlog1.action_type == self.action_data["action_type"]
-            assert actionlog1.recommended == self.action_data["recommended"]
             assert actionlog1.user_id == self.user1.user_id
             assert actionlog1.pteam_id == self.pteam1.pteam_id
             assert str(actionlog1.service_id) == self.service1["service_id"]
@@ -125,8 +119,6 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
                     uuid4(),  # wrong vuln_id
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -140,8 +132,6 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     uuid4(),  # wrong user_id
                     self.pteam1.pteam_id,
@@ -155,8 +145,6 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     uuid4(),  # wrong pteam_id
@@ -170,8 +158,6 @@ class TestActionLog:
                 create_actionlog(
                     USER2,  # call by USER2
                     self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user1.user_id,
                     self.pteam1.pteam_id,
@@ -185,8 +171,6 @@ class TestActionLog:
                 create_actionlog(
                     USER1,
                     self.action_data["action"],
-                    self.action_data["action_type"],
-                    self.action_data["recommended"],
                     self.vuln1.vuln_id,
                     self.user2.user_id,  # USER2
                     self.pteam1.pteam_id,
@@ -201,13 +185,9 @@ class TestActionLog:
             vuln2 = create_vuln(USER1, VULN2)
             action_data1 = {
                 "action": "action1",
-                "action_type": "elimination",
-                "recommended": True,
             }
             action_data2 = {
                 "action": "action2",
-                "action_type": "elimination",
-                "recommended": True,
             }
             ticket2 = get_tickets_related_to_vuln_package(
                 USER1,
@@ -222,8 +202,6 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 action_data1["action"],
-                action_data1["action_type"],
-                action_data1["recommended"],
                 vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -234,8 +212,6 @@ class TestActionLog:
             actionlog2 = create_actionlog(
                 USER1,
                 action_data2["action"],
-                action_data2["action_type"],
-                action_data2["recommended"],
                 vuln2.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -262,8 +238,6 @@ class TestActionLog:
             actionlog1 = create_actionlog(
                 USER1,
                 self.action_data["action"],
-                self.action_data["action_type"],
-                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user1.user_id,
                 self.pteam1.pteam_id,
@@ -303,8 +277,6 @@ class TestActionLog:
             actionlog2 = create_actionlog(
                 USER2,
                 self.action_data["action"],
-                self.action_data["action_type"],
-                self.action_data["recommended"],
                 self.vuln1.vuln_id,
                 self.user2.user_id,
                 pteam2.pteam_id,
@@ -391,8 +363,6 @@ class TestGetVulnLogs:
         self.vuln1 = create_vuln(USER1, VULN1)
         self.action_data = {
             "action": "Do something",
-            "action_type": "elimination",
-            "recommended": True,
         }
 
         self.ticket1 = get_tickets_related_to_vuln_package(
@@ -406,13 +376,9 @@ class TestGetVulnLogs:
     def test_get_vuln_logs(self):
         action_data1 = {
             "action": "action1",
-            "action_type": "elimination",
-            "recommended": True,
         }
         action_data2 = {
             "action": "action2",
-            "action_type": "elimination",
-            "recommended": True,
         }
 
         ticket = self.ticket1
@@ -424,8 +390,6 @@ class TestGetVulnLogs:
         actionlog1 = create_actionlog(
             USER1,
             action_data1["action"],
-            action_data1["action_type"],
-            action_data1["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -436,8 +400,6 @@ class TestGetVulnLogs:
         actionlog2 = create_actionlog(
             USER1,
             action_data2["action"],
-            action_data2["action_type"],
-            action_data2["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -462,15 +424,11 @@ class TestGetVulnLogs:
 
         action_data1 = {
             "action": "action1",
-            "action_type": "elimination",
-            "recommended": True,
         }
 
         create_actionlog(
             USER1,
             action_data1["action"],
-            action_data1["action_type"],
-            action_data1["recommended"],
             self.vuln1.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,
@@ -481,15 +439,11 @@ class TestGetVulnLogs:
 
         other_action_data = {
             "action": "unrelated_action",
-            "action_type": "mitigation",
-            "recommended": True,
         }
 
         other_actionlog = create_actionlog(
             USER1,
             other_action_data["action"],
-            other_action_data["action_type"],
-            other_action_data["recommended"],
             vuln2.vuln_id,
             self.user1.user_id,
             self.pteam1.pteam_id,

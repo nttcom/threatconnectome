@@ -55,15 +55,6 @@ class ComparableStringEnum(str, enum.Enum):
         return self._orders_map[self] >= self._orders_map[other]
 
 
-class ActionType(str, enum.Enum):
-    elimination = "elimination"
-    transfer = "transfer"
-    mitigation = "mitigation"
-    acceptance = "acceptance"
-    detection = "detection"
-    rejection = "rejection"
-
-
 class PackageType(str, enum.Enum):
     LANG = "lang"
     OS = "os"
@@ -726,8 +717,6 @@ class ActionLog(Base):
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     vuln_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
     action: Mapped[str]  # snapshot: don't update
-    action_type: Mapped[ActionType]
-    recommended: Mapped[bool]  # snapshot: don't update
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )
