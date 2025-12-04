@@ -33,7 +33,7 @@ import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 const TOOLTIP_TEXT_LIMIT = 150;
 
 export function SafetyImpactSelectorView(props) {
-  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
+  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave, testId } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
@@ -138,6 +138,7 @@ export function SafetyImpactSelectorView(props) {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl size="small" variant="standard">
         <Select
+          data-testid={testId ? `safety-impact-select-${testId}` : "safety-impact-select"}
           open={false}
           value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
           onOpen={handleOpenDialog}
@@ -155,7 +156,11 @@ export function SafetyImpactSelectorView(props) {
       {fixedTicketSafetyImpactChangeReason !== null && (
         <StyledTooltip arrow title={tooltipContent}>
           <IconButton size="small">
-            <InfoOutlinedIcon color="primary" fontSize="small" />
+            <InfoOutlinedIcon
+              color="primary"
+              fontSize="small"
+              data-testid={`info-icon-${testId}`}
+            />
           </IconButton>
         </StyledTooltip>
       )}
@@ -165,6 +170,7 @@ export function SafetyImpactSelectorView(props) {
           <Stack spacing={2}>
             <FormControl fullWidth>
               <Select
+                data-testid="dialog-safety-impact-select"
                 value={pendingSafetyImpact}
                 onChange={handleSelectSafetyImpact}
                 inputProps={{ "aria-label": "Safety Impact" }}
@@ -223,4 +229,5 @@ SafetyImpactSelectorView.propTypes = {
   fixedTicketSafetyImpact: PropTypes.string,
   fixedTicketSafetyImpactChangeReason: PropTypes.string,
   onSave: PropTypes.func.isRequired,
+  testId: PropTypes.string,
 };
