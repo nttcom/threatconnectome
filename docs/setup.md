@@ -115,6 +115,23 @@ npm ci
 npm run build  # to build what is specified in package.json
 ```
 
+### Run Docker Compose
+
+Start Docker Compose and confirm the services are healthy.
+
+> For local development environment:
+>
+> ```bash
+> cd ..
+> sudo docker compose -f docker-compose-firebase-local.yml up -d --build
+> ```
+>
+> Run the database migrations the first time the containers start.
+>
+> ```bash
+> sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
+> ```
+
 ### Log in to Web UI
 
 Access `http://localhost:<your_port_for_threatconnectome>`to see Web UI.
