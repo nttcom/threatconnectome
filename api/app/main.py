@@ -4,6 +4,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import openapi
 from app.auth.auth_module import get_auth_module
 from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.auth.supabase_auth_module import SupabaseAuthModule
@@ -81,3 +82,8 @@ except OSError as error:
     raise Exception(f"Cannot open file Deployer.json. detail: {error}")
 except (KeyError, TypeError) as error:
     raise Exception(f"File Deployer.json has invalid syntax. detail: {error}")
+
+
+@app.get("/internal-api/openapi.json", include_in_schema=False)
+async def internal_openapi_schema():
+    return openapi.custom_openapi(app)
