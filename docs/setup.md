@@ -19,11 +19,7 @@
 git clone https://github.com/nttcom/threatconnectome.git
 ```
 
-> :house: **Installation for on-premises environment**
->
-> Threatconnectome can run in an on-premises environment using Supabase.
-> To set up an environment using Supabase, you need to configure environment variables and use a docker-compose-supabase-local.yml
-> Therefore, in [Set up environment variables](#set-up-environment-variables), [Set up production environment variables](#set-up-production-environment-variables), and [Run Docker Compose](#run-docker-compose), follow the items marked with :house: instead of the usual setup.
+> Setting up an on-premises Supabase stack? See [docs/setup_supabase.md](setup_supabase.md).
 
 ### Set up environment variables
 
@@ -60,30 +56,7 @@ vi .env  # change default values
   - Place the Authentication credential file the path of `FIREBASE_CRED`
     - Refer to [this document](https://firebase.google.com/docs/admin/setup?hl=en#initialize_the_sdk_in_non-google_environments) to download the JSON file that service account private key.
 
-> :house: **Set up environment variables for on-premises environment**
->
-> Instead of .env.firebase.example, copy .env.supabase.example, rename it to .env, and edit its contents.
->
-> ```bash
-> cp .env.supabase.example .env
-> vi .env  # change default values
-> ```
->
-> .env.supabase.example includes additional environment variables required for using Supabase.
->
-> - `SUPABASE_POSTGRES_PASSWORD`
->   - Password to be set for the Supabase Postgres
-> - `JWT_SECRET`
->   - Secret Json Web Token
-> - `ANON_KEY`
-> - `SERVICE_ROLE_KEY`
->   - API key of Supabase
-> - `DASHBOARD_USERNAME`
->   - Username of Supabase dashboard
-> - `DASHBOARD_PASSWORD`
->   - Password to be set for the Supabase dashboard
-> - `LOGFLARE_API_KEY`
->   - API key of logflare
+> Supabase-specific environment variables are documented in [docs/setup_supabase.md](setup_supabase.md).
 
 ### Set up production environment variables
 
@@ -119,24 +92,7 @@ To change this so that builds also link to the development environment API, the 
   - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
-> :house: **Set up production environment variables for on-premises environment**
->
-> Instead of .env.produciton.example, copy .env.supabase.example, rename it to .env.production.local, and edit its contents.
->
-> ```bash
-> cd ./web
-> cp .env.supabase.example .env
-> vi .env  # set values
-> ```
->
-> .env.supabase.example includes additional environment variables required for using Supabase.
->
-> - `VITE_AUTH_SERVICE`
-> - Authentication service to be used (fixed to suupabase).
-> - `VITE_SUPABASE_URL`
->   - URL which the kong container (not auth container) listens to.
-> - `VITE_SUPABASE_ANON_KEY`
->   - Same value with ANON_KEY in ../.env.
+> For Supabase production variables, see [docs/setup_supabase.md](setup_supabase.md).
 
 ### Database settings
 
@@ -159,26 +115,11 @@ https://firebase.google.com/docs/cli/targets
 
 ### Web UI
 
-```bash
+````bash
 cd ./web
 npm ci
-npm run build  # to build what is specified in package.json
-```
-
-## :sparkles: Get Started to Threatconnectome
-
-### Run Docker Compose
-
-Start Docker Compose and check that the system is operating normally.
-
-> For local development environmrnt:
 >
-> ```bash
-> cd ..
-> sudo docker compose -f docker-compose-firebase-local.yml up -d --build  # to start containers
-> ```
->
-> And set up database if it is the first time to start.
+> Supabase compose workflows are covered in [docs/setup_supabase.md](setup_supabase.md).
 >
 > ```bash
 > sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
@@ -237,14 +178,7 @@ Stop Docker Compose from running.
 > sudo docker compose -f docker-compose-firebase-local.yml down
 > ```
 >
-> :house: **Stop of Threatconnectome for on-premises environment**
-> Stop Docker Compose from running in the on-premises environment.
->
-> - For local development environmrnt:
->
-> ```bash
-> sudo docker compose -f docker-compose-supabase-local.yml down
-> ```
+> Supabase shutdown steps are listed in [docs/setup_supabase.md](setup_supabase.md).
 
 ## :wrench: Troubleshooting
 
@@ -260,7 +194,7 @@ For example, if api is restarting, error can be targeted by:
 
 ```bash
 $ sudo docker compose logs api  # -f option is to follow log output
-```
+````
 
 ### Unable to successfully build Web UI
 
@@ -286,9 +220,7 @@ cd ./web
 npm run start  # to check operation and launch the >webpage when developing Web UI
 ```
 
-> :house: **Set up development environment variables of Web UI for on-premises environment**
->
-> In an on-premises environment, use .env.supabase.local instead of .env.firebase.local.
+> Supabase development environment notes are available in [docs/setup_supabase.md](setup_supabase.md).
 
 ## :test_tube: Testing
 
@@ -312,18 +244,6 @@ Docker containers in docker-compose-local.yml
 | traefik | Reverse proxy |
 | web | Nginx hosting front-end |
 | firebase | emulator of firebase authentication |
-
-> :house: **Docker container for on-premises environment**
->
-> In an on-premises environment, the following containers are required for Supabase.
->
-> | Container name  | Description               |
-> | --------------- | ------------------------- |
-> | supabase-auth   | Authentication Server     |
-> | supabase-db     | Database of postgresSQL   |
-> | supabase-studio | Dashboard                 |
-> | supabase-kong   | Api Gateway               |
-> | supabase-meta   | Api server of postgresSQL |
 
 ## Top directory structure
 

@@ -53,3 +53,5 @@ cd threatconnectome
 Make sure Docker (Docker Compose) is installed and running.
 
 Need the full setup guide? See [docs/setup.md](docs/setup.md).
+
+Planning a Supabase-backed deployment? Follow [docs/setup_supabase.md](docs/setup_supabase.md).
