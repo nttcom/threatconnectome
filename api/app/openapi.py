@@ -10,7 +10,7 @@ def custom_openapi(original_app: FastAPI):
     `include_in_schema=False` by merging public and internal routes.
 
     Args:
-        app: The FastAPI application instance.
+        original_app: The FastAPI application instance.
 
     Returns:
         The consolidated OpenAPI schema dictionary.

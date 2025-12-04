@@ -89,8 +89,7 @@
     "build-storybook": "storybook build",
     "openapi-ts": "openapi-ts",
     "openapi:fetch": "curl http://localhost/api/internal-api/openapi.json -o ./openapi.json",
-    "openapi:gen": "npm run openapi-ts",
-    "openapi:update": "npm run openapi:fetch && npm run openapi:gen"
+    "openapi:update": "npm run openapi:fetch && npm run openapi-ts"
   },
   "browserslist": {
     "production": [
