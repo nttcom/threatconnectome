@@ -119,18 +119,16 @@ npm run build  # to build what is specified in package.json
 
 Start Docker Compose and confirm the services are healthy.
 
-> For local development environment:
->
-> ```bash
-> cd ..
-> sudo docker compose -f docker-compose-firebase-local.yml up -d --build
-> ```
->
-> Run the database migrations the first time the containers start.
->
-> ```bash
-> sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
-> ```
+```bash
+cd ..
+sudo docker compose -f docker-compose-firebase-local.yml up -d --build
+```
+
+Run the database migrations the first time the containers start.
+
+```bash
+sudo docker compose -f docker-compose-firebase-local.yml exec api sh -c "cd app && alembic upgrade head"
+```
 
 ### Log in to Web UI
 
@@ -144,19 +142,6 @@ Open `auth/token Login For Access Token` on API page, and click `Try it out` on 
 Fill in username and password created at Web UI, copy `access_token` in Response Body, and paste it into value area of `Authorize` to complete the authentication.
 
 **🎉🎉🎉Welcome to Threatconnectome🎉🎉🎉**
-
-## :people_holding_hands: Create a team
-
-In Threatconnectome, if a user doesn't belong to any team, basic operations cannot be operated (tag management, invitation creation etc.).
-To create a team, please follow the procedures below:
-
-1. After the authentication mentioned above (Log in to API), access `http://localhost:<your_port_for_threatconnectome>/api/docs#/pteams/create_team_teams_post` or scroll down to `teams` ⇨ `POST /pteams Create Team` on API page.
-2. Click `Try it out`.
-3. Modify the content in `Request body`, change `team_name` from `string` to `your team name`.
-4. Click `Execute`.
-5. Information, including your team id and name, will be shown in `Response body` below.
-
-:warning: Attention: Authentication is necessary before the team creation.
 
 ### Stop of Threatconnectome
 
