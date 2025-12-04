@@ -32,15 +32,13 @@ vi .env  # update defaults
 
 ### Required variables
 
-- `SUPABASE_POSTGRES_PASSWORD` – password for the Supabase Postgres instance
+- `SUPABASE_POSTGRES_PASSWORD` – Password to be set for the Supabase Postgres
 - `JWT_SECRET` – JSON Web Token secret
 - `ANON_KEY`
-- `SERVICE_ROLE_KEY` – Supabase service-role API key
-- `DASHBOARD_USERNAME` – Supabase dashboard username
-- `DASHBOARD_PASSWORD` – Supabase dashboard password
-- `LOGFLARE_API_KEY`
-
-Place the authentication credential JSON at the path specified by `FIREBASE_CRED` if you also need Firebase compatibility.
+- `SERVICE_ROLE_KEY` – API key of Supabase
+- `DASHBOARD_USERNAME` – Username of Supabase dashboard
+- `DASHBOARD_PASSWORD` – Password to be set for the Supabase dashboard
+- `LOGFLARE_API_KEY` - API key of logflare
 
 ### Set up production environment variables
 
@@ -54,15 +52,9 @@ vi .env.production.local
 
 Key values:
 
-- `VITE_AUTH_SERVICE` – authentication service (fixed to `supabase`)
-- `VITE_SUPABASE_URL` – URL exposed by the Kong container (not the auth container)
-- `VITE_SUPABASE_ANON_KEY` – match the `ANON_KEY` defined in `../.env`
-
-### Database settings
-
-`docker-compose-supabase-prod.yml` is for production environments. Components may differ depending on whether optional services are enabled.
-
-- Use `docker-compose-supabase-local.yml` for local development.
+- `VITE_AUTH_SERVICE` – Authentication service to be used (fixed to supabase).
+- `VITE_SUPABASE_URL` – URL which the kong container (not auth container) listens to.
+- `VITE_SUPABASE_ANON_KEY` – Same value with ANON_KEY in ../.env.
 
 ### CORS settings (Optional)
 

@@ -88,13 +88,6 @@ To change this so that builds also link to the development environment API, the 
   - `VITE_FIREBASE_AUTH_EMULATOR_URL`
     - Set it to `http://localhost:<your_port_for_firebase>`
 
-### Database settings
-
-`docker-compose-prod.yml` is for public environment. Parts that have been commented out, are depending on whether the firebase local emulator is needed to be deplyed or not.
-If enabled, it will be the same as `docker-compose-local.yml`, and firebase local emulator will be in use.
-
-- Please use `docker-compose-local.yml` for local development.
-
 ### CORS settings (Optional)
 
 Change CORS settings in [main.py](/api/app/main.py), if needed.
