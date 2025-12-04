@@ -12,11 +12,6 @@ export type ActionLogRequest = {
      * Action
      */
     action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended: boolean;
     /**
      * Vuln Id
      */
@@ -59,11 +54,6 @@ export type ActionLogResponse = {
      * Action
      */
     action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended: boolean;
     /**
      * User Id
      */
@@ -93,11 +83,6 @@ export type ActionLogResponse = {
      */
     created_at: string;
 };
-
-/**
- * ActionType
- */
-export type ActionType = 'elimination' | 'transfer' | 'mitigation' | 'acceptance' | 'detection' | 'rejection';
 
 /**
  * AffectedObject
