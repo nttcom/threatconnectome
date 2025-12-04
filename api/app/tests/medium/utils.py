@@ -140,8 +140,6 @@ def create_vuln(
 def create_actionlog(
     user: dict,
     action: str,
-    action_type: str,
-    recommended: bool,
     vuln_id: UUID | str,
     user_id: UUID | str,
     pteam_id: UUID | str,
@@ -151,8 +149,6 @@ def create_actionlog(
 ) -> schemas.ActionLogResponse:
     request = {
         "action": action,
-        "action_type": action_type,
-        "recommended": recommended,
         "vuln_id": str(vuln_id),
         "user_id": str(user_id),
         "pteam_id": str(pteam_id),

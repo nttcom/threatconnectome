@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
-    ActionType,
     AutomatableEnum,
     ExploitationEnum,
     ImpactCategoryEnum,
@@ -302,8 +301,6 @@ class ActionLogResponse(ORMModel):
     logging_id: UUID
     vuln_id: UUID
     action: str
-    action_type: ActionType
-    recommended: bool
     user_id: UUID | None = None
     pteam_id: UUID
     service_id: UUID
@@ -315,8 +312,6 @@ class ActionLogResponse(ORMModel):
 
 class ActionLogRequest(ORMModel):
     action: str
-    action_type: ActionType
-    recommended: bool
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID
