@@ -3,11 +3,10 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
-    ActionType,
     AutomatableEnum,
     ExploitationEnum,
     ImpactCategoryEnum,
@@ -98,15 +97,6 @@ class UserUpdateRequest(ORMModel):
     default_pteam_id: UUID | None = None
 
 
-class ActionResponse(ORMModel):
-    vuln_id: UUID
-    action_id: UUID
-    action: str = Field(..., max_length=1024)
-    action_type: ActionType
-    recommended: bool
-    created_at: datetime
-
-
 class PackageFileResponse(ORMModel):
     class Reference(ORMModel):
         service: str
@@ -158,19 +148,6 @@ def validate_cve_id(value):
     if not re.match(CVE_PATTERN, value):
         raise ValueError(f"Invalid CVE ID format: {value}")
     return value
-
-
-class ActionCreateRequest(ORMModel):
-    vuln_id: UUID
-    action: str = Field(..., max_length=1024)
-    action_type: ActionType
-    recommended: bool = False
-
-
-class ActionUpdateRequest(ORMModel):
-    action: str | None = None
-    action_type: ActionType | None = None
-    recommended: bool | None = None
 
 
 class VulnerablePackageResponse(BaseModel):
@@ -322,11 +299,8 @@ class ApplyInvitationRequest(ORMModel):
 
 class ActionLogResponse(ORMModel):
     logging_id: UUID
-    action_id: UUID | None = None
     vuln_id: UUID
     action: str
-    action_type: ActionType
-    recommended: bool
     user_id: UUID | None = None
     pteam_id: UUID
     service_id: UUID
@@ -337,10 +311,7 @@ class ActionLogResponse(ORMModel):
 
 
 class ActionLogRequest(ORMModel):
-    action_id: UUID | None = None
     action: str
-    action_type: ActionType
-    recommended: bool
     vuln_id: UUID
     user_id: UUID
     pteam_id: UUID

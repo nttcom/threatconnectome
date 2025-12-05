@@ -55,15 +55,6 @@ class ComparableStringEnum(str, enum.Enum):
         return self._orders_map[self] >= self._orders_map[other]
 
 
-class ActionType(str, enum.Enum):
-    elimination = "elimination"
-    transfer = "transfer"
-    mitigation = "mitigation"
-    acceptance = "acceptance"
-    detection = "detection"
-    rejection = "rejection"
-
-
 class PackageType(str, enum.Enum):
     LANG = "lang"
     OS = "os"
@@ -682,29 +673,8 @@ class Vuln(Base):
     automatable: Mapped[AutomatableEnum] = mapped_column(server_default=AutomatableEnum.NO)
     cvss_v3_score: Mapped[float | None] = mapped_column(server_default=None, nullable=True)
 
-    vuln_actions = relationship("VulnAction", cascade="all, delete-orphan")
     affects = relationship("Affect", back_populates="vuln", cascade="all, delete-orphan")
     threats = relationship("Threat", back_populates="vuln", cascade="all, delete-orphan")
-
-
-class VulnAction(Base):
-    __tablename__ = "vulnaction"
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if not self.action_id:
-            self.action_id = str(uuid.uuid4())
-
-    action_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    vuln_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("vuln.vuln_id", ondelete="CASCADE"), index=True
-    )
-    action: Mapped[str]
-    action_type: Mapped[ActionType] = mapped_column(default=ActionType.elimination)
-    recommended: Mapped[bool] = mapped_column(default=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=current_timestamp()
-    )
 
 
 class Affect(Base):
@@ -745,13 +715,8 @@ class ActionLog(Base):
     __tablename__ = "actionlog"
 
     logging_id: Mapped[StrUUID] = mapped_column(primary_key=True)
-    action_id: Mapped[StrUUID | None] = mapped_column(
-        nullable=True
-    )  # snapshot: don't set ForeignKey.
     vuln_id: Mapped[StrUUID]  # snapshot: don't set ForeignKey.
-    action: Mapped[str]  # snapshot: don't update even if VulnAction is modified.
-    action_type: Mapped[ActionType]
-    recommended: Mapped[bool]  # snapshot: don't update even if VulnAction is modified.
+    action: Mapped[str]  # snapshot: don't update
     user_id: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True
     )

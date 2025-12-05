@@ -1,36 +1,29 @@
-export const createActionByFixedVersions = (affectedVersions, fixedVersions, packageName) => {
-  const action = {
-    action_type: "elimination",
-    recommended: true,
-  };
-
+export const createUpdateAction = (affectedVersions, fixedVersions, packageName) => {
   if (fixedVersions && fixedVersions.length > 0) {
     if (affectedVersions && affectedVersions.length > 0) {
-      action.action = `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
-      return action;
+      return `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
     } else {
-      action.action = `Update ${packageName} to version [${fixedVersions.join(", ")}]`;
-      return action;
+      return `Update ${packageName} to version [${fixedVersions.join(", ")}]`;
     }
   }
 
   return null;
 };
 
-export function getActions(vuln, vulnActions) {
-  const actionsByFixedVersions = [];
+export function getUpdateActions(vuln) {
+  const updateActions = [];
   vuln.vulnerable_packages.forEach((vulnerable_package) => {
-    const action = createActionByFixedVersions(
+    const updateAction = createUpdateAction(
       vulnerable_package.affected_versions,
       vulnerable_package.fixed_versions,
       vulnerable_package.affected_name,
     );
-    if (action != null) {
-      actionsByFixedVersions.push(action);
+    if (updateAction != null) {
+      updateActions.push(updateAction);
     }
   });
 
-  return [...actionsByFixedVersions, ...vulnActions];
+  return updateActions;
 }
 
 export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {

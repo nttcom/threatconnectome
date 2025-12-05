@@ -10,15 +10,14 @@ import { useGetDependenciesQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { ssvcPriorityProps } from "../../../utils/const.js";
 import { errorToString, searchWorstSSVC, utcStringToLocalDate } from "../../../utils/func";
-import { createActionByFixedVersions, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
+import { createUpdateAction, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 
 import { TicketTable } from "./TicketTable.jsx";
 import { TicketTableRow } from "./TicketTableRow.jsx";
 
 export function VulnTableRowView(props) {
-  const { pteamId, serviceId, packageId, vulnId, members, references, vuln, vulnActions, tickets } =
-    props;
+  const { pteamId, serviceId, packageId, vulnId, members, references, vuln, tickets } = props;
   const [ticketOpen, setTicketOpen] = useState(true);
   const [vulnDrawerOpen, setVulnDrawerOpen] = useState(false);
   const skip = useSkipUntilAuthUserIsReady();
@@ -50,7 +49,7 @@ export function VulnTableRowView(props) {
   const vulnerable_package = findMatchedVulnPackage(vuln.vulnerable_packages, currentPackage);
   const affectedVersions = vulnerable_package.affected_versions;
   const patchedVersions = vulnerable_package.fixed_versions;
-  const actionByFixedVersions = createActionByFixedVersions(
+  const updateAction = createUpdateAction(
     affectedVersions,
     patchedVersions,
     vulnerable_package.affected_name,
@@ -130,8 +129,7 @@ export function VulnTableRowView(props) {
                   vulnId={vulnId}
                   members={members}
                   references={references}
-                  actionByFixedVersions={actionByFixedVersions}
-                  vulnActions={vulnActions}
+                  updateAction={updateAction}
                   ticket={ticket}
                 />
               ))}
@@ -161,6 +159,5 @@ VulnTableRowView.propTypes = {
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
   vuln: PropTypes.object.isRequired,
-  vulnActions: PropTypes.array.isRequired,
   tickets: PropTypes.array.isRequired,
 };

@@ -150,9 +150,3 @@ export const countFullWidthAndHalfWidthCharacters = (string) => {
 
   return count;
 };
-
-export const createRandomUUID = () => {
-  return typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2);
-};

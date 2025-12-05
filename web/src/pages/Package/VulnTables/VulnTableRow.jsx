@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth.js";
 import {
   useGetPTeamMembersQuery,
-  useGetVulnActionsQuery,
   useGetPteamTicketsQuery,
   useGetVulnQuery,
 } from "../../../services/tcApi.js";
@@ -44,12 +43,6 @@ export function VulnTableRow(props) {
   } = useGetVulnQuery(vulnId, { skip: skipByAuth || skipByVulnId });
 
   const {
-    data: vulnActions,
-    error: vulnActionsError,
-    isLoading: vulnActionsIsLoading,
-  } = useGetVulnActionsQuery(vulnId, { skip: skipByAuth || skipByPTeamId || skipByVulnId });
-
-  const {
     data: tickets,
     error: ticketsRelatedToServiceVulnPackageError,
     isLoading: ticketsRelatedToServiceVulnPackageIsLoading,
@@ -64,9 +57,6 @@ export function VulnTableRow(props) {
   if (membersIsLoading) return SimpleCell("Now loading PTeamMembers...");
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnIsLoading) return SimpleCell("Now loading Vuln...");
-  if (vulnActionsError)
-    throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
-  if (vulnActionsIsLoading) return SimpleCell("Now loading vulnActions...");
   if (ticketsRelatedToServiceVulnPackageError)
     throw new APIError(errorToString(ticketsRelatedToServiceVulnPackageError), {
       api: "getPteamTickets",
@@ -82,7 +72,6 @@ export function VulnTableRow(props) {
       members={members}
       references={references}
       vuln={vuln}
-      vulnActions={vulnActions}
       tickets={tickets}
     />
   );

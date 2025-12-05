@@ -4,11 +4,11 @@ import {
 } from "@mui/icons-material";
 import { Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
-import { utcStringToLocalDate, createRandomUUID } from "../../utils/func";
+import { utcStringToLocalDate } from "../../utils/func";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
@@ -19,18 +19,9 @@ const packageChip = (chipNumber) => {
 };
 
 export function VulnDetailView(props) {
-  const { vuln, actions } = props;
+  const { vuln, updateActions } = props;
 
   const [showAllPackages, setShowAllPackages] = useState(false);
-
-  const actionsWithUiId = useMemo(
-    () =>
-      actions.map((action) => ({
-        ...action,
-        uiId: createRandomUUID(), // uiId is used for components' keys.
-      })),
-    [actions],
-  );
 
   return (
     <>
@@ -104,33 +95,30 @@ export function VulnDetailView(props) {
             )}
           </Box>
         </Card>
-        {/* VulnActions */}
+        {/* Update */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>Action</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>Update</Typography>
             </Box>
-            {actionsWithUiId.length === 0 ? (
+            {updateActions.length === 0 ? (
               <Typography sx={{ margin: 1 }}>No data</Typography>
             ) : (
               <>
                 <Box>
-                  {actionsWithUiId.map((action) => (
+                  {updateActions.map((updateAction, index) => (
                     <MenuItem
-                      key={action.uiId}
+                      key={`${updateAction}-${index}`}
                       sx={{
                         alignItems: "center",
                         display: "flex",
                         flexDirection: "row",
                       }}
                     >
-                      <ActionTypeIcon
-                        actionType={action.action_type}
-                        disabled={!action.recommended}
-                      />
+                      <ActionTypeIcon />
                       <Box display="flex" flexDirection="column">
                         <Typography noWrap variant="body">
-                          {action.action}
+                          {updateAction}
                         </Typography>
                       </Box>
                     </MenuItem>
@@ -164,5 +152,5 @@ export function VulnDetailView(props) {
 }
 VulnDetailView.propTypes = {
   vuln: PropTypes.object.isRequired,
-  actions: PropTypes.array.isRequired,
+  updateActions: PropTypes.array.isRequired,
 };

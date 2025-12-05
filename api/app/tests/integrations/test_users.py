@@ -285,8 +285,6 @@ class TestDeleteUserSideEffects:
             "service_id": self.service1["service_id"],
             "ticket_id": self.ticket1["ticket_id"],
             "action": "test_action1",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
             "executed_at": None,
         }
 
@@ -300,8 +298,6 @@ class TestDeleteUserSideEffects:
             "service_id": self.service2["service_id"],
             "ticket_id": self.ticket2["ticket_id"],
             "action": "test_action2",
-            "action_type": models.ActionType.elimination,
-            "recommended": True,
             "executed_at": None,
         }
 
