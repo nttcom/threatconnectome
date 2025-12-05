@@ -1,18 +1,10 @@
-import {
-  CheckCircleOutline as CheckCircleOutlineIcon,
-  HorizontalRule as HorizontalRuleIcon,
-} from "@mui/icons-material";
 import { Chip, TableCell, TableRow, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetVulnActionsQuery } from "../../services/tcApi";
-import { APIError } from "../../utils/APIError";
 import { cvssProps } from "../../utils/const";
-import { errorToString, cvssConvertToName } from "../../utils/func";
-import { getActions } from "../../utils/vulnUtils";
+import { cvssConvertToName } from "../../utils/func";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
@@ -23,28 +15,6 @@ export function VulnManagementTableRow(props) {
   const location = useLocation();
 
   const params = new URLSearchParams(location.search);
-
-  const skip = useSkipUntilAuthUserIsReady();
-
-  const {
-    data: vulnActions,
-    error: vulnActionsError,
-    isLoading: vulnActionsIsLoading,
-  } = useGetVulnActionsQuery(vuln.vuln_id, { skip });
-
-  if (vulnActionsError)
-    throw new APIError(errorToString(vulnActionsError), {
-      api: "getVulnActions",
-    });
-
-  if (skip || vulnActionsIsLoading)
-    return (
-      <TableRow>
-        <TableCell>Now loading vulnActions...</TableCell>
-      </TableRow>
-    );
-
-  const actions = getActions(vuln, vulnActions);
 
   const cvssScore =
     vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? "N/A" : vuln.cvss_v3_score;
@@ -66,13 +36,6 @@ export function VulnManagementTableRow(props) {
     >
       <TableCell>
         <FormattedDateTimeWithTooltip utcString={vuln.updated_at} />
-      </TableCell>
-      <TableCell align="center">
-        {actions?.length > 0 ? (
-          <CheckCircleOutlineIcon color="success" />
-        ) : (
-          <HorizontalRuleIcon sx={{ color: grey[500] }} />
-        )}
       </TableCell>
       <TableCell>
         <Typography variant="subtitle1" sx={{ overflowWrap: "anywhere" }}>

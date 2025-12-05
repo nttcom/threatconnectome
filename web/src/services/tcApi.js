@@ -88,7 +88,6 @@ export const tcApi = createApi({
       providesTags: (result, error, ticketId) => [
         { type: "Service", id: "ALL" },
         { type: "Threat", id: "ALL" },
-        { type: "Ticket", id: "ALL" },
       ],
     }),
 
@@ -438,21 +437,6 @@ export const tcApi = createApi({
       providesTags: (result, error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
     }),
 
-    /* Vuln Action */
-    getVulnActions: builder.query({
-      query: (vulnId) => ({
-        url: `vulns/${vulnId}/actions`,
-        method: "GET",
-      }),
-      providesTags: (result, error, arg) => [
-        ...(result?.reduce(
-          (ret, action) => [...ret, { type: "VulnAction", id: action.action_id }],
-          [],
-        ) ?? []),
-        { type: "VulnAction", id: "ALL" },
-      ],
-    }),
-
     /* External */
     checkMail: builder.mutation({
       query: (data) => ({
@@ -501,7 +485,6 @@ export const {
   useGetUserMeQuery,
   useGetVulnsQuery,
   useGetVulnQuery,
-  useGetVulnActionsQuery,
   useTryLoginMutation,
   useCreateUserMutation,
   useUpdateUserMutation,

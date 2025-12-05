@@ -9,18 +9,9 @@ export type ClientOptions = {
  */
 export type ActionLogRequest = {
     /**
-     * Action Id
-     */
-    action_id?: string | null;
-    /**
      * Action
      */
     action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended: boolean;
     /**
      * Vuln Id
      */
@@ -56,10 +47,6 @@ export type ActionLogResponse = {
      */
     logging_id: string;
     /**
-     * Action Id
-     */
-    action_id?: string | null;
-    /**
      * Vuln Id
      */
     vuln_id: string;
@@ -67,11 +54,6 @@ export type ActionLogResponse = {
      * Action
      */
     action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended: boolean;
     /**
      * User Id
      */
@@ -101,38 +83,6 @@ export type ActionLogResponse = {
      */
     created_at: string;
 };
-
-/**
- * ActionResponse
- */
-export type ActionResponse = {
-    /**
-     * Vuln Id
-     */
-    vuln_id: string;
-    /**
-     * Action Id
-     */
-    action_id: string;
-    /**
-     * Action
-     */
-    action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended: boolean;
-    /**
-     * Created At
-     */
-    created_at: string;
-};
-
-/**
- * ActionType
- */
-export type ActionType = 'elimination' | 'transfer' | 'mitigation' | 'acceptance' | 'detection' | 'rejection';
 
 /**
  * AffectedObject
@@ -1188,40 +1138,6 @@ export type VulnsListResponse = {
 };
 
 /**
- * ActionCreateRequest
- */
-export type ActionCreateRequest = {
-    /**
-     * Vuln Id
-     */
-    vuln_id: string;
-    /**
-     * Action
-     */
-    action: string;
-    action_type: ActionType;
-    /**
-     * Recommended
-     */
-    recommended?: boolean;
-};
-
-/**
- * ActionUpdateRequest
- */
-export type ActionUpdateRequest = {
-    /**
-     * Action
-     */
-    action?: string | null;
-    action_type?: ActionType | null;
-    /**
-     * Recommended
-     */
-    recommended?: boolean | null;
-};
-
-/**
  * VulnUpdateRequest
  */
 export type VulnUpdateRequest = {
@@ -1387,78 +1303,6 @@ export type GetVulnLogsActionlogsVulnsVulnIdGetResponses = {
 };
 
 export type GetVulnLogsActionlogsVulnsVulnIdGetResponse = GetVulnLogsActionlogsVulnsVulnIdGetResponses[keyof GetVulnLogsActionlogsVulnsVulnIdGetResponses];
-
-export type DeleteActionActionsActionIdDeleteData = {
-    body?: never;
-    headers: {
-        /**
-         * X-Api-Key
-         */
-        'x-api-key': string;
-    };
-    path: {
-        /**
-         * Action Id
-         */
-        action_id: string;
-    };
-    query?: never;
-    url: '/actions/{action_id}';
-};
-
-export type DeleteActionActionsActionIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type DeleteActionActionsActionIdDeleteError = DeleteActionActionsActionIdDeleteErrors[keyof DeleteActionActionsActionIdDeleteErrors];
-
-export type DeleteActionActionsActionIdDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    204: void;
-};
-
-export type DeleteActionActionsActionIdDeleteResponse = DeleteActionActionsActionIdDeleteResponses[keyof DeleteActionActionsActionIdDeleteResponses];
-
-export type UpdateActionActionsActionIdPutData = {
-    body: ActionUpdateRequest;
-    headers: {
-        /**
-         * X-Api-Key
-         */
-        'x-api-key': string;
-    };
-    path: {
-        /**
-         * Action Id
-         */
-        action_id: string;
-    };
-    query?: never;
-    url: '/actions/{action_id}';
-};
-
-export type UpdateActionActionsActionIdPutErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type UpdateActionActionsActionIdPutError = UpdateActionActionsActionIdPutErrors[keyof UpdateActionActionsActionIdPutErrors];
-
-export type UpdateActionActionsActionIdPutResponses = {
-    /**
-     * Successful Response
-     */
-    200: ActionResponse;
-};
-
-export type UpdateActionActionsActionIdPutResponse = UpdateActionActionsActionIdPutResponses[keyof UpdateActionActionsActionIdPutResponses];
 
 export type CheckWebhookUrlExternalSlackCheckPostData = {
     body: SlackCheckRequest;
@@ -2746,38 +2590,6 @@ export type GetVulnsVulnsGetResponses = {
 
 export type GetVulnsVulnsGetResponse = GetVulnsVulnsGetResponses[keyof GetVulnsVulnsGetResponses];
 
-export type GetVulnActionsVulnsVulnIdActionsGetData = {
-    body?: never;
-    path: {
-        /**
-         * Vuln Id
-         */
-        vuln_id: string;
-    };
-    query?: never;
-    url: '/vulns/{vuln_id}/actions';
-};
-
-export type GetVulnActionsVulnsVulnIdActionsGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetVulnActionsVulnsVulnIdActionsGetError = GetVulnActionsVulnsVulnIdActionsGetErrors[keyof GetVulnActionsVulnsVulnIdActionsGetErrors];
-
-export type GetVulnActionsVulnsVulnIdActionsGetResponses = {
-    /**
-     * Response Get Vuln Actions Vulns  Vuln Id  Actions Get
-     *
-     * Successful Response
-     */
-    200: Array<ActionResponse>;
-};
-
-export type GetVulnActionsVulnsVulnIdActionsGetResponse = GetVulnActionsVulnsVulnIdActionsGetResponses[keyof GetVulnActionsVulnsVulnIdActionsGetResponses];
-
 export type GetTicketsTicketsGetData = {
     body?: never;
     path?: never;
@@ -2921,37 +2733,6 @@ export type UpdateInsightTicketsTicketIdInsightPutResponses = {
 };
 
 export type UpdateInsightTicketsTicketIdInsightPutResponse = UpdateInsightTicketsTicketIdInsightPutResponses[keyof UpdateInsightTicketsTicketIdInsightPutResponses];
-
-export type CreateActionActionsPostData = {
-    body: ActionCreateRequest;
-    headers: {
-        /**
-         * X-Api-Key
-         */
-        'x-api-key': string;
-    };
-    path?: never;
-    query?: never;
-    url: '/actions';
-};
-
-export type CreateActionActionsPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type CreateActionActionsPostError = CreateActionActionsPostErrors[keyof CreateActionActionsPostErrors];
-
-export type CreateActionActionsPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: ActionResponse;
-};
-
-export type CreateActionActionsPostResponse = CreateActionActionsPostResponses[keyof CreateActionActionsPostResponses];
 
 export type InternalOpenapiSchemaInternalApiOpenapiJsonGetData = {
     body?: never;

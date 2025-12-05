@@ -10,17 +10,8 @@ import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
 
 export function TicketTableRow(props) {
-  const {
-    pteamId,
-    serviceId,
-    packageId,
-    vulnId,
-    members,
-    references,
-    actionByFixedVersions,
-    vulnActions,
-    ticket,
-  } = props;
+  const { pteamId, serviceId, packageId, vulnId, members, references, updateAction, ticket } =
+    props;
 
   const matchedReference = references.find(
     (reference) => reference.dependencyId === ticket.dependency_id,
@@ -64,8 +55,7 @@ export function TicketTableRow(props) {
             packageId={packageId}
             ticketId={ticket.ticket_id}
             currentStatus={ticket.ticket_status}
-            actionByFixedVersions={actionByFixedVersions}
-            vulnActions={vulnActions}
+            updateAction={updateAction}
           />
           {(ticket.ticket_status.ticket_handling_status ?? "alerted") === "alerted" && (
             <WarningTooltip message="No one has acknowledged this vuln" />
@@ -101,7 +91,6 @@ TicketTableRow.propTypes = {
   vulnId: PropTypes.string.isRequired,
   members: PropTypes.object.isRequired,
   references: PropTypes.array.isRequired,
-  actionByFixedVersions: PropTypes.object.isRequired,
-  vulnActions: PropTypes.array.isRequired,
+  updateAction: PropTypes.object.isRequired,
   ticket: PropTypes.object.isRequired,
 };
