@@ -4,6 +4,11 @@
 
 ## Threatconnectome
 
+[![CI](https://img.shields.io/github/actions/workflow/status/nttcom/threatconnectome/main.yml?branch=main&label=CI)](https://github.com/nttcom/threatconnectome/actions/workflows/main.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/nttcom/threatconnectome/codeql-analysis.yml?branch=main&label=CodeQL)](https://github.com/nttcom/threatconnectome/actions/workflows/codeql-analysis.yml)
+[![Release](https://img.shields.io/github/v/release/nttcom/threatconnectome?display_name=release&sort=semver)](https://github.com/nttcom/threatconnectome/releases)
+[![License: MIT](https://img.shields.io/github/license/nttcom/threatconnectome)](LICENSE)
+
 Threatconnectome supports vulnerability management in industries where products are hard to update, such as automotive, manufacturing and communications infrastructure.
 
 - Alerts and Actions based on SSVC
