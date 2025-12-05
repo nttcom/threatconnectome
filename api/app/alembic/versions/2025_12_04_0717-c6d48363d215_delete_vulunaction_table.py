@@ -45,6 +45,8 @@ def downgrade() -> None:
         "actionlog",
         sa.Column("action_id", sa.VARCHAR(length=36), autoincrement=False, nullable=True),
     )
+
+    ## action_type in actionlog table
     op.add_column(
         "actionlog",
         sa.Column(
@@ -59,12 +61,47 @@ def downgrade() -> None:
                 name="actiontype",
             ),
             autoincrement=False,
-            nullable=False,
+            nullable=True,
         ),
     )
-    op.add_column(
-        "actionlog", sa.Column("recommended", sa.BOOLEAN(), autoincrement=False, nullable=False)
+    op.execute(
+        """
+       UPDATE actionlog
+       SET action_type = 'elimination'
+       """
     )
+    op.alter_column(
+        "actionlog",
+        "action_type",
+        existing_type=postgresql.ENUM(
+            "elimination",
+            "transfer",
+            "mitigation",
+            "acceptance",
+            "detection",
+            "rejection",
+            name="actiontype",
+        ),
+        nullable=False,
+    )
+
+    ## recommended in actionlog table
+    op.add_column(
+        "actionlog", sa.Column("recommended", sa.BOOLEAN(), autoincrement=False, nullable=True)
+    )
+    op.execute(
+        """
+       UPDATE actionlog
+       SET recommended = True
+       """
+    )
+    op.alter_column(
+        "actionlog",
+        "recommended",
+        nullable=False,
+    )
+
+    ## vulnaction table
     op.create_table(
         "vulnaction",
         sa.Column("action_id", sa.VARCHAR(length=36), autoincrement=False, nullable=False),
