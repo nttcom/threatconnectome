@@ -17,12 +17,6 @@ import { useState } from "react";
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
 import { usePageParams } from "../../hooks/usePageParams";
-import {
-  useGetDependencies,
-  useGetPTeam,
-  useGetPTeamVulnIds,
-  useGetPTeamTicketCounts,
-} from "../../services/queries.js";
 import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
@@ -31,6 +25,12 @@ import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx";
+import {
+  usePackageDependencies,
+  usePackagePTeam,
+  usePackageVulnIds,
+  usePackageTicketCounts,
+} from "./api.js";
 
 export function Package({ useSplitView = false }) {
   const [tabValue, setTabValue] = useState(0);
@@ -46,12 +46,12 @@ export function Package({ useSplitView = false }) {
     data: serviceDependencies,
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
-  } = useGetDependencies({ pteamId, serviceId, packageId, offset, limit });
+  } = usePackageDependencies({ pteamId, serviceId, packageId, offset, limit });
   const {
     service,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeam(pteamId, {
+  } = usePackagePTeam(pteamId, {
     selectFromResult: ({ data, error, isLoading }) => ({
       service: data?.services?.find((service) => service.service_id === serviceId),
       error,
@@ -64,7 +64,7 @@ export function Package({ useSplitView = false }) {
     vulnIds: vulnIdsSolved,
     error: vulnIdsSolvedError,
     isLoading: vulnIdsSolvedIsLoading,
-  } = useGetPTeamVulnIds(
+  } = usePackageVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
     {
       selectFromResult: ({ data, error, isLoading }) => ({
@@ -78,7 +78,7 @@ export function Package({ useSplitView = false }) {
     vulnIds: vulnIdsUnSolved,
     error: vulnIdsUnSolvedError,
     isLoading: vulnIdsUnSolvedIsLoading,
-  } = useGetPTeamVulnIds(
+  } = usePackageVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
     {
       selectFromResult: ({ data, error, isLoading }) => ({
@@ -93,12 +93,12 @@ export function Package({ useSplitView = false }) {
     data: ticketCountsSolved,
     error: ticketCountsSolvedError,
     isLoading: ticketCountsSolvedIsLoading,
-  } = useGetPTeamTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "solved" });
+  } = usePackageTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "solved" });
   const {
     data: ticketCountsUnSolved,
     error: ticketCountsUnSolvedError,
     isLoading: ticketCountsUnSolvedIsLoading,
-  } = useGetPTeamTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" });
+  } = usePackageTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" });
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);

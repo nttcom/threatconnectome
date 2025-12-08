@@ -1,23 +1,22 @@
-import { useSkipUntilAuthUserIsReady } from "../hooks/auth.js";
-
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import {
   useGetDependenciesQuery,
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
-} from "./tcApi.js";
+} from "../../services/tcApi.js";
 
 /**
- * RTK Query フックのラッパー
- *
- * 各フックに共通の認証チェックとバリデーションを自動的に適用します。
- *
- * このパターンは React Query メンテナーの TkDodo が推奨するベストプラクティスを
- * RTK Query に適用したものです。
- * @see https://tkdodo.eu/blog/practical-react-query#create-custom-hooks
+ * Package ページ専用のAPIフック
  */
 
-export function useGetDependencies({ pteamId, serviceId, packageId, offset, limit }, options = {}) {
+/**
+ * 依存関係データ取得用カスタムフック
+ */
+export function usePackageDependencies(
+  { pteamId, serviceId, packageId, offset, limit },
+  options = {},
+) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetDependenciesQuery(
     { pteamId, serviceId, packageId, offset, limit },
@@ -28,7 +27,10 @@ export function useGetDependencies({ pteamId, serviceId, packageId, offset, limi
   );
 }
 
-export function useGetPTeam(pteamId, options = {}) {
+/**
+ * PTeam情報取得用カスタムフック
+ */
+export function usePackagePTeam(pteamId, options = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamQuery(pteamId, {
     ...options,
@@ -36,7 +38,10 @@ export function useGetPTeam(pteamId, options = {}) {
   });
 }
 
-export function useGetPTeamVulnIds(
+/**
+ * 脆弱性IDリスト取得用カスタムフック
+ */
+export function usePackageVulnIds(
   { pteamId, serviceId, packageId, relatedTicketStatus },
   options = {},
 ) {
@@ -50,7 +55,10 @@ export function useGetPTeamVulnIds(
   );
 }
 
-export function useGetPTeamTicketCounts(
+/**
+ * チケットカウント取得用カスタムフック
+ */
+export function usePackageTicketCounts(
   { pteamId, serviceId, packageId, relatedTicketStatus },
   options = {},
 ) {
