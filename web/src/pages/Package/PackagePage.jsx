@@ -24,7 +24,7 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
-import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx";
+import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.tsx";
 import {
   usePackageDependencies,
   usePackagePTeam,
