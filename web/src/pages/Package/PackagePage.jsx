@@ -30,9 +30,7 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
-
-// Lazy load the new VulnerabilityTable component
-const VulnerabilityTable = React.lazy(() => import("./VulnerabilityTable/VulnerabilityTable.jsx"));
+import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx";
 
 export function Package({ useSplitView = false }) {
   const [page, setPage] = useState(0);
