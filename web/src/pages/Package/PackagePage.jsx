@@ -18,14 +18,13 @@ import { useNavigate } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import { usePageParams } from "../../hooks/usePageParams";
 import {
-  useGetPTeamQuery,
-  useGetPTeamVulnIdsTiedToServicePackageQuery,
-  useGetPTeamTicketCountsTiedToServicePackageQuery,
-  useGetDependenciesQuery,
-} from "../../services/tcApi.js";
+  useGetDependencies,
+  useGetPTeam,
+  useGetPTeamVulnIds,
+  useGetPTeamTicketCounts,
+} from "../../services/queries.js";
 import { APIError } from "../../utils/APIError.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
@@ -41,14 +40,7 @@ export function Package({ useSplitView = false }) {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
-  const skipByAuth = useSkipUntilAuthUserIsReady();
-  const isAuthReady = !skipByAuth;
-
   const { packageId, pteamId, serviceId } = usePageParams();
-
-  const getDependenciesReady = isAuthReady && pteamId && serviceId;
-  const getPTeamReady = isAuthReady && pteamId;
-  const getVulnIdsReady = isAuthReady && pteamId && serviceId && packageId;
 
   const offset = 0;
   const limit = 1000;
@@ -56,16 +48,12 @@ export function Package({ useSplitView = false }) {
     data: serviceDependencies,
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
-  } = useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
-    { skip: !getDependenciesReady },
-  );
+  } = useGetDependencies({ pteamId, serviceId, packageId, offset, limit });
   const {
     service,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, {
-    skip: !getPTeamReady,
+  } = useGetPTeam(pteamId, {
     selectFromResult: ({ data, error, isLoading }) => ({
       service: data?.services?.find((service) => service.service_id === serviceId),
       error,
@@ -78,10 +66,9 @@ export function Package({ useSplitView = false }) {
     vulnIds: vulnIdsSolved,
     error: vulnIdsSolvedError,
     isLoading: vulnIdsSolvedIsLoading,
-  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+  } = useGetPTeamVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
     {
-      skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
         vulnIds: data?.vuln_ids,
         error,
@@ -93,10 +80,9 @@ export function Package({ useSplitView = false }) {
     vulnIds: vulnIdsUnSolved,
     error: vulnIdsUnSolvedError,
     isLoading: vulnIdsUnSolvedIsLoading,
-  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
+  } = useGetPTeamVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
     {
-      skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
         vulnIds: data?.vuln_ids,
         error,
@@ -105,23 +91,16 @@ export function Package({ useSplitView = false }) {
     },
   );
 
-  // Only fetch ticket counts when not using split view
   const {
     data: ticketCountsSolved,
     error: ticketCountsSolvedError,
     isLoading: ticketCountsSolvedIsLoading,
-  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
-    { skip: !getVulnIdsReady || useSplitView },
-  );
+  } = useGetPTeamTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "solved" });
   const {
     data: ticketCountsUnSolved,
     error: ticketCountsUnSolvedError,
     isLoading: ticketCountsUnSolvedIsLoading,
-  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
-    { skip: !getVulnIdsReady || useSplitView },
-  );
+  } = useGetPTeamTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" });
 
   // パラメータの完全性チェック
   if (!pteamId || !serviceId || !packageId) {
@@ -176,19 +155,16 @@ export function Package({ useSplitView = false }) {
     });
   if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
 
-  // Only check ticket count errors when not using split view
-  if (!useSplitView) {
-    if (ticketCountsSolvedError)
-      throw new APIError(errorToString(ticketCountsSolvedError), {
-        api: "getPTeamTicketCountsTiedToServicePackage",
-      });
-    if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
-    if (ticketCountsUnSolvedError)
-      throw new APIError(errorToString(ticketCountsUnSolvedError), {
-        api: "getPTeamTicketCountsTiedToServicePackage",
-      });
-    if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
-  }
+  if (ticketCountsSolvedError)
+    throw new APIError(errorToString(ticketCountsSolvedError), {
+      api: "getPTeamTicketCountsTiedToServicePackage",
+    });
+  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
+  if (ticketCountsUnSolvedError)
+    throw new APIError(errorToString(ticketCountsUnSolvedError), {
+      api: "getPTeamTicketCountsTiedToServicePackage",
+    });
+  if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
   const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
