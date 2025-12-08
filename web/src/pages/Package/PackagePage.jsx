@@ -13,11 +13,11 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
+import { useRouteParams } from "../../hooks/useRouteParams";
 import {
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
@@ -38,10 +38,7 @@ export function Package({ useSplitView = false }) {
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
-  const { packageId } = useParams();
-  const params = new URLSearchParams(useLocation().search);
-  const pteamId = params.get("pteamId");
-  const serviceId = params.get("serviceId");
+  const { packageId, pteamId, serviceId } = useRouteParams();
   const getDependenciesReady = !skipByAuth && pteamId && serviceId;
   const getPTeamReady = !skipByAuth && pteamId;
   const getVulnIdsReady = getPTeamReady && serviceId && packageId;
