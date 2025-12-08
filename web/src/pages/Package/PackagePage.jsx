@@ -13,7 +13,6 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
@@ -25,6 +24,7 @@ import {
   useGetPTeamTicketCounts,
 } from "../../services/queries.js";
 import { APIError } from "../../utils/APIError.js";
+import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
@@ -35,7 +35,6 @@ import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx"
 export function Package({ useSplitView = false }) {
   const [tabValue, setTabValue] = useState(0);
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
@@ -108,7 +107,8 @@ export function Package({ useSplitView = false }) {
     if (!isMdUp) setOpen(false);
   };
 
-  if (!pteamId || !serviceId || !packageId) return <></>;
+  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!serviceId) return <>Service ID is required</>;
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
@@ -139,6 +139,10 @@ export function Package({ useSplitView = false }) {
     });
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
+  if (!serviceDependencies || serviceDependencies.length === 0) {
+    return <>No dependencies found for this package.</>;
+  }
+
   const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
@@ -149,10 +153,6 @@ export function Package({ useSplitView = false }) {
     package_manager: dependency.package_manager,
     ecosystem: dependency.package_ecosystem,
   }));
-
-  if (!serviceDependencies || serviceDependencies.length === 0) {
-    return <>No dependencies found for this package.</>;
-  }
 
   const firstPackageDependency = serviceDependencies[0];
 

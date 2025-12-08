@@ -139,3 +139,121 @@ export const NoVulnerabilities = {
     },
   },
 };
+
+export const NoDependencies = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/dependencies`, () => {
+          return HttpResponse.json([]);
+        }),
+        ...successHandlers,
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};
+
+export const DependenciesError = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/dependencies`, () => {
+          return HttpResponse.json(
+            { detail: "Failed to fetch dependencies" },
+            { status: 500 }
+          );
+        }),
+        ...successHandlers,
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};
+
+export const PTeamError = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}`, () => {
+          return HttpResponse.json({ detail: "PTeam not found" }, { status: 404 });
+        }),
+        ...successHandlers,
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};
+
+export const NoServiceId = {
+  parameters: {
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};
+
+export const VulnIdsError = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
+          return HttpResponse.json({ detail: "Failed to fetch vuln_ids" }, { status: 500 });
+        }),
+        ...successHandlers,
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};
+
+export const TicketCountsError = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/ticket_counts`, () => {
+          return HttpResponse.json(
+            { detail: "Failed to fetch ticket_counts" },
+            { status: 500 }
+          );
+        }),
+        ...successHandlers,
+      ],
+    },
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+      },
+      path: "/packages/:packageId",
+      useRoutes: true,
+    },
+  },
+};

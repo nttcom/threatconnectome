@@ -2,9 +2,11 @@ import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { configureStore } from "@reduxjs/toolkit";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import { SnackbarProvider } from "notistack";
+import { ErrorBoundary } from "react-error-boundary";
 import { Provider } from "react-redux";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
+import { AppFallback } from "../src/pages/App/AppFallback";
 import { AuthProvider } from "../src/providers/auth/AuthContext";
 import { tcApi } from "../src/services/tcApi";
 import { sliceReducers } from "../src/slices";
@@ -71,13 +73,15 @@ const decorators = [
                 anchorOrigin={{ horizontal: "center", vertical: "top" }}
                 autoHideDuration={5000}
               >
-                {routerParameters?.useRoutes ? (
-                  <Routes>
-                    <Route path={routerParameters.path} element={<Story {...context} />} />
-                  </Routes>
-                ) : (
-                  <Story {...context} />
-                )}
+                <ErrorBoundary FallbackComponent={AppFallback}>
+                  {routerParameters?.useRoutes ? (
+                    <Routes>
+                      <Route path={routerParameters.path} element={<Story {...context} />} />
+                    </Routes>
+                  ) : (
+                    <Story {...context} />
+                  )}
+                </ErrorBoundary>
               </SnackbarProvider>
             </ThemeProvider>
           </AuthProvider>
