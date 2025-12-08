@@ -68,7 +68,7 @@ export function Package({ useSplitView = false }) {
       isLoading,
     }),
   });
-  
+
   // Only fetch these when not using split view
   const {
     vulnIds: vulnIdsSolved,
@@ -100,7 +100,7 @@ export function Package({ useSplitView = false }) {
       }),
     },
   );
-  
+
   // Only fetch ticket counts when not using split view
   const {
     data: ticketCountsSolved,
@@ -138,7 +138,7 @@ export function Package({ useSplitView = false }) {
   if (serviceDependenciesError)
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
-  
+
   // Check vulnIds errors (needed for tab counts)
   if (vulnIdsSolvedError)
     throw new APIError(errorToString(vulnIdsSolvedError), {
@@ -150,7 +150,7 @@ export function Package({ useSplitView = false }) {
       api: "getPTeamVulnIdsTiedToServicePackage",
     });
   if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
-  
+
   // Only check ticket count errors when not using split view
   if (!useSplitView) {
     if (ticketCountsSolvedError)
