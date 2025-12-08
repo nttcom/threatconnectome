@@ -9,15 +9,17 @@ import {
   ClickAwayListener,
   useMediaQuery,
   useTheme,
+  Button,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
-import { useRouteParams } from "../../hooks/useRouteParams";
+import { usePageParams } from "../../hooks/usePageParams";
 import {
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
@@ -25,7 +27,6 @@ import {
   useGetDependenciesQuery,
 } from "../../services/tcApi.js";
 import { APIError } from "../../utils/APIError.js";
-import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
@@ -35,13 +36,19 @@ import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx"
 
 export function Package({ useSplitView = false }) {
   const [tabValue, setTabValue] = useState(0);
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
+  const isAuthReady = !skipByAuth;
 
-  const { packageId, pteamId, serviceId } = useRouteParams();
-  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
-  const getPTeamReady = !skipByAuth && pteamId;
-  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
+  const { packageId, pteamId, serviceId } = usePageParams();
+
+  const getDependenciesReady = isAuthReady && pteamId && serviceId;
+  const getPTeamReady = isAuthReady && pteamId;
+  const getVulnIdsReady = isAuthReady && pteamId && serviceId && packageId;
 
   const offset = 0;
   const limit = 1000;
@@ -116,10 +123,33 @@ export function Package({ useSplitView = false }) {
     { skip: !getVulnIdsReady || useSplitView },
   );
 
-  const [open, setOpen] = useState(false);
-
-  const theme = useTheme();
-  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  // パラメータの完全性チェック
+  if (!pteamId || !serviceId || !packageId) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "400px",
+          p: 4,
+        }}
+      >
+        <Typography variant="h5" color="text.secondary" gutterBottom>
+          ページを表示できません
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 1, textAlign: "center" }}>
+          URLが不完全な可能性があります。
+          <br />
+          トップページから再度アクセスしてください。
+        </Typography>
+        <Button variant="outlined" sx={{ mt: 3 }} onClick={() => navigate("/")}>
+          トップページに戻る
+        </Button>
+      </Box>
+    );
+  }
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -128,8 +158,6 @@ export function Package({ useSplitView = false }) {
     if (!isMdUp) setOpen(false);
   };
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!getVulnIdsReady) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
   if (serviceDependenciesError)
