@@ -11,7 +11,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
@@ -33,8 +34,6 @@ import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.jsx";
 
 export function Package({ useSplitView = false }) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabValue, setTabValue] = useState(0);
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -58,33 +57,58 @@ export function Package({ useSplitView = false }) {
     { skip: !getDependenciesReady },
   );
   const {
-    data: pteam,
+    service,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
+  } = useGetPTeamQuery(pteamId, {
+    skip: !getPTeamReady,
+    selectFromResult: ({ data, error, isLoading }) => ({
+      service: data?.services?.find((service) => service.service_id === serviceId),
+      error,
+      isLoading,
+    }),
+  });
+  
+  // Only fetch these when not using split view
   const {
-    data: vulnIdsSolved,
+    vulnIds: vulnIdsSolved,
     error: vulnIdsSolvedError,
     isLoading: vulnIdsSolvedIsLoading,
   } = useGetPTeamVulnIdsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
-    { skip: !getVulnIdsReady },
+    {
+      skip: !getVulnIdsReady,
+      selectFromResult: ({ data, error, isLoading }) => ({
+        vulnIds: data?.vuln_ids,
+        error,
+        isLoading,
+      }),
+    },
   );
   const {
-    data: vulnIdsUnSolved,
+    vulnIds: vulnIdsUnSolved,
     error: vulnIdsUnSolvedError,
     isLoading: vulnIdsUnSolvedIsLoading,
   } = useGetPTeamVulnIdsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
-    { skip: !getVulnIdsReady },
+    {
+      skip: !getVulnIdsReady,
+      selectFromResult: ({ data, error, isLoading }) => ({
+        vulnIds: data?.vuln_ids,
+        error,
+        isLoading,
+      }),
+    },
   );
+  
+  // Only fetch ticket counts when not using split view
   const {
     data: ticketCountsSolved,
     error: ticketCountsSolvedError,
     isLoading: ticketCountsSolvedIsLoading,
   } = useGetPTeamTicketCountsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
-    { skip: !getVulnIdsReady },
+    { skip: !getVulnIdsReady || useSplitView },
   );
   const {
     data: ticketCountsUnSolved,
@@ -92,7 +116,7 @@ export function Package({ useSplitView = false }) {
     isLoading: ticketCountsUnSolvedIsLoading,
   } = useGetPTeamTicketCountsTiedToServicePackageQuery(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
-    { skip: !getVulnIdsReady },
+    { skip: !getVulnIdsReady || useSplitView },
   );
 
   const [open, setOpen] = useState(false);
@@ -114,6 +138,8 @@ export function Package({ useSplitView = false }) {
   if (serviceDependenciesError)
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
+  
+  // Check vulnIds errors (needed for tab counts)
   if (vulnIdsSolvedError)
     throw new APIError(errorToString(vulnIdsSolvedError), {
       api: "getPTeamVulnIdsTiedToServicePackage",
@@ -124,23 +150,26 @@ export function Package({ useSplitView = false }) {
       api: "getPTeamVulnIdsTiedToServicePackage",
     });
   if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
-  if (ticketCountsSolvedError)
-    throw new APIError(errorToString(ticketCountsSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
-  if (ticketCountsUnSolvedError)
-    throw new APIError(errorToString(ticketCountsUnSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
+  
+  // Only check ticket count errors when not using split view
+  if (!useSplitView) {
+    if (ticketCountsSolvedError)
+      throw new APIError(errorToString(ticketCountsSolvedError), {
+        api: "getPTeamTicketCountsTiedToServicePackage",
+      });
+    if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
+    if (ticketCountsUnSolvedError)
+      throw new APIError(errorToString(ticketCountsUnSolvedError), {
+        api: "getPTeamTicketCountsTiedToServicePackage",
+      });
+    if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
+  }
 
-  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
   const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.package_version,
-    service: serviceDict.service_name,
+    service: service.service_name,
     package_name: dependency.package_name,
     package_source_name: dependency.package_source_name,
     package_manager: dependency.package_manager,
@@ -153,8 +182,8 @@ export function Package({ useSplitView = false }) {
 
   const firstPackageDependency = serviceDependencies[0];
 
-  const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
-  const numUnsolved = vulnIdsUnSolved.vuln_ids?.length ?? 0;
+  const numSolved = vulnIdsSolved?.length ?? 0;
+  const numUnsolved = vulnIdsUnSolved?.length ?? 0;
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -167,9 +196,9 @@ export function Package({ useSplitView = false }) {
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             {isMdUp ? (
-              <Tooltip title={serviceDict.service_name}>
+              <Tooltip title={service.service_name}>
                 <Chip
-                  label={serviceDict.service_name}
+                  label={service.service_name}
                   variant="outlined"
                   sx={{
                     borderRadius: "2px",
@@ -188,10 +217,10 @@ export function Package({ useSplitView = false }) {
                   disableFocusListener
                   disableHoverListener
                   disableTouchListener
-                  title={serviceDict.service_name}
+                  title={service.service_name}
                 >
                   <Chip
-                    label={serviceDict.service_name}
+                    label={service.service_name}
                     variant="outlined"
                     sx={{
                       borderRadius: "2px",
@@ -215,7 +244,7 @@ export function Package({ useSplitView = false }) {
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
           </Typography>
-          <PackageReferences references={references} serviceDict={serviceDict} />
+          <PackageReferences references={references} serviceDict={service} />
         </Box>
       </Box>
       <CodeBlock visible={visibleCodeBlock} />
@@ -229,50 +258,28 @@ export function Package({ useSplitView = false }) {
         </Box>
         <TabPanel value={tabValue} index={0}>
           {useSplitView ? (
-            <VulnerabilityTable
-              vulnIds={vulnIdsUnSolved?.vuln_ids || []}
-              defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
-              onPageChange={setPage}
-              onRowsPerPageChange={(newRowsPerPage) => {
-                setRowsPerPage(newRowsPerPage);
-                setPage(0);
-              }}
-            />
+            <VulnerabilityTable relatedTicketStatus="unsolved" />
           ) : (
             <PTeamVulnsPerPackage
               pteamId={pteamId}
-              service={serviceDict}
+              service={service}
               packageId={packageId}
               references={references}
-              vulnIds={vulnIdsUnSolved.vuln_ids}
+              vulnIds={vulnIdsUnSolved}
               ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
             />
           )}
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
           {useSplitView ? (
-            <VulnerabilityTable
-              vulnIds={vulnIdsSolved?.vuln_ids || []}
-              defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
-              onPageChange={setPage}
-              onRowsPerPageChange={(newRowsPerPage) => {
-                setRowsPerPage(newRowsPerPage);
-                setPage(0);
-              }}
-            />
+            <VulnerabilityTable relatedTicketStatus="solved" />
           ) : (
             <PTeamVulnsPerPackage
               pteamId={pteamId}
-              service={serviceDict}
+              service={service}
               packageId={packageId}
               references={references}
-              vulnIds={vulnIdsSolved.vuln_ids}
+              vulnIds={vulnIdsSolved}
               ticketCounts={ticketCountsSolved.ssvc_priority_count}
             />
           )}
@@ -281,3 +288,7 @@ export function Package({ useSplitView = false }) {
     </>
   );
 }
+
+Package.propTypes = {
+  useSplitView: PropTypes.bool,
+};
