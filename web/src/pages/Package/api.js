@@ -14,7 +14,7 @@ import {
  * 依存関係データ取得用カスタムフック
  */
 export function usePackageDependencies(
-  { pteamId, serviceId, packageId, offset, limit },
+  { pteamId, serviceId, packageId, offset = 0, limit = 1000 },
   options = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();

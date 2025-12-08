@@ -40,13 +40,11 @@ export function Package({ useSplitView = false }) {
 
   const { packageId, pteamId, serviceId } = usePageParams();
 
-  const offset = 0;
-  const limit = 1000;
   const {
     data: serviceDependencies,
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
-  } = usePackageDependencies({ pteamId, serviceId, packageId, offset, limit });
+  } = usePackageDependencies({ pteamId, serviceId, packageId });
   const {
     service,
     error: pteamError,
