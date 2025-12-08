@@ -229,20 +229,18 @@ export function Package({ useSplitView = false }) {
         </Box>
         <TabPanel value={tabValue} index={0}>
           {useSplitView ? (
-            <React.Suspense fallback={<>Loading...</>}>
-              <VulnerabilityTable
-                vulnIds={vulnIdsUnSolved?.vuln_ids || []}
-                defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
-                onPageChange={setPage}
-                onRowsPerPageChange={(newRowsPerPage) => {
-                  setRowsPerPage(newRowsPerPage);
-                  setPage(0);
-                }}
-              />
-            </React.Suspense>
+            <VulnerabilityTable
+              vulnIds={vulnIdsUnSolved?.vuln_ids || []}
+              defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              ticketCounts={ticketCountsUnSolved?.ssvc_priority_count || {}}
+              onPageChange={setPage}
+              onRowsPerPageChange={(newRowsPerPage) => {
+                setRowsPerPage(newRowsPerPage);
+                setPage(0);
+              }}
+            />
           ) : (
             <PTeamVulnsPerPackage
               pteamId={pteamId}
@@ -256,20 +254,18 @@ export function Package({ useSplitView = false }) {
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
           {useSplitView ? (
-            <React.Suspense fallback={<>Loading...</>}>
-              <VulnerabilityTable
-                vulnIds={vulnIdsSolved?.vuln_ids || []}
-                defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
-                onPageChange={setPage}
-                onRowsPerPageChange={(newRowsPerPage) => {
-                  setRowsPerPage(newRowsPerPage);
-                  setPage(0);
-                }}
-              />
-            </React.Suspense>
+            <VulnerabilityTable
+              vulnIds={vulnIdsSolved?.vuln_ids || []}
+              defaultSafetyImpact={serviceDict?.service_safety_impact || "Not Set"}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              ticketCounts={ticketCountsSolved?.ssvc_priority_count || {}}
+              onPageChange={setPage}
+              onRowsPerPageChange={(newRowsPerPage) => {
+                setRowsPerPage(newRowsPerPage);
+                setPage(0);
+              }}
+            />
           ) : (
             <PTeamVulnsPerPackage
               pteamId={pteamId}
