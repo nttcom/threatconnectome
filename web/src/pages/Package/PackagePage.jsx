@@ -9,7 +9,6 @@ import {
   ClickAwayListener,
   useMediaQuery,
   useTheme,
-  Button,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -102,40 +101,14 @@ export function Package({ useSplitView = false }) {
     isLoading: ticketCountsUnSolvedIsLoading,
   } = useGetPTeamTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" });
 
-  // パラメータの完全性チェック
-  if (!pteamId || !serviceId || !packageId) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "400px",
-          p: 4,
-        }}
-      >
-        <Typography variant="h5" color="text.secondary" gutterBottom>
-          ページを表示できません
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 1, textAlign: "center" }}>
-          URLが不完全な可能性があります。
-          <br />
-          トップページから再度アクセスしてください。
-        </Typography>
-        <Button variant="outlined" sx={{ mt: 3 }} onClick={() => navigate("/")}>
-          トップページに戻る
-        </Button>
-      </Box>
-    );
-  }
-
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
   };
   const handleTooltipClose = () => {
     if (!isMdUp) setOpen(false);
   };
+
+  if (!pteamId || !serviceId || !packageId) return <></>;
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
