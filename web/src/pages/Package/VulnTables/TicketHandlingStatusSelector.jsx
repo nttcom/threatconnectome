@@ -31,16 +31,7 @@ import { errorToString } from "../../../utils/func";
 import { ReportCompletedActions } from "./ReportCompletedActions";
 
 export function TicketHandlingStatusSelector(props) {
-  const {
-    pteamId,
-    serviceId,
-    vulnId,
-    packageId,
-    ticketId,
-    currentStatus,
-    actionByFixedVersions,
-    vulnActions,
-  } = props;
+  const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus, updateAction } = props;
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
@@ -125,8 +116,7 @@ export function TicketHandlingStatusSelector(props) {
         ticketId={ticketId}
         vulnId={vulnId}
         packageId={packageId}
-        actionByFixedVersions={actionByFixedVersions}
-        vulnActions={vulnActions}
+        updateAction={updateAction}
         onSetShow={setActionModalOpen}
         show={actionModalOpen}
       />
@@ -238,6 +228,5 @@ TicketHandlingStatusSelector.propTypes = {
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  actionByFixedVersions: PropTypes.object.isRequired,
-  vulnActions: PropTypes.array.isRequired,
+  updateAction: PropTypes.object.isRequired,
 };

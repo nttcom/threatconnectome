@@ -69,20 +69,6 @@ def delete_account_default_pteam(
     db.flush()
 
 
-### Action
-
-
-def get_action_by_id(db: Session, action_id: UUID | str) -> models.VulnAction | None:
-    return db.scalars(
-        select(models.VulnAction).where(models.VulnAction.action_id == str(action_id))
-    ).one_or_none()
-
-
-def delete_action(db: Session, action: models.VulnAction) -> None:
-    db.delete(action)
-    db.flush()
-
-
 ### ActionLog
 
 

@@ -16,8 +16,6 @@ import {
   yellow,
 } from "@mui/material/colors";
 
-export const actionTypeChipWidth = 90;
-
 export const drawerWidth = 200;
 
 export const mainMaxWidth = 1100;
@@ -34,16 +32,6 @@ export const maxSlackWebhookUrlLengthInHalf = 255;
 export const serviceImageWidthSize = 720;
 export const serviceImageHeightSize = 480;
 export const serviceImageMaxSize = 512 * 1024;
-
-export const actionTypeChipColors = {
-  elimination: "error",
-  mitigation: "warning",
-  detection: "success",
-  transfer: "info",
-  acceptance: "primary",
-  rejection: "secondary",
-};
-export const actionTypes = Object.keys(actionTypeChipColors);
 
 export const experienceColors = {
   0: green[500],

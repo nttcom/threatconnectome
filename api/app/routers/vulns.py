@@ -414,19 +414,3 @@ def get_vulns(
         )
 
     return schemas.VulnsListResponse(num_vulns=result["num_vulns"], vulns=response_vulns)
-
-
-@router.get("/{vuln_id}/actions", response_model=list[schemas.ActionResponse])
-def get_vuln_actions(
-    vuln_id: UUID,
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get the list of actions associated with the specified vulnerability.
-    """
-    if not (vuln := persistence.get_vuln_by_id(db, vuln_id)):
-        raise NO_SUCH_VULN
-
-    # Use the new relationship to fetch actions
-    return vuln.vuln_actions

@@ -106,66 +106,6 @@ class TestFixTicketByThreat:
         ).one_or_none()
         assert ticket
 
-    def test_it_should_create_ticket_when_has_vuln_action(
-        self,
-        testdb: Session,
-        service1: models.Service,
-        package1: models.Package,
-        vuln1: models.Vuln,
-    ):
-        # Given
-        package_version = models.PackageVersion(
-            package_version_id="test-package-version-id",
-            package_id=package1.package_id,
-            version="1.0.0",
-            package=package1,
-        )
-        persistence.create_package_version(testdb, package_version)
-
-        dependency1 = models.Dependency(
-            dependency_id="test-dependency-id",
-            target="test-target",
-            package_manager="npm",
-            package_version_id=package_version.package_version_id,
-            service=service1,
-        )
-        testdb.add(dependency1)
-        testdb.flush()
-
-        affect = models.Affect(
-            vuln_id=vuln1.vuln_id,
-            affected_versions=["<=1.0.0"],
-            fixed_versions=[],
-            affected_name=package1.name,
-            ecosystem=package1.ecosystem,
-        )
-        persistence.create_affect(testdb, affect)
-
-        action = models.VulnAction(
-            action_id="test-action-id",
-            action="test-action",
-            vuln_id=vuln1.vuln_id,
-            action_type=models.ActionType.elimination,
-            recommended=True,
-            created_at="2023-10-01T00:00:00Z",
-        )
-        testdb.add(action)
-        testdb.flush()
-
-        threat = models.Threat(
-            package_version_id=package_version.package_version_id, vuln_id=vuln1.vuln_id
-        )
-        persistence.create_threat(testdb, threat)
-
-        # When
-        ticket_business.fix_ticket_by_threat(testdb, threat)
-
-        # Then
-        ticket = testdb.scalars(
-            select(models.Ticket).where(models.Ticket.threat_id == threat.threat_id)
-        ).one_or_none()
-        assert ticket
-
     def test_it_should_delete_ticket_when_not_need_ticket(
         self,
         testdb: Session,

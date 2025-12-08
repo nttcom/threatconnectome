@@ -21,14 +21,13 @@ import {
   useGetPTeamMembersQuery,
   useGetPTeamQuery,
   useGetPTeamServicesQuery,
-  useGetVulnActionsQuery,
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError.js";
 import { ssvcPriorityProps } from "../../utils/const";
 import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
 import { preserveParams } from "../../utils/urlUtils.js";
-import { createActionByFixedVersions, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
+import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
@@ -95,11 +94,6 @@ export function TicketDetailView({ ticket }) {
   } = useGetVulnQuery(ticket.vuln_id, {
     skip: !ticket.vuln_id,
   });
-  const {
-    data: vulnActions,
-    isLoading: vulnActionsIsLoading,
-    error: vulnActionsError,
-  } = useGetVulnActionsQuery(ticket.vuln_id, { skip: !ticket.vuln_id });
 
   const {
     data: dependency,
@@ -115,17 +109,10 @@ export function TicketDetailView({ ticket }) {
     throw new APIError(errorToString(pteamServicesError), { api: "getPTeamServices" });
   if (membersError) throw new APIError(errorToString(membersError), { api: "getPTeamMembers" });
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
-  if (vulnActionsError)
-    throw new APIError(errorToString(vulnActionsError), { api: "getVulnActions" });
   if (dependencyError) throw new APIError(errorToString(dependencyError), { api: "getDependency" });
 
   const isLoading =
-    pteamIsLoading ||
-    serviceIsLoading ||
-    membersIsLoading ||
-    vulnIsLoading ||
-    vulnActionsIsLoading ||
-    dependencyIsLoading;
+    pteamIsLoading || serviceIsLoading || membersIsLoading || vulnIsLoading || dependencyIsLoading;
 
   const ssvc = ticket.ssvc_deployer_priority;
   const ssvcPriority = ssvcPriorityProps[ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
@@ -177,8 +164,8 @@ export function TicketDetailView({ ticket }) {
 
   const vulnerablePackage =
     findMatchedVulnPackage(vuln?.vulnerable_packages || [], currentPackage) || {};
-  const actionByFixedVersions =
-    createActionByFixedVersions(
+  const updateAction =
+    createUpdateAction(
       vulnerablePackage?.affected_versions ?? [],
       vulnerablePackage?.fixed_versions ?? [],
       vulnerablePackage?.affected_name,
@@ -248,8 +235,7 @@ export function TicketDetailView({ ticket }) {
                 packageId={dependency?.package_id}
                 ticketId={ticket.ticket_id}
                 currentStatus={ticket.ticket_status}
-                actionByFixedVersions={actionByFixedVersions}
-                vulnActions={vulnActions}
+                updateAction={updateAction}
               />
             </FormControl>
           </DetailRow>
@@ -282,7 +268,7 @@ export function TicketDetailView({ ticket }) {
         </Stack>
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
-        <VulnerabilityView vuln={vuln} vulnActions={vulnActions} currentPackage={currentPackage} />
+        <VulnerabilityView vuln={vuln} currentPackage={currentPackage} />
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={2}>
         <RiskAnalysis
