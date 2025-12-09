@@ -247,6 +247,8 @@ class TrivyCDXParser(SBOMParser):
         all_source_ref_dict: dict[str, set[str]],
     ) -> list[Component]:
         target_components: list[Component] = []
+        if component.bom_ref.value is None:
+            return target_components
         all_source_refs: set[str] = all_source_ref_dict[component.bom_ref.value]
 
         for ref in all_source_refs:
