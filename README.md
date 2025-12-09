@@ -38,7 +38,7 @@ Teams registerd in demo environment as following:
 
 ## :rocket: Quick Start
 
-This quick start spins up the full demo stack locally (Firebase emulator, API, web UI, Traefik) using Docker.
+This quick start spins up the full demo stack locally using Docker.
 
 Just clone this project and move to `threatconnectome`.
 
