@@ -1342,6 +1342,7 @@ def apply_service_packages(
         obsoleted_dependencies.append(dependency)
 
     # create new dependencies
+    changed_package_version_ids = set()
     for [package_version_id, target, package_manager] in new_dependencies_set:
         new_dependency = models.Dependency(
             service_id=service.service_id,
@@ -1351,8 +1352,11 @@ def apply_service_packages(
         )
         service.dependencies.append(new_dependency)
         db.flush()
+        changed_package_version_ids.add(package_version_id)
+
+    for changed_package_version_id in changed_package_version_ids:
         threats: list[models.Threat] = threat_business.fix_threat_by_package_version_id(
-            db, package_version_id
+            db, changed_package_version_id
         )
         for threat in threats:
             db.refresh(threat.package_version)
