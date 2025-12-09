@@ -60,6 +60,6 @@ To stop a running service:
 ./demo_stop.sh
 ```
 
-Using Firebase Authentication or the Firebase emulator? Follow [docs/setup_firebase.md](docs/setup_firebase.md).
+Need the Firebase Authentication / emulator setup? See [docs/setup_firebase.md](docs/setup_firebase.md). (This is the standard configuration.)
 
 Need an on-premises Supabase stack? See [docs/setup_supabase.md](docs/setup_supabase.md).
