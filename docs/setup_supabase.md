@@ -1,4 +1,4 @@
-# Supabase Setup Guide
+# Threatconnectome Setup Guide (Supabase)
 
 Use this guide when deploying Threatconnectome in an on-premises environment backed by Supabase.
 
@@ -93,7 +93,7 @@ Access `http://localhost:<your_port_for_threatconnectome>/api/docs ` to open the
 
 **🎉🎉🎉 Welcome to Threatconnectome 🎉🎉🎉**
 
-### Stop of Threatconnectome
+### Stopping Threatconnectome
 
 Stop Docker Compose when you are done.
 
@@ -176,4 +176,4 @@ Docker containers in `docker-compose-supabase-local.yml`
 | nginx    | nginx configuration directory                                    | web                       |
 | scripts  | storing scripts that run outside of the server                   | -                         |
 | traefik  | reverse proxy                                                    | traefik                   |
-| web      | front end created with React.js                                  | web (only web/build)      |
+| web      | frontend built with React.js                                     | web (only web/build)      |

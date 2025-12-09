@@ -1,4 +1,4 @@
-# Threatconnectome Setup Guide
+# Threatconnectome Setup Guide (Firebase)
 
 ## :bangbang: Requirements
 
@@ -72,7 +72,7 @@ To change this so that builds also link to the development environment API, the 
 - Values can be referred from firebase project setting page
 
   - `VITE_FIREBASE_API_KEY`
-    - The same with `FIREBASE_API_KEY` in ../.envenv
+    - The same with `FIREBASE_API_KEY` in ../.env
   - `VITE_FIREBASE_APP_ID`
     - App ID
   - Values can be referred from `firebaseConfig` on the page
@@ -136,11 +136,11 @@ Fill in username and password created at Web UI, copy `access_token` in Response
 
 **🎉🎉🎉Welcome to Threatconnectome🎉🎉🎉**
 
-### Stop of Threatconnectome
+### Stopping Threatconnectome
 
 Stop Docker Compose from running.
 
-> For local development environmrnt:
+> For local development environment:
 >
 > ```bash
 > sudo docker compose -f docker-compose-firebase-local.yml down
@@ -183,7 +183,7 @@ If you want to run it, please type the following command
 
 ```bash
 cd ./web
-npm run start  # to check operation and launch the >webpage when developing Web UI
+npm run start  # to check operation and launch the webpage when developing Web UI
 ```
 
 ## :test_tube: Testing
@@ -222,4 +222,4 @@ Docker containers in docker-compose-local.yml
 | nginx    | nginx configuration directory                                    | web                            |
 | scripts  | storing scripts that run outside of the server                   | -                              |
 | traefik  | reverse proxy                                                    | traefik                        |
-| web      | front end created with React.js                                  | web (only web/bulid directory) |
+| web      | frontend built with React.js                                     | web (only web/build directory) |

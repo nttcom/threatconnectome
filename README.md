@@ -52,12 +52,12 @@ cd threatconnectome
 ./demo_start.sh
 ```
 
-> To stop a running service:
->
-> ```bash
-> ./demo_stop.sh
-> ```
+To stop a running service:
 
-Need the full setup guide? See [docs/setup.md](docs/setup.md).
+```bash
+./demo_stop.sh
+```
 
-Planning a Supabase-backed deployment? Follow [docs/setup_supabase.md](docs/setup_supabase.md).
+Using Firebase Authentication or the Firebase emulator? Follow [docs/setup_firebase.md](docs/setup_firebase.md).
+
+Need an on-premises Supabase stack? See [docs/setup_supabase.md](docs/setup_supabase.md).
