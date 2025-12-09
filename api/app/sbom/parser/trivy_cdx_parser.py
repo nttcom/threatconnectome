@@ -4,9 +4,7 @@ from typing import (
 )
 
 from cyclonedx.model.bom import Bom
-from cyclonedx.model.bom_ref import BomRef
 from cyclonedx.model.component import Component
-from cyclonedx.model.dependency import Dependency
 
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.os_purl_utils import is_os_purl
@@ -184,90 +182,83 @@ class TrivyCDXParser(SBOMParser):
         }
 
     @staticmethod
-    def _get_source_dependencies_dict(
+    def _get_direct_source_refs(
+        target_ref: str,
         sbom_bom: Bom,
-    ) -> dict[BomRef, list]:
-        source_dependencies_dict: dict[BomRef, list] = {}
+    ) -> list[str]:
+        direct_source_refs: list[str] = []
         for dependency1 in sbom_bom.dependencies:
             for dependency2 in dependency1.dependencies:
-                if dependency2.ref in source_dependencies_dict.keys():
-                    source_dependencies_dict[dependency2.ref].append(dependency1)
-                else:
-                    source_dependencies_dict[dependency2.ref] = [dependency1]
-        return source_dependencies_dict
+                if dependency2.ref.value == target_ref:
+                    direct_source_refs.append(dependency1.ref.value)
+        return direct_source_refs
 
     @staticmethod
-    def _get_source_dependencies(
-        ref: BomRef,
-        source_dependencies_dict: dict[BomRef, list],
-    ) -> list[Dependency]:
-        if ref in source_dependencies_dict.keys():
-            return source_dependencies_dict[ref]
-        return []
-
-    @staticmethod
-    def _recursive_get_target_components(
-        target_dependency: Dependency,
+    def _recursive_get_all_source_ref_dict(
+        target_ref: str,
         sbom_bom: Bom,
-        all_components_dict: dict[BomRef, Component],
-        source_dependencies_dict: dict[BomRef, list],
-        current_ref: set[BomRef],
-    ) -> set[Component]:
-        components: set[Component] = set()
-        if target_dependency.ref in current_ref:
-            return components
+        all_source_ref_dict: dict[str, set[str]],
+        current_ref: set[str],
+    ) -> set[str]:
+        refs: set[str] = set()
+        if target_ref in current_ref:
+            return refs
 
-        source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
-            target_dependency.ref, source_dependencies_dict
-        )
-        for source_dependency in source_dependencies:
-            if source_dependency.ref in current_ref:
+        for direct_source_ref in TrivyCDXParser._get_direct_source_refs(target_ref, sbom_bom):
+            if direct_source_ref in current_ref:
                 continue
-            component = all_components_dict.get(source_dependency.ref)
-            if (
-                component is not None
-                and component.type is not None
-                and component.type.value != "library"
-            ):
-                components.add(component)
-            components.update(
-                TrivyCDXParser._recursive_get_target_components(
-                    source_dependency,
-                    sbom_bom,
-                    all_components_dict,
-                    source_dependencies_dict,
-                    current_ref | {target_dependency.ref},
+
+            if direct_source_ref not in all_source_ref_dict.keys():
+                all_source_ref_dict[direct_source_ref] = (
+                    TrivyCDXParser._recursive_get_all_source_ref_dict(
+                        direct_source_ref,
+                        sbom_bom,
+                        all_source_ref_dict,
+                        current_ref | {target_ref},
+                    )
                 )
-            )
-        return components
+            refs.update(all_source_ref_dict[direct_source_ref])
+
+            refs.add(direct_source_ref)
+
+        return refs
+
+    @staticmethod
+    def _get_all_source_ref_dict(sbom_bom: Bom) -> dict[str, set[str]]:
+        all_source_ref_dict: dict[str, set[str]] = {}
+        for dependency1 in sbom_bom.dependencies:
+            for dependency2 in dependency1.dependencies:
+                if dependency2.ref.value in all_source_ref_dict.keys():
+                    continue
+                all_source_ref_dict[dependency2.ref.value] = (
+                    TrivyCDXParser._recursive_get_all_source_ref_dict(
+                        dependency2.ref.value,
+                        sbom_bom,
+                        all_source_ref_dict,
+                        set(),
+                    )
+                )
+        return all_source_ref_dict
 
     @staticmethod
     def _get_target_components(
         component: Component,
-        sbom_bom: Bom,
-        all_components_dict: dict[BomRef, Component],
-        source_dependencies_dict: dict[BomRef, list],
+        all_components_dict: dict[str, Component],
+        all_source_ref_dict: dict[str, set[str]],
     ) -> list[Component]:
-        target_components: set[Component] = set()
-        source_dependencies: list[Dependency] = TrivyCDXParser._get_source_dependencies(
-            component.bom_ref, source_dependencies_dict
-        )
+        target_components: list[Component] = []
+        all_source_refs: set[str] = all_source_ref_dict[component.bom_ref.value]
 
-        for dep in source_dependencies:
-            source_component = all_components_dict.get(dep.ref)
+        for ref in all_source_refs:
+            source_component = all_components_dict.get(ref)
             if (
                 source_component is not None
                 and source_component.type is not None
                 and source_component.type.value != "library"
             ):
-                target_components.add(source_component)
-            target_components.update(
-                TrivyCDXParser._recursive_get_target_components(
-                    dep, sbom_bom, all_components_dict, source_dependencies_dict, set()
-                )
-            )
+                target_components.append(source_component)
 
-        return list(target_components)
+        return target_components
 
     @classmethod
     def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
@@ -290,20 +281,19 @@ class TrivyCDXParser(SBOMParser):
         all_components_dict = {}
         if sbom_bom.metadata is not None and sbom_bom.metadata.component is not None:
             meta_component = sbom_bom.metadata.component
-            all_components_dict[meta_component.bom_ref] = meta_component
+            all_components_dict[meta_component.bom_ref.value] = meta_component
         if sbom_bom.components is not None:
             for raw_component in sbom_bom.components:
-                all_components_dict[raw_component.bom_ref] = raw_component
+                all_components_dict[raw_component.bom_ref.value] = raw_component
 
         for dependency in sbom_bom.dependencies:
             if not any(
-                dependency.ref == component_ref for component_ref in all_components_dict.keys()
+                dependency.ref.value == component_ref
+                for component_ref in all_components_dict.keys()
             ):
                 raise ValueError(f"Missing dependency: {dependency.ref.value}")
 
-        source_dependencies_dict: dict[BomRef, list] = TrivyCDXParser._get_source_dependencies_dict(
-            sbom_bom
-        )
+        all_source_ref_dict: dict[str, set[str]] = TrivyCDXParser._get_all_source_ref_dict(sbom_bom)
 
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
@@ -317,7 +307,7 @@ class TrivyCDXParser(SBOMParser):
             if not component.version:
                 continue  # maybe directory or image
             target_components: list[Component] = cls._get_target_components(
-                component, sbom_bom, all_components_dict, source_dependencies_dict
+                component, all_components_dict, all_source_ref_dict
             )
             if not (package_info := TrivyCDXParser._to_package_info(component, target_components)):
                 continue  # omit not packages
