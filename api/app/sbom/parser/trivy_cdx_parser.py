@@ -281,10 +281,12 @@ class TrivyCDXParser(SBOMParser):
         all_components_dict = {}
         if sbom_bom.metadata is not None and sbom_bom.metadata.component is not None:
             meta_component = sbom_bom.metadata.component
-            all_components_dict[meta_component.bom_ref.value] = meta_component
+            if meta_component.bom_ref.value is not None:
+                all_components_dict[meta_component.bom_ref.value] = meta_component
         if sbom_bom.components is not None:
             for raw_component in sbom_bom.components:
-                all_components_dict[raw_component.bom_ref.value] = raw_component
+                if raw_component.bom_ref.value is not None:
+                    all_components_dict[raw_component.bom_ref.value] = raw_component
 
         for dependency in sbom_bom.dependencies:
             if not any(
