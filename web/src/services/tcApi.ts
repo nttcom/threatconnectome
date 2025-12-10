@@ -31,7 +31,6 @@ import type {
   PTeamInviterResponse,
   InvitedPteamPteamsInvitationInvitationIdGetData,
   CreateInvitationPteamsPteamIdInvitationPostData,
-  DeleteMemberPteamsPteamIdMembersUserIdDeleteResponses,
   DeleteMemberPteamsPteamIdMembersUserIdDeleteData,
   UpdatePteamMemberPteamsPteamIdMembersUserIdPutData,
   PTeamServiceResponse,
