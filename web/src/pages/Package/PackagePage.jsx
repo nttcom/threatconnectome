@@ -155,7 +155,7 @@ export function Package() {
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
-  console.log(serviceDependencies);
+
   const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
