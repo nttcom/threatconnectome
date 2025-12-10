@@ -23,10 +23,7 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.tsx";
-import {
-  usePackageDependencies,
-  usePackagePTeam,
-} from "./api.js";
+import { usePackageDependencies, usePackagePTeam } from "./api.js";
 
 export function Package() {
   const [tabValue, setTabValue] = useState(0);

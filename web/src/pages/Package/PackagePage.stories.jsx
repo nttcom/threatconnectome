@@ -165,10 +165,7 @@ export const DependenciesError = {
     msw: {
       handlers: [
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
-          return HttpResponse.json(
-            { detail: "Failed to fetch dependencies" },
-            { status: 500 }
-          );
+          return HttpResponse.json({ detail: "Failed to fetch dependencies" }, { status: 500 });
         }),
         ...successHandlers,
       ],
@@ -240,10 +237,7 @@ export const TicketCountsError = {
     msw: {
       handlers: [
         http.get(`*/pteams/${pteamId}/ticket_counts`, () => {
-          return HttpResponse.json(
-            { detail: "Failed to fetch ticket_counts" },
-            { status: 500 }
-          );
+          return HttpResponse.json({ detail: "Failed to fetch ticket_counts" }, { status: 500 });
         }),
         ...successHandlers,
       ],
