@@ -1,18 +1,12 @@
 import UpdateIcon from "@mui/icons-material/Update";
-import { Box } from "@mui/material";
 import { orange } from "@mui/material/colors";
-import { IconContext } from "react-icons";
+
+import { Box } from "@mui/material";
 
 export function ActionTypeIcon() {
   return (
     <Box sx={{ mr: 0.5, mt: 0.5 }}>
-      <>
-        <Box>
-          <IconContext.Provider value={{ color: orange[900], size: "25px" }}>
-            <UpdateIcon />
-          </IconContext.Provider>
-        </Box>
-      </>
+      <UpdateIcon sx={{ color: orange[900], fontSize: 25 }} />
     </Box>
   );
 }
