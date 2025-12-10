@@ -64,7 +64,7 @@ export function PTeamStatusSSVCCards(props) {
         ? { system_exposure: systemExposureValue }
         : { service_mission_impact: missionImpactValue };
     const serviceId = service.service_id;
-    await updatePTeamService({ pteamId, serviceId, data })
+    await updatePTeamService({ path: { pteam_id: pteamId, service_id: serviceId }, body: data })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Update succeeded", { variant: "success" });

@@ -18,17 +18,23 @@ export const useTodoItemState = (ticket) => {
     data: pteam,
     isLoading: pteamIsLoading,
     error: pteamError,
-  } = useGetPTeamQuery(ticket.pteam_id, {
-    skip: skip || !ticket.pteam_id,
-  });
+  } = useGetPTeamQuery(
+    { path: { pteam_id: ticket.pteam_id } },
+    {
+      skip: skip || !ticket.pteam_id,
+    },
+  );
 
   const {
     data: pteamServices,
     isLoading: pteamServicesIsLoading,
     error: pteamServicesError,
-  } = useGetPTeamServicesQuery(ticket.pteam_id, {
-    skip: skip || !ticket.pteam_id,
-  });
+  } = useGetPTeamServicesQuery(
+    { path: { pteam_id: ticket.pteam_id } },
+    {
+      skip: skip || !ticket.pteam_id,
+    },
+  );
 
   const service = useMemo(
     () => pteamServices?.find((s) => s.service_id === ticket.service_id),
@@ -36,7 +42,7 @@ export const useTodoItemState = (ticket) => {
   );
 
   const { data: pteamMembers, error: pteamMembersError } = useGetPTeamMembersQuery(
-    ticket.pteam_id,
+    { path: { pteam_id: ticket.pteam_id } },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -55,7 +61,7 @@ export const useTodoItemState = (ticket) => {
     isLoading: serviceDependencyIsLoading,
     error: serviceDependencyError,
   } = useGetDependencyQuery(
-    { pteamId: ticket.pteam_id, dependencyId: ticket.dependency_id },
+    { path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id } },
     { skip: skip || !ticket.pteam_id || !ticket.dependency_id },
   );
 
@@ -66,7 +72,7 @@ export const useTodoItemState = (ticket) => {
     throw new APIError(errorToString(pteamMembersError), { api: "getPTeamMembers" });
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (serviceDependencyError)
-    throw new APIError(errorToString(serviceDependencyError), { api: "getServiceDependencies" });
+    throw new APIError(errorToString(serviceDependencyError), { api: "getServiceDependency" });
 
   const dueDate = useMemo(() => {
     if (!ticket.ticket_status?.scheduled_at) return "-";

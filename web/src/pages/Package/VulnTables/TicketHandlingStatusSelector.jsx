@@ -66,7 +66,10 @@ export function TicketHandlingStatusSelector(props) {
     } else if (selectedStatus === "acknowledged") {
       requestParams["scheduled_at"] = null;
     }
-    await updateTicket({ pteamId, ticketId, data: { ticket_status: { ...requestParams } } })
+    await updateTicket({
+      path: { pteam_id: pteamId, ticket_id: ticketId },
+      body: { ticket_status: { ...requestParams } },
+    })
       .unwrap()
       .then(() => {
         enqueueSnackbar("Change ticket status succeeded", { variant: "success" });

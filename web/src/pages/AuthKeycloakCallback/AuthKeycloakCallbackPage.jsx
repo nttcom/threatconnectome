@@ -40,7 +40,7 @@ export function AuthKeycloakCallback() {
           .catch(async (error) => {
             switch (error.data?.detail) {
               case "No such user": {
-                await createUser({})
+                await createUser({ body: {} })
                   .unwrap()
                   .catch((error2) => {
                     throw new Error(`Cannot create user: ${errorToString(error2)}`);

@@ -148,14 +148,14 @@ export function Status() {
     error: pteamError,
     isFetching: pteamIsFetching,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: skipByAuth || !pteamId });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip: skipByAuth || !pteamId });
 
   const {
     currentData: pteamAllServicesPackagesSummary,
     error: pteamAllServicesPackagesSummaryError,
     isFetching: pteamAllServicesPackagesSummaryIsFetching,
   } = useGetPTeamPackagesSummaryQuery(
-    { pteamId },
+    { path: { pteam_id: pteamId } },
     {
       skip: skipByAuth || !pteamId || !isActiveAllServicesMode,
     },
@@ -166,7 +166,7 @@ export function Status() {
     error: pteamServicePackagesSummaryError,
     isFetching: pteamServicePackagesSummaryIsFetching,
   } = useGetPTeamPackagesSummaryQuery(
-    { pteamId, serviceId },
+    { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
     {
       skip: skipByAuth || !pteamId || !serviceId || isActiveAllServicesMode,
     },

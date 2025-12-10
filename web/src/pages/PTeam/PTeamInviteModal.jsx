@@ -64,7 +64,7 @@ export function PTeamInviteModal(props) {
       expiration: expiration.toISOString(),
       max_uses: maxUses || null,
     };
-    await createPTeamInvitation({ pteamId, data })
+    await createPTeamInvitation({ path: { pteam_id: pteamId }, body: data })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));

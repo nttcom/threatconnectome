@@ -37,8 +37,7 @@ export default function ToDoCardView({
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
-    ...apiParams,
-    pteamIds,
+    query: { ...apiParams, pteamIds },
   });
 
   const tickets = ticketsData?.tickets ?? [];

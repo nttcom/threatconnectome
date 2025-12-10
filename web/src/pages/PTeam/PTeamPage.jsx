@@ -24,7 +24,7 @@ export function PTeam() {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetPTeamMembersQuery(pteamId, { skip });
+  } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId } }, { skip });
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skip) return <></>;

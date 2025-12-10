@@ -147,7 +147,11 @@ export function SBOMDropArea(props) {
     }
     setIsOpenWaitingModal(true);
     enqueueSnackbar(`Uploading SBOM file: ${sbomFile.name}`, { variant: "info" });
-    uploadSBOMFile({ pteamId, serviceName, sbomFile })
+    uploadSBOMFile({
+      path: { pteam_id: pteamId },
+      query: { service: serviceName },
+      body: { file: sbomFile },
+    })
       .unwrap()
       .then((response) => {
         enqueueSnackbar("SBOM Update Request was accepted. Please reload later", {

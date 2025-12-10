@@ -39,7 +39,7 @@ export function PTeamServiceDelete(props) {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip });
 
   if (skip) return <></>;
   if (pteamError)
@@ -68,7 +68,9 @@ export function PTeamServiceDelete(props) {
     try {
       await Promise.all(
         checked.map((service) =>
-          deletePTeamService({ pteamId: pteamId, serviceId: service.service_id }).unwrap(),
+          deletePTeamService({
+            path: { pteam_id: pteamId, service_id: service.service_id },
+          }).unwrap(),
         ),
       );
 

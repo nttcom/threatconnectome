@@ -15,9 +15,8 @@ export function SafetyImpactSelector(props) {
 
   const updateTicketFunction = async (requestData) => {
     await updateTicket({
-      pteamId,
-      ticketId: ticket.ticket_id,
-      data: requestData,
+      path: { pteam_id: pteamId, ticket_id: ticket.ticket_id },
+      body: requestData,
     })
       .unwrap()
       .then(() => {

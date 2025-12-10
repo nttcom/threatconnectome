@@ -33,7 +33,7 @@ export function PTeamMemberMenu(props) {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip });
 
   if (skip) return <></>;
   if (userMeError)

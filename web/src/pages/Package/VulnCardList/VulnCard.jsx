@@ -34,7 +34,10 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetPteamTicketsQuery(
-    { pteamId, serviceId, vulnId, packageId },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, vuln_id: vulnId, package_id: packageId },
+    },
     { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId },
   );
 
@@ -45,7 +48,17 @@ export function VulnCard({ pteamId, serviceId, packageId, vulnId, references }) 
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
+    {
+      path: {
+        pteam_id: pteamId,
+      },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        offset: offset,
+        limit: limit,
+      },
+    },
     { skip: skipByAuth || skipByPTeamId || skipByServiceId },
   );
 

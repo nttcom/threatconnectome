@@ -30,7 +30,17 @@ export function VulnTableRowView(props) {
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
+    {
+      path: {
+        pteam_id: pteamId,
+      },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        offset: offset,
+        limit: limit,
+      },
+    },
     { skip: !getDependenciesReady },
   );
 

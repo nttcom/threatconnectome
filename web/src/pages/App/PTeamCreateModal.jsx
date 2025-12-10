@@ -99,7 +99,7 @@ export function PTeamCreateModal(props) {
       contact_info: contactInfo,
       alert_slack: { enable: true, webhook_url: slackUrl },
     };
-    await createPTeam(data)
+    await createPTeam({ body: data })
       .unwrap()
       .then(async (data) => {
         enqueueSnackbar("create pteam succeeded", { variant: "success" });

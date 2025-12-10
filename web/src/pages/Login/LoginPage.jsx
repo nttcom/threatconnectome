@@ -107,7 +107,7 @@ export function Login() {
           break;
         }
         case "No such user":
-          createUser({})
+          createUser({ body: {} })
             .unwrap()
             .then(() =>
               navigate("/account", {
