@@ -11,7 +11,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
@@ -22,17 +21,14 @@ import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
-import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.tsx";
 import {
   usePackageDependencies,
   usePackagePTeam,
-  usePackageVulnIds,
-  usePackageTicketCounts,
 } from "./api.js";
 
-export function Package({ useSplitView = false }) {
+export function Package() {
   const [tabValue, setTabValue] = useState(0);
   const [open, setOpen] = useState(false);
   const theme = useTheme();
@@ -57,46 +53,7 @@ export function Package({ useSplitView = false }) {
     }),
   });
 
-  // Only fetch these when not using split view
-  const {
-    vulnIds: vulnIdsSolved,
-    error: vulnIdsSolvedError,
-    isLoading: vulnIdsSolvedIsLoading,
-  } = usePackageVulnIds(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
-    {
-      selectFromResult: ({ data, error, isLoading }) => ({
-        vulnIds: data?.vuln_ids,
-        error,
-        isLoading,
-      }),
-    },
-  );
-  const {
-    vulnIds: vulnIdsUnSolved,
-    error: vulnIdsUnSolvedError,
-    isLoading: vulnIdsUnSolvedIsLoading,
-  } = usePackageVulnIds(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
-    {
-      selectFromResult: ({ data, error, isLoading }) => ({
-        vulnIds: data?.vuln_ids,
-        error,
-        isLoading,
-      }),
-    },
-  );
-
-  const {
-    data: ticketCountsSolved,
-    error: ticketCountsSolvedError,
-    isLoading: ticketCountsSolvedIsLoading,
-  } = usePackageTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "solved" });
-  const {
-    data: ticketCountsUnSolved,
-    error: ticketCountsUnSolvedError,
-    isLoading: ticketCountsUnSolvedIsLoading,
-  } = usePackageTicketCounts({ pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" });
+  // SplitView用のデータ取得は不要（VulnerabilityTableのみ使用）
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -114,28 +71,7 @@ export function Package({ useSplitView = false }) {
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
 
-  // Check vulnIds errors (needed for tab counts)
-  if (vulnIdsSolvedError)
-    throw new APIError(errorToString(vulnIdsSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
-    });
-  if (vulnIdsSolvedIsLoading) return <>Now loading vulnIdsSolved...</>;
-  if (vulnIdsUnSolvedError)
-    throw new APIError(errorToString(vulnIdsUnSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
-    });
-  if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
-
-  if (ticketCountsSolvedError)
-    throw new APIError(errorToString(ticketCountsSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
-  if (ticketCountsUnSolvedError)
-    throw new APIError(errorToString(ticketCountsUnSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
+  // SplitViewではVulnerabilityTableがデータ取得を行うため、ここでのvulnIds/ticketCountsのエラー処理は不要
 
   if (!serviceDependencies || serviceDependencies.length === 0) {
     return <>No dependencies found for this package.</>;
@@ -154,8 +90,9 @@ export function Package({ useSplitView = false }) {
 
   const firstPackageDependency = serviceDependencies[0];
 
-  const numSolved = vulnIdsSolved?.length ?? 0;
-  const numUnsolved = vulnIdsUnSolved?.length ?? 0;
+  // SplitViewでは件数は0固定（VulnerabilityTable内で取得）
+  const numSolved = 0;
+  const numUnsolved = 0;
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -229,38 +166,12 @@ export function Package({ useSplitView = false }) {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          {useSplitView ? (
-            <VulnerabilityTable relatedTicketStatus="unsolved" />
-          ) : (
-            <PTeamVulnsPerPackage
-              pteamId={pteamId}
-              service={service}
-              packageId={packageId}
-              references={references}
-              vulnIds={vulnIdsUnSolved}
-              ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
-            />
-          )}
+          <VulnerabilityTable relatedTicketStatus="unsolved" />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          {useSplitView ? (
-            <VulnerabilityTable relatedTicketStatus="solved" />
-          ) : (
-            <PTeamVulnsPerPackage
-              pteamId={pteamId}
-              service={service}
-              packageId={packageId}
-              references={references}
-              vulnIds={vulnIdsSolved}
-              ticketCounts={ticketCountsSolved.ssvc_priority_count}
-            />
-          )}
+          <VulnerabilityTable relatedTicketStatus="solved" />
         </TabPanel>
       </Box>
     </>
   );
 }
-
-Package.propTypes = {
-  useSplitView: PropTypes.bool,
-};
