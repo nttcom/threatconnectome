@@ -46,7 +46,7 @@ export function PackageReferences(props) {
                 <TableBody>
                   {references.map(
                     (ref) =>
-                      ref.service === serviceDict.service_name && (
+                      ref.service === serviceDict?.service_name && (
                         <TableRow key={ref.service + "-" + ref.target + "-" + ref.version}>
                           <TableCell component="th" scope="row">
                             {ref.target}

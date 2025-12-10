@@ -28,7 +28,7 @@ export function getUpdateActions(vuln) {
 
 export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
   const { package_source_name, package_name, vuln_matching_ecosystem } = currentPackage;
-  return vulnerable_packages.find(
+  return vulnerable_packages?.find(
     (vulnerable_package) =>
       vulnerable_package.ecosystem === vuln_matching_ecosystem &&
       (vulnerable_package.affected_name === package_source_name ||
