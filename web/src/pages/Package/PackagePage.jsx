@@ -23,34 +23,35 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
-import { usePackageDependencies, usePackagePTeam } from "./api.js";
+import { usePackageDependencies, usePackageService, usePackageVulnCounts } from "./api.js";
 
 export function Package() {
+  const { packageId, pteamId, serviceId } = usePageParams();
   const [tabValue, setTabValue] = useState(0);
   const [open, setOpen] = useState(false);
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
-  const { packageId, pteamId, serviceId } = usePageParams();
-
-  const {
-    data: serviceDependencies,
-    error: serviceDependenciesError,
-    isLoading: serviceDependenciesIsLoading,
-  } = usePackageDependencies({ pteamId, serviceId, packageId });
   const {
     service,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = usePackagePTeam(pteamId, {
-    selectFromResult: ({ data, error, isLoading }) => ({
-      service: data?.services?.find((service) => service.service_id === serviceId),
-      error,
-      isLoading,
-    }),
-  });
+  } = usePackageService(pteamId, serviceId);
 
-  // SplitView用のデータ取得は不要（VulnerabilityTableのみ使用）
+  const {
+    solvedVulnCount,
+    unsolvedVulnCount,
+    solvedError,
+    unsolvedError,
+    solvedLoading,
+    unsolvedLoading,
+  } = usePackageVulnCounts({ pteamId, serviceId, packageId });
+
+  const {
+    data: packageDependencies,
+    error: packageDependenciesError,
+    isLoading: packageDependenciesIsLoading,
+  } = usePackageDependencies({ pteamId, serviceId, packageId });
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -64,15 +65,25 @@ export function Package() {
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
-  if (serviceDependenciesError)
-    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
-  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
+  if (packageDependenciesError)
+    throw new APIError(errorToString(packageDependenciesError), { api: "getDependencies" });
+  if (packageDependenciesIsLoading) return <>Now loading packageDependencies...</>;
+  if (solvedError)
+    throw new APIError(errorToString(solvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage (solved)",
+    });
+  if (solvedLoading) return <>Now loading solved vuln count...</>;
+  if (unsolvedError)
+    throw new APIError(errorToString(unsolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage (unsolved)",
+    });
+  if (unsolvedLoading) return <>Now loading unsolved vuln count...</>;
 
-  if (!serviceDependencies || serviceDependencies.length === 0) {
+  if (!packageDependencies || packageDependencies.length === 0) {
     return <>No dependencies found for this package.</>;
   }
 
-  const references = serviceDependencies.map((dependency) => ({
+  const references = packageDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.package_version,
@@ -83,11 +94,7 @@ export function Package() {
     ecosystem: dependency.package_ecosystem,
   }));
 
-  const firstPackageDependency = serviceDependencies[0];
-
-  // SplitViewでは件数は0固定（VulnerabilityTable内で取得）
-  const numSolved = 0;
-  const numUnsolved = 0;
+  const firstPackageDependency = packageDependencies[0];
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -156,8 +163,8 @@ export function Package() {
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_vuln_tabs">
-            <Tab label={`UNSOLVED VULNS (${numUnsolved})`} {...a11yProps(0)} />
-            <Tab label={`SOLVED VULNS (${numSolved})`} {...a11yProps(1)} />
+            <Tab label={`UNSOLVED VULNS (${unsolvedVulnCount})`} {...a11yProps(0)} />
+            <Tab label={`SOLVED VULNS (${solvedVulnCount})`} {...a11yProps(1)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
