@@ -138,7 +138,6 @@ export function SafetyImpactSelectorView(props) {
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <FormControl size="small" variant="standard">
         <Select
-          data-testid={testId ? `safety-impact-select-${testId}` : "safety-impact-select"}
           open={false}
           value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
           onOpen={handleOpenDialog}
@@ -156,11 +155,7 @@ export function SafetyImpactSelectorView(props) {
       {fixedTicketSafetyImpactChangeReason !== null && (
         <StyledTooltip arrow title={tooltipContent}>
           <IconButton size="small">
-            <InfoOutlinedIcon
-              color="primary"
-              fontSize="small"
-              data-testid={`info-icon-${testId}`}
-            />
+            <InfoOutlinedIcon color="primary" fontSize="small" />
           </IconButton>
         </StyledTooltip>
       )}
@@ -170,7 +165,6 @@ export function SafetyImpactSelectorView(props) {
           <Stack spacing={2}>
             <FormControl fullWidth>
               <Select
-                data-testid="dialog-safety-impact-select"
                 value={pendingSafetyImpact}
                 onChange={handleSelectSafetyImpact}
                 inputProps={{ "aria-label": "Safety Impact" }}
@@ -229,5 +223,4 @@ SafetyImpactSelectorView.propTypes = {
   fixedTicketSafetyImpact: PropTypes.string,
   fixedTicketSafetyImpactChangeReason: PropTypes.string,
   onSave: PropTypes.func.isRequired,
-  testId: PropTypes.string,
 };

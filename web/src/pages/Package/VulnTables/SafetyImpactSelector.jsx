@@ -42,7 +42,6 @@ export function SafetyImpactSelector(props) {
       fixedTicketSafetyImpact={ticket.ticket_safety_impact}
       fixedTicketSafetyImpactChangeReason={ticket.ticket_safety_impact_change_reason}
       onSave={handleSave}
-      testId={ticket.ticket_id}
     />
   );
 }
