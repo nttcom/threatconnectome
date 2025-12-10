@@ -1,7 +1,6 @@
 import UpdateIcon from "@mui/icons-material/Update";
-import { orange } from "@mui/material/colors";
-
 import { Box } from "@mui/material";
+import { orange } from "@mui/material/colors";
 
 export function ActionTypeIcon() {
   return (
