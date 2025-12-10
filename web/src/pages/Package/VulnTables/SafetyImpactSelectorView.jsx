@@ -33,7 +33,7 @@ import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 const TOOLTIP_TEXT_LIMIT = 150;
 
 export function SafetyImpactSelectorView(props) {
-  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave, testId } = props;
+  const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
