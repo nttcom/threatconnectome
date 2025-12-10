@@ -22,7 +22,7 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
-import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable.tsx";
+import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
 import { usePackageDependencies, usePackagePTeam } from "./api.js";
 
 export function Package() {
@@ -67,8 +67,6 @@ export function Package() {
   if (serviceDependenciesError)
     throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
   if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
-
-  // SplitViewではVulnerabilityTableがデータ取得を行うため、ここでのvulnIds/ticketCountsのエラー処理は不要
 
   if (!serviceDependencies || serviceDependencies.length === 0) {
     return <>No dependencies found for this package.</>;
