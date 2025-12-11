@@ -276,7 +276,7 @@ export const tcApi = createApi({
           type: "Service" as AllowedTagTypes,
           id: service.service_id,
         })) ?? []),
-        { type: "Service" as AllowedTagTypes, id: "ALL" },
+        { type: "Service", id: "ALL" },
       ],
     }),
     updatePTeamService: builder.mutation<
