@@ -85,8 +85,8 @@ export const useTodoItemState = (ticket) => {
 
     const assigneeData = ticket.ticket_status?.assignees;
     if (!assigneeData || assigneeData.length === 0) return "-";
-
-    const getUserEmail = (userId) => pteamMembers?.[userId]?.email || "";
+    const getUserEmail = (userId) =>
+      pteamMembers.find((member) => member.user_id == userId)?.email || "";
     const assigneeIds = assigneeData.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));
 
