@@ -29,7 +29,13 @@ export default function ToDoCardView({
   onItemsPerPageChange,
   onPageChange,
 }) {
-  const { assignedToMe: myTasks, cveIds, page, limit: itemsPerPage, sortConfig } = apiParams;
+  const {
+    page,
+    sortConfig,
+    assigned_to_me: myTasks,
+    cve_ids: cveIds,
+    limit: itemsPerPage,
+  } = apiParams;
   const cveId = cveIds?.[0] ?? "";
 
   const {
@@ -37,7 +43,7 @@ export default function ToDoCardView({
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
-    query: { ...apiParams, pteamIds },
+    query: { ...apiParams, pteam_ids: pteamIds },
   });
 
   const tickets = ticketsData?.tickets ?? [];

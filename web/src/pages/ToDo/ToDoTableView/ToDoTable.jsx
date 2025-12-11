@@ -36,7 +36,7 @@ export function ToDoTable({
     error: ticketsError,
     isLoading: ticketsIsLoading,
   } = useGetTicketsQuery({
-    query: { ...apiParams, pteamIds },
+    query: { ...apiParams, pteam_ids: pteamIds },
   });
 
   const tickets = ticketsData?.tickets ?? [];

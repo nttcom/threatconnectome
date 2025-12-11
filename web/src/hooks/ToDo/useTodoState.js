@@ -67,13 +67,13 @@ export const useTodoState = () => {
       sortConfig,
       offset: (page - 1) * itemsPerPage,
       limit: itemsPerPage,
-      sortKeys: [
+      sort_keys: [
         sortConfig.direction === "asc" ? sortConfig.key : `-${sortConfig.key}`,
         "-created_at",
       ],
-      assignedToMe: myTasks,
-      excludeStatuses: ["completed"],
-      cveIds: cveId ? [cveId] : [],
+      assigned_to_me: myTasks,
+      exclude_statuses: ["completed"],
+      cve_ids: cveId ? [cveId] : [],
     }),
     [page, itemsPerPage, sortConfig, myTasks, cveId],
   );
