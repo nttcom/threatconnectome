@@ -166,7 +166,7 @@ VulnTableRowView.propTypes = {
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
-  members: PropTypes.object.isRequired,
+  members: PropTypes.array.isRequired,
   references: PropTypes.array.isRequired,
   vuln: PropTypes.object.isRequired,
   tickets: PropTypes.array.isRequired,

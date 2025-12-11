@@ -89,7 +89,7 @@ TicketTableRow.propTypes = {
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
-  members: PropTypes.object.isRequired,
+  members: PropTypes.array.isRequired,
   references: PropTypes.array.isRequired,
   updateAction: PropTypes.object.isRequired,
   ticket: PropTypes.object.isRequired,
