@@ -27,6 +27,7 @@ export function AuthProvider(props) {
   const sendSmsCodeAgain = authProvider.sendSmsCodeAgain;
   const isSmsAuthenticationEnabled = authProvider.isSmsAuthenticationEnabled;
   const isAuthenticatedWithSaml = authProvider.isAuthenticatedWithSaml;
+  const getPhoneNumber = authProvider.getPhoneNumber;
 
   return (
     <AuthContext.Provider
@@ -49,6 +50,7 @@ export function AuthProvider(props) {
         sendSmsCodeAgain,
         isSmsAuthenticationEnabled,
         isAuthenticatedWithSaml,
+        getPhoneNumber,
       }}
     >
       {children}
