@@ -1,4 +1,8 @@
-export const createUpdateAction = (affectedVersions, fixedVersions, packageName) => {
+export const createUpdateAction = (
+  affectedVersions: string[] | undefined | null,
+  fixedVersions: string[] | undefined | null,
+  packageName: string,
+): string | null => {
   if (fixedVersions && fixedVersions.length > 0) {
     if (affectedVersions && affectedVersions.length > 0) {
       return `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
