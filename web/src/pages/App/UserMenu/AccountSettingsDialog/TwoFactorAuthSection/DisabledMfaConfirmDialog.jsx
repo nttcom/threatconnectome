@@ -9,9 +9,16 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
+import { useAuth } from "../../../../../hooks/auth";
+import { maskPhoneNumber } from "../../../../../utils/func";
+
 export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
   const dialogTitleId = "disable-mfa-dialog-title";
   const dialogDescriptionId = "disable-mfa-dialog-description";
+
+  const { getPhoneNumber } = useAuth();
+
+  const modifiedPhoneNumber = getPhoneNumber() ? maskPhoneNumber(getPhoneNumber()) : "N/A";
 
   return (
     <Dialog
@@ -27,7 +34,7 @@ export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
         sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.primary" }}
       >
         <WarningAmber color="warning" />
-        Disable SMS Authentication?
+        Disable SMS Authentication for phone number {modifiedPhoneNumber}?
       </DialogTitle>
       <DialogContent>
         <DialogContentText id={dialogDescriptionId} gutterBottom>
