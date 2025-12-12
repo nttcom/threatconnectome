@@ -15,7 +15,14 @@ export function RiskAnalysis(props) {
     data: insight,
     error: insightError,
     isLoading: insightIsLoading,
-  } = useGetInsightQuery(ticketId, { skip });
+  } = useGetInsightQuery(
+    {
+      path: {
+        ticket_id: ticketId,
+      },
+    },
+    { skip },
+  );
 
   if (skip) return <></>;
   if (insightError) {

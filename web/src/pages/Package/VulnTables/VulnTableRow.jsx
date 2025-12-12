@@ -34,7 +34,10 @@ export function VulnTableRow(props) {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetPTeamMembersQuery(pteamId, { skip: skipByAuth || skipByPTeamId });
+  } = useGetPTeamMembersQuery(
+    { path: { pteam_id: pteamId } },
+    { skip: skipByAuth || skipByPTeamId },
+  );
 
   const {
     data: vuln,
@@ -47,7 +50,10 @@ export function VulnTableRow(props) {
     error: ticketsRelatedToServiceVulnPackageError,
     isLoading: ticketsRelatedToServiceVulnPackageIsLoading,
   } = useGetPteamTicketsQuery(
-    { pteamId, serviceId, vulnId, packageId },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, vuln_id: vulnId, package_id: packageId },
+    },
     { skip: skipByAuth || skipByPTeamId || skipByServiceId || skipByVulnId || skipBypackageId },
   );
 

@@ -51,20 +51,33 @@ export function Package() {
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
+    {
+      path: {
+        pteam_id: pteamId,
+      },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        offset: offset,
+        limit: limit,
+      },
+    },
     { skip: !getDependenciesReady },
   );
   const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip: !getPTeamReady });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip: !getPTeamReady });
   const {
     data: vulnIdsSolved,
     error: vulnIdsSolvedError,
     isLoading: vulnIdsSolvedIsLoading,
   } = useGetPTeamVulnIdsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "solved" },
+    },
     { skip: !getVulnIdsReady },
   );
   const {
@@ -72,7 +85,10 @@ export function Package() {
     error: vulnIdsUnSolvedError,
     isLoading: vulnIdsUnSolvedIsLoading,
   } = useGetPTeamVulnIdsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "unsolved" },
+    },
     { skip: !getVulnIdsReady },
   );
   const {
@@ -80,7 +96,10 @@ export function Package() {
     error: ticketCountsSolvedError,
     isLoading: ticketCountsSolvedIsLoading,
   } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "solved" },
+    },
     { skip: !getVulnIdsReady },
   );
   const {
@@ -88,7 +107,10 @@ export function Package() {
     error: ticketCountsUnSolvedError,
     isLoading: ticketCountsUnSolvedIsLoading,
   } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "unsolved" },
+    },
     { skip: !getVulnIdsReady },
   );
 
@@ -133,6 +155,7 @@ export function Package() {
   if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
 
   const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
+
   const references = serviceDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,

@@ -120,7 +120,7 @@ export function PTeamNotificationSetting(props) {
       alert_mail: { enable: mailEnable, address: mailAddress },
       alert_ssvc_priority: alertThreshold,
     };
-    await updatePTeam({ pteamId: pteam.pteam_id, data })
+    await updatePTeam({ path: { pteam_id: pteam.pteam_id }, body: data })
       .unwrap()
       .then(() => {
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });
@@ -131,7 +131,7 @@ export function PTeamNotificationSetting(props) {
   const handleCheckSlack = async () => {
     setCheckSlack(true);
     setSlackMessage();
-    await postCheckSlack({ slack_webhook_url: slackUrl })
+    await postCheckSlack({ body: { slack_webhook_url: slackUrl } })
       .unwrap()
       .then(() => {
         setCheckSlack(false);
@@ -146,7 +146,7 @@ export function PTeamNotificationSetting(props) {
   const handleCheckMail = async () => {
     setCheckEmail(true);
     setEmailMessage();
-    await postCheckMail({ email: mailAddress })
+    await postCheckMail({ body: { email: mailAddress } })
       .unwrap()
       .then(() => {
         setCheckEmail(false);

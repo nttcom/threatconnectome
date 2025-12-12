@@ -10,7 +10,7 @@ export function AssigneesSelector(props) {
   const { pteamId, serviceId, vulnId, packageId, ticketId, currentAssigneeIds, members } = props;
 
   const [assigneeUserIds, setAssigneeUserIds] = useState(
-    Object.values(members)
+    members
       .filter((member) => currentAssigneeIds.includes(member.user_id))
       .map((member) => member.user_id),
   );
@@ -20,15 +20,14 @@ export function AssigneesSelector(props) {
   const [updateTicket] = useUpdateTicketMutation();
 
   const handleApply = async () => {
-    const newAssigneeIds = Object.values(members)
+    const newAssigneeIds = members
       .filter((member) => assigneeUserIds.includes(member.user_id))
       .map((member) => member.user_id);
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds))) return; // not modified
 
     await updateTicket({
-      pteamId,
-      ticketId,
-      data: { ticket_status: { assignees: newAssigneeIds } },
+      path: { pteam_id: pteamId, ticket_id: ticketId },
+      body: { ticket_status: { assignees: newAssigneeIds } },
     })
       .unwrap()
       .then(() => {
@@ -61,7 +60,7 @@ export function AssigneesSelector(props) {
           return selected.length === 0 ? (
             <em>Select assignees</em>
           ) : (
-            Object.values(members)
+            members
               .filter((member) => selected.includes(member.user_id))
               .map((member) => member.email)
               .join(", ")
@@ -80,7 +79,7 @@ export function AssigneesSelector(props) {
         <MenuItem disabled value="" sx={{ fontSize: 14 }}>
           <em>Select assignees</em>
         </MenuItem>
-        {Object.values(members).map((member) => (
+        {members.map((member) => (
           <MenuItem key={member.user_id} value={member.user_id}>
             <Checkbox checked={assigneeUserIds.includes(member.user_id)} />
             <ListItemText primary={member.email} sx={{ "& span": { fontSize: 14 } }} />
@@ -98,5 +97,5 @@ AssigneesSelector.propTypes = {
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentAssigneeIds: PropTypes.array.isRequired,
-  members: PropTypes.object.isRequired,
+  members: PropTypes.array.isRequired,
 };

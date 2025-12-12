@@ -105,7 +105,7 @@ export function VulnManagement() {
     data: vulnsList,
     error: vulnsError,
     isLoading: vulnsIsLoading,
-  } = useGetVulnsQuery(getVulnsParams, { skip, refetchOnMountOrArgChange: true });
+  } = useGetVulnsQuery({ query: getVulnsParams }, { skip, refetchOnMountOrArgChange: true });
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));

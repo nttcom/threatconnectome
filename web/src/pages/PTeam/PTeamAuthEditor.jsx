@@ -47,7 +47,7 @@ export function PTeamAuthEditor(props) {
 
     const data = { is_admin: checked };
 
-    await updatePTeamMember({ pteamId, userId: memberUserId, data })
+    await updatePTeamMember({ path: { pteam_id: pteamId, user_id: memberUserId }, body: data })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));

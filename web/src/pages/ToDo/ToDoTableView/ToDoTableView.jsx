@@ -15,7 +15,7 @@ export function ToDoTableView({
   onPageChange,
   onItemsPerPageChange,
 }) {
-  const { assignedToMe: myTasks, cveIds } = apiParams;
+  const { assigned_to_me: myTasks, cve_ids: cveIds } = apiParams;
   const cveId = cveIds?.[0] ?? "";
 
   return (

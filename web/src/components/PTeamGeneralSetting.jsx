@@ -63,7 +63,7 @@ export function PTeamGeneralSetting(props) {
       pteam_name: pteamName,
       contact_info: contactInfo,
     };
-    await updatePTeam({ pteamId: pteam.pteam_id, data })
+    await updatePTeam({ path: { pteam_id: pteam.pteam_id }, body: data })
       .unwrap()
       .then(() => {
         enqueueSnackbar("update pteam info succeeded", { variant: "success" });

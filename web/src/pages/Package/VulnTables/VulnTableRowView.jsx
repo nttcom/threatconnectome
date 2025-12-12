@@ -30,7 +30,17 @@ export function VulnTableRowView(props) {
     error: serviceDependenciesError,
     isLoading: serviceDependenciesIsLoading,
   } = useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
+    {
+      path: {
+        pteam_id: pteamId,
+      },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        offset: offset,
+        limit: limit,
+      },
+    },
     { skip: !getDependenciesReady },
   );
 
@@ -156,7 +166,7 @@ VulnTableRowView.propTypes = {
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
-  members: PropTypes.object.isRequired,
+  members: PropTypes.array.isRequired,
   references: PropTypes.array.isRequired,
   vuln: PropTypes.object.isRequired,
   tickets: PropTypes.array.isRequired,
