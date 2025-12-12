@@ -2460,6 +2460,36 @@ export type DeleteVulnVulnsVulnIdDeleteResponses = {
 
 export type DeleteVulnVulnsVulnIdDeleteResponse = DeleteVulnVulnsVulnIdDeleteResponses[keyof DeleteVulnVulnsVulnIdDeleteResponses];
 
+export type GetVulnVulnsVulnIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Vuln Id
+         */
+        vuln_id: string;
+    };
+    query?: never;
+    url: '/vulns/{vuln_id}';
+};
+
+export type GetVulnVulnsVulnIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetVulnVulnsVulnIdGetError = GetVulnVulnsVulnIdGetErrors[keyof GetVulnVulnsVulnIdGetErrors];
+
+export type GetVulnVulnsVulnIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: VulnResponse;
+};
+
+export type GetVulnVulnsVulnIdGetResponse = GetVulnVulnsVulnIdGetResponses[keyof GetVulnVulnsVulnIdGetResponses];
+
 export type UpdateVulnVulnsVulnIdPutData = {
     body: VulnUpdateRequest;
     headers: {
