@@ -16,7 +16,7 @@ export function VulnDetail() {
     data: vuln,
     error: vulnError,
     isLoading: vulnIsLoading,
-  } = useGetVulnQuery(vulnId, { skip });
+  } = useGetVulnQuery({ path: { vuln_id: vulnId } }, { skip });
 
   if (skip) return <></>;
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });

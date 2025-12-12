@@ -52,9 +52,12 @@ export const useTodoItemState = (ticket) => {
     data: vuln,
     isLoading: vulnIsLoading,
     error: vulnError,
-  } = useGetVulnQuery(ticket.vuln_id, {
-    skip: skip || !ticket.vuln_id,
-  });
+  } = useGetVulnQuery(
+    { path: { vuln_id: ticket.vuln_id } },
+    {
+      skip: skip || !ticket.vuln_id,
+    },
+  );
 
   const {
     data: serviceDependency,

@@ -53,7 +53,11 @@ def custom_openapi(original_app: FastAPI):
         routes=[r for r in internal_app.routes if isinstance(r, BaseRoute)],
     )
 
-    original_schema["paths"].update(internal_schema.get("paths", {}))
+    for path, methods_definition in internal_schema.get("paths", {}).items():
+        if path in original_schema["paths"]:
+            original_schema["paths"][path].update(methods_definition)
+        else:
+            original_schema["paths"][path] = methods_definition
     if "components" in internal_schema and "schemas" in internal_schema["components"]:
         original_schema.setdefault("components", {}).setdefault("schemas", {}).update(
             internal_schema["components"]["schemas"]

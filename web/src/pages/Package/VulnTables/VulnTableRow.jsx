@@ -43,7 +43,7 @@ export function VulnTableRow(props) {
     data: vuln,
     error: vulnError,
     isLoading: vulnIsLoading,
-  } = useGetVulnQuery(vulnId, { skip: skipByAuth || skipByVulnId });
+  } = useGetVulnQuery({ path: { vuln_id: vulnId } }, { skip: skipByAuth || skipByVulnId });
 
   const {
     data: tickets,
