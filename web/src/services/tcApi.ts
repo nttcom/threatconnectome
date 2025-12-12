@@ -58,6 +58,8 @@ import type {
   CheckWebhookUrlExternalSlackCheckPostData,
   GetPteamMembersPteamsPteamIdMembersGetData,
   PteamMemberGetResponse,
+  GetVulnVulnsVulnIdGetResponses,
+  GetVulnVulnsVulnIdGetData,
 } from "../../types/types.gen.ts";
 
 const TAG_TYPES_LIST = [
@@ -559,9 +561,9 @@ export const tcApi = createApi({
         ) ?? []),
       ],
     }),
-    getVuln: builder.query({
-      query: (vulnId) => `/vulns/${vulnId}`,
-      providesTags: (_result, _error, vulnId) => [{ type: "Vuln", id: `${vulnId}` }],
+    getVuln: builder.query<GetVulnVulnsVulnIdGetResponses, GetVulnVulnsVulnIdGetData>({
+      query: (arg) => `/vulns/${arg.path.vuln_id}`,
+      providesTags: (_result, _error, _arg) => [{ type: "Vuln", id: `${_arg.path.vuln_id}` }],
     }),
 
     /* External */

@@ -100,9 +100,12 @@ export function TicketDetailView({ ticket }) {
     data: vuln,
     isLoading: vulnIsLoading,
     error: vulnError,
-  } = useGetVulnQuery(ticket.vuln_id, {
-    skip: !ticket.vuln_id,
-  });
+  } = useGetVulnQuery(
+    { path: { vuln_id: ticket.vuln_id } },
+    {
+      skip: !ticket.vuln_id,
+    },
+  );
 
   const {
     data: dependency,
