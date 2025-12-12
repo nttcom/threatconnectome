@@ -10,7 +10,7 @@ import {
 import PropTypes from "prop-types";
 
 import { useAuth } from "../../../../../hooks/auth";
-import { maskPhoneNumber } from "../../../../../utils/func";
+import { maskPhoneNumber } from "../../../../../utils/phoneNumberUtils";
 
 export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
   const dialogTitleId = "disable-mfa-dialog-title";
@@ -18,7 +18,8 @@ export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
 
   const { getPhoneNumber } = useAuth();
 
-  const modifiedPhoneNumber = getPhoneNumber() ? maskPhoneNumber(getPhoneNumber()) : "N/A";
+  const phoneNumber = getPhoneNumber();
+  const modifiedPhoneNumber = phoneNumber ? maskPhoneNumber(phoneNumber) : "N/A";
 
   return (
     <Dialog
