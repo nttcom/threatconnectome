@@ -1,75 +1,20 @@
 import { http, HttpResponse } from "msw";
 
 import { Package } from "./PackagePage";
-import { mockTickets } from "./VulnerabilityTable/mocks/mockData";
-import {
-  pteamId,
-  serviceId,
-  packageId,
-  mockPTeam,
-  mockVulnIdsUnsolved,
-  mockVulnIdsSolved,
-  mockTicketCountsUnsolved,
-  mockTicketCountsSolved,
-  mockVulnActions,
-  mockMembersList,
-  mockUserMe,
-  createPackagePageHandlers,
-} from "./mocks/mockData";
+import { pteamId, serviceId, packageId, createDefaultHandlers } from "./mocks/mockData";
 
-const successHandlers = createPackagePageHandlers({
-  pteamId,
-  serviceId,
-  packageId,
-  mockVulnIdsUnsolved,
-  mockVulnIdsSolved,
-  mockTicketCountsUnsolved,
-  mockTicketCountsSolved,
-  mockVulnActions,
-  mockMembersList,
-  mockUserMe,
-  mockPTeam,
-  mockTickets,
-});
+const defaultHandlers = createDefaultHandlers();
 
 export default {
   title: "PackagePage",
   component: Package,
   tags: ["autodocs"],
-  argTypes: {
-    useSplitView: {
-      control: "boolean",
-      description: "Use new split-view table instead of legacy table",
-      defaultValue: false,
-    },
-  },
 };
 
 export const Default = {
-  args: {
-    useSplitView: false,
-  },
   parameters: {
     msw: {
-      handlers: successHandlers,
-    },
-    router: {
-      memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
-      },
-      path: "/packages/:packageId",
-      useRoutes: true,
-    },
-  },
-};
-
-export const WithSplitView = {
-  args: {
-    useSplitView: true,
-  },
-  parameters: {
-    msw: {
-      handlers: successHandlers,
+      handlers: defaultHandlers,
     },
     router: {
       memoryRouterProps: {
@@ -88,7 +33,7 @@ export const Loading = {
         http.get(`*/pteams/${pteamId}`, async () => {
           await new Promise(() => {}); // Never resolves
         }),
-        ...successHandlers.slice(1), // Use all other handlers from successHandlers
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -117,7 +62,6 @@ export const NoVulnerabilities = {
   parameters: {
     msw: {
       handlers: [
-        // Override vuln_ids and ticket_counts to return empty
         http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
           return HttpResponse.json({ vuln_ids: [] });
         }),
@@ -126,8 +70,7 @@ export const NoVulnerabilities = {
             ssvc_priority_count: { immediate: 0, out_of_cycle: 0, scheduled: 0, defer: 0 },
           });
         }),
-        // Include other success handlers
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -147,7 +90,7 @@ export const NoDependencies = {
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json([]);
         }),
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -167,7 +110,7 @@ export const DependenciesError = {
         http.get(`*/pteams/${pteamId}/dependencies`, () => {
           return HttpResponse.json({ detail: "Failed to fetch dependencies" }, { status: 500 });
         }),
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -187,7 +130,7 @@ export const PTeamError = {
         http.get(`*/pteams/${pteamId}`, () => {
           return HttpResponse.json({ detail: "PTeam not found" }, { status: 404 });
         }),
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -219,7 +162,7 @@ export const VulnIdsError = {
         http.get(`*/pteams/${pteamId}/vuln_ids`, () => {
           return HttpResponse.json({ detail: "Failed to fetch vuln_ids" }, { status: 500 });
         }),
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
@@ -239,7 +182,7 @@ export const TicketCountsError = {
         http.get(`*/pteams/${pteamId}/ticket_counts`, () => {
           return HttpResponse.json({ detail: "Failed to fetch ticket_counts" }, { status: 500 });
         }),
-        ...successHandlers,
+        ...defaultHandlers,
       ],
     },
     router: {
