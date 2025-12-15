@@ -19,6 +19,7 @@ import {
 } from "firebase/auth";
 
 import Firebase from "../../utils/Firebase";
+import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
@@ -200,8 +201,7 @@ export class FirebaseProvider extends AuthProvider {
   }
 
   async registerPhoneNumber(phoneNumber, recaptchaId) {
-    const e164Pattern = /^\+[1-9]\d{1,14}$/;
-    if (!e164Pattern.test(phoneNumber)) {
+    if (!isE164Format(phoneNumber)) {
       throw new Error(
         "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
       );
