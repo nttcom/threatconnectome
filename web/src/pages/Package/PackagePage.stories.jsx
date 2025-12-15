@@ -1,7 +1,8 @@
 import { http, HttpResponse } from "msw";
 
 import { Package } from "./PackagePage";
-import { pteamId, serviceId, packageId, createDefaultHandlers } from "./mocks/mockData";
+import { createDefaultHandlers } from "./mocks/handlers";
+import { pteamId, serviceId, packageId } from "./mocks/mockData";
 
 const defaultHandlers = createDefaultHandlers();
 

@@ -516,5 +516,3 @@ export const mockTicketsVuln003 = [
     },
   },
 ];
-// ハンドラーはhandlers.jsから再export
-export { createDefaultHandlers } from "./handlers";
