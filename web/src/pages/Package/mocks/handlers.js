@@ -157,5 +157,36 @@ export function createDefaultHandlers() {
     http.get(`*/pteams/${pteamId}/members`, () => {
       return HttpResponse.json(mockMembersList);
     }),
+
+    // ========================================
+    // Mutation ハンドラー
+    // ========================================
+
+    // updateTicket - チケット更新
+    http.put(`*/pteams/${pteamId}/tickets/:ticketId`, async ({ request, params }) => {
+      const { ticketId } = params;
+      const body = await request.json();
+
+      // 既存のチケットデータを探す
+      const allTickets = [...mockTicketsVuln001, ...mockTicketsVuln002, ...mockTicketsVuln003];
+      const existingTicket = allTickets.find((t) => t.ticket_id === ticketId);
+
+      if (!existingTicket) {
+        return HttpResponse.json({ detail: "Ticket not found" }, { status: 404 });
+      }
+
+      // 成功レスポンスを返す（リクエストボディの内容をマージ）
+      const updatedTicket = {
+        ...existingTicket,
+        ...body,
+        ticket_status: {
+          ...existingTicket.ticket_status,
+          ...(body.ticket_status || {}),
+          updated_at: new Date().toISOString(),
+        },
+      };
+
+      return HttpResponse.json(updatedTicket);
+    }),
   ];
 }

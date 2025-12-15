@@ -207,7 +207,7 @@ export const mockTicketsVuln001 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "out_of_cycle",
-    ticket_safety_impact: "major",
+    ticket_safety_impact: "critical",
     ticket_safety_impact_change_reason: "Under investigation",
     ticket_status: {
       status_id: "status-101",
@@ -219,7 +219,7 @@ export const mockTicketsVuln001 = [
       note: "Acknowledged - 対応中",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "major",
+      current_safety_impact: "critical",
     },
   },
   {
@@ -229,7 +229,7 @@ export const mockTicketsVuln001 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "scheduled",
-    ticket_safety_impact: "minor",
+    ticket_safety_impact: "marginal",
     ticket_safety_impact_change_reason: "Low priority issue",
     ticket_status: {
       status_id: "status-102",
@@ -241,7 +241,7 @@ export const mockTicketsVuln001 = [
       note: "Scheduled for next sprint",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "minor",
+      current_safety_impact: "marginal",
     },
   },
   {
@@ -320,7 +320,7 @@ export const mockTicketsVuln002 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "out_of_cycle",
-    ticket_safety_impact: "major",
+    ticket_safety_impact: "critical",
     ticket_safety_impact_change_reason: "Under investigation",
     ticket_status: {
       status_id: "status-201",
@@ -332,7 +332,7 @@ export const mockTicketsVuln002 = [
       note: "Acknowledged",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "major",
+      current_safety_impact: "critical",
     },
   },
   {
@@ -342,7 +342,7 @@ export const mockTicketsVuln002 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "scheduled",
-    ticket_safety_impact: "minor",
+    ticket_safety_impact: "marginal",
     ticket_safety_impact_change_reason: "Low priority",
     ticket_status: {
       status_id: "status-202",
@@ -354,7 +354,7 @@ export const mockTicketsVuln002 = [
       note: "Scheduled",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "minor",
+      current_safety_impact: "marginal",
     },
   },
   {
@@ -433,7 +433,7 @@ export const mockTicketsVuln003 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "out_of_cycle",
-    ticket_safety_impact: "major",
+    ticket_safety_impact: "critical",
     ticket_safety_impact_change_reason: "Under investigation",
     ticket_status: {
       status_id: "status-301",
@@ -445,7 +445,7 @@ export const mockTicketsVuln003 = [
       note: "Acknowledged",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "major",
+      current_safety_impact: "critical",
     },
   },
   {
@@ -455,7 +455,7 @@ export const mockTicketsVuln003 = [
     service_id: serviceId,
     pteam_id: pteamId,
     ssvc_deployer_priority: "scheduled",
-    ticket_safety_impact: "minor",
+    ticket_safety_impact: "marginal",
     ticket_safety_impact_change_reason: "Low priority",
     ticket_status: {
       status_id: "status-302",
@@ -467,7 +467,7 @@ export const mockTicketsVuln003 = [
       note: "Scheduled",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "minor",
+      current_safety_impact: "marginal",
     },
   },
   {
