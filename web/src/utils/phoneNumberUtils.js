@@ -12,3 +12,12 @@ export const maskPhoneNumber = (inputPhoneNumber) => {
     return "N/A";
   }
 };
+
+export const isE164Format = (inputPhoneNumber) => {
+  const phoneNumber = parsePhoneNumber(inputPhoneNumber);
+  if (phoneNumber && phoneNumber.isValid() && phoneNumber.format("E.164") === inputPhoneNumber) {
+    return true;
+  } else {
+    return false;
+  }
+};
