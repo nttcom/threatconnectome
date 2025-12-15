@@ -1,4 +1,3 @@
-import { http, HttpResponse } from "msw";
 // === 共通ID定数 ===
 export const pteamId = "pteam-abc-123";
 export const serviceId = "service-xyz-789";
@@ -11,7 +10,7 @@ export const mockPTeam = {
     {
       service_id: serviceId,
       service_name: "My Production Service",
-      service_safety_impact: "high",
+      service_safety_impact: "negligible",
     },
   ],
 };
@@ -35,6 +34,36 @@ export const mockDependencies = [
     package_manager: "maven",
     package_ecosystem: "maven",
   },
+  {
+    dependency_id: "dep-3",
+    target: "requirements.txt",
+    package_version: "2.0.0",
+    package_name: "log4j",
+    package_source_name: "org.apache.logging:log4j-core",
+    package_manager: "pip",
+    package_ecosystem: "pypi",
+    vuln_matching_ecosystem: "pypi",
+  },
+  {
+    dependency_id: "dep-4",
+    target: "package.json",
+    package_version: "3.0.0",
+    package_name: "log4js",
+    package_source_name: "log4js",
+    package_manager: "npm",
+    package_ecosystem: "npm",
+    vuln_matching_ecosystem: "npm",
+  },
+  {
+    dependency_id: "dep-5",
+    target: "go.mod",
+    package_version: "1.5.0",
+    package_name: "log4go",
+    package_source_name: "github.com/example/log4go",
+    package_manager: "go",
+    package_ecosystem: "go",
+    vuln_matching_ecosystem: "go",
+  },
 ];
 export const mockVulnIdsUnsolved = {
   vuln_ids: ["vuln-001", "vuln-002"],
@@ -43,19 +72,22 @@ export const mockVulnIdsSolved = {
   vuln_ids: ["vuln-003"],
 };
 export const mockTicketCountsUnsolved = {
+  // vuln-001: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
+  // vuln-002: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
   ssvc_priority_count: {
-    immediate: 2,
-    out_of_cycle: 3,
-    scheduled: 5,
-    defer: 1,
+    immediate: 4,
+    out_of_cycle: 2,
+    scheduled: 2,
+    defer: 2,
   },
 };
 export const mockTicketCountsSolved = {
+  // vuln-003: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
   ssvc_priority_count: {
-    immediate: 0,
-    out_of_cycle: 0,
+    immediate: 2,
+    out_of_cycle: 1,
     scheduled: 1,
-    defer: 0,
+    defer: 1,
   },
 };
 export const mockVulnDetails = {
@@ -144,256 +176,344 @@ export const mockUserMe = {
   years: 5,
   pteam_roles: [],
 };
-// === MSW ハンドラーファクトリ ===
-/**
- * PackagePageとVulnerabilityTableで共通のデフォルトハンドラーを作成
- */
-export function createDefaultHandlers() {
-  return [
-    // getPTeam
-    http.get(`*/pteams/${pteamId}`, () => {
-      return HttpResponse.json(mockPTeam);
-    }),
-    // getUserMe
-    http.get("http://localhost:8000/api/users/me", () => {
-      return HttpResponse.json(mockUserMe, {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }),
-    http.get("*/users/me", () => {
-      return HttpResponse.json(mockUserMe, {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }),
-    // getVulnIds
-    http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
-      const url = new URL(request.url);
-      const relatedTicketStatus = url.searchParams.get("related_ticket_status");
-      if (relatedTicketStatus === "solved") {
-        return HttpResponse.json(mockVulnIdsSolved);
-      }
-      return HttpResponse.json(mockVulnIdsUnsolved);
-    }),
-    // getTicketCounts
-    http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
-      const url = new URL(request.url);
-      const relatedTicketStatus = url.searchParams.get("related_ticket_status");
-      if (relatedTicketStatus === "solved") {
-        return HttpResponse.json(mockTicketCountsSolved);
-      }
-      return HttpResponse.json(mockTicketCountsUnsolved);
-    }),
-    // getDependencies
-    http.get(`*/pteams/${pteamId}/dependencies`, () => {
-      return HttpResponse.json(mockDependencies);
-    }),
-    // getDependency
-    http.get(`*/pteams/${pteamId}/dependencies/:dependencyId`, ({ params }) => {
-      const { dependencyId } = params;
-      const dependency = mockDependencies.find((dep) => dep.dependency_id === dependencyId);
-      if (dependency) {
-        return HttpResponse.json(dependency);
-      }
-      return HttpResponse.json({ detail: "No such dependency" }, { status: 404 });
-    }),
-    // getVuln
-    http.get("*/vulns/:vulnId", ({ params }) => {
-      const vulnId = params.vulnId;
-      const vulnDetail = mockVulnDetails[vulnId];
-      if (vulnDetail) {
-        return HttpResponse.json(vulnDetail);
-      }
-      // pagination testing用の動的生成
-      if (vulnId.startsWith("vuln-extra-")) {
-        const index = parseInt(vulnId.split("-").pop());
-        return HttpResponse.json({
-          vuln_id: vulnId,
-          title: `Additional Vulnerability ${index + 1}`,
-          cve_id: `CVE-2025-EXTRA-${index}`,
-          detail: "This is a generated description for testing pagination.",
-          exploitation: "poc",
-          automatable: "no",
-          cvss_v3_score: 5.0 + (index % 5),
-          vulnerable_packages: [
-            {
-              affected_name: "example-package",
-              ecosystem: "npm",
-              affected_versions: ["1.0.0"],
-              fixed_versions: ["1.1.0"],
-            },
-          ],
-          created_at: "2025-08-01T00:00:00Z",
-          updated_at: "2025-09-01T00:00:00Z",
-          created_by: "user-generated",
-        });
-      }
-      return HttpResponse.json(null, { status: 404 });
-    }),
-    // getVulnActions
-    http.get("*/vulns/:vulnId/actions", ({ params }) => {
-      const { vulnId } = params;
-      const actionsData = mockVulnActions?.[vulnId];
-      if (actionsData) {
-        return HttpResponse.json(actionsData);
-      }
-      return HttpResponse.json([]);
-    }),
-    // getPteamTickets
-    http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
-      const url = new URL(request.url);
-      const vulnId = url.searchParams.get("vuln_id");
-      if (vulnId === "vuln-001") {
-        return HttpResponse.json([
-          {
-            ticket_id: "ticket-001",
-            vuln_id: vulnId,
-            dependency_id: "dep-1",
-            service_id: serviceId,
-            pteam_id: pteamId,
-            ssvc_deployer_priority: "immediate",
-            ticket_safety_impact: "catastrophic",
-            ticket_safety_impact_change_reason: "Critical vulnerability",
-            ticket_status: {
-              status_id: "status-001",
-              ticket_handling_status: "alerted",
-              user_id: "user-001",
-              created_at: "2025-11-25T16:51:50.032Z",
-              updated_at: "2025-11-25T16:51:50.032Z",
-              assignees: [],
-              note: "Initial alert - 未着手",
-              scheduled_at: null,
-              action_logs: [],
-              current_safety_impact: "catastrophic",
-            },
-          },
-          {
-            ticket_id: "ticket-002",
-            vuln_id: vulnId,
-            dependency_id: "dep-2",
-            service_id: serviceId,
-            pteam_id: pteamId,
-            ssvc_deployer_priority: "out_of_cycle",
-            ticket_safety_impact: "major",
-            ticket_safety_impact_change_reason: "Under investigation",
-            ticket_status: {
-              status_id: "status-002",
-              ticket_handling_status: "acknowledged",
-              user_id: "user-002",
-              created_at: "2025-11-26T08:00:00.032Z",
-              updated_at: "2025-11-26T09:00:00.032Z",
-              assignees: ["user-003"],
-              note: "Acknowledged - 対応中",
-              scheduled_at: null,
-              action_logs: [],
-              current_safety_impact: "critical",
-            },
-          },
-          {
-            ticket_id: "ticket-003",
-            vuln_id: vulnId,
-            dependency_id: "dep-1",
-            service_id: serviceId,
-            pteam_id: pteamId,
-            ssvc_deployer_priority: "scheduled",
-            ticket_safety_impact: null,
-            ticket_safety_impact_change_reason: null,
-            ticket_status: {
-              status_id: "status-003",
-              ticket_handling_status: "alerted",
-              user_id: "user-001",
-              created_at: "2025-11-27T10:00:00.032Z",
-              updated_at: "2025-11-27T10:00:00.032Z",
-              assignees: [],
-              note: "Using default safety impact",
-              scheduled_at: null,
-              action_logs: [],
-              current_safety_impact: null,
-            },
-          },
-        ]);
-      } else if (vulnId === "vuln-002") {
-        return HttpResponse.json([
-          {
-            ticket_id: "ticket-005",
-            vuln_id: vulnId,
-            dependency_id: "dep-1",
-            service_id: serviceId,
-            pteam_id: pteamId,
-            ssvc_deployer_priority: "scheduled",
-            ticket_safety_impact: "minor",
-            ticket_safety_impact_change_reason: "Low priority",
-            ticket_status: {
-              status_id: "status-005",
-              ticket_handling_status: "completed",
-              user_id: "user-001",
-              created_at: "2025-11-20T08:00:00.032Z",
-              updated_at: "2025-11-20T08:00:00.032Z",
-              assignees: [],
-              note: "Scheduled for next sprint",
-              scheduled_at: "2025-12-01T00:00:00.032Z",
-              action_logs: [],
-            },
-          },
-        ]);
-      } else if (vulnId === "vuln-003") {
-        return HttpResponse.json([
-          {
-            ticket_id: "ticket-006",
-            vuln_id: vulnId,
-            dependency_id: "dep-2",
-            service_id: serviceId,
-            pteam_id: pteamId,
-            ssvc_deployer_priority: "defer",
-            ticket_safety_impact: "negligible",
-            ticket_safety_impact_change_reason: "Resolved",
-            ticket_status: {
-              status_id: "status-006",
-              ticket_handling_status: "completed",
-              user_id: "user-001",
-              created_at: "2025-11-18T08:00:00.032Z",
-              updated_at: "2025-11-24T08:00:00.032Z",
-              assignees: [],
-              note: "Completed",
-              scheduled_at: null,
-              action_logs: [],
-            },
-          },
-        ]);
-      }
-      // pagination testing用の動的生成
-      if (vulnId && vulnId.startsWith("vuln-extra-")) {
-        const numTickets = (vulnId.charCodeAt(vulnId.length - 1) % 3) + 1;
-        const tickets = Array.from({ length: numTickets }, (_, i) => ({
-          ticket_id: `ticket-${vulnId}-${i}`,
-          vuln_id: vulnId,
-          dependency_id: i % 2 === 0 ? "dep-1" : "dep-2",
-          service_id: serviceId,
-          pteam_id: pteamId,
-          ssvc_deployer_priority: ["immediate", "out_of_cycle", "scheduled", "defer"][i % 4],
-          ticket_safety_impact: ["catastrophic", "major", "minor", "negligible"][i % 4],
-          ticket_safety_impact_change_reason: `Ticket ${i + 1} for ${vulnId}`,
-          ticket_status: {
-            status_id: `status-${vulnId}-${i}`,
-            ticket_handling_status:
-              i % 2 === 0 ? "completed" : ["alerted", "acknowledged", "scheduled"][i % 3],
-            user_id: `user-${i % 3}`,
-            created_at: "2025-11-25T16:51:50.032Z",
-            updated_at: "2025-11-25T16:51:50.032Z",
-            assignees: i === 0 ? ["user-001"] : [],
-            note: `Mock ticket ${i + 1}`,
-            scheduled_at: i === 2 ? "2025-12-01T00:00:00.032Z" : null,
-            action_logs: [],
-          },
-        }));
-        return HttpResponse.json(tickets);
-      }
-      return HttpResponse.json([]);
-    }),
-    // getPTeamMembers
-    http.get(`*/pteams/${pteamId}/members`, () => {
-      return HttpResponse.json(mockMembersList);
-    }),
-  ];
-}
+// --- Tickets Data (vuln-001) ---
+export const mockTicketsVuln001 = [
+  {
+    ticket_id: "ticket-100",
+    vuln_id: "vuln-001",
+    dependency_id: "dep-1",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: "catastrophic",
+    ticket_safety_impact_change_reason: "Critical vulnerability in dep-1",
+    ticket_status: {
+      status_id: "status-100",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-25T16:51:50.032Z",
+      updated_at: "2025-11-25T16:51:50.032Z",
+      assignees: [],
+      note: "Initial alert - 未着手",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "catastrophic",
+    },
+  },
+  {
+    ticket_id: "ticket-101",
+    vuln_id: "vuln-001",
+    dependency_id: "dep-2",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "out_of_cycle",
+    ticket_safety_impact: "major",
+    ticket_safety_impact_change_reason: "Under investigation",
+    ticket_status: {
+      status_id: "status-101",
+      ticket_handling_status: "acknowledged",
+      user_id: "user-002",
+      created_at: "2025-11-26T08:00:00.032Z",
+      updated_at: "2025-11-26T09:00:00.032Z",
+      assignees: ["user-003"],
+      note: "Acknowledged - 対応中",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "major",
+    },
+  },
+  {
+    ticket_id: "ticket-102",
+    vuln_id: "vuln-001",
+    dependency_id: "dep-3",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "scheduled",
+    ticket_safety_impact: "minor",
+    ticket_safety_impact_change_reason: "Low priority issue",
+    ticket_status: {
+      status_id: "status-102",
+      ticket_handling_status: "scheduled",
+      user_id: "user-001",
+      created_at: "2025-11-27T10:00:00.032Z",
+      updated_at: "2025-11-27T10:00:00.032Z",
+      assignees: [],
+      note: "Scheduled for next sprint",
+      scheduled_at: "2025-12-01T00:00:00.032Z",
+      action_logs: [],
+      current_safety_impact: "minor",
+    },
+  },
+  {
+    ticket_id: "ticket-103",
+    vuln_id: "vuln-001",
+    dependency_id: "dep-4",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "defer",
+    ticket_safety_impact: "negligible",
+    ticket_safety_impact_change_reason: "Minimal impact",
+    ticket_status: {
+      status_id: "status-103",
+      ticket_handling_status: "completed",
+      user_id: "user-003",
+      created_at: "2025-11-20T08:00:00.032Z",
+      updated_at: "2025-11-24T08:00:00.032Z",
+      assignees: [],
+      note: "Completed - resolved",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "negligible",
+    },
+  },
+  {
+    ticket_id: "ticket-104",
+    vuln_id: "vuln-001",
+    dependency_id: "dep-5",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: null,
+    ticket_safety_impact_change_reason: null,
+    ticket_status: {
+      status_id: "status-104",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-28T10:00:00.032Z",
+      updated_at: "2025-11-28T10:00:00.032Z",
+      assignees: [],
+      note: "Using default safety impact",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: null,
+    },
+  },
+];
+// --- Tickets Data (vuln-002) ---
+export const mockTicketsVuln002 = [
+  {
+    ticket_id: "ticket-200",
+    vuln_id: "vuln-002",
+    dependency_id: "dep-1",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: "catastrophic",
+    ticket_safety_impact_change_reason: "Critical vulnerability in dep-1",
+    ticket_status: {
+      status_id: "status-200",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-25T16:51:50.032Z",
+      updated_at: "2025-11-25T16:51:50.032Z",
+      assignees: [],
+      note: "Initial alert",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "catastrophic",
+    },
+  },
+  {
+    ticket_id: "ticket-201",
+    vuln_id: "vuln-002",
+    dependency_id: "dep-2",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "out_of_cycle",
+    ticket_safety_impact: "major",
+    ticket_safety_impact_change_reason: "Under investigation",
+    ticket_status: {
+      status_id: "status-201",
+      ticket_handling_status: "acknowledged",
+      user_id: "user-002",
+      created_at: "2025-11-26T08:00:00.032Z",
+      updated_at: "2025-11-26T09:00:00.032Z",
+      assignees: ["user-003"],
+      note: "Acknowledged",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "major",
+    },
+  },
+  {
+    ticket_id: "ticket-202",
+    vuln_id: "vuln-002",
+    dependency_id: "dep-3",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "scheduled",
+    ticket_safety_impact: "minor",
+    ticket_safety_impact_change_reason: "Low priority",
+    ticket_status: {
+      status_id: "status-202",
+      ticket_handling_status: "scheduled",
+      user_id: "user-001",
+      created_at: "2025-11-27T10:00:00.032Z",
+      updated_at: "2025-11-27T10:00:00.032Z",
+      assignees: [],
+      note: "Scheduled",
+      scheduled_at: "2025-12-01T00:00:00.032Z",
+      action_logs: [],
+      current_safety_impact: "minor",
+    },
+  },
+  {
+    ticket_id: "ticket-203",
+    vuln_id: "vuln-002",
+    dependency_id: "dep-4",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "defer",
+    ticket_safety_impact: "negligible",
+    ticket_safety_impact_change_reason: "Minimal impact",
+    ticket_status: {
+      status_id: "status-203",
+      ticket_handling_status: "completed",
+      user_id: "user-003",
+      created_at: "2025-11-20T08:00:00.032Z",
+      updated_at: "2025-11-24T08:00:00.032Z",
+      assignees: [],
+      note: "Completed",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "negligible",
+    },
+  },
+  {
+    ticket_id: "ticket-204",
+    vuln_id: "vuln-002",
+    dependency_id: "dep-5",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: null,
+    ticket_safety_impact_change_reason: null,
+    ticket_status: {
+      status_id: "status-204",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-28T10:00:00.032Z",
+      updated_at: "2025-11-28T10:00:00.032Z",
+      assignees: [],
+      note: "Using default safety impact",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: null,
+    },
+  },
+];
+// --- Tickets Data (vuln-003) ---
+export const mockTicketsVuln003 = [
+  {
+    ticket_id: "ticket-300",
+    vuln_id: "vuln-003",
+    dependency_id: "dep-1",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: "catastrophic",
+    ticket_safety_impact_change_reason: "Critical vulnerability",
+    ticket_status: {
+      status_id: "status-300",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-25T16:51:50.032Z",
+      updated_at: "2025-11-25T16:51:50.032Z",
+      assignees: [],
+      note: "Initial alert",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "catastrophic",
+    },
+  },
+  {
+    ticket_id: "ticket-301",
+    vuln_id: "vuln-003",
+    dependency_id: "dep-2",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "out_of_cycle",
+    ticket_safety_impact: "major",
+    ticket_safety_impact_change_reason: "Under investigation",
+    ticket_status: {
+      status_id: "status-301",
+      ticket_handling_status: "acknowledged",
+      user_id: "user-002",
+      created_at: "2025-11-26T08:00:00.032Z",
+      updated_at: "2025-11-26T09:00:00.032Z",
+      assignees: ["user-003"],
+      note: "Acknowledged",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "major",
+    },
+  },
+  {
+    ticket_id: "ticket-302",
+    vuln_id: "vuln-003",
+    dependency_id: "dep-3",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "scheduled",
+    ticket_safety_impact: "minor",
+    ticket_safety_impact_change_reason: "Low priority",
+    ticket_status: {
+      status_id: "status-302",
+      ticket_handling_status: "scheduled",
+      user_id: "user-001",
+      created_at: "2025-11-27T10:00:00.032Z",
+      updated_at: "2025-11-27T10:00:00.032Z",
+      assignees: [],
+      note: "Scheduled",
+      scheduled_at: "2025-12-01T00:00:00.032Z",
+      action_logs: [],
+      current_safety_impact: "minor",
+    },
+  },
+  {
+    ticket_id: "ticket-303",
+    vuln_id: "vuln-003",
+    dependency_id: "dep-4",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "defer",
+    ticket_safety_impact: "negligible",
+    ticket_safety_impact_change_reason: "Minimal impact",
+    ticket_status: {
+      status_id: "status-303",
+      ticket_handling_status: "completed",
+      user_id: "user-003",
+      created_at: "2025-11-20T08:00:00.032Z",
+      updated_at: "2025-11-24T08:00:00.032Z",
+      assignees: [],
+      note: "Completed",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: "negligible",
+    },
+  },
+  {
+    ticket_id: "ticket-304",
+    vuln_id: "vuln-003",
+    dependency_id: "dep-5",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "immediate",
+    ticket_safety_impact: null,
+    ticket_safety_impact_change_reason: null,
+    ticket_status: {
+      status_id: "status-304",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-28T10:00:00.032Z",
+      updated_at: "2025-11-28T10:00:00.032Z",
+      assignees: [],
+      note: "Using default safety impact",
+      scheduled_at: null,
+      action_logs: [],
+      current_safety_impact: null,
+    },
+  },
+];
+// ハンドラーはhandlers.jsから再export
+export { createDefaultHandlers } from "./handlers";
