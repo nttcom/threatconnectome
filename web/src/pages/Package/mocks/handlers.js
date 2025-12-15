@@ -19,7 +19,7 @@ import {
 } from "./mockData";
 
 // 遅延設定（ms）- 0にすれば遅延なし
-const MOCK_DELAY = 1000;
+const MOCK_DELAY = 500;
 
 // === MSW ハンドラーファクトリ ===
 /**
