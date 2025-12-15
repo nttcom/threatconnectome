@@ -1,4 +1,16 @@
-export const createUpdateAction = (affectedVersions, fixedVersions, packageName) => {
+import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen.ts";
+
+interface currentPackage {
+  package_name: string;
+  package_source_name: string | null | undefined;
+  vuln_matching_ecosystem: string;
+}
+
+export const createUpdateAction = (
+  affectedVersions: Array<string>,
+  fixedVersions: Array<string>,
+  packageName: string,
+): string | null => {
   if (fixedVersions && fixedVersions.length > 0) {
     if (affectedVersions && affectedVersions.length > 0) {
       return `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
@@ -10,8 +22,8 @@ export const createUpdateAction = (affectedVersions, fixedVersions, packageName)
   return null;
 };
 
-export function getUpdateActions(vuln) {
-  const updateActions = [];
+export function getUpdateActions(vuln: VulnResponse): string[] {
+  const updateActions: string[] = [];
   vuln.vulnerable_packages.forEach((vulnerable_package) => {
     const updateAction = createUpdateAction(
       vulnerable_package.affected_versions,
@@ -26,7 +38,10 @@ export function getUpdateActions(vuln) {
   return updateActions;
 }
 
-export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
+export function findMatchedVulnPackage(
+  vulnerable_packages: Array<VulnerablePackageResponse>,
+  currentPackage: currentPackage,
+): VulnerablePackageResponse | undefined {
   const { package_source_name, package_name, vuln_matching_ecosystem } = currentPackage;
   return vulnerable_packages.find(
     (vulnerable_package) =>
@@ -36,7 +51,7 @@ export function findMatchedVulnPackage(vulnerable_packages, currentPackage) {
   );
 }
 
-export function isValidCVEFormat(value) {
+export function isValidCVEFormat(value: string): boolean {
   const trimmedValue = value.trim();
   const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
 
