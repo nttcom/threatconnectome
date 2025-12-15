@@ -24,7 +24,7 @@ export function PTeam() {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetPTeamMembersQuery(pteamId, { skip });
+  } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId } }, { skip });
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (skip) return <></>;
@@ -48,7 +48,7 @@ export function PTeam() {
           <Box alignItems="center" display="flex" flexDirection="row">
             {members &&
               (() => {
-                const maxYears = Math.max(...Object.values(members).map((member) => member.years));
+                const maxYears = Math.max(members.map((member) => member.years));
                 return (
                   <Tooltip
                     arrow

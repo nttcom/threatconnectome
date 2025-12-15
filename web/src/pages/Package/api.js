@@ -55,22 +55,27 @@ export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
 
 /**
  * service情報のみ取得するカスタムフック
+ * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
  */
 export function usePackageService(pteamId, serviceId, options = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  return useGetPTeamQuery(pteamId, {
-    ...options,
-    skip: skipByAuth || !pteamId || options.skip,
-    selectFromResult: ({ data, error, isLoading }) => ({
-      service: data?.services?.find((service) => service.service_id === serviceId),
-      error,
-      isLoading,
-    }),
-  });
+  return useGetPTeamQuery(
+    { path: { pteam_id: pteamId } },
+    {
+      ...options,
+      skip: skipByAuth || !pteamId || options.skip,
+      selectFromResult: ({ data, error, isLoading }) => ({
+        service: data?.services?.find((service) => service.service_id === serviceId),
+        error,
+        isLoading,
+      }),
+    },
+  );
 }
 
 /**
  * 依存関係データ取得用カスタムフック
+ * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
  */
 export function usePackageDependencies(
   { pteamId, serviceId, packageId, offset = 0, limit = 1000 },
@@ -78,7 +83,10 @@ export function usePackageDependencies(
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetDependenciesQuery(
-    { pteamId, serviceId, packageId, offset, limit },
+    {
+      path: { pteam_id: pteamId },
+      query: { service_id: serviceId, package_id: packageId, offset, limit },
+    },
     {
       ...options,
       skip: skipByAuth || !pteamId || !serviceId || options.skip,
@@ -88,17 +96,22 @@ export function usePackageDependencies(
 
 /**
  * PTeam情報取得用カスタムフック
+ * RTK Queryフックには新しい引数形式（{ path: {} }）で渡す
  */
 export function usePackagePTeam(pteamId, options = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  return useGetPTeamQuery(pteamId, {
-    ...options,
-    skip: skipByAuth || !pteamId || options.skip,
-  });
+  return useGetPTeamQuery(
+    { path: { pteam_id: pteamId } },
+    {
+      ...options,
+      skip: skipByAuth || !pteamId || options.skip,
+    },
+  );
 }
 
 /**
  * 脆弱性IDリスト取得用カスタムフック
+ * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
  */
 export function usePackageVulnIds(
   { pteamId, serviceId, packageId, relatedTicketStatus },
@@ -106,7 +119,14 @@ export function usePackageVulnIds(
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamVulnIdsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus },
+    {
+      path: { pteam_id: pteamId },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        related_ticket_status: relatedTicketStatus,
+      },
+    },
     {
       ...options,
       skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
@@ -116,6 +136,7 @@ export function usePackageVulnIds(
 
 /**
  * チケットカウント取得用カスタムフック
+ * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
  */
 export function usePackageTicketCounts(
   { pteamId, serviceId, packageId, relatedTicketStatus },
@@ -123,7 +144,14 @@ export function usePackageTicketCounts(
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamTicketCountsTiedToServicePackageQuery(
-    { pteamId, serviceId, packageId, relatedTicketStatus },
+    {
+      path: { pteam_id: pteamId },
+      query: {
+        service_id: serviceId,
+        package_id: packageId,
+        related_ticket_status: relatedTicketStatus,
+      },
+    },
     {
       ...options,
       skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,

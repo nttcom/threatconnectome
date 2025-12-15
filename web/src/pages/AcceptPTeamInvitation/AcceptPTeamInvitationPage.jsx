@@ -23,7 +23,7 @@ export function AcceptPTeamInvitation() {
     data: detail,
     error: detailError,
     isLoading: detailIsLoading,
-  } = useGetPTeamInvitationQuery(tokenId, { skip });
+  } = useGetPTeamInvitationQuery({ path: { invitation_id: tokenId } }, { skip });
 
   if (skip) return <></>;
   if (detailError)
@@ -43,7 +43,7 @@ export function AcceptPTeamInvitation() {
     function onError(error) {
       enqueueSnackbar(`Accepting invitation failed: ${errorToString(error)}`, { variant: "error" });
     }
-    await applyPTeamInvitation({ invitation_id: tokenId })
+    await applyPTeamInvitation({ body: { invitation_id: tokenId } })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));

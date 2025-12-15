@@ -26,7 +26,7 @@ export function PTeamMember(props) {
   const isMdDown = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   const filteredMembers = members
-    ? [...Object.values(members)]
+    ? [...members]
         .sort((memberA, memberB) => memberB.email < memberA.email)
         .sort((memberA, memberB) => memberB.years - memberA.years)
         .filter((member) => member.disabled === false)
@@ -152,7 +152,7 @@ export function PTeamMember(props) {
 
 PTeamMember.propTypes = {
   pteamId: PropTypes.string,
-  members: PropTypes.objectOf(
+  members: PropTypes.arrayOf(
     PropTypes.shape({
       user_id: PropTypes.string.isRequired,
       uid: PropTypes.string,

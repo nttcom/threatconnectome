@@ -16,8 +16,8 @@ export function AccountSettings(props) {
 
   const handleUpdateUser = async (request) => {
     updateUser({
-      userId: userMe.user_id,
-      data: request,
+      path: { user_id: userMe.user_id },
+      body: request,
     })
       .unwrap()
       .then((succeeded) => {

@@ -9,8 +9,7 @@ export function usePTeamServiceDetailsData(pteamId, service, highestSsvcPriority
     isError: thumbnailIsError,
     isLoading: thumbnailIsLoading,
   } = useGetPTeamServiceThumbnailQuery({
-    pteamId,
-    serviceId: service.service_id,
+    path: { pteam_id: pteamId, service_id: service.service_id },
   });
 
   const image =

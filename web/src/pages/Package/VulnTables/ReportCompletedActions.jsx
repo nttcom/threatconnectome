@@ -51,12 +51,14 @@ export function ReportCompletedActions(props) {
 
   const handleAction = async () =>
     await createActionLog({
-      action: updateAction,
-      pteam_id: pteamId,
-      service_id: serviceId,
-      ticket_id: ticketId,
-      vuln_id: vulnId,
-      user_id: userMe.user_id,
+      body: {
+        action: updateAction,
+        pteam_id: pteamId,
+        service_id: serviceId,
+        ticket_id: ticketId,
+        vuln_id: vulnId,
+        user_id: userMe.user_id,
+      },
     })
       .unwrap()
       .then((actionLog) => {
@@ -66,9 +68,8 @@ export function ReportCompletedActions(props) {
       .then(
         async (actionLog) =>
           await updateTicket({
-            pteamId,
-            ticketId,
-            data: {
+            path: { pteam_id: pteamId, ticket_id: ticketId },
+            body: {
               ticket_status: {
                 ticket_handling_status: "completed",
                 logging_ids: [actionLog.logging_id],
@@ -83,9 +84,9 @@ export function ReportCompletedActions(props) {
         setNote("");
         enqueueSnackbar("Set ticketstatus 'completed' succeeded", { variant: "success" });
       })
-      .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
-      );
+      .catch((error) => {
+        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+      });
 
   if (!pteamId || !serviceId || !ticketId || !vulnId || !packageId) return <></>;
 

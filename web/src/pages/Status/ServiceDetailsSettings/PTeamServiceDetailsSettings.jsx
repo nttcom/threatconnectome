@@ -35,9 +35,8 @@ export function PTeamServiceDetailsSettings(props) {
     if (imageFileData !== null) {
       promiseList.push(() =>
         updatePTeamServiceThumbnail({
-          pteamId: pteamId,
-          serviceId: service.service_id,
-          imageFile: imageFileData,
+          path: { pteam_id: pteamId, service_id: service.service_id },
+          body: { uploaded: imageFileData },
         }).unwrap(),
       );
     }
@@ -45,8 +44,7 @@ export function PTeamServiceDetailsSettings(props) {
     if (imageDeleteFlag) {
       promiseList.push(() =>
         deletePTeamServiceThumbnail({
-          pteamId: pteamId,
-          serviceId: service.service_id,
+          path: { pteam_id: pteamId, service_id: service.service_id },
         }).unwrap(),
       );
     }
@@ -59,9 +57,8 @@ export function PTeamServiceDetailsSettings(props) {
     };
     promiseList.push(() =>
       updatePTeamService({
-        pteamId: pteamId,
-        serviceId: service.service_id,
-        data: requestData,
+        path: { pteam_id: pteamId, service_id: service.service_id },
+        body: requestData,
       }).unwrap(),
     );
 
@@ -79,8 +76,7 @@ export function PTeamServiceDetailsSettings(props) {
     isError: thumbnailIsError,
     isLoading: thumbnailIsLoading,
   } = useGetPTeamServiceThumbnailQuery({
-    pteamId,
-    serviceId: service.service_id,
+    path: { pteam_id: pteamId, service_id: service.service_id },
   });
 
   const image =

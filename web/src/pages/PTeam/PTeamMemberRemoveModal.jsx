@@ -30,7 +30,7 @@ export function PTeamMemberRemoveModal(props) {
     function onError(error) {
       enqueueSnackbar(`Remove member failed: ${errorToString(error)}`, { variant: "error" });
     }
-    await deletePTeamMember({ pteamId, userId: memberUserId })
+    await deletePTeamMember({ path: { pteam_id: pteamId, user_id: memberUserId } })
       .unwrap()
       .then((success) => onSuccess(success))
       .catch((error) => onError(error));

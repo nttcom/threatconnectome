@@ -63,44 +63,56 @@ export function TicketDetailView({ ticket }) {
     data: pteam,
     isLoading: pteamIsLoading,
     error: pteamError,
-  } = useGetPTeamQuery(ticket.pteam_id, {
-    skip: !ticket.pteam_id,
-  });
+  } = useGetPTeamQuery(
+    { path: { pteam_id: ticket.pteam_id } },
+    {
+      skip: !ticket.pteam_id,
+    },
+  );
 
   const {
     data: service,
     isLoading: serviceIsLoading,
     error: pteamServicesError,
-  } = useGetPTeamServicesQuery(ticket.pteam_id, {
-    selectFromResult: ({ data, isLoading, error }) => ({
-      data: data?.find((s) => s.service_id === ticket.service_id),
-      isLoading,
-      error,
-    }),
-    skip: !ticket.pteam_id,
-  });
+  } = useGetPTeamServicesQuery(
+    { path: { pteam_id: ticket.pteam_id } },
+    {
+      selectFromResult: ({ data, isLoading, error }) => ({
+        data: data?.find((s) => s.service_id === ticket.service_id),
+        isLoading,
+        error,
+      }),
+      skip: !ticket.pteam_id,
+    },
+  );
 
   const {
     data: members,
     isLoading: membersIsLoading,
     error: membersError,
-  } = useGetPTeamMembersQuery(ticket.pteam_id, {
-    skip: !ticket.pteam_id,
-  });
+  } = useGetPTeamMembersQuery(
+    { path: { pteam_id: ticket.pteam_id } },
+    {
+      skip: !ticket.pteam_id,
+    },
+  );
   const {
     data: vuln,
     isLoading: vulnIsLoading,
     error: vulnError,
-  } = useGetVulnQuery(ticket.vuln_id, {
-    skip: !ticket.vuln_id,
-  });
+  } = useGetVulnQuery(
+    { path: { vuln_id: ticket.vuln_id } },
+    {
+      skip: !ticket.vuln_id,
+    },
+  );
 
   const {
     data: dependency,
     isLoading: dependencyIsLoading,
     error: dependencyError,
   } = useGetDependencyQuery(
-    { pteamId: ticket.pteam_id, dependencyId: ticket.dependency_id },
+    { path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id } },
     { skip: !ticket.pteam_id || !ticket.dependency_id },
   );
 

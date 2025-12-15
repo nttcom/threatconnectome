@@ -41,8 +41,7 @@ function ServiceCard(props) {
     isError: thumbnailIsError,
     isLoading: thumbnailIsLoading,
   } = useGetPTeamServiceThumbnailQuery({
-    pteamId,
-    serviceId: service.service_id,
+    path: { pteam_id: pteamId, service_id: service.service_id },
   });
   const image =
     thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageAvailableUrl : thumbnail;
@@ -109,7 +108,7 @@ export function PTeamServicesListModal(props) {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery(pteamId, { skip });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip });
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));

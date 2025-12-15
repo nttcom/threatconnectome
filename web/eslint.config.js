@@ -121,6 +121,12 @@ export default [
       ...typescriptPlugin.configs.recommended.rules,
       "unused-imports/no-unused-imports": "error",
       "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_", // Ignore arguments starting with an underscore
+        },
+      ],
     },
   },
 
