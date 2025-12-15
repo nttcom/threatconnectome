@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, delay } from "msw";
 
 import {
   pteamId,
@@ -17,6 +17,10 @@ import {
   mockTicketsVuln002,
   mockTicketsVuln003,
 } from "./mockData";
+
+// 遅延設定（ms）- 0にすれば遅延なし
+const MOCK_DELAY = 1000;
+
 // === MSW ハンドラーファクトリ ===
 /**
  * PackagePageとVulnerabilityTableで共通のデフォルトハンドラーを作成
@@ -24,24 +28,28 @@ import {
 export function createDefaultHandlers() {
   return [
     // getPTeam
-    http.get(`*/pteams/${pteamId}`, () => {
+    http.get(`*/pteams/${pteamId}`, async () => {
+      await delay(MOCK_DELAY);
       return HttpResponse.json(mockPTeam);
     }),
     // getUserMe
-    http.get("http://localhost:8000/api/users/me", () => {
+    http.get("http://localhost:8000/api/users/me", async () => {
+      await delay(MOCK_DELAY);
       return HttpResponse.json(mockUserMe, {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }),
-    http.get("*/users/me", () => {
+    http.get("*/users/me", async () => {
+      await delay(MOCK_DELAY);
       return HttpResponse.json(mockUserMe, {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }),
     // getVulnIds
-    http.get(`*/pteams/${pteamId}/vuln_ids`, ({ request }) => {
+    http.get(`*/pteams/${pteamId}/vuln_ids`, async ({ request }) => {
+      await delay(MOCK_DELAY);
       const url = new URL(request.url);
       const relatedTicketStatus = url.searchParams.get("related_ticket_status");
       if (relatedTicketStatus === "solved") {
@@ -50,7 +58,8 @@ export function createDefaultHandlers() {
       return HttpResponse.json(mockVulnIdsUnsolved);
     }),
     // getTicketCounts
-    http.get(`*/pteams/${pteamId}/ticket_counts`, ({ request }) => {
+    http.get(`*/pteams/${pteamId}/ticket_counts`, async ({ request }) => {
+      await delay(MOCK_DELAY);
       const url = new URL(request.url);
       const relatedTicketStatus = url.searchParams.get("related_ticket_status");
       if (relatedTicketStatus === "solved") {
@@ -59,11 +68,13 @@ export function createDefaultHandlers() {
       return HttpResponse.json(mockTicketCountsUnsolved);
     }),
     // getDependencies
-    http.get(`*/pteams/${pteamId}/dependencies`, () => {
+    http.get(`*/pteams/${pteamId}/dependencies`, async () => {
+      await delay(MOCK_DELAY);
       return HttpResponse.json(mockDependencies);
     }),
     // getDependency
-    http.get(`*/pteams/${pteamId}/dependencies/:dependencyId`, ({ params }) => {
+    http.get(`*/pteams/${pteamId}/dependencies/:dependencyId`, async ({ params }) => {
+      await delay(MOCK_DELAY);
       const { dependencyId } = params;
       const dependency = mockDependencies.find((dep) => dep.dependency_id === dependencyId);
       if (dependency) {
@@ -72,7 +83,8 @@ export function createDefaultHandlers() {
       return HttpResponse.json({ detail: "No such dependency" }, { status: 404 });
     }),
     // getVuln
-    http.get("*/vulns/:vulnId", ({ params }) => {
+    http.get("*/vulns/:vulnId", async ({ params }) => {
+      await delay(MOCK_DELAY);
       const vulnId = params.vulnId;
       const vulnDetail = mockVulnDetails[vulnId];
       if (vulnDetail) {
@@ -105,7 +117,8 @@ export function createDefaultHandlers() {
       return HttpResponse.json(null, { status: 404 });
     }),
     // getVulnActions
-    http.get("*/vulns/:vulnId/actions", ({ params }) => {
+    http.get("*/vulns/:vulnId/actions", async ({ params }) => {
+      await delay(MOCK_DELAY);
       const { vulnId } = params;
       const actionsData = mockVulnActions?.[vulnId];
       if (actionsData) {
@@ -114,7 +127,8 @@ export function createDefaultHandlers() {
       return HttpResponse.json([]);
     }),
     // getPteamTickets
-    http.get(`*/pteams/${pteamId}/tickets`, ({ request }) => {
+    http.get(`*/pteams/${pteamId}/tickets`, async ({ request }) => {
+      await delay(MOCK_DELAY);
       const url = new URL(request.url);
       const vulnId = url.searchParams.get("vuln_id");
       if (vulnId === "vuln-001") {
@@ -154,7 +168,8 @@ export function createDefaultHandlers() {
       return HttpResponse.json([]);
     }),
     // getPTeamMembers
-    http.get(`*/pteams/${pteamId}/members`, () => {
+    http.get(`*/pteams/${pteamId}/members`, async () => {
+      await delay(MOCK_DELAY);
       return HttpResponse.json(mockMembersList);
     }),
 
@@ -164,6 +179,7 @@ export function createDefaultHandlers() {
 
     // updateTicket - チケット更新
     http.put(`*/pteams/${pteamId}/tickets/:ticketId`, async ({ request, params }) => {
+      await delay(MOCK_DELAY);
       const { ticketId } = params;
       const body = await request.json();
 
@@ -187,6 +203,26 @@ export function createDefaultHandlers() {
       };
 
       return HttpResponse.json(updatedTicket);
+    }),
+
+    // createActionLog - アクションログ作成
+    http.post(`*/actionlogs`, async ({ request }) => {
+      await delay(MOCK_DELAY);
+      const body = await request.json();
+
+      // 成功レスポンスを返す
+      const actionLog = {
+        logging_id: `log-${Date.now()}`,
+        action: body.action,
+        pteam_id: body.pteam_id || body.pteamId,
+        service_id: body.service_id || body.serviceId,
+        ticket_id: body.ticket_id || body.ticketId,
+        vuln_id: body.vuln_id || body.vulnId,
+        user_id: body.user_id || body.userId,
+        created_at: new Date().toISOString(),
+      };
+
+      return HttpResponse.json(actionLog);
     }),
   ];
 }
