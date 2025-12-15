@@ -1,8 +1,8 @@
 import { useParams, useSearchParams } from "react-router-dom";
 
 /**
- * ページで使用するパラメータ（パスパラメータとクエリパラメータ）を取得するカスタムフック
- * Package, Vulnerability, Status などの複数のページで使用される
+ * Custom hook to get page parameters (path params and query params)
+ * Used across multiple pages: Package, Vulnerability, Status, etc.
  */
 export function usePageParams() {
   const { packageId } = useParams();
