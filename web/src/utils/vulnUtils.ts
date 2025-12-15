@@ -24,16 +24,18 @@ export const createUpdateAction = (
 
 export function getUpdateActions(vuln: VulnResponse): string[] {
   const updateActions: string[] = [];
-  vuln.vulnerable_packages.forEach((vulnerable_package) => {
-    const updateAction = createUpdateAction(
-      vulnerable_package.affected_versions,
-      vulnerable_package.fixed_versions,
-      vulnerable_package.affected_name,
-    );
-    if (updateAction != null) {
-      updateActions.push(updateAction);
-    }
-  });
+  if (vuln && Array.isArray(vuln.vulnerable_packages)) {
+    vuln.vulnerable_packages.forEach((vulnerable_package) => {
+      const updateAction = createUpdateAction(
+        vulnerable_package.affected_versions,
+        vulnerable_package.fixed_versions,
+        vulnerable_package.affected_name,
+      );
+      if (updateAction != null) {
+        updateActions.push(updateAction);
+      }
+    });
+  }
 
   return updateActions;
 }
