@@ -69,4 +69,7 @@ export class AuthProvider {
   isAuthenticatedWithSaml() {
     throw new Error("Not implemented");
   }
+  getPhoneNumber() {
+    throw new Error("Not implemented");
+  }
 }

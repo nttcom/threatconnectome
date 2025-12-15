@@ -314,4 +314,17 @@ export class FirebaseProvider extends AuthProvider {
     );
     return isSamlUser;
   }
+
+  getPhoneNumber() {
+    const auth = Firebase.getAuth();
+    const currentUser = auth.currentUser;
+    const multiFactorUser = multiFactor(currentUser);
+    for (const factor of multiFactorUser.enrolledFactors) {
+      if (factor.factorId === "phone") {
+        return factor.phoneNumber;
+      }
+    }
+
+    return null;
+  }
 }
