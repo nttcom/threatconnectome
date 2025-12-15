@@ -10,7 +10,7 @@ export const createUpdateAction = (
   affectedVersions: Array<string>,
   fixedVersions: Array<string>,
   packageName: string,
-): string | null => {
+) => {
   if (fixedVersions && fixedVersions.length > 0) {
     if (affectedVersions && affectedVersions.length > 0) {
       return `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
@@ -22,7 +22,7 @@ export const createUpdateAction = (
   return null;
 };
 
-export function getUpdateActions(vuln: VulnResponse): string[] {
+export function getUpdateActions(vuln: VulnResponse) {
   const updateActions: string[] = [];
   if (vuln && Array.isArray(vuln.vulnerable_packages)) {
     vuln.vulnerable_packages.forEach((vulnerable_package) => {
@@ -43,7 +43,7 @@ export function getUpdateActions(vuln: VulnResponse): string[] {
 export function findMatchedVulnPackage(
   vulnerable_packages: Array<VulnerablePackageResponse>,
   currentPackage: currentPackage,
-): VulnerablePackageResponse | undefined {
+) {
   const { package_source_name, package_name, vuln_matching_ecosystem } = currentPackage;
   return vulnerable_packages.find(
     (vulnerable_package) =>
@@ -53,7 +53,7 @@ export function findMatchedVulnPackage(
   );
 }
 
-export function isValidCVEFormat(value: string): boolean {
+export function isValidCVEFormat(value: string) {
   const trimmedValue = value.trim();
   const CVE_PATTERN = /^CVE-\d{4}-\d{4,}$/;
 
