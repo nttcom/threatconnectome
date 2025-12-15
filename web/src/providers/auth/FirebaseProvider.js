@@ -19,7 +19,7 @@ import {
 } from "firebase/auth";
 
 import Firebase from "../../utils/Firebase";
-import { isE164Format } from "../../utils/func";
+import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 

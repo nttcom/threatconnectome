@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { isE164Format } from "../phoneNumberUtils";
 
 describe("isValidE164", () => {
