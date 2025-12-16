@@ -81,7 +81,7 @@ allow_list = [
     # b"chainguard",
     # b"cocoapods::GitHub Security Advisory Swift",
     # b"composer::GitHub Security Advisory Composer",
-    # b"composer::PHP Security Advisories Database",
+    b"composer::PHP Security Advisories Database",
     # b"conan::GitLab Advisory Database Community",
     # b"data-source",
     b"debian 10",
