@@ -1,22 +1,48 @@
-// === 共通ID定数 ===
+import {
+  PTeamInfo,
+  DependencyResponse,
+  ServicePackageVulnsSolvedUnsolved,
+  ServicePackageTicketCountsSolvedUnsolved,
+  VulnResponse,
+  TicketResponse,
+  UserResponse,
+} from "../../../../types/types.gen";
+// === Common ID Constants ===
 export const pteamId = "pteam-abc-123";
 export const serviceId = "service-xyz-789";
 export const packageId = "pkg-uuid-456";
-// === 共通モックデータ ===
-export const mockPTeam = {
+// === Common Mock Data ===
+export const mockPTeam: PTeamInfo = {
   pteam_id: pteamId,
   pteam_name: "Example Team",
+  contact_info: "",
+  alert_slack: {
+    enable: false,
+    webhook_url: "",
+  },
+  alert_ssvc_priority: "immediate",
+  alert_mail: {
+    enable: false,
+    address: "",
+  },
   services: [
     {
       service_id: serviceId,
       service_name: "My Production Service",
       service_safety_impact: "negligible",
+      service_mission_impact: "mission_failure", // Added default
+      system_exposure: "open", // Added default
+      description: "", // Added default
+      keywords: [], // Added default
     },
   ],
 };
-export const mockDependencies = [
+export const mockDependencies: DependencyResponse[] = [
   {
     dependency_id: "dep-1",
+    service_id: serviceId, // Added default
+    package_version_id: "pkg-ver-1", // Added default
+    package_id: "pkg-1", // Added default
     target: "pom.xml",
     package_version: "2.14.1",
     package_name: "log4j-core",
@@ -27,6 +53,9 @@ export const mockDependencies = [
   },
   {
     dependency_id: "dep-2",
+    service_id: serviceId, // Added default
+    package_version_id: "pkg-ver-2", // Added default
+    package_id: "pkg-2", // Added default
     target: "build.gradle",
     package_version: "2.14.1",
     package_name: "log4j-core",
@@ -37,6 +66,9 @@ export const mockDependencies = [
   },
   {
     dependency_id: "dep-3",
+    service_id: serviceId, // Added default
+    package_version_id: "pkg-ver-3", // Added default
+    package_id: "pkg-3", // Added default
     target: "settings.gradle",
     package_version: "2.14.0",
     package_name: "log4j-core",
@@ -47,6 +79,9 @@ export const mockDependencies = [
   },
   {
     dependency_id: "dep-4",
+    service_id: serviceId, // Added default
+    package_version_id: "pkg-ver-4", // Added default
+    package_id: "pkg-4", // Added default
     target: "ivy.xml",
     package_version: "2.14.1",
     package_name: "log4j-core",
@@ -57,6 +92,9 @@ export const mockDependencies = [
   },
   {
     dependency_id: "dep-5",
+    service_id: serviceId, // Added default
+    package_version_id: "pkg-ver-5", // Added default
+    package_id: "pkg-5", // Added default
     target: "libs.versions.toml",
     package_version: "2.14.1",
     package_name: "log4j-core",
@@ -66,15 +104,27 @@ export const mockDependencies = [
     vuln_matching_ecosystem: "maven",
   },
 ];
-export const mockVulnIdsUnsolved = {
+export const mockVulnIdsUnsolved: ServicePackageVulnsSolvedUnsolved = {
+  pteam_id: pteamId,
+  service_id: serviceId,
+  package_id: packageId,
+  related_ticket_status: "unsolved",
   vuln_ids: ["vuln-001", "vuln-002"],
 };
-export const mockVulnIdsSolved = {
+export const mockVulnIdsSolved: ServicePackageVulnsSolvedUnsolved = {
+  pteam_id: pteamId,
+  service_id: serviceId,
+  package_id: packageId,
+  related_ticket_status: "solved",
   vuln_ids: ["vuln-003"],
 };
-export const mockTicketCountsUnsolved = {
+export const mockTicketCountsUnsolved: ServicePackageTicketCountsSolvedUnsolved = {
   // vuln-001: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
   // vuln-002: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
+  pteam_id: pteamId,
+  service_id: serviceId,
+  package_id: packageId,
+  related_ticket_status: "unsolved",
   ssvc_priority_count: {
     immediate: 4,
     out_of_cycle: 2,
@@ -82,8 +132,12 @@ export const mockTicketCountsUnsolved = {
     defer: 2,
   },
 };
-export const mockTicketCountsSolved = {
+export const mockTicketCountsSolved: ServicePackageTicketCountsSolvedUnsolved = {
   // vuln-003: immediate(2), out_of_cycle(1), scheduled(1), defer(1)
+  pteam_id: pteamId,
+  service_id: serviceId,
+  package_id: packageId,
+  related_ticket_status: "solved",
   ssvc_priority_count: {
     immediate: 2,
     out_of_cycle: 1,
@@ -91,7 +145,7 @@ export const mockTicketCountsSolved = {
     defer: 1,
   },
 };
-export const mockVulnDetails = {
+export const mockVulnDetails: Record<string, VulnResponse> = {
   "vuln-001": {
     vuln_id: "vuln-001",
     title: "Log4j: Denial of Service via Recursive Lookup",
@@ -156,29 +210,40 @@ export const mockVulnDetails = {
     created_by: "user-003",
   },
 };
-export const mockVulnActions = {
+export type VulnAction = {
+  action_type: string;
+  recommended: boolean;
+  action: string;
+};
+export const mockVulnActions: Record<string, VulnAction[]> = {
   "vuln-001": [
     { action_type: "patch", recommended: true, action: "Apply patch provided by vendor." },
   ],
   "vuln-002": [],
   "vuln-003": [],
 };
-export const mockMembersList = [
+export type Member = {
+  user_id: string;
+  name: string;
+  email: string;
+};
+export const mockMembersList: Member[] = [
   { user_id: "user-1", name: "Alice", email: "alice@example.com" },
   { user_id: "user-2", name: "Bob", email: "bob@example.com" },
   { user_id: "user-003", name: "Charlie", email: "charlie@example.com" },
 ];
-export const mockUserMe = {
+export const mockUserMe: UserResponse = {
   user_id: "current-user-123",
   uid: "current-user",
-  name: "Current User",
+  // name: "Current User", // UserResponse does not have name
   email: "current.user@example.com",
   disabled: false,
   years: 5,
   pteam_roles: [],
+  default_pteam_id: null,
 };
 // --- Tickets Data (vuln-001) ---
-export const mockTicketsVuln001 = [
+export const mockTicketsVuln001: TicketResponse[] = [
   {
     ticket_id: "ticket-100",
     vuln_id: "vuln-001",
@@ -198,7 +263,7 @@ export const mockTicketsVuln001 = [
       note: "Initial alert - 未着手",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "catastrophic",
+      // current_safety_impact: "catastrophic", // not in TicketStatusResponse
     },
   },
   {
@@ -220,7 +285,6 @@ export const mockTicketsVuln001 = [
       note: "Acknowledged - 対応中",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "critical",
     },
   },
   {
@@ -242,7 +306,6 @@ export const mockTicketsVuln001 = [
       note: "Scheduled for next sprint",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "marginal",
     },
   },
   {
@@ -264,7 +327,6 @@ export const mockTicketsVuln001 = [
       note: "Completed - resolved",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "negligible",
     },
   },
   {
@@ -286,12 +348,11 @@ export const mockTicketsVuln001 = [
       note: "Using default safety impact",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: null,
     },
   },
 ];
 // --- Tickets Data (vuln-002) ---
-export const mockTicketsVuln002 = [
+export const mockTicketsVuln002: TicketResponse[] = [
   {
     ticket_id: "ticket-200",
     vuln_id: "vuln-002",
@@ -311,7 +372,6 @@ export const mockTicketsVuln002 = [
       note: "Initial alert",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "catastrophic",
     },
   },
   {
@@ -333,7 +393,6 @@ export const mockTicketsVuln002 = [
       note: "Acknowledged",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "critical",
     },
   },
   {
@@ -355,7 +414,6 @@ export const mockTicketsVuln002 = [
       note: "Scheduled",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "marginal",
     },
   },
   {
@@ -377,7 +435,6 @@ export const mockTicketsVuln002 = [
       note: "Completed",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "negligible",
     },
   },
   {
@@ -399,12 +456,11 @@ export const mockTicketsVuln002 = [
       note: "Using default safety impact",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: null,
     },
   },
 ];
 // --- Tickets Data (vuln-003) ---
-export const mockTicketsVuln003 = [
+export const mockTicketsVuln003: TicketResponse[] = [
   {
     ticket_id: "ticket-300",
     vuln_id: "vuln-003",
@@ -424,7 +480,6 @@ export const mockTicketsVuln003 = [
       note: "Initial alert",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "catastrophic",
     },
   },
   {
@@ -446,7 +501,6 @@ export const mockTicketsVuln003 = [
       note: "Acknowledged",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "critical",
     },
   },
   {
@@ -468,7 +522,6 @@ export const mockTicketsVuln003 = [
       note: "Scheduled",
       scheduled_at: "2025-12-01T00:00:00.032Z",
       action_logs: [],
-      current_safety_impact: "marginal",
     },
   },
   {
@@ -490,7 +543,6 @@ export const mockTicketsVuln003 = [
       note: "Completed",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: "negligible",
     },
   },
   {
@@ -512,7 +564,6 @@ export const mockTicketsVuln003 = [
       note: "Using default safety impact",
       scheduled_at: null,
       action_logs: [],
-      current_safety_impact: null,
     },
   },
 ];
