@@ -12,112 +12,46 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
-import {
-  useGetPTeamQuery,
-  useGetPTeamVulnIdsTiedToServicePackageQuery,
-  useGetPTeamTicketCountsTiedToServicePackageQuery,
-  useGetDependenciesQuery,
-} from "../../services/tcApi.js";
+import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
-import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
+import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
+import { usePackageDependencies, usePackageService, usePackageVulnCounts } from "./api.js";
 
 export function Package() {
+  const { packageId, pteamId, serviceId } = usePageParams();
   const [tabValue, setTabValue] = useState(0);
-
-  const skipByAuth = useSkipUntilAuthUserIsReady();
-
-  const { packageId } = useParams();
-  const params = new URLSearchParams(useLocation().search);
-  const pteamId = params.get("pteamId");
-  const serviceId = params.get("serviceId");
-  const getDependenciesReady = !skipByAuth && pteamId && serviceId;
-  const getPTeamReady = !skipByAuth && pteamId;
-  const getVulnIdsReady = getPTeamReady && serviceId && packageId;
-
-  const offset = 0;
-  const limit = 1000;
-  const {
-    data: serviceDependencies,
-    error: serviceDependenciesError,
-    isLoading: serviceDependenciesIsLoading,
-  } = useGetDependenciesQuery(
-    {
-      path: {
-        pteam_id: pteamId,
-      },
-      query: {
-        service_id: serviceId,
-        package_id: packageId,
-        offset: offset,
-        limit: limit,
-      },
-    },
-    { skip: !getDependenciesReady },
-  );
-  const {
-    data: pteam,
-    error: pteamError,
-    isLoading: pteamIsLoading,
-  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip: !getPTeamReady });
-  const {
-    data: vulnIdsSolved,
-    error: vulnIdsSolvedError,
-    isLoading: vulnIdsSolvedIsLoading,
-  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
-    {
-      path: { pteam_id: pteamId },
-      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "solved" },
-    },
-    { skip: !getVulnIdsReady },
-  );
-  const {
-    data: vulnIdsUnSolved,
-    error: vulnIdsUnSolvedError,
-    isLoading: vulnIdsUnSolvedIsLoading,
-  } = useGetPTeamVulnIdsTiedToServicePackageQuery(
-    {
-      path: { pteam_id: pteamId },
-      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "unsolved" },
-    },
-    { skip: !getVulnIdsReady },
-  );
-  const {
-    data: ticketCountsSolved,
-    error: ticketCountsSolvedError,
-    isLoading: ticketCountsSolvedIsLoading,
-  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    {
-      path: { pteam_id: pteamId },
-      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "solved" },
-    },
-    { skip: !getVulnIdsReady },
-  );
-  const {
-    data: ticketCountsUnSolved,
-    error: ticketCountsUnSolvedError,
-    isLoading: ticketCountsUnSolvedIsLoading,
-  } = useGetPTeamTicketCountsTiedToServicePackageQuery(
-    {
-      path: { pteam_id: pteamId },
-      query: { service_id: serviceId, package_id: packageId, related_ticket_status: "unsolved" },
-    },
-    { skip: !getVulnIdsReady },
-  );
-
   const [open, setOpen] = useState(false);
-
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+
+  const {
+    service,
+    error: pteamError,
+    isLoading: pteamIsLoading,
+  } = usePackageService(pteamId, serviceId);
+
+  const {
+    solvedVulnCount,
+    unsolvedVulnCount,
+    solvedError,
+    unsolvedError,
+    solvedLoading,
+    unsolvedLoading,
+  } = usePackageVulnCounts({ pteamId, serviceId, packageId });
+
+  const {
+    data: packageDependencies,
+    error: packageDependenciesError,
+    isLoading: packageDependenciesIsLoading,
+  } = usePackageDependencies({ pteamId, serviceId, packageId });
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -127,50 +61,40 @@ export function Package() {
   };
 
   if (!pteamId) return <>{noPTeamMessage}</>;
-  if (!getVulnIdsReady) return <></>;
+  if (!serviceId) return <>Service ID is required</>;
+
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>Now loading Team...</>;
-  if (serviceDependenciesError)
-    throw new APIError(errorToString(serviceDependenciesError), { api: "getDependencies" });
-  if (serviceDependenciesIsLoading) return <>Now loading serviceDependencies...</>;
-  if (vulnIdsSolvedError)
-    throw new APIError(errorToString(vulnIdsSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
+  if (packageDependenciesError)
+    throw new APIError(errorToString(packageDependenciesError), { api: "getDependencies" });
+  if (packageDependenciesIsLoading) return <>Now loading packageDependencies...</>;
+  if (solvedError)
+    throw new APIError(errorToString(solvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage (solved)",
     });
-  if (vulnIdsSolvedIsLoading) return <>Now loading vulnIdsSolved...</>;
-  if (vulnIdsUnSolvedError)
-    throw new APIError(errorToString(vulnIdsUnSolvedError), {
-      api: "getPTeamVulnIdsTiedToServicePackage",
+  if (solvedLoading) return <>Now loading solved vuln count...</>;
+  if (unsolvedError)
+    throw new APIError(errorToString(unsolvedError), {
+      api: "getPTeamVulnIdsTiedToServicePackage (unsolved)",
     });
-  if (vulnIdsUnSolvedIsLoading) return <>Now loading vulnIdsUnSolved...</>;
-  if (ticketCountsSolvedError)
-    throw new APIError(errorToString(ticketCountsSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsSolvedIsLoading) return <>Now loading ticketCountsSolved...</>;
-  if (ticketCountsUnSolvedError)
-    throw new APIError(errorToString(ticketCountsUnSolvedError), {
-      api: "getPTeamTicketCountsTiedToServicePackage",
-    });
-  if (ticketCountsUnSolvedIsLoading) return <>Now loading ticketCountsUnSolved...</>;
+  if (unsolvedLoading) return <>Now loading unsolved vuln count...</>;
 
-  const serviceDict = pteam.services.find((service) => service.service_id === serviceId);
+  if (!packageDependencies || packageDependencies.length === 0) {
+    return <>No dependencies found for this package.</>;
+  }
 
-  const references = serviceDependencies.map((dependency) => ({
+  const references = packageDependencies.map((dependency) => ({
     dependencyId: dependency.dependency_id,
     target: dependency.target,
     version: dependency.package_version,
-    service: serviceDict.service_name,
+    service: service.service_name,
     package_name: dependency.package_name,
     package_source_name: dependency.package_source_name,
     package_manager: dependency.package_manager,
     ecosystem: dependency.package_ecosystem,
   }));
 
-  const firstPackageDependency = serviceDependencies[0];
-
-  const numSolved = vulnIdsSolved.vuln_ids?.length ?? 0;
-  const numUnsolved = vulnIdsUnSolved.vuln_ids?.length ?? 0;
+  const firstPackageDependency = packageDependencies[0];
 
   const handleTabChange = (event, value) => setTabValue(value);
 
@@ -183,9 +107,9 @@ export function Package() {
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             {isMdUp ? (
-              <Tooltip title={serviceDict.service_name}>
+              <Tooltip title={service.service_name}>
                 <Chip
-                  label={serviceDict.service_name}
+                  label={service.service_name}
                   variant="outlined"
                   sx={{
                     borderRadius: "2px",
@@ -204,10 +128,10 @@ export function Package() {
                   disableFocusListener
                   disableHoverListener
                   disableTouchListener
-                  title={serviceDict.service_name}
+                  title={service.service_name}
                 >
                   <Chip
-                    label={serviceDict.service_name}
+                    label={service.service_name}
                     variant="outlined"
                     sx={{
                       borderRadius: "2px",
@@ -231,7 +155,7 @@ export function Package() {
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
           </Typography>
-          <PackageReferences references={references} serviceDict={serviceDict} />
+          <PackageReferences references={references} serviceDict={service} />
         </Box>
       </Box>
       <CodeBlock visible={visibleCodeBlock} />
@@ -239,29 +163,15 @@ export function Package() {
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_vuln_tabs">
-            <Tab label={`UNSOLVED VULNS (${numUnsolved})`} {...a11yProps(0)} />
-            <Tab label={`SOLVED VULNS (${numSolved})`} {...a11yProps(1)} />
+            <Tab label={`UNSOLVED VULNS (${unsolvedVulnCount})`} {...a11yProps(0)} />
+            <Tab label={`SOLVED VULNS (${solvedVulnCount})`} {...a11yProps(1)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <PTeamVulnsPerPackage
-            pteamId={pteamId}
-            service={serviceDict}
-            packageId={packageId}
-            references={references}
-            vulnIds={vulnIdsUnSolved.vuln_ids}
-            ticketCounts={ticketCountsUnSolved.ssvc_priority_count}
-          />
+          <VulnerabilityTable relatedTicketStatus="unsolved" />
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <PTeamVulnsPerPackage
-            pteamId={pteamId}
-            service={serviceDict}
-            packageId={packageId}
-            references={references}
-            vulnIds={vulnIdsSolved.vuln_ids}
-            ticketCounts={ticketCountsSolved.ssvc_priority_count}
-          />
+          <VulnerabilityTable relatedTicketStatus="solved" />
         </TabPanel>
       </Box>
     </>
