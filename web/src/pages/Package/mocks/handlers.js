@@ -18,12 +18,12 @@ import {
   mockTicketsVuln003,
 } from "./mockData";
 
-// 遅延設定（ms）- 0にすれば遅延なし
+// Delay setting (ms) - set to 0 to disable delay
 const MOCK_DELAY = 500;
 
-// === MSW ハンドラーファクトリ ===
+// === MSW Handler Factory ===
 /**
- * PackagePageとVulnerabilityTableで共通のデフォルトハンドラーを作成
+ * Create common default handlers for PackagePage and VulnerabilityTable
  */
 export function createDefaultHandlers() {
   return [
@@ -90,7 +90,7 @@ export function createDefaultHandlers() {
       if (vulnDetail) {
         return HttpResponse.json(vulnDetail);
       }
-      // pagination testing用の動的生成
+      // Dynamic generation for pagination testing
       if (vulnId.startsWith("vuln-extra-")) {
         const index = parseInt(vulnId.split("-").pop());
         return HttpResponse.json({
@@ -138,7 +138,7 @@ export function createDefaultHandlers() {
       } else if (vulnId === "vuln-003") {
         return HttpResponse.json(mockTicketsVuln003);
       }
-      // pagination testing用の動的生成
+      // Dynamic generation for pagination testing
       if (vulnId && vulnId.startsWith("vuln-extra-")) {
         const numTickets = (vulnId.charCodeAt(vulnId.length - 1) % 3) + 1;
         const tickets = Array.from({ length: numTickets }, (_, i) => ({
@@ -174,16 +174,16 @@ export function createDefaultHandlers() {
     }),
 
     // ========================================
-    // Mutation ハンドラー
+    // Mutation Handlers
     // ========================================
 
-    // updateTicket - チケット更新
+    // updateTicket - Update ticket
     http.put(`*/pteams/${pteamId}/tickets/:ticketId`, async ({ request, params }) => {
       await delay(MOCK_DELAY);
       const { ticketId } = params;
       const body = await request.json();
 
-      // 既存のチケットデータを探す
+      // Find existing ticket data
       const allTickets = [...mockTicketsVuln001, ...mockTicketsVuln002, ...mockTicketsVuln003];
       const existingTicket = allTickets.find((t) => t.ticket_id === ticketId);
 
@@ -191,7 +191,7 @@ export function createDefaultHandlers() {
         return HttpResponse.json({ detail: "Ticket not found" }, { status: 404 });
       }
 
-      // 成功レスポンスを返す（リクエストボディの内容をマージ）
+      // Return success response (merge request body content)
       const updatedTicket = {
         ...existingTicket,
         ...body,
@@ -205,12 +205,12 @@ export function createDefaultHandlers() {
       return HttpResponse.json(updatedTicket);
     }),
 
-    // createActionLog - アクションログ作成
+    // createActionLog - Create action log
     http.post(`*/actionlogs`, async ({ request }) => {
       await delay(MOCK_DELAY);
       const body = await request.json();
 
-      // 成功レスポンスを返す
+      // Return success response
       const actionLog = {
         logging_id: `log-${Date.now()}`,
         action: body.action,
