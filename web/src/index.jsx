@@ -27,6 +27,9 @@ import {
   ToDo,
   Vulnerability,
 } from "./pages";
+import { ProductEolDetailPage, ProductEolListPage } from "./pages/Eol/ProductEolPage";
+import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboard";
+import { MOCK_SERVICES, MOCK_LAST_UPDATED } from "./pages/Eol/mocks/serviceData";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
 
@@ -82,6 +85,17 @@ root.render(
                   <Route path="vulnerabilities">
                     <Route index element={<Vulnerability />} />
                   </Route>
+                  <Route
+                    path="/eol"
+                    element={
+                      <ServiceEolDashboard
+                        services={MOCK_SERVICES}
+                        lastUpdated={MOCK_LAST_UPDATED}
+                      />
+                    }
+                  ></Route>
+                  <Route path="/supported-products" element={<ProductEolListPage />} />
+                  <Route path="/supported-products/:productId" element={<ProductEolDetailPage />} />
                 </Route>
               </Routes>
             </Router>
