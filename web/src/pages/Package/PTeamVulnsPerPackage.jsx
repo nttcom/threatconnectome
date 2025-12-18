@@ -1,7 +1,7 @@
 import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { sortedSSVCPriorities } from "../../utils/const";
+import { sortedSSVCPriorities } from "../../utils/ssvcUtils";
 
 import { SSVCPriorityCountChip } from "./SSVCPriorityCountChip";
 import { VulnCardList } from "./VulnCardList/VulnCardList";

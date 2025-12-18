@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { ssvcPriorityProps } from "../../../utils/const";
+import { ssvcPriorityProps } from "../../../utils/ssvcUtils";
 import { errorToString } from "../../../utils/func";
 
 import { ToDoTableRow } from "./ToDoTableRow";

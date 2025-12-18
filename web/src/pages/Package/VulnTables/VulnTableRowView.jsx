@@ -8,8 +8,9 @@ import { useState } from "react";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetDependenciesQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { ssvcPriorityProps } from "../../../utils/const.js";
-import { errorToString, searchWorstSSVC, utcStringToLocalDate } from "../../../utils/func";
+import { ssvcPriorityProps } from "../../../utils/ssvcUtils";
+import { errorToString, utcStringToLocalDate } from "../../../utils/func";
+import { searchWorstSSVC } from "../../../utils/ssvcUtils";
 import { createUpdateAction, findMatchedVulnPackage } from "../../../utils/vulnUtils.js";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 

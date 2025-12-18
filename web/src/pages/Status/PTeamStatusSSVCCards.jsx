@@ -19,13 +19,12 @@ import { useState, useEffect } from "react";
 
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
-  sortedSSVCPriorities,
-  ssvcPriorityProps,
   sortedSystemExposure,
   systemExposure,
   sortedMissionImpat,
   missionImpact,
 } from "../../utils/const";
+import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { errorToString } from "../../utils/func";
 
 export function PTeamStatusSSVCCards(props) {

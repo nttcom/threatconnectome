@@ -67,42 +67,6 @@ export const blobToDataURL = async (blob) =>
     reader.readAsDataURL(blob);
   });
 
-export const compareSSVCPriority = (prio1, prio2) => {
-  const toIntDict = {
-    immediate: 1,
-    Immediate: 1,
-    out_of_cycle: 2,
-    "Out-of-cycle": 2,
-    scheduled: 3,
-    Scheduled: 3,
-    defer: 4,
-    Defer: 4,
-    safe: 4,
-    Safe: 4,
-    empty: 4,
-    Empty: 4,
-  };
-  const [int1, int2] = [toIntDict[prio1], toIntDict[prio2]];
-  if (int1 === int2) return 0;
-  else if (int1 < int2) return -1;
-  else return 1;
-};
-
-export const searchWorstSSVC = (tickets) => {
-  if (!tickets || tickets.length === 0) {
-    return null;
-  }
-
-  const result = tickets.reduce((worstSSVC, ticket) => {
-    if (compareSSVCPriority(worstSSVC, ticket.ssvc_deployer_priority) === 1) {
-      return ticket.ssvc_deployer_priority;
-    }
-    return worstSSVC;
-  }, tickets[0].ssvc_deployer_priority);
-
-  return result;
-};
-
 export const checkAdmin = (member, pteamId) => {
   return member.pteam_roles.some(
     (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
