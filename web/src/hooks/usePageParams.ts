@@ -12,6 +12,5 @@ export function usePageParams() {
     packageId,
     pteamId: searchParams.get("pteamId"),
     serviceId: searchParams.get("serviceId"),
-    vulnId: searchParams.get("vulnId"),
   };
 }
