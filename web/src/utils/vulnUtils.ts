@@ -2,7 +2,7 @@ import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen.t
 
 interface currentPackage {
   package_name: string;
-  package_source_name: string | null | undefined;
+  package_source_name?: string | null;
   vuln_matching_ecosystem: string;
 }
 
