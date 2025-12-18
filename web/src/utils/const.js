@@ -324,37 +324,6 @@ export const drawerParams = {
   hoverColor: brown[700],
 };
 
-export const cvssRatings = {
-  None: { min: 0.0, max: 0.0 },
-  Low: { min: 0.1, max: 3.9 },
-  Medium: { min: 4.0, max: 6.9 },
-  High: { min: 7.0, max: 8.9 },
-  Critical: { min: 9.0, max: 10.0 },
-};
-
-export const cvssProps = {
-  None: {
-    cvssBgcolor: grey[600],
-    threatCardBgcolor: grey[100],
-  },
-  Low: {
-    cvssBgcolor: amber[600],
-    threatCardBgcolor: amber[100],
-  },
-  Medium: {
-    cvssBgcolor: amber[600],
-    threatCardBgcolor: amber[100],
-  },
-  High: {
-    cvssBgcolor: orange[600],
-    threatCardBgcolor: orange[100],
-  },
-  Critical: {
-    cvssBgcolor: red[600],
-    threatCardBgcolor: red[100],
-  },
-};
-
 export const preserveKeys = [
   "pteamId", // Query parameters required on all pages
   "serviceId", // Query parameters required on all pages

@@ -1,5 +1,3 @@
-import { cvssRatings } from "./const";
-
 export const a11yProps = (index) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -103,30 +101,6 @@ export const searchWorstSSVC = (tickets) => {
   }, tickets[0].ssvc_deployer_priority);
 
   return result;
-};
-
-export const cvssConvertToName = (cvssScore) => {
-  let rating;
-  if (0 < cvssScore && cvssScore < 4.0) {
-    rating = "Low";
-  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
-    rating = "Medium";
-  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
-    rating = "High";
-  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
-    rating = "Critical";
-  } else {
-    rating = "None";
-  }
-  return rating;
-};
-
-export const cvssConvertToScore = (cvssName) => {
-  const rating = cvssRatings[cvssName];
-  if (rating) {
-    return [rating.min, rating.max];
-  }
-  return [undefined, undefined];
 };
 
 export const checkAdmin = (member, pteamId) => {
