@@ -25,7 +25,7 @@ import {
 } from "../../services/tcApi.js";
 import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const.js";
-import { a11yProps, errorToString } from "../../utils/func.js";
+import { a11yProps, errorToString } from "../../utils/func";
 
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PTeamVulnsPerPackage } from "./PTeamVulnsPerPackage.jsx";

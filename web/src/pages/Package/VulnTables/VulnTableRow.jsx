@@ -8,7 +8,7 @@ import {
   useGetVulnQuery,
 } from "../../../services/tcApi.js";
 import { APIError } from "../../../utils/APIError.js";
-import { errorToString } from "../../../utils/func.js";
+import { errorToString } from "../../../utils/func";
 
 import { VulnTableRowView } from "./VulnTableRowView.jsx";
 

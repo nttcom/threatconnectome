@@ -4,8 +4,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Firebase from "../utils/Firebase.js";
 // @ts-expect-error TS7016
 import Supabase from "../utils/Supabase.js";
-// @ts-expect-error TS7016
-import { blobToDataURL } from "../utils/func.js";
+import { blobToDataURL } from "../utils/func";
 
 import type {
   CreateLogActionlogsPostData,

@@ -2,7 +2,7 @@ import { Box, TableCell, TableRow, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip.jsx";
-import { utcStringToLocalDate } from "../../../utils/func.js";
+import { utcStringToLocalDate } from "../../../utils/func";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
 import { AssigneesSelector } from "./AssigneesSelector.jsx";
