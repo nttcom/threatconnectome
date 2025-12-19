@@ -40,19 +40,12 @@ export const getCvssColor = (score: number | null | undefined) => {
 };
 
 export const cvssConvertToName = (cvssScore: number) => {
-  let rating;
-  if (0 < cvssScore && cvssScore < 4.0) {
-    rating = "Low";
-  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
-    rating = "Medium";
-  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
-    rating = "High";
-  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
-    rating = "Critical";
-  } else {
-    rating = "None";
+  for (const [name, range] of Object.entries(cvssRatings)) {
+    if (range.min <= cvssScore && cvssScore <= range.max) {
+      return name;
+    }
   }
-  return rating;
+  return "None";
 };
 
 type CVSSRatingName = "None" | "Low" | "Medium" | "High" | "Critical";
