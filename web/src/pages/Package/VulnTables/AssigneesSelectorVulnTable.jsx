@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useUpdateTicketMutation } from "../../../services/tcApi";
 import { errorToString, setEquals } from "../../../utils/func";
 
-export function AssigneesSelector(props) {
+export function AssigneesSelectorVulnTable(props) {
   const { pteamId, serviceId, vulnId, packageId, ticketId, currentAssigneeIds, members } = props;
 
   const [assigneeUserIds, setAssigneeUserIds] = useState(

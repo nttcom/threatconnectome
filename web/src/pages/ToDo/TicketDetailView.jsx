@@ -28,7 +28,7 @@ import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
-import { AssigneesSelector } from "../Package/VulnTables/AssigneesSelector.jsx";
+import { AssigneesSelectorVulnTable } from "../Package/VulnTables/AssigneesSelectorVulnTable.jsx";
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
@@ -266,7 +266,7 @@ export function TicketDetailView({ ticket }) {
           </DetailRow>
           <DetailRow label="Assignees">
             <FormControl sx={{ width: 200 }} size="small" variant="standard">
-              <AssigneesSelector
+              <AssigneesSelectorVulnTable
                 pteamId={ticket.pteam_id}
                 serviceId={ticket.service_id}
                 vulnId={ticket.vuln_id}
