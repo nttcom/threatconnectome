@@ -159,7 +159,7 @@ export function Package() {
           <Typography mr={1} mb={1} variant="caption">
             <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
           </Typography>
-          <PackageReferences references={references} serviceDict={service} />
+          <PackageReferences references={references} service={service} />
         </Box>
       </Box>
       <CodeBlock visible={visibleCodeBlock} />
