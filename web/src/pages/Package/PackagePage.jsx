@@ -15,6 +15,11 @@ import { useState } from "react";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
+import {
+  usePackageDependencies,
+  usePackageService,
+  usePackageVulnCounts,
+} from "../../hooks/Package/useApiForPackage";
 import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const.js";
@@ -23,7 +28,6 @@ import { a11yProps, errorToString } from "../../utils/func.js";
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
-import { usePackageDependencies, usePackageService, usePackageVulnCounts } from "./api.js";
 
 export function Package() {
   const { packageId, pteamId, serviceId } = usePageParams();
