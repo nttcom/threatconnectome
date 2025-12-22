@@ -100,76 +100,6 @@ export const threatImpactProps = {
   },
 };
 
-const prop_immediate = {
-  displayName: "Immediate",
-  icon: RunningWithErrorsIcon,
-  statusLabel:
-    "Immediate: Act immediately; focus all resources on applying the fix as quickly as possible, including, if necessary, pausing regular organization operations.",
-  style: {
-    bgcolor: red[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_out_of_cycle = {
-  displayName: "Out-of-cycle",
-  icon: WarningIcon,
-  statusLabel:
-    "Out-of-cycle: Act more quickly than usual to apply the mitigation or remediation out-of-cycle, during the next available opportunity, working overtime if necessary.",
-  style: {
-    bgcolor: orange[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_scheduled = {
-  displayName: "Scheduled",
-  icon: PriorityHighIcon,
-  statusLabel: "Scheduled: Act during regularly scheduled maintenance time.",
-  style: {
-    bgcolor: amber[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_defer = {
-  displayName: "Defer",
-  icon: CheckIcon,
-  statusLabel: "Defer: Do not act at present.",
-  style: {
-    bgcolor: grey[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_safe = {
-  chipLabel: "Safe",
-  icon: HealthAndSafetyIcon,
-  statusLabel: "All vulnerabilities have been resolved",
-  style: {
-    bgcolor: green[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-// sorted priorities -- should match with strings which api returns.
-export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
-export const ssvcPriorityProps = {
-  immediate: prop_immediate,
-  Immediate: prop_immediate,
-  out_of_cycle: prop_out_of_cycle,
-  "Out-of-cycle": prop_out_of_cycle,
-  scheduled: prop_scheduled,
-  Scheduled: prop_scheduled,
-  defer: prop_defer,
-  Defer: prop_defer,
-  safe: prop_safe,
-  Safe: prop_safe,
-  empty: prop_defer,
-  Empty: prop_defer,
-};
-export const defaultAlertThreshold = sortedSSVCPriorities[0];
-
 export const sortedSystemExposure = ["open", "controlled", "small"];
 export const systemExposure = {
   open: "Open",
@@ -322,37 +252,6 @@ export const noPTeamMessage = "You do not belong to any pteam. Please create a p
 export const drawerParams = {
   mainColor: brown[900],
   hoverColor: brown[700],
-};
-
-export const cvssRatings = {
-  None: { min: 0.0, max: 0.0 },
-  Low: { min: 0.1, max: 3.9 },
-  Medium: { min: 4.0, max: 6.9 },
-  High: { min: 7.0, max: 8.9 },
-  Critical: { min: 9.0, max: 10.0 },
-};
-
-export const cvssProps = {
-  None: {
-    cvssBgcolor: grey[600],
-    threatCardBgcolor: grey[100],
-  },
-  Low: {
-    cvssBgcolor: amber[600],
-    threatCardBgcolor: amber[100],
-  },
-  Medium: {
-    cvssBgcolor: amber[600],
-    threatCardBgcolor: amber[100],
-  },
-  High: {
-    cvssBgcolor: orange[600],
-    threatCardBgcolor: orange[100],
-  },
-  Critical: {
-    cvssBgcolor: red[600],
-    threatCardBgcolor: red[100],
-  },
 };
 
 export const preserveKeys = [

@@ -1,5 +1,6 @@
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
-import { ssvcPriorityProps, systemExposure, missionImpact } from "../../utils/const";
+import { systemExposure, missionImpact } from "../../utils/const";
+import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 

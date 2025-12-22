@@ -31,12 +31,11 @@ import {
 } from "../services/tcApi";
 import {
   modalCommonButtonStyle,
-  sortedSSVCPriorities,
-  ssvcPriorityProps,
   maxEmailAddressLengthInHalf,
   maxSlackWebhookUrlLengthInHalf,
 } from "../utils/const";
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
+import { ssvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
 
 import { CheckButton } from "./CheckButton";
 
