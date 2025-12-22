@@ -90,7 +90,7 @@ export function AssigneesSelectorVulnTable(props) {
   );
 }
 
-AssigneesSelector.propTypes = {
+AssigneesSelectorVulnTable.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
