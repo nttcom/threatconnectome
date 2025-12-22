@@ -34,8 +34,8 @@ import {
   maxEmailAddressLengthInHalf,
   maxSlackWebhookUrlLengthInHalf,
 } from "../utils/const";
-import { ssvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
+import { ssvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
 
 import { CheckButton } from "./CheckButton";
 

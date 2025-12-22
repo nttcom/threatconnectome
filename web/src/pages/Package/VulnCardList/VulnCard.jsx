@@ -10,8 +10,8 @@ import {
   useGetDependenciesQuery,
 } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
-import { sortedSSVCPriorities } from "../../../utils/ssvcUtils";
 import { errorToString } from "../../../utils/func";
+import { sortedSSVCPriorities } from "../../../utils/ssvcUtils";
 import { findMatchedVulnPackage } from "../../../utils/vulnUtils";
 import { VulnerabilityDrawer } from "../../Vulnerability/VulnerabilityDrawer.jsx";
 import { SSVCPriorityCountChip } from "../SSVCPriorityCountChip";

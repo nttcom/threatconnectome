@@ -24,8 +24,8 @@ import {
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError.js";
-import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
+import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { AssigneesSelectorVulnTable } from "../Package/VulnTables/AssigneesSelectorVulnTable.jsx";

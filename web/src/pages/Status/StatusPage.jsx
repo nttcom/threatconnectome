@@ -38,8 +38,8 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { noPTeamMessage } from "../../utils/const";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { errorToString } from "../../utils/func";
+import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";

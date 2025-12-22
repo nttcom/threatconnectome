@@ -24,8 +24,8 @@ import {
   sortedMissionImpat,
   missionImpact,
 } from "../../utils/const";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { errorToString } from "../../utils/func";
+import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
 
 export function PTeamStatusSSVCCards(props) {
   const { pteamId, service, highestSsvcPriority } = props;
