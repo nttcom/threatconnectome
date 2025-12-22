@@ -2,8 +2,7 @@ import { Avatar, Box, Card, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 
-import { cvssProps } from "../../utils/const";
-import { cvssConvertToName } from "../../utils/func";
+import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 
 export function VulnCVSSCard(props) {
   const { vuln } = props;

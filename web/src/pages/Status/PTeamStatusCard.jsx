@@ -15,7 +15,8 @@ import PropTypes from "prop-types";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
-import { calcTimestampDiff, compareSSVCPriority } from "../../utils/func";
+import { calcTimestampDiff } from "../../utils/func";
+import { compareSSVCPriority } from "../../utils/ssvcUtils";
 
 function LineWithTooltip(props) {
   const { ticketHandlingStatus, ratio, num } = props;
