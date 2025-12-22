@@ -173,6 +173,7 @@ lang_families = {
     "rubygems": "gem",
     "maven": "maven",
     "go": "golang",
+    "composer": "composer",
 }
 
 
