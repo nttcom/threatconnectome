@@ -9,9 +9,7 @@ import {
 /**
  * Custom hook to retrieve the total number of solved/unsolved vulnerabilities
  */
-export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
-  const vulnIdsReady = !!(pteamId && serviceId && packageId);
-
+export function usePackageVulnCounts({ pteamId, serviceId, packageId, getVulnIdsReady }) {
   const {
     solvedVulnCount = 0,
     error: solvedError,
@@ -19,7 +17,7 @@ export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
   } = usePackageVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
     {
-      skip: !vulnIdsReady,
+      skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
         solvedVulnCount: data?.vuln_ids?.length ?? 0,
         error,
@@ -34,7 +32,7 @@ export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
   } = usePackageVulnIds(
     { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
     {
-      skip: !vulnIdsReady,
+      skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
         unsolvedVulnCount: data?.vuln_ids?.length ?? 0,
         error,
