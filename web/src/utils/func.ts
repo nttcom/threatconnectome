@@ -1,5 +1,5 @@
-// @ts-expect-error TS7016
-import { cvssRatings } from "./const";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { SerializedError } from "@reduxjs/toolkit";
 
 import { UserResponse } from "../../types/types.gen.ts";
 
@@ -48,19 +48,15 @@ export const utcStringToLocalDate = (
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
 };
 
-export const errorToString = (error: string | Record<string, any>) => {
+export const errorToString = (error: string | SerializedError | FetchBaseQueryError) => {
   if (typeof error === "string") return error;
-  if (error.status && error.data?.detail) {
+  if ("status" in error && error.data && typeof error.data === "object" && "detail" in error.data) {
     // RTKQ
-    if (typeof error.data?.detail === "string") return `${error.status}: ${error.data.detail}`;
-    return `${error.status}: ${JSON.stringify(error.data.detail)}`; // maybe 422
+    const detail = (error.data as Record<string, unknown>).detail;
+    if (typeof detail === "string") return `${error.status}: ${detail}`;
+    return `${error.status}: ${JSON.stringify(detail)}`; // maybe 422
   }
-  if (typeof error.response?.data?.detail === "string")
-    // error message from api
-    return error.response.data.detail;
-  if (error.response?.status && error.response.statusText)
-    // maybe 422 by Pydantic
-    return `${error.response?.status}: ${error.response?.statusText}`;
+
   return JSON.stringify(error); // not expected case
 };
 
