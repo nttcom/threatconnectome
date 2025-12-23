@@ -1,0 +1,303 @@
+import { http, HttpResponse, delay } from "msw";
+
+import { AssigneesSelector } from "./AssigneesSelector.jsx";
+
+const pteamId = "pteam-abc-123";
+const ticketId = "ticket-xyz-789";
+
+// API returns an array, not an object
+const mockMembersArray = [
+  {
+    user_id: "user-1",
+    uid: "uid-1",
+    email: "alice@example.com",
+  },
+  {
+    user_id: "user-2",
+    uid: "uid-2",
+    email: "bob@example.com",
+  },
+  {
+    user_id: "user-3",
+    uid: "uid-3",
+    email: "charlie@example.com",
+  },
+  {
+    user_id: "user-4",
+    uid: "uid-4",
+    email: "diana@example.com",
+  },
+  {
+    user_id: "user-5",
+    uid: "uid-5",
+    email: "eve@example.com",
+  },
+];
+
+export default {
+  title:
+    "PackagePage/VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/AssigneesSelector",
+  component: AssigneesSelector,
+  tags: ["autodocs"],
+  decorators: [
+    (Story) => (
+      <div style={{ padding: "20px", maxWidth: "400px" }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/test?pteamId=${pteamId}`],
+      },
+      path: "/test",
+      useRoutes: true,
+    },
+  },
+};
+
+// === Basic States ===
+
+export const NoAssignees = {
+  args: {
+    ticketId,
+    currentAssigneeIds: [],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async ({ params }) => {
+          console.log("MSW intercepted PATCH:", params);
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+export const OneAssignee = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+export const MultipleAssignees = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1", "user-2", "user-3"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+export const AllMembersAssigned = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1", "user-2", "user-3", "user-4", "user-5"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+// === Loading States ===
+
+export const LoadingMembers = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", async () => {
+          await delay("infinite");
+        }),
+      ],
+    },
+  },
+};
+
+export const SlowUpdate = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1", "user-2"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(3000);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+// === Error States ===
+
+export const UpdateError = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json(mockMembersArray);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({ detail: "Failed to update assignees" }, { status: 500 });
+        }),
+      ],
+    },
+  },
+};
+
+export const LoadMembersError = {
+  args: {
+    ticketId,
+    currentAssigneeIds: [],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json({ detail: "Failed to load members" }, { status: 500 });
+        }),
+      ],
+    },
+  },
+};
+
+// === Edge Cases ===
+
+export const EmptyTeam = {
+  args: {
+    ticketId,
+    currentAssigneeIds: [],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json([]);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+export const LargeTeam = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1", "user-5"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          const largeTeam = [];
+          for (let i = 1; i <= 50; i++) {
+            largeTeam.push({
+              user_id: `user-${i}`,
+              uid: `uid-${i}`,
+              email: `user${i}@example.com`,
+            });
+          }
+          return HttpResponse.json(largeTeam);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
+
+export const LongEmailAddresses = {
+  args: {
+    ticketId,
+    currentAssigneeIds: ["user-1"],
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/api/pteams/:pteamId/members", () => {
+          return HttpResponse.json([
+            {
+              user_id: "user-1",
+              uid: "uid-1",
+              email: "very.long.email.address.that.might.overflow@subdomain.example.com",
+            },
+            {
+              user_id: "user-2",
+              uid: "uid-2",
+              email: "another.extremely.long.email.name@company.example.org",
+            },
+            {
+              user_id: "user-3",
+              uid: "uid-3",
+              email: "short@ex.co",
+            },
+          ]);
+        }),
+        http.put("*/api/pteams/:pteamId/tickets/:ticketId", async () => {
+          await delay(500);
+          return HttpResponse.json({});
+        }),
+      ],
+    },
+  },
+};
