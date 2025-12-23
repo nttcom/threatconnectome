@@ -27,8 +27,7 @@ import { useState } from "react";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";
-import { cvssRatings } from "../../utils/const";
-import { cvssConvertToScore } from "../../utils/func";
+import { cvssRatings, cvssConvertToScore } from "../../utils/cvssUtils";
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function VulnSearchModal(props) {

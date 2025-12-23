@@ -57,7 +57,7 @@ import type {
   CheckWebhookUrlExternalSlackCheckPostData,
   GetPteamMembersPteamsPteamIdMembersGetData,
   PteamMemberGetResponse,
-  GetVulnVulnsVulnIdGetResponses,
+  VulnResponse,
   GetVulnVulnsVulnIdGetData,
 } from "../../types/types.gen.ts";
 
@@ -560,7 +560,7 @@ export const tcApi = createApi({
         ) ?? []),
       ],
     }),
-    getVuln: builder.query<GetVulnVulnsVulnIdGetResponses, GetVulnVulnsVulnIdGetData>({
+    getVuln: builder.query<VulnResponse, GetVulnVulnsVulnIdGetData>({
       query: (arg) => `/vulns/${arg.path.vuln_id}`,
       providesTags: (_result, _error, _arg) => [{ type: "Vuln", id: `${_arg.path.vuln_id}` }],
     }),

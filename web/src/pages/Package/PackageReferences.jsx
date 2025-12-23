@@ -16,7 +16,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 
 export function PackageReferences(props) {
-  const { references, serviceDict } = props;
+  const { references, service } = props;
 
   return (
     <div>
@@ -46,7 +46,7 @@ export function PackageReferences(props) {
                 <TableBody>
                   {references.map(
                     (ref) =>
-                      ref.service === serviceDict.service_name && (
+                      ref.service === service?.service_name && (
                         <TableRow key={ref.service + "-" + ref.target + "-" + ref.version}>
                           <TableCell component="th" scope="row">
                             {ref.target}
@@ -68,5 +68,5 @@ export function PackageReferences(props) {
 
 PackageReferences.propTypes = {
   references: PropTypes.arrayOf(PropTypes.object).isRequired,
-  serviceDict: PropTypes.object.isRequired,
+  service: PropTypes.object.isRequired,
 };

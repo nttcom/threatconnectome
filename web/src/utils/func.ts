@@ -1,21 +1,7 @@
 // @ts-expect-error TS7016
 import { cvssRatings } from "./const";
 
-import { UserResponse, TicketResponse } from "../../types/types.gen.ts";
-
-type SSVCPriority =
-  | "immediate"
-  | "Immediate"
-  | "out_of_cycle"
-  | "Out-of-cycle"
-  | "scheduled"
-  | "Scheduled"
-  | "defer"
-  | "Defer"
-  | "safe"
-  | "Safe"
-  | "empty"
-  | "Empty";
+import { UserResponse } from "../../types/types.gen.ts";
 
 export const a11yProps = (index: number) => ({
   id: `tab-${index}`,
@@ -88,73 +74,6 @@ export const blobToDataURL = async (blob: Blob) =>
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(blob);
   });
-
-export const compareSSVCPriority = (prio1: SSVCPriority, prio2: SSVCPriority) => {
-  const toIntDict = {
-    immediate: 1,
-    Immediate: 1,
-    out_of_cycle: 2,
-    "Out-of-cycle": 2,
-    scheduled: 3,
-    Scheduled: 3,
-    defer: 4,
-    Defer: 4,
-    safe: 4,
-    Safe: 4,
-    empty: 4,
-    Empty: 4,
-  };
-  const [int1, int2] = [toIntDict[prio1], toIntDict[prio2]];
-  if (int1 === int2) return 0;
-  else if (int1 < int2) return -1;
-  else return 1;
-};
-
-export const searchWorstSSVC = (tickets: Array<TicketResponse>) => {
-  if (!tickets || tickets.length === 0) {
-    return null;
-  }
-
-  const result = tickets.reduce((worstSSVC, ticket) => {
-    const currentPrio = ticket.ssvc_deployer_priority ?? "empty";
-    const worstPrio = worstSSVC ?? "empty";
-    if (compareSSVCPriority(worstPrio, currentPrio) === 1) {
-      return ticket.ssvc_deployer_priority;
-    }
-    return worstSSVC;
-  }, tickets[0].ssvc_deployer_priority);
-
-  return result;
-};
-
-export const cvssConvertToName = (cvssScore: number | string) => {
-  let rating;
-
-  if (typeof cvssScore === "string") {
-    return "None";
-  }
-
-  if (0 < cvssScore && cvssScore < 4.0) {
-    rating = "Low";
-  } else if (4.0 <= cvssScore && cvssScore < 7.0) {
-    rating = "Medium";
-  } else if (7.0 <= cvssScore && cvssScore < 9.0) {
-    rating = "High";
-  } else if (9.0 <= cvssScore && cvssScore <= 10.0) {
-    rating = "Critical";
-  } else {
-    rating = "None";
-  }
-  return rating;
-};
-
-export const cvssConvertToScore = (cvssName: string) => {
-  const rating = cvssRatings[cvssName];
-  if (rating) {
-    return [rating.min, rating.max];
-  }
-  return [undefined, undefined];
-};
 
 export const checkAdmin = (member: UserResponse, pteamId: string) => {
   return member.pteam_roles.some(

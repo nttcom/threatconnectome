@@ -5,7 +5,7 @@ import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusCh
 import { utcStringToLocalDate } from "../../../utils/func";
 import { WarningTooltip } from "../WarningTooltip.jsx";
 
-import { AssigneesSelector } from "./AssigneesSelector.jsx";
+import { AssigneesSelectorVulnTable } from "./AssigneesSelectorVulnTable.jsx";
 import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
 
@@ -64,7 +64,7 @@ export function TicketTableRow(props) {
       </TableCell>
       <TableCell>{utcStringToLocalDate(ticket.ticket_status.scheduled_at, false) || "-"}</TableCell>
       <TableCell>
-        <AssigneesSelector
+        <AssigneesSelectorVulnTable
           key={ticket.ticket_status.assignees.join("")}
           pteamId={pteamId}
           serviceId={serviceId}
