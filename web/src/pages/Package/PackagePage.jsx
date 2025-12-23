@@ -24,6 +24,7 @@ import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError.js";
 import { noPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func.js";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 
 import { CodeBlock } from "./CodeBlock.jsx";
 import { PackageReferences } from "./PackageReferences.jsx";
@@ -35,6 +36,8 @@ export function Package() {
   const [open, setOpen] = useState(false);
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const skipByAuth = useSkipUntilAuthUserIsReady();
+  const getVulnIdsReady = !skipByAuth && pteamId && serviceId && packageId;
 
   const {
     service,
@@ -49,7 +52,7 @@ export function Package() {
     unsolvedError,
     solvedLoading,
     unsolvedLoading,
-  } = usePackageVulnCounts({ pteamId, serviceId, packageId });
+  } = usePackageVulnCounts({ pteamId, serviceId, packageId, getVulnIdsReady });
 
   const {
     data: packageDependencies,
@@ -65,6 +68,7 @@ export function Package() {
   };
 
   if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!getVulnIdsReady) return <></>;
   if (!serviceId) return <>Service ID is required</>;
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
