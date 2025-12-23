@@ -7,7 +7,7 @@ import {
 } from "../../services/tcApi.js";
 
 /**
- * solved/unsolvedの脆弱性件数をまとめて取得するカスタムフック
+ * Custom hook to retrieve the total number of solved/unsolved vulnerabilities
  */
 export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
   const vulnIdsReady = !!(pteamId && serviceId && packageId);
@@ -54,8 +54,8 @@ export function usePackageVulnCounts({ pteamId, serviceId, packageId }) {
 }
 
 /**
- * service情報のみ取得するカスタムフック
- * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
+ * Custom hook to retrieve service information only
+ * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageService(pteamId, serviceId, options = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -74,8 +74,8 @@ export function usePackageService(pteamId, serviceId, options = {}) {
 }
 
 /**
- * 依存関係データ取得用カスタムフック
- * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
+ * Custom Hook for Dependency Data Acquisition
+ * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageDependencies(
   { pteamId, serviceId, packageId, offset = 0, limit = 1000 },
@@ -95,8 +95,8 @@ export function usePackageDependencies(
 }
 
 /**
- * PTeam情報取得用カスタムフック
- * RTK Queryフックには新しい引数形式（{ path: {} }）で渡す
+ * PTeam Information Retrieval Custom Hook
+ * Pass to the RTK Query hook using the new argument format ({ path: {} })
  */
 export function usePackagePTeam(pteamId, options = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -110,8 +110,8 @@ export function usePackagePTeam(pteamId, options = {}) {
 }
 
 /**
- * 脆弱性IDリスト取得用カスタムフック
- * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
+ * Custom Hook for Retrieving Vulnerability ID Lists
+ * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageVulnIds(
   { pteamId, serviceId, packageId, relatedTicketStatus },
@@ -135,8 +135,8 @@ export function usePackageVulnIds(
 }
 
 /**
- * チケットカウント取得用カスタムフック
- * RTK Queryフックには新しい引数形式（{ path: {}, query: {} }）で渡す
+ * Custom hook for retrieving ticket counts
+ * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageTicketCounts(
   { pteamId, serviceId, packageId, relatedTicketStatus },
