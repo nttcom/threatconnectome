@@ -6,6 +6,10 @@ interface currentPackage {
   vuln_matching_ecosystem: string;
 }
 
+/**
+ * Note: The [...] format in the output is used for bold styling in VulnInfoContent.jsx.
+ * If you change the format, please also update VulnInfoContent.jsx.
+ */
 export const createUpdateAction = (
   affectedVersions: Array<string>,
   fixedVersions: Array<string>,
