@@ -31,7 +31,7 @@ def upgrade() -> None:
         ),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("is_ecosystem", sa.Boolean(), nullable=False),
-        sa.Column("matching_product_name", sa.String(length=255), nullable=False),
+        sa.Column("matching_name", sa.String(length=255), nullable=False),
         sa.PrimaryKeyConstraint("eol_product_id"),
     )
 
