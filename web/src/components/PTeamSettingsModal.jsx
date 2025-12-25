@@ -18,7 +18,7 @@ import dialogStyle from "../cssModule/dialog.module.css";
 import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useGetPTeamQuery } from "../services/tcApi";
 import { APIError } from "../utils/APIError";
-import { a11yProps, errorToString } from "../utils/func.js";
+import { a11yProps, errorToString } from "../utils/func";
 
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";

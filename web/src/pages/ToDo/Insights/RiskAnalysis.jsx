@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth.js";
 import { useGetInsightQuery } from "../../../services/tcApi.js";
 import { APIError } from "../../../utils/APIError.js";
-import { errorToString } from "../../../utils/func.js";
+import { errorToString } from "../../../utils/func";
 
 import { RiskAnalysisView } from "./RiskAnalysisView.jsx";
 

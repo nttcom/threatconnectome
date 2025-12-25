@@ -1,12 +1,17 @@
-export const a11yProps = (index) => ({
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { SerializedError } from "@reduxjs/toolkit";
+
+import { UserResponse } from "../../types/types.gen.ts";
+
+export const a11yProps = (index: number) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
 });
 
-export const calcTimestampDiff = (timestamp) => {
+export const calcTimestampDiff = (timestamp: string) => {
   if (!timestamp) return "-";
   const targetDate = new Date(timestamp);
-  const daysAgo = Math.floor((new Date() - targetDate) / (1000 * 60 * 60 * 24));
+  const daysAgo = Math.floor((new Date().getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
   switch (daysAgo) {
     case 0:
       return "today";
@@ -17,7 +22,10 @@ export const calcTimestampDiff = (timestamp) => {
   }
 };
 
-export const utcStringToLocalDate = (utcString, includeTimezone) => {
+export const utcStringToLocalDate = (
+  utcString: string | null | undefined,
+  includeTimezone: boolean,
+) => {
   if (!utcString) return null;
   const date = new Date(utcString);
   const year = date.getFullYear();
@@ -40,43 +48,38 @@ export const utcStringToLocalDate = (utcString, includeTimezone) => {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
 };
 
-export const errorToString = (error) => {
+export const errorToString = (error: string | SerializedError | FetchBaseQueryError) => {
   if (typeof error === "string") return error;
-  if (error.status && error.data?.detail) {
+  if ("status" in error && error.data && typeof error.data === "object" && "detail" in error.data) {
     // RTKQ
-    if (typeof error.data?.detail === "string") return `${error.status}: ${error.data.detail}`;
-    return `${error.status}: ${JSON.stringify(error.data.detail)}`; // maybe 422
+    const detail = (error.data as Record<string, unknown>).detail;
+    if (typeof detail === "string") return `${error.status}: ${detail}`;
+    return `${error.status}: ${JSON.stringify(detail)}`; // maybe 422
   }
-  if (typeof error.response?.data?.detail === "string")
-    // error message from api
-    return error.response.data.detail;
-  if (error.response?.status && error.response.statusText)
-    // maybe 422 by Pydantic
-    return `${error.response?.status}: ${error.response?.statusText}`;
+
   return JSON.stringify(error); // not expected case
 };
 
-export const setEquals = (set1, set2) =>
+export const setEquals = (set1: Set<string>, set2: Set<string>) =>
   set1.size === set2.size && Array.from(set1).every((val) => set2.has(val));
 
-export const blobToDataURL = async (blob) =>
+export const blobToDataURL = async (blob: Blob) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (event) => resolve(event.target.result);
+    reader.onload = (event) => resolve(event.target?.result);
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(blob);
   });
 
-export const checkAdmin = (member, pteamId) => {
+export const checkAdmin = (member: UserResponse, pteamId: string) => {
   return member.pteam_roles.some(
     (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
   );
 };
 
-export const countFullWidthAndHalfWidthCharacters = (string) => {
+export const countFullWidthAndHalfWidthCharacters = (string: string) => {
   let count = 0;
   for (let i = 0; i < string.length; i++) {
-    const char = string[i];
     if (string[i].match(/[ -~｡-ﾟ]/)) {
       // half-width characters
       count += 1;

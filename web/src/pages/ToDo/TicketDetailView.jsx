@@ -24,7 +24,7 @@ import {
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError.js";
-import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
+import { errorToString, utcStringToLocalDate } from "../../utils/func";
 import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
