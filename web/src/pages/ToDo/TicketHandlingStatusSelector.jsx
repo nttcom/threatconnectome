@@ -4,12 +4,12 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useRef, useState } from "react";
 
-import { useUpdateTicketMutation } from "../../../services/tcApi";
-import { ticketHandlingStatusProps } from "../../../utils/const";
-import { errorToString } from "../../../utils/func";
-import VulnDialogContext from "../VulnerabilityTable/VulnDialogContext";
-import { CompleteTicketDialog } from "../VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/CompleteTicketDialog";
-import { ScheduleTicketDialog } from "../VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/ScheduleTicketDialog";
+import { CompleteTicketDialog } from "../../components/Ticket/CompleteTicketDialog";
+import { ScheduleTicketDialog } from "../../components/Ticket/ScheduleTicketDialog";
+import VulnDialogContext from "../../components/VulnDialogContext";
+import { useUpdateTicketMutation } from "../../services/tcApi";
+import { ticketHandlingStatusProps } from "../../utils/const";
+import { errorToString } from "../../utils/func";
 
 export function TicketHandlingStatusSelector(props) {
   const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus } = props;

@@ -1,8 +1,8 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 
-import { useUpdateTicketMutation } from "../../../services/tcApi";
-import { errorToString } from "../../../utils/func";
+import { useUpdateTicketMutation } from "../../services/tcApi";
+import { errorToString } from "../../utils/func";
 
 import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 

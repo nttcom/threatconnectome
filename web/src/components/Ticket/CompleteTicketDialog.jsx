@@ -16,22 +16,22 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { ActionTypeIcon } from "../../../../../components/ActionTypeIcon";
-import dialogStyle from "../../../../../cssModule/dialog.module.css";
+import dialogStyle from "../../cssModule/dialog.module.css";
 import {
   useGetTickets,
   useGetDependency,
   useGetVuln,
-} from "../../../../../hooks/Package/useApiForVulnerabilityTable.js";
+} from "../../hooks/Package/useApiForVulnerabilityTable.js";
 import {
   useCreateActionLogMutation,
   useUpdateTicketMutation,
   useGetUserMeQuery,
-} from "../../../../../services/tcApi";
-import { APIError } from "../../../../../utils/APIError";
-import { errorToString } from "../../../../../utils/func";
-import { createUpdateAction, findMatchedVulnPackage } from "../../../../../utils/vulnUtils";
-import { useVulnDialogContext } from "../../VulnDialogContext";
+} from "../../services/tcApi.js";
+import { APIError } from "../../utils/APIError.js";
+import { errorToString } from "../../utils/func.js";
+import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
+import { ActionTypeIcon } from "../ActionTypeIcon.jsx";
+import { useVulnDialogContext } from "../VulnDialogContext.js";
 
 export function CompleteTicketDialog(props) {
   const { pteamId, serviceId, packageId, ticketId, onClose, show } = props;

@@ -26,11 +26,12 @@ import { APIError } from "../../utils/APIError.js";
 import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
 import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
-import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
-import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { AssigneesSelector } from "../Package/VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/AssigneesSelector";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
+
+import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
+import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
 
 function DetailRow({ label, children }) {
   return (
