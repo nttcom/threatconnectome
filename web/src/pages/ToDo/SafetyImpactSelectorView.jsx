@@ -22,13 +22,13 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { useViewportOffset } from "../../../hooks/useViewportOffset";
+import { useViewportOffset } from "../../hooks/useViewportOffset";
 import {
   safetyImpactProps,
   sortedSafetyImpacts,
   maxReasonSafetyImpactLengthInHalf,
-} from "../../../utils/const";
-import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
+} from "../../utils/const";
+import { countFullWidthAndHalfWidthCharacters } from "../../utils/func";
 
 const TOOLTIP_TEXT_LIMIT = 150;
 
