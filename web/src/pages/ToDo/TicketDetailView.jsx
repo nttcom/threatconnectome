@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
+import { AssigneesSelector } from "../../components/Ticket/AssigneesSelector";
 import {
   useGetDependencyQuery,
   useGetPTeamQuery,
@@ -26,7 +27,6 @@ import { APIError } from "../../utils/APIError.js";
 import { errorToString, utcStringToLocalDate } from "../../utils/func.js";
 import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
-import { AssigneesSelector } from "../Package/VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/AssigneesSelector";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
 import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
 
