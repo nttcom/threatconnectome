@@ -32,7 +32,8 @@ import { AssigneesSelectorVulnTable } from "../Package/VulnTables/AssigneesSelec
 import { SafetyImpactSelector } from "../Package/VulnTables/SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "../Package/VulnTables/TicketHandlingStatusSelector.jsx";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
-import { VulnerabilityView } from "../Vulnerability/VulnerabilityView.jsx";
+
+import { VulnerabilityView } from "./VulnerabilityView.jsx";
 
 function DetailRow({ label, children }) {
   return (
