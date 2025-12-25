@@ -901,7 +901,7 @@ class EoLVersion(Base):
     )
     version: Mapped[Str255]
     release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    eol_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    eol_from: Mapped[date] = mapped_column(Date, nullable=False)
     matching_version: Mapped[Str255]
 
     eol_product = relationship("EoLProduct", back_populates="eol_versions")
