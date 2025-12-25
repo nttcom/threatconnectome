@@ -20,10 +20,10 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 
-import { useGetMembers } from "../../../../../hooks/Package/useApiForVulnerabilityTable.js";
-import { usePageParams } from "../../../../../hooks/usePageParams";
-import { useUpdateTicketMutation } from "../../../../../services/tcApi";
-import { errorToString, setEquals } from "../../../../../utils/func";
+import { useGetMembers } from "../../hooks/Package/useApiForVulnerabilityTable.js";
+import { usePageParams } from "../../hooks/usePageParams.js";
+import { useUpdateTicketMutation } from "../../services/tcApi.js";
+import { errorToString, setEquals } from "../../utils/func.js";
 
 export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
   const { pteamId } = usePageParams();
