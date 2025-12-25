@@ -1,43 +1,24 @@
-import { ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  ClickAwayListener,
-  Grow,
-  IconButton,
-  MenuItem,
-  MenuList,
-  Paper,
-  Popper,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { isBefore } from "date-fns";
+import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
+import { Button, ClickAwayListener, Grow, MenuItem, MenuList, Paper, Popper } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useRef, useState } from "react";
 
-import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useUpdateTicketMutation } from "../../../services/tcApi";
 import { ticketHandlingStatusProps } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
-
-import { ReportCompletedActions } from "./ReportCompletedActions";
+import VulnDialogContext from "../VulnerabilityTable/VulnDialogContext";
+import { CompleteTicketDialog } from "../VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/CompleteTicketDialog";
+import { ScheduleTicketDialog } from "../VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/ScheduleTicketDialog";
 
 export function TicketHandlingStatusSelector(props) {
-  const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus, updateAction } = props;
+  const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus } = props;
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
   const [datepickerOpen, setDatepickerOpen] = useState(false);
   const [schedule, setSchedule] = useState(null); // Date object
-  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -83,7 +64,7 @@ export function TicketHandlingStatusSelector(props) {
     setOpen(false);
     switch (item.rawStatus) {
       case "completed":
-        setActionModalOpen(true);
+        setCompleteDialogOpen(true);
         return;
       case "scheduled":
         setDatepickerOpen(true);
@@ -113,16 +94,16 @@ export function TicketHandlingStatusSelector(props) {
 
   return (
     <>
-      <ReportCompletedActions
-        pteamId={pteamId}
-        serviceId={serviceId}
-        ticketId={ticketId}
-        vulnId={vulnId}
-        packageId={packageId}
-        updateAction={updateAction}
-        onSetShow={setActionModalOpen}
-        show={actionModalOpen}
-      />
+      <VulnDialogContext value={{ vulnId }}>
+        <CompleteTicketDialog
+          pteamId={pteamId}
+          serviceId={serviceId}
+          packageId={packageId}
+          ticketId={ticketId}
+          onClose={() => setCompleteDialogOpen(false)}
+          show={completeDialogOpen}
+        />
+      </VulnDialogContext>
       <Button
         endIcon={<ArrowDropDownIcon />}
         sx={{
@@ -181,45 +162,13 @@ export function TicketHandlingStatusSelector(props) {
           </Grow>
         )}
       </Popper>
-      <Dialog open={datepickerOpen} onClose={handleHideDatepicker} fullWidth>
-        <DialogTitle>
-          <Box alignItems="center" display="flex" flexDirection="row">
-            <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              Set schedule
-            </Typography>
-            <IconButton onClick={handleHideDatepicker}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 3 }}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateTimePicker
-                inputFormat={dateFormat}
-                label="Schedule Date (future date)"
-                mask="____/__/__ __:__"
-                minDateTime={now}
-                value={schedule}
-                onChange={(newDate) => setSchedule(newDate)}
-                renderInput={(params) => (
-                  <TextField fullWidth margin="dense" required {...params} />
-                )}
-                sx={{ width: "100%" }}
-              />
-            </LocalizationProvider>
-          </Box>
-        </DialogContent>
-        <DialogActions className={dialogStyle.action_area}>
-          <Button
-            onClick={handleUpdateSchedule}
-            disabled={!isBefore(now, schedule)}
-            className={dialogStyle.submit_btn}
-          >
-            Schedule
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ScheduleTicketDialog
+        open={datepickerOpen}
+        schedule={schedule}
+        onClose={handleHideDatepicker}
+        onSchedule={handleUpdateSchedule}
+        onScheduleChange={setSchedule}
+      />
     </>
   );
 }
@@ -231,5 +180,4 @@ TicketHandlingStatusSelector.propTypes = {
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
-  updateAction: PropTypes.object.isRequired,
 };
