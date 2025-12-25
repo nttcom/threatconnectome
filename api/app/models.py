@@ -159,10 +159,10 @@ class ObjectCategoryEnum(str, enum.Enum):
 
 
 class ProductCategoryEnum(str, enum.Enum):
-    OS = "OS"
-    RUNTIME = "RUNTIME"
-    MIDDLEWARE = "MIDDLEWARE"
-    PACKAGE = "PACKAGE"
+    OS = "os"
+    RUNTIME = "runtime"
+    MIDDLEWARE = "middleware"
+    PACKAGE = "package"
 
 
 # Base class
@@ -880,7 +880,7 @@ class EoLProduct(Base):
     product_category: Mapped[ProductCategoryEnum]
     description: Mapped[str | None]
     is_ecosystem: Mapped[bool] = mapped_column(default=False)
-    matching_product_name: Mapped[Str255]
+    matching_name: Mapped[Str255]
 
     eol_versions = relationship(
         "EoLVersion", back_populates="eol_product", cascade="all, delete-orphan"
