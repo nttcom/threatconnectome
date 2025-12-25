@@ -243,7 +243,7 @@ export const mockVulnDetails: Record<string, VulnResponse> = {
         ecosystem: "maven",
         affected_name: "log4j-core",
         affected_versions: ["2.14.1"],
-        fixed_versions: ["2.15.0"],
+        fixed_versions: [],
       },
     ],
     created_at: "2025-06-01T00:00:00Z",
