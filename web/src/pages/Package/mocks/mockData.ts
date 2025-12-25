@@ -109,7 +109,7 @@ export const mockVulnIdsUnsolved: ServicePackageVulnsSolvedUnsolved = {
   service_id: serviceId,
   package_id: packageId,
   related_ticket_status: "unsolved",
-  vuln_ids: ["vuln-001", "vuln-002"],
+  vuln_ids: ["vuln-001", "vuln-002", "vuln-004", "vuln-005"],
 };
 export const mockVulnIdsSolved: ServicePackageVulnsSolvedUnsolved = {
   pteam_id: pteamId,
@@ -209,6 +209,47 @@ export const mockVulnDetails: Record<string, VulnResponse> = {
     updated_at: "2025-10-19T00:00:00Z",
     created_by: "user-003",
   },
+  "vuln-004": {
+    vuln_id: "vuln-004",
+    title: "Low Severity Information Disclosure",
+    cve_id: "CVE-2021-99999",
+    detail:
+      "A low severity vulnerability that may allow limited information disclosure under specific conditions.",
+    exploitation: "none",
+    automatable: "no",
+    cvss_v3_score: 2.5,
+    vulnerable_packages: [
+      {
+        ecosystem: "maven",
+        affected_name: "log4j-core",
+        affected_versions: ["2.14.1"],
+        fixed_versions: ["2.14.2"],
+      },
+    ],
+    created_at: "2025-07-01T00:00:00Z",
+    updated_at: "2025-10-15T00:00:00Z",
+    created_by: "user-004",
+  },
+  "vuln-005": {
+    vuln_id: "vuln-005",
+    title: "Unscored Vulnerability (Pending Analysis)",
+    cve_id: "CVE-2021-00000",
+    detail: "This vulnerability is pending CVSS analysis and has not yet been scored.",
+    exploitation: "none",
+    automatable: "no",
+    cvss_v3_score: null,
+    vulnerable_packages: [
+      {
+        ecosystem: "maven",
+        affected_name: "log4j-core",
+        affected_versions: ["2.14.1"],
+        fixed_versions: ["2.15.0"],
+      },
+    ],
+    created_at: "2025-06-01T00:00:00Z",
+    updated_at: "2025-10-10T00:00:00Z",
+    created_by: "user-005",
+  },
 };
 export type VulnAction = {
   action_type: string;
@@ -221,6 +262,8 @@ export const mockVulnActions: Record<string, VulnAction[]> = {
   ],
   "vuln-002": [],
   "vuln-003": [],
+  "vuln-004": [],
+  "vuln-005": [],
 };
 export type Member = {
   user_id: string;
@@ -562,6 +605,56 @@ export const mockTicketsVuln003: TicketResponse[] = [
       updated_at: "2025-11-28T10:00:00.032Z",
       assignees: [],
       note: "Using default safety impact",
+      scheduled_at: null,
+      action_logs: [],
+    },
+  },
+];
+
+// --- Tickets Data (vuln-004: Low severity) ---
+export const mockTicketsVuln004: TicketResponse[] = [
+  {
+    ticket_id: "ticket-400",
+    vuln_id: "vuln-004",
+    dependency_id: "dep-1",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "defer",
+    ticket_safety_impact: "negligible",
+    ticket_safety_impact_change_reason: "Low severity issue",
+    ticket_status: {
+      status_id: "status-400",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-25T16:51:50.032Z",
+      updated_at: "2025-11-25T16:51:50.032Z",
+      assignees: [],
+      note: "Low priority - defer",
+      scheduled_at: null,
+      action_logs: [],
+    },
+  },
+];
+
+// --- Tickets Data (vuln-005: None/Unscored) ---
+export const mockTicketsVuln005: TicketResponse[] = [
+  {
+    ticket_id: "ticket-500",
+    vuln_id: "vuln-005",
+    dependency_id: "dep-1",
+    service_id: serviceId,
+    pteam_id: pteamId,
+    ssvc_deployer_priority: "defer",
+    ticket_safety_impact: "negligible",
+    ticket_safety_impact_change_reason: "Pending CVSS analysis",
+    ticket_status: {
+      status_id: "status-500",
+      ticket_handling_status: "alerted",
+      user_id: "user-001",
+      created_at: "2025-11-25T16:51:50.032Z",
+      updated_at: "2025-11-25T16:51:50.032Z",
+      assignees: [],
+      note: "Awaiting CVSS score",
       scheduled_at: null,
       action_logs: [],
     },
