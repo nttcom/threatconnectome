@@ -911,6 +911,12 @@ class EoLVersion(Base):
     ecosystem_eol_dependencies = relationship(
         "EcosystemEoLDependency", back_populates="eol_version", cascade="all, delete-orphan"
     )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
 
 
 class PackageEoLDependency(Base):
