@@ -44,6 +44,18 @@ def upgrade() -> None:
         sa.Column("release_date", sa.Date(), nullable=True),
         sa.Column("eol_from", sa.Date(), nullable=False),
         sa.Column("matching_version", sa.String(length=255), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["eol_product_id"], ["eolproduct.eol_product_id"], ondelete="CASCADE"
         ),
@@ -51,6 +63,12 @@ def upgrade() -> None:
     )
     op.create_index(
         op.f("ix_eolversion_eol_product_id"), "eolversion", ["eol_product_id"], unique=False
+    )
+    op.execute(
+        "ALTER TABLE eolversion ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING created_at AT TIME ZONE 'UTC'"
+    )
+    op.execute(
+        "ALTER TABLE eolversion ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING updated_at AT TIME ZONE 'UTC'"
     )
 
     ## create ecosystemeoldependency
