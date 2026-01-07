@@ -11,6 +11,7 @@ from app.auth.supabase_auth_module import SupabaseAuthModule
 from app.routers import (
     actionlogs,
     auth,
+    eols,
     external,
     pteams,
     tickets,
@@ -50,6 +51,7 @@ def create_app():
     app.include_router(users.router)
     app.include_router(vulns.router)
     app.include_router(tickets.router)
+    app.include_router(eols.router)
 
     # setup auth
 
