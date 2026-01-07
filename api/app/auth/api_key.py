@@ -10,5 +10,5 @@ def verify_api_key(x_api_key: str = Header(...)):
     Raises:
         HTTPException: If the API key is invalid, returns 401 Unauthorized.
     """
-    if x_api_key != os.getenv("VULN_API_KEY"):
+    if x_api_key != os.getenv("SYSTEM_API_KEY"):
         raise HTTPException(status_code=401, detail="Invalid API Key")

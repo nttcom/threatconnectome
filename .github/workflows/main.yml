@@ -35,7 +35,7 @@ env:
   FIREBASE_CRED: ../key/firebase_credentials.json
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
   SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
-  VULN_API_KEY: your_secret_api_key
+  SYSTEM_API_KEY: your_secret_api_key
   SYSTEM_EMAIL: ic-metemcyber@example.com
   AUTH_SERVICE: FIREBASE
 
