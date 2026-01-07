@@ -46,7 +46,7 @@ vi .env  # change default values
   - `SENDGRID_API_KEY`
     - Api key to send email with sendgrid
   - `SYSTEM_API_KEY`
-    - API key for patching vulnerability information in threatconnectome
+    - API key for patching vulnerability and EoL information in threatconnectome
 
 :warning: **Files that need to be placed**
 
