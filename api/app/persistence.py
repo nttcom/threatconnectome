@@ -455,22 +455,17 @@ def get_eol_product_by_id(db: Session, eol_product_id: UUID | str) -> models.EoL
     ).one_or_none()
 
 
-def create_eol_product(db: Session, eol: models.EoLProduct):
-    db.add(eol)
+def create_eol_product(db: Session, eol_product: models.EoLProduct):
+    db.add(eol_product)
     db.flush()
 
 
-def delete_eol_product(db: Session, eol: models.EoLProduct) -> None:
-    db.delete(eol)
+def delete_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
+    db.delete(eol_product)
     db.flush()
 
 
 ### EolVersion
-def create_eol_version(db: Session, eol: models.EoLVersion):
-    db.add(eol)
-    db.flush()
-
-
-def delete_eol_version(db: Session, eol: models.EoLVersion) -> None:
-    db.delete(eol)
+def create_eol_version(db: Session, eol_version: models.EoLVersion):
+    db.add(eol_version)
     db.flush()
