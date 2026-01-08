@@ -189,10 +189,6 @@ class TestUpdateEol:
             "product_category",
             "is_ecosystem",
             "matching_name",
-            "version",
-            "release_date",
-            "eol_from",
-            "matching_version",
         ],
     )
     def test_raise_400_when_create_if_field_with_none(self, field_name):
@@ -221,10 +217,6 @@ class TestUpdateEol:
             "product_category",
             "is_ecosystem",
             "matching_name",
-            "version",
-            "release_date",
-            "eol_from",
-            "matching_version",
         ],
     )
     def test_raise_400_when_update_if_field_with_none(self, update_setup, field_name):

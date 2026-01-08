@@ -198,23 +198,6 @@ def _check_request_fields(request):
                 detail=f"Cannot specify None for {field}",
             )
 
-    # check eol_version fields
-    eol_version_fields_to_check = [
-        "version",
-        "release_date",
-        "eol_from",
-        "matching_version",
-    ]
-    if "eol_versions" in update_request:
-        for eol_version in request.eol_versions:
-            update_eol_version = eol_version.model_dump(exclude_unset=True)
-            for field in eol_version_fields_to_check:
-                if field in update_eol_version.keys() and getattr(eol_version, field) is None:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Cannot specify None for {field}",
-                    )
-
 
 def _get_eol_version_by_version(
     eol_versions: list[models.EoLVersion], version: str
