@@ -449,7 +449,7 @@ def create_alert(db: Session, alert: models.Alert) -> None:
 
 
 ### EolProduct
-def get_eol_by_id(db: Session, eol_product_id: UUID | str) -> models.EoLProduct | None:
+def get_eol_product_by_id(db: Session, eol_product_id: UUID | str) -> models.EoLProduct | None:
     return db.scalars(
         select(models.EoLProduct).where(models.EoLProduct.eol_product_id == str(eol_product_id))
     ).one_or_none()

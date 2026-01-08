@@ -56,13 +56,13 @@ def update_eol(
     Update a eol if it exists,
     or create a new eol if the specified eol_id is not found in the database.
     """
-    if not (eol := persistence.get_eol_by_id(db, eol_product_id)):
-        eol = __handle_create_eol(eol_product_id, request, db)
+    if not (eol_product := persistence.get_eol_product_by_id(db, eol_product_id)):
+        eol_product = __handle_create_eol(eol_product_id, request, db)
     else:
-        eol = __handle_update_eol(eol, request, db)
+        eol_product = __handle_update_eol(eol_product, request, db)
 
-    db.refresh(eol)
-    eol_response = _create_eol_response(eol)
+    db.refresh(eol_product)
+    eol_response = _create_eol_response(eol_product)
 
     db.commit()
 
