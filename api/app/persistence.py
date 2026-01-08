@@ -446,3 +446,26 @@ def get_dependencies_from_service_id_and_package_id(
 def create_alert(db: Session, alert: models.Alert) -> None:
     db.add(alert)
     db.flush()
+
+
+### EolProduct
+def get_eol_product_by_id(db: Session, eol_product_id: UUID | str) -> models.EoLProduct | None:
+    return db.scalars(
+        select(models.EoLProduct).where(models.EoLProduct.eol_product_id == str(eol_product_id))
+    ).one_or_none()
+
+
+def create_eol_product(db: Session, eol_product: models.EoLProduct):
+    db.add(eol_product)
+    db.flush()
+
+
+def delete_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
+    db.delete(eol_product)
+    db.flush()
+
+
+### EolVersion
+def create_eol_version(db: Session, eol_version: models.EoLVersion):
+    db.add(eol_version)
+    db.flush()
