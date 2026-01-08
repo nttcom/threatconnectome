@@ -1,12 +1,20 @@
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app import models
 from app.main import app
-from app.tests.medium.constants import USER1
+from app.routers.pteams import bg_create_tags_from_sbom_json
+from app.tests.medium.constants import (
+    PTEAM1,
+    USER1,
+)
 from app.tests.medium.utils import (
+    create_pteam,
     create_user,
     headers_with_api_key,
 )
@@ -78,3 +86,44 @@ class TestUpdateVuln:
             before_eol_product["eol_versions"][0]["matching_version"]
             != after_eol_product.json()["eol_versions"][0]["matching_version"]
         )
+
+    def test_it_should_create_eol_dependency_when_ecosystem_matched(self, testdb: Session):
+        # Given
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        service_name1 = "test_service1"
+        upload_file_name = "trivy-ubuntu2004.cdx.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = sbom.read()
+
+        bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+        update_request = {
+            "name": "ubuntu",
+            "product_category": models.ProductCategoryEnum.OS,
+            "description": "test_description",
+            "is_ecosystem": True,
+            "matching_name": "test_matching_name",
+            "eol_versions": [
+                {
+                    "version": "20.04",
+                    "release_date": "2020-04-23",
+                    "eol_from": "2025-05-31",
+                    "matching_version": "ubuntu-20.04",
+                }
+            ],
+        }
+
+        # When
+        client.put(f"/eols/{uuid4()}", headers=headers_with_api_key(USER1), json=update_request)
+
+        # Then
+        ecosystem_eol_dependency_1 = testdb.scalars(select(models.EcosystemEoLDependency)).one()
+        assert ecosystem_eol_dependency_1.service.service_name == service_name1
+        assert ecosystem_eol_dependency_1.eol_version.version == "20.04"
+        assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
+        assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
+        assert ecosystem_eol_dependency_1.eol_notification_sent is False
