@@ -30,7 +30,6 @@ def delete_eol(
     if not (eol_product := persistence.get_eol_product_by_id(db, eol_product_id)):
         raise NO_SUCH_EOL
 
-    # Delete the vuln and its associated affects
     persistence.delete_eol_product(db, eol_product)
 
     db.commit()
