@@ -240,31 +240,6 @@ class TestUpdateEol:
         assert response.status_code == 400
         assert response.json()["detail"] == f"Cannot specify None for {field_name}"
 
-    def test_raise_400_whe_update_if_version_is_not_specified(self, update_setup):
-        # Given
-        update_request = {
-            "eol_versions": [
-                {
-                    "eol_from": "2030-02-01T00:00:00Z",
-                    "matching_version": "<2.0",
-                },
-            ],
-        }
-
-        # When
-        update_response = client.put(
-            f"/eols/{self.eol_product_id}",
-            headers=headers_with_api_key(USER1),
-            json=update_request,
-        )
-
-        # Then
-        assert update_response.status_code == 400
-        assert (
-            update_response.json()["detail"]
-            == "Cannot update EoL product without specifying a 'version' when eol_product_id exists"
-        )
-
     def test_raise_401_if_invalid_api_key(self):
         # Given
         invalid_headers = headers(USER1)

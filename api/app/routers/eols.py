@@ -130,15 +130,6 @@ def __handle_update_eol(
         eol_product.matching_name = request.matching_name
     if "eol_versions" in update_request.keys():
         for eol_version in request.eol_versions:
-            if eol_version.version is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=(
-                        "Cannot update EoL product without specifying a "
-                        "'version' when eol_product_id exists"
-                    ),
-                )
-
             update_eol_version = eol_version.model_dump(exclude_unset=True)
             now = datetime.now(timezone.utc)
             if (
