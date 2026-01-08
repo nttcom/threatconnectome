@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app import models, persistence
+from app import command, models, persistence, schemas
 from app.auth import api_key
 from app.auth.account import get_current_user
 from app.database import get_db
@@ -11,6 +11,60 @@ from app.database import get_db
 router = APIRouter(prefix="/eols", tags=["eols"])
 
 NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such eol")
+NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+
+
+@router.get("/eol", response_model=schemas.EoLProductListResponse)
+def get_eol_products(
+    pteam_id: UUID | None = Query(None, description="PTeam ID (optional)"),
+    eol_product_id: UUID | None = Query(None, description="EoL Product ID (optional)"),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get EoL products and their versions.
+    Can be filtered by pteam_id and/or eol_product_id (both optional).
+    """
+    # Check if pteam exists when pteam_id is specified
+    if pteam_id is not None:
+        if not persistence.get_pteam_by_id(db, pteam_id):
+            raise NO_SUCH_PTEAM
+
+    # Check if eol_product exists when eol_product_id is specified
+    if eol_product_id is not None:
+        if not persistence.get_eol_product_by_id(db, eol_product_id):
+            raise NO_SUCH_EOL
+
+    result = command.get_eol_products(db, pteam_id, eol_product_id)
+
+    # Format response with eol_versions
+    products_response = []
+    for product in result["products"]:
+        eol_versions_response = [
+            schemas.EoLVersionResponse(
+                eol_version_id=version.eol_version_id,
+                version=version.version,
+                release_date=version.release_date,
+                eol_from=version.eol_from,
+                matching_version=version.matching_version,
+                created_at=version.created_at,
+                updated_at=version.updated_at,
+            )
+            for version in product.eol_versions
+        ]
+        products_response.append(
+            schemas.EoLProductResponse(
+                eol_product_id=product.eol_product_id,
+                name=product.name,
+                product_category=product.product_category,
+                description=product.description,
+                is_ecosystem=product.is_ecosystem,
+                matching_name=product.matching_name,
+                eol_versions=eol_versions_response,
+            )
+        )
+
+    return schemas.EoLProductListResponse(total=result["num_products"], products=products_response)
 
 
 @router.delete(
