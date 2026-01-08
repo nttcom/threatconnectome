@@ -194,12 +194,8 @@ class TestUpdateEol:
     def test_raise_400_when_create_if_field_with_none(self, field_name):
         # Given
         new_eol_product_id = uuid4()
-        request = self.request1
-        name = ["version", "release_date", "eol_from", "matching_version"]
-        if field_name in name:
-            request["eol_versions"][0][f"{field_name}"] = None
-        else:
-            request[f"{field_name}"] = None
+        request = self.request1.copy()
+        request[f"{field_name}"] = None
 
         # When
         response = client.put(
@@ -221,13 +217,9 @@ class TestUpdateEol:
     )
     def test_raise_400_when_update_if_field_with_none(self, update_setup, field_name):
         # Given
-        name = ["version", "release_date", "eol_from", "matching_version"]
-        if field_name in name:
-            invalid_request = {"eol_versions": [{f"{field_name}": None}]}
-        else:
-            invalid_request = {
-                f"{field_name}": None,
-            }
+        invalid_request = {
+            f"{field_name}": None,
+        }
 
         # When
         response = client.put(
