@@ -464,3 +464,8 @@ def create_eol_product(db: Session, eol: models.EoLProduct):
 def create_eol_version(db: Session, eol: models.EoLVersion):
     db.add(eol)
     db.flush()
+
+
+def delete_eol_version(db: Session, eol: models.EoLVersion) -> None:
+    db.delete(eol)
+    db.flush()

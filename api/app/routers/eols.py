@@ -129,6 +129,11 @@ def __handle_update_eol(
     if "matching_name" in update_request.keys() and request.matching_name is not None:
         eol_product.matching_name = request.matching_name
     if "eol_versions" in update_request.keys():
+        eol_versions_request = [eol_version.version for eol_version in request.eol_versions]
+        for eol_version in eol_product.eol_versions:
+            if eol_version.version not in eol_versions_request:
+                persistence.delete_eol_version(db, eol_version)
+
         for eol_version in request.eol_versions:
             update_eol_version = eol_version.model_dump(exclude_unset=True)
             now = datetime.now(timezone.utc)
