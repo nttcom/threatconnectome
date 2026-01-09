@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import models, persistence, schemas
 from app.auth import api_key
 from app.auth.account import get_current_user
+from app.business.eol import eol_business
 from app.database import get_db
 
 router = APIRouter(prefix="/eols", tags=["eols"])
@@ -62,6 +63,9 @@ def update_eol(
         eol_product = __handle_update_eol(eol_product, request, db)
 
     db.refresh(eol_product)
+
+    eol_business.fix_eol_dependency_by_eol_product(db, eol_product)
+
     eol_response = _create_eol_response(eol_product)
 
     db.commit()
@@ -101,13 +105,6 @@ def __handle_create_eol(
             updated_at=now,
         )
         persistence.create_eol_version(db, eol_version_model)
-
-    # Todo: to be implemented later
-    # create PackageEoLDependency and EcosystemEoLDependency
-    # if request.is_ecosystem:
-    #     ecosystem_eol_business.fix_ecosystem_eol_dependency_by_service()
-    # else:
-    #     package_eol_business.fix_package_eol_dependency_by_eol_version(db, eol_product)
 
     return eol_product
 
@@ -167,13 +164,6 @@ def __handle_update_eol(
                 )
                 persistence.create_eol_version(db, new_eol_version)
     db.flush()
-
-    # create PackageEoLDependency and EcosystemEoLDependency
-    # Todo: to be implemented later
-    # if request.is_ecosystem:
-    #     ecosystem_eol_business.fix_ecosystem_eol_dependency_by_service()
-    # else:
-    #     package_eol_business.fix_package_eol_dependency_by_eol_version(db, eol_product)
 
     return eol_product
 
