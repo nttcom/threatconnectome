@@ -20,7 +20,7 @@ services:
       AUTH_SERVICE: SUPABASE
       SUPABASE_URL: http://kong:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
-      VULN_API_KEY: ${VULN_API_KEY}
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
     networks:
       - test-network
     volumes:
