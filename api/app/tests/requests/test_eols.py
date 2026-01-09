@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -27,35 +27,90 @@ class TestGetEolProducts:
 
         # Create EoL products
         self.eol_product_id_1 = uuid4()
+        self.eol_product_1_request = {
+            "name": "product_1",
+            "product_category": models.ProductCategoryEnum.PACKAGE,
+            "description": "product 1 description",
+            "is_ecosystem": False,
+            "matching_name": "product_1",
+            "eol_versions": [
+                {
+                    "version": "1.0.0",
+                    "release_date": "2020-01-01",
+                    "eol_from": "2025-01-01",
+                    "matching_version": "1.0.0",
+                },
+                {
+                    "version": "2.0.0",
+                    "release_date": "2022-01-01",
+                    "eol_from": "2030-01-01",
+                    "matching_version": "2.0.0",
+                },
+            ],
+        }
+
+        self.eol_product_id_2 = uuid4()
+        self.eol_product_2_request = {
+            "name": "product_2",
+            "product_category": models.ProductCategoryEnum.RUNTIME,
+            "description": "product 2 description",
+            "is_ecosystem": True,
+            "matching_name": "product_2",
+            "eol_versions": [
+                {
+                    "version": "3.0.0",
+                    "release_date": "2021-01-01",
+                    "eol_from": "2026-01-01",
+                    "matching_version": "3.0.0",
+                }
+            ],
+        }
+
+        self.eol_product_id_3 = uuid4()
+        self.eol_product_3_request = {
+            "name": "product_3",
+            "product_category": models.ProductCategoryEnum.PACKAGE,
+            "description": "product 3 description",
+            "is_ecosystem": False,
+            "matching_name": "product_3",
+            "eol_versions": [
+                {
+                    "version": "4.0.0",
+                    "release_date": "2019-01-01",
+                    "eol_from": "2024-01-01",
+                    "matching_version": "4.0.0",
+                }
+            ],
+        }
+
+        # Todo: After creating the PUT API, modify the API.
         eol_product_1 = models.EoLProduct(
             eol_product_id=str(self.eol_product_id_1),
-            name="product_1",
-            product_category=models.ProductCategoryEnum.PACKAGE,
-            description="product 1 description",
-            is_ecosystem=False,
-            matching_name="product_1",
+            name=self.eol_product_1_request["name"],
+            product_category=self.eol_product_1_request["product_category"],
+            description=self.eol_product_1_request["description"],
+            is_ecosystem=self.eol_product_1_request["is_ecosystem"],
+            matching_name=self.eol_product_1_request["matching_name"],
         )
         persistence.create_eol_product(testdb, eol_product_1)
 
-        self.eol_product_id_2 = uuid4()
         eol_product_2 = models.EoLProduct(
             eol_product_id=str(self.eol_product_id_2),
-            name="product_2",
-            product_category=models.ProductCategoryEnum.RUNTIME,
-            description="product 2 description",
-            is_ecosystem=True,
-            matching_name="product_2",
+            name=self.eol_product_2_request["name"],
+            product_category=self.eol_product_2_request["product_category"],
+            description=self.eol_product_2_request["description"],
+            is_ecosystem=self.eol_product_2_request["is_ecosystem"],
+            matching_name=self.eol_product_2_request["matching_name"],
         )
         persistence.create_eol_product(testdb, eol_product_2)
 
-        self.eol_product_id_3 = uuid4()
         eol_product_3 = models.EoLProduct(
             eol_product_id=str(self.eol_product_id_3),
-            name="product_3",
-            product_category=models.ProductCategoryEnum.PACKAGE,
-            description="product 3 description",
-            is_ecosystem=False,
-            matching_name="product_3",
+            name=self.eol_product_3_request["name"],
+            product_category=self.eol_product_3_request["product_category"],
+            description=self.eol_product_3_request["description"],
+            is_ecosystem=self.eol_product_3_request["is_ecosystem"],
+            matching_name=self.eol_product_3_request["matching_name"],
         )
         persistence.create_eol_product(testdb, eol_product_3)
 
@@ -63,10 +118,12 @@ class TestGetEolProducts:
         now = datetime.now(timezone.utc)
         self.eol_version_1_1 = models.EoLVersion(
             eol_product_id=str(self.eol_product_id_1),
-            version="1.0.0",
-            release_date=date.fromisoformat("2020-01-01"),
-            eol_from=date.fromisoformat("2025-01-01"),
-            matching_version="1.0.0",
+            version=self.eol_product_1_request["eol_versions"][0]["version"],
+            release_date=date.fromisoformat(
+                self.eol_product_1_request["eol_versions"][0]["release_date"]
+            ),
+            eol_from=date.fromisoformat(self.eol_product_1_request["eol_versions"][0]["eol_from"]),
+            matching_version=self.eol_product_1_request["eol_versions"][0]["matching_version"],
             created_at=now,
             updated_at=now,
         )
@@ -74,10 +131,12 @@ class TestGetEolProducts:
 
         self.eol_version_1_2 = models.EoLVersion(
             eol_product_id=str(self.eol_product_id_1),
-            version="2.0.0",
-            release_date=date.fromisoformat("2022-01-01"),
-            eol_from=date.fromisoformat("2030-01-01"),
-            matching_version="2.0.0",
+            version=self.eol_product_1_request["eol_versions"][1]["version"],
+            release_date=date.fromisoformat(
+                self.eol_product_1_request["eol_versions"][1]["release_date"]
+            ),
+            eol_from=date.fromisoformat(self.eol_product_1_request["eol_versions"][1]["eol_from"]),
+            matching_version=self.eol_product_1_request["eol_versions"][1]["matching_version"],
             created_at=now,
             updated_at=now,
         )
@@ -86,10 +145,12 @@ class TestGetEolProducts:
         # Create EoL versions for product 2
         self.eol_version_2_1 = models.EoLVersion(
             eol_product_id=str(self.eol_product_id_2),
-            version="3.0.0",
-            release_date=date.fromisoformat("2021-01-01"),
-            eol_from=date.fromisoformat("2026-01-01"),
-            matching_version="3.0.0",
+            version=self.eol_product_2_request["eol_versions"][0]["version"],
+            release_date=date.fromisoformat(
+                self.eol_product_2_request["eol_versions"][0]["release_date"]
+            ),
+            eol_from=date.fromisoformat(self.eol_product_2_request["eol_versions"][0]["eol_from"]),
+            matching_version=self.eol_product_2_request["eol_versions"][0]["matching_version"],
             created_at=now,
             updated_at=now,
         )
@@ -98,10 +159,12 @@ class TestGetEolProducts:
         # Create EoL versions for product 3
         self.eol_version_3_1 = models.EoLVersion(
             eol_product_id=str(self.eol_product_id_3),
-            version="4.0.0",
-            release_date=date.fromisoformat("2019-01-01"),
-            eol_from=date.fromisoformat("2024-01-01"),
-            matching_version="4.0.0",
+            version=self.eol_product_3_request["eol_versions"][0]["version"],
+            release_date=date.fromisoformat(
+                self.eol_product_3_request["eol_versions"][0]["release_date"]
+            ),
+            eol_from=date.fromisoformat(self.eol_product_3_request["eol_versions"][0]["eol_from"]),
+            matching_version=self.eol_product_3_request["eol_versions"][0]["matching_version"],
             created_at=now,
             updated_at=now,
         )
@@ -181,9 +244,7 @@ class TestGetEolProducts:
 
     def test_get_eol_products_filtered_by_pteam_id(self):
         # When: Filter by pteam_id
-        response = client.get(
-            f"/eols/eol?pteam_id={self.pteam1.pteam_id}", headers=headers(USER1)
-        )
+        response = client.get(f"/eols/eol?pteam_id={self.pteam1.pteam_id}", headers=headers(USER1))
 
         # Then
         assert response.status_code == 200
@@ -204,10 +265,78 @@ class TestGetEolProducts:
         # Then
         assert response.status_code == 200
         data = response.json()
+        current_time = datetime.now(timezone.utc)
+        print(type(data["products"][0]["eol_versions"][0]["release_date"]))
+        print(type(self.eol_product_1_request["eol_versions"][0]["release_date"]))
         assert data["total"] == 1
         assert len(data["products"]) == 1
-        assert data["products"][0]["name"] == "product_1"
         assert len(data["products"][0]["eol_versions"]) == 2
+        assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_1)
+        assert data["products"][0]["name"] == self.eol_product_1_request["name"]
+        assert (
+            data["products"][0]["product_category"]
+            == self.eol_product_1_request["product_category"]
+        )
+        assert data["products"][0]["description"] == self.eol_product_1_request["description"]
+        assert data["products"][0]["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
+        assert data["products"][0]["matching_name"] == self.eol_product_1_request["matching_name"]
+
+        assert data["products"][0]["eol_versions"][0]["version"] in [
+            eol_version["version"] for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][0]["release_date"] in [
+            eol_version["release_date"]
+            for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][0]["eol_from"] in [
+            eol_version["eol_from"] for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][0]["matching_version"] in [
+            eol_version["matching_version"]
+            for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
+        assert data["products"][0]["eol_versions"][1]["version"] in [
+            eol_version["version"] for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][1]["release_date"] in [
+            eol_version["release_date"]
+            for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][1]["eol_from"] in [
+            eol_version["eol_from"] for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert data["products"][0]["eol_versions"][1]["matching_version"] in [
+            eol_version["matching_version"]
+            for eol_version in self.eol_product_1_request["eol_versions"]
+        ]
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][1]["created_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][1]["updated_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
 
     def test_get_eol_products_filtered_by_both_pteam_id_and_eol_product_id(self):
         # When: Filter by both pteam_id and eol_product_id (product_2 is linked to pteam1)
@@ -219,9 +348,49 @@ class TestGetEolProducts:
         # Then
         assert response.status_code == 200
         data = response.json()
+        current_time = datetime.now(timezone.utc)
         assert data["total"] == 1
         assert len(data["products"]) == 1
-        assert data["products"][0]["name"] == "product_2"
+        assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_2)
+        assert data["products"][0]["name"] == self.eol_product_2_request["name"]
+        assert (
+            data["products"][0]["product_category"]
+            == self.eol_product_2_request["product_category"]
+        )
+        assert data["products"][0]["description"] == self.eol_product_2_request["description"]
+        assert data["products"][0]["is_ecosystem"] == self.eol_product_2_request["is_ecosystem"]
+        assert data["products"][0]["matching_name"] == self.eol_product_2_request["matching_name"]
+
+        assert (
+            data["products"][0]["eol_versions"][0]["version"]
+            == self.eol_product_2_request["eol_versions"][0]["version"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["release_date"]
+            == self.eol_product_2_request["eol_versions"][0]["release_date"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["eol_from"]
+            == self.eol_product_2_request["eol_versions"][0]["eol_from"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["matching_version"]
+            == self.eol_product_2_request["eol_versions"][0]["matching_version"]
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
+        assert (
+            current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
+            )
+            <= current_time + timedelta(seconds=10)
+        )
 
     def test_get_eol_products_no_match_for_pteam_and_product_combination(self):
         # When: Filter by pteam_id and eol_product_id that don't match
@@ -357,4 +526,3 @@ class TestDeleteEol:
         # Then
         assert response.status_code == 401
         assert response.json()["detail"] == "Invalid API Key"
-
