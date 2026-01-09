@@ -34,18 +34,18 @@ def create_package_eol_dependency_if_not_exists(
 
 
 def _delete_not_match_package_eol_dependency(db: Session, eol_version: models.EoLVersion) -> None:
-    _delete_not_match_ecosystem_eol_dependency_by_package_eol_dependencies(
+    _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         db, eol_version.package_eol_dependencies
     )
 
 
 def delete_eol_dependency_by_dependency(db: Session, dependency: models.Dependency) -> None:
-    _delete_not_match_ecosystem_eol_dependency_by_package_eol_dependencies(
+    _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         db, dependency.package_eol_dependencies
     )
 
 
-def _delete_not_match_ecosystem_eol_dependency_by_package_eol_dependencies(
+def _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
     db: Session, package_eol_dependencies: list[models.PackageEoLDependency]
 ) -> None:
     delete_package_eol_dependencies = []
