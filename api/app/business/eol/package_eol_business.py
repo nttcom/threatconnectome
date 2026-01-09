@@ -54,7 +54,7 @@ def _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         eol_product = eol_version.eol_product
         package_version = package_eol_dependency.dependency.package_version
         if (
-            package_version.version == eol_version.version
+            package_version.version == eol_version.matching_version
             and package_version.package.name == eol_product.matching_name
         ):
             continue
