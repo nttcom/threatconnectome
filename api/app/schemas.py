@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from uuid import UUID
 
@@ -12,6 +12,7 @@ from app.models import (
     ImpactCategoryEnum,
     MissionImpactEnum,
     ObjectCategoryEnum,
+    ProductCategoryEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -415,3 +416,44 @@ class DependencyResponse(ORMModel):
     package_version: str
     package_ecosystem: str
     vuln_matching_ecosystem: str
+
+
+class EoLVersionRequest(ORMModel):
+    version: str | None = None
+    release_date: date | None = None
+    eol_from: date | None = None
+    matching_version: str | None = None
+
+
+class EoLProductRequest(ORMModel):
+    name: str | None = None
+    product_category: ProductCategoryEnum | None = None
+    description: str | None = None
+    is_ecosystem: bool | None = None
+    matching_name: str | None = None
+    eol_versions: list[EoLVersionRequest] = []
+
+
+class EoLVersionResponse(ORMModel):
+    eol_version_id: UUID
+    version: str
+    release_date: date | None
+    eol_from: date
+    matching_version: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class EoLProductResponse(ORMModel):
+    eol_product_id: UUID
+    name: str
+    product_category: ProductCategoryEnum
+    description: str | None
+    is_ecosystem: bool
+    matching_name: str
+    eol_versions: list[EoLVersionResponse] = []
+
+
+class EoLProductListResponse(BaseModel):
+    total: int
+    products: list[EoLProductResponse]
