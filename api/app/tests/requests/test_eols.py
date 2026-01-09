@@ -219,7 +219,7 @@ class TestGetEolProducts:
 
     def test_get_all_eol_products(self):
         # When: Get all products without filters
-        response = client.get("/eols/eol", headers=headers(USER1))
+        response = client.get("/eols", headers=headers(USER1))
 
         # Then
         assert response.status_code == 200
@@ -245,7 +245,7 @@ class TestGetEolProducts:
 
     def test_get_eol_products_filtered_by_pteam_id(self):
         # When: Filter by pteam_id
-        response = client.get(f"/eols/eol?pteam_id={self.pteam1.pteam_id}", headers=headers(USER1))
+        response = client.get(f"/eols?pteam_id={self.pteam1.pteam_id}", headers=headers(USER1))
 
         # Then
         assert response.status_code == 200
@@ -260,7 +260,7 @@ class TestGetEolProducts:
     def test_get_eol_products_filtered_by_eol_product_id(self):
         # When: Filter by eol_product_id
         response = client.get(
-            f"/eols/eol?eol_product_id={self.eol_product_id_1}", headers=headers(USER1)
+            f"/eols?eol_product_id={self.eol_product_id_1}", headers=headers(USER1)
         )
 
         # Then
@@ -340,7 +340,7 @@ class TestGetEolProducts:
     def test_get_eol_products_filtered_by_both_pteam_id_and_eol_product_id(self):
         # When: Filter by both pteam_id and eol_product_id (product_2 is linked to pteam1)
         response = client.get(
-            f"/eols/eol?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_2}",
+            f"/eols?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_2}",
             headers=headers(USER1),
         )
 
@@ -395,7 +395,7 @@ class TestGetEolProducts:
         # When: Filter by pteam_id and eol_product_id that don't match
         # (product_1 is not linked to pteam1)
         response = client.get(
-            f"/eols/eol?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_1}",
+            f"/eols?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_1}",
             headers=headers(USER1),
         )
 
@@ -410,7 +410,7 @@ class TestGetEolProducts:
         non_existing_pteam_id = uuid4()
 
         # When
-        response = client.get(f"/eols/eol?pteam_id={non_existing_pteam_id}", headers=headers(USER1))
+        response = client.get(f"/eols?pteam_id={non_existing_pteam_id}", headers=headers(USER1))
 
         # Then
         assert response.status_code == 404
@@ -422,7 +422,7 @@ class TestGetEolProducts:
 
         # When
         response = client.get(
-            f"/eols/eol?eol_product_id={non_existing_eol_product_id}", headers=headers(USER1)
+            f"/eols?eol_product_id={non_existing_eol_product_id}", headers=headers(USER1)
         )
 
         # Then

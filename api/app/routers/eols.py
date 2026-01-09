@@ -14,7 +14,7 @@ NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No su
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
 
-@router.get("/eol", response_model=schemas.EoLProductListResponse)
+@router.get("/", response_model=schemas.EoLProductListResponse)
 def get_eol_products(
     pteam_id: UUID | None = Query(None, description="PTeam ID (optional)"),
     eol_product_id: UUID | None = Query(None, description="EoL Product ID (optional)"),
