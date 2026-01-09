@@ -29,10 +29,9 @@ import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
 
-import { VulnerabilityView } from "./VulnerabilityView.jsx";
-
 import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
 import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
+import { VulnerabilityView } from "./VulnerabilityView.jsx";
 
 function DetailRow({ label, children }) {
   return (

@@ -271,12 +271,12 @@ def main() -> None:
     if args.api_key:
         api_key = args.api_key
     else:
-        api_key = os.environ.get("VULN_API_KEY")
+        api_key = os.environ.get("SYSTEM_API_KEY")
 
     if not api_key:
         sys.exit(
             "ERROR: Require the API Key for Threatconnectome.\n"
-            "You can use '-k API_KEY' or 'export VULN_API_KEY=\"XXXXXX\"'."
+            "You can use '-k API_KEY' or 'export SYSTEM_API_KEY=\"XXXXXX\"'."
         )
 
     tc_client = ThreatconnectomeClient(

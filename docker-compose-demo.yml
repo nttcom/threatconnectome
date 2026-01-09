@@ -27,7 +27,7 @@ services:
       FIREBASE_API_KEY: ${FIREBASE_API_KEY}
       FIREBASE_CRED: /key/firebase_credentials.json
       FIREBASE_AUTH_EMULATOR_HOST: firebase:9099 # use firebase auth emulator
-      VULN_API_KEY: ${VULN_API_KEY}
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10

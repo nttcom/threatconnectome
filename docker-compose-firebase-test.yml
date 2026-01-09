@@ -23,7 +23,7 @@ services:
       FIREBASE_API_KEY: ${FIREBASE_API_KEY}
       FIREBASE_CRED: /key/firebase_credentials.json
       FIREBASE_AUTH_EMULATOR_HOST: testfirebase:9099
-      VULN_API_KEY: ${VULN_API_KEY}
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
     networks:
       - test-network
     volumes:

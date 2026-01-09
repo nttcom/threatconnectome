@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
@@ -192,3 +192,26 @@ def _get_eol_version_by_version(
         if eol_version.version == version:
             return eol_version
     return None
+
+
+@router.delete(
+    "/{eol_product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
+def delete_eol(
+    eol_product_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a eol.
+    """
+    if not (eol_product := persistence.get_eol_product_by_id(db, eol_product_id)):
+        raise NO_SUCH_EOL
+
+    persistence.delete_eol_product(db, eol_product)
+
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
