@@ -515,6 +515,49 @@ TICKETS_SORT_KEYS = {
 }
 
 
+def get_related_package_versions_by_eol_version(
+    db: Session, eol_product: models.EoLProduct, eol_version: models.EoLVersion
+) -> Sequence[models.PackageVersion]:
+    select_stmt = select(models.PackageVersion).join(
+        models.Package, models.Package.package_id == models.PackageVersion.package_id
+    )
+
+    filters = []
+    if eol_product.is_ecosystem:
+        filters.append(models.Package.ecosystem == str(eol_version.matching_version))
+    else:
+        filters.append(models.Package.name == str(eol_product.matching_name))
+        filters.append(models.PackageVersion.version == str(eol_version.matching_version))
+
+    return db.scalars(select_stmt.where(and_(*filters))).all()
+
+
+def get_related_eol_versions_by_package_version(
+    db: Session, package_version: models.PackageVersion
+) -> Sequence[models.EoLVersion]:
+    select_stmt = (
+        select(models.EoLVersion)
+        .join(
+            models.EoLProduct, models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id
+        )
+        .where(
+            or_(
+                and_(
+                    models.EoLProduct.is_ecosystem.is_(True),
+                    models.EoLVersion.matching_version == package_version.package.ecosystem,
+                ),
+                and_(
+                    models.EoLProduct.is_ecosystem.is_(False),
+                    models.EoLProduct.matching_name == package_version.package.name,
+                    models.EoLVersion.matching_version == str(package_version.version),
+                ),
+            ),
+        )
+    )
+
+    return db.scalars(select_stmt).all()
+
+
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],

@@ -455,8 +455,8 @@ def get_eol_product_by_id(db: Session, eol_product_id: UUID | str) -> models.EoL
     ).one_or_none()
 
 
-def create_eol_product(db: Session, eol_product: models.EoLProduct):
-    db.add(eol_product)
+def create_eol_product(db: Session, eol: models.EoLProduct):
+    db.add(eol)
     db.flush()
 
 
@@ -466,6 +466,67 @@ def delete_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
 
 
 ### EolVersion
-def create_eol_version(db: Session, eol_version: models.EoLVersion):
-    db.add(eol_version)
+def create_eol_version(db: Session, eol: models.EoLVersion):
+    db.add(eol)
     db.flush()
+
+
+def delete_eol_version(db: Session, eol: models.EoLVersion) -> None:
+    db.delete(eol)
+    db.flush()
+
+
+### EcosystemEoLDependency
+
+
+def create_ecosystem_eol_dependency(
+    db: Session, ecosystem_eol_dependency: models.EcosystemEoLDependency
+) -> None:
+    db.add(ecosystem_eol_dependency)
+    db.flush()
+
+
+def delete_ecosystem_eol_dependency(
+    db: Session, ecosystem_eol_dependency: models.EcosystemEoLDependency
+) -> None:
+    db.delete(ecosystem_eol_dependency)
+    db.flush()
+
+
+def get_ecosystem_eol_dependency_by_eol_version_id_and_service_id(
+    db: Session, eol_version_id: UUID | str, service_id: UUID | str
+) -> models.EcosystemEoLDependency | None:
+    return db.scalars(
+        select(models.EcosystemEoLDependency).where(
+            models.EcosystemEoLDependency.eol_version_id == str(eol_version_id),
+            models.EcosystemEoLDependency.service_id == str(service_id),
+        )
+    ).one_or_none()
+
+
+### PackageEoLDependency
+
+
+def create_package_eol_dependency(
+    db: Session, package_eol_dependency: models.PackageEoLDependency
+) -> None:
+    db.add(package_eol_dependency)
+    db.flush()
+
+
+def delete_package_eol_dependency(
+    db: Session, package_eol_dependency: models.PackageEoLDependency
+) -> None:
+    db.delete(package_eol_dependency)
+    db.flush()
+
+
+def get_package_eol_dependency_by_eol_version_id_and_dependency_id(
+    db: Session, eol_version_id: UUID | str, dependency_id: UUID | str
+) -> models.PackageEoLDependency | None:
+    return db.scalars(
+        select(models.PackageEoLDependency).where(
+            models.PackageEoLDependency.eol_version_id == str(eol_version_id),
+            models.PackageEoLDependency.dependency_id == str(dependency_id),
+        )
+    ).one_or_none()

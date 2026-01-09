@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import dependency_business, package_business, threat_business, ticket_business
+from app.business.eol import eol_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
     get_ticket_counts_summary_by_service_and_package_id,
@@ -1367,6 +1368,9 @@ def apply_service_packages(
         service.dependencies.remove(obsoleted)
         db.flush()
         package_business.fix_package(db, package)
+
+    db.refresh(service)
+    eol_business.fix_eol_dependency_by_service(db, service)
 
 
 @router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
