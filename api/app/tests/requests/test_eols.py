@@ -267,8 +267,6 @@ class TestGetEolProducts:
         assert response.status_code == 200
         data = response.json()
         current_time = datetime.now(timezone.utc)
-        print(type(data["products"][0]["eol_versions"][0]["release_date"]))
-        print(type(self.eol_product_1_request["eol_versions"][0]["release_date"]))
         assert data["total"] == 1
         assert len(data["products"]) == 1
         assert len(data["products"][0]["eol_versions"]) == 2
