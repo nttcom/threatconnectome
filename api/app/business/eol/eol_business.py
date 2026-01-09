@@ -14,24 +14,22 @@ def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduc
 def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
     _delete_eol_dependency_by_service(db, service)
 
-    related_service_pairs = set()
+    related_eol_version_id = set()
 
     for dependency in service.dependencies:
         package_version = dependency.package_version
         eol_versions = command.get_related_eol_versions_by_package_version(db, package_version)
         for eol_version in eol_versions:
             if eol_version.eol_product.is_ecosystem:
-                related_service_pairs.add(
-                    (eol_version.eol_version_id, dependency.service.service_id)
-                )
+                related_eol_version_id.add(eol_version.eol_version_id)
             else:
                 package_eol_business.create_package_eol_dependency_if_not_exists(
                     db, eol_version.eol_version_id, dependency.dependency_id
                 )
 
-    for eol_version_id, service_id in related_service_pairs:
+    for eol_version_id in related_eol_version_id:
         ecosystem_eol_business.create_ecosystem_eol_dependency_if_not_exists(
-            db, eol_version_id, service_id
+            db, eol_version_id, service.service_id
         )
 
 
