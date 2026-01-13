@@ -85,6 +85,7 @@ class TestGetEolProducts:
         }
 
         # Todo: After creating the PUT API, modify the API.
+        self.current_time = datetime.now(timezone.utc)
         eol_product_1 = models.EoLProduct(
             eol_product_id=str(self.eol_product_id_1),
             name=self.eol_product_1_request["name"],
@@ -266,7 +267,6 @@ class TestGetEolProducts:
         # Then
         assert response.status_code == 200
         data = response.json()
-        current_time = datetime.now(timezone.utc)
         assert data["total"] == 1
         assert len(data["products"]) == 1
         assert len(data["products"][0]["eol_versions"]) == 2
@@ -295,18 +295,18 @@ class TestGetEolProducts:
             for eol_version in self.eol_product_1_request["eol_versions"]
         ]
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
         assert data["products"][0]["eol_versions"][1]["version"] in [
             eol_version["version"] for eol_version in self.eol_product_1_request["eol_versions"]
@@ -323,18 +323,18 @@ class TestGetEolProducts:
             for eol_version in self.eol_product_1_request["eol_versions"]
         ]
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][1]["created_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][1]["updated_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
 
     def test_get_eol_products_filtered_by_both_pteam_id_and_eol_product_id(self):
@@ -347,7 +347,6 @@ class TestGetEolProducts:
         # Then
         assert response.status_code == 200
         data = response.json()
-        current_time = datetime.now(timezone.utc)
         assert data["total"] == 1
         assert len(data["products"]) == 1
         assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_2)
@@ -377,18 +376,18 @@ class TestGetEolProducts:
             == self.eol_product_2_request["eol_versions"][0]["matching_version"]
         )
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
         assert (
-            current_time - timedelta(seconds=10)
+            self.current_time - timedelta(seconds=10)
             <= datetime.fromisoformat(
                 data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
             )
-            <= current_time + timedelta(seconds=10)
+            <= self.current_time + timedelta(seconds=10)
         )
 
     def test_get_eol_products_no_match_for_pteam_and_product_combination(self):
