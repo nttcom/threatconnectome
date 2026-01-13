@@ -73,32 +73,6 @@ def get_eol_products(
     return schemas.EoLProductListResponse(total=result["num_products"], products=products_response)
 
 
-def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductResponse:
-    eol_versions = []
-    for eol_version in eol_product.eol_versions:
-        eol_versions.append(
-            schemas.EoLVersionResponse(
-                eol_version_id=UUID(eol_version.eol_version_id),
-                version=eol_version.version,
-                release_date=eol_version.release_date,
-                eol_from=eol_version.eol_from,
-                matching_version=eol_version.matching_version,
-                created_at=eol_version.created_at,
-                updated_at=eol_version.updated_at,
-            )
-        )
-
-    return schemas.EoLProductResponse(
-        eol_product_id=UUID(eol_product.eol_product_id),
-        name=eol_product.name,
-        product_category=eol_product.product_category,
-        description=eol_product.description,
-        is_ecosystem=eol_product.is_ecosystem,
-        matching_name=eol_product.matching_name,
-        eol_versions=eol_versions,
-    )
-
-
 @router.put(
     "/{eol_product_id}",
     response_model=schemas.EoLProductResponse,
