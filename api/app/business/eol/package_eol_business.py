@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence
 
 
-def fix_package_eol_dependency_by_eol_version(db: Session, eol_product: models.EoLProduct) -> None:
+def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
     for eol_version in eol_product.eol_versions:
         _delete_not_match_package_eol_dependency(db, eol_version)
 

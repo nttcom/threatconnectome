@@ -6,9 +6,9 @@ from app.business.eol import ecosystem_eol_business, package_eol_business
 
 def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
     if eol_product.is_ecosystem:
-        ecosystem_eol_business.fix_ecosystem_eol_dependency_by_eol_version(db, eol_product)
+        ecosystem_eol_business.fix_ecosystem_eol_dependency_by_eol_product(db, eol_product)
     else:
-        package_eol_business.fix_package_eol_dependency_by_eol_version(db, eol_product)
+        package_eol_business.fix_package_eol_dependency_by_eol_product(db, eol_product)
 
 
 def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
