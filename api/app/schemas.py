@@ -419,10 +419,10 @@ class DependencyResponse(ORMModel):
 
 
 class EoLVersionRequest(ORMModel):
-    version: str | None = None
-    release_date: date | None = None
-    eol_from: date | None = None
-    matching_version: str | None = None
+    version: str
+    release_date: date
+    eol_from: date
+    matching_version: str
 
 
 class EoLProductRequest(ORMModel):
