@@ -9,8 +9,10 @@ from app.constants import (
     SYSTEM_EMAIL,
 )
 from app.main import app
-from app.notification.alert import (
+from app.notification.mail import (
     create_mail_alert_for_new_vuln,
+)
+from app.notification.slack import (
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
 from app.routers.pteams import bg_create_tags_from_sbom_json
