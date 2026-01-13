@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.constants import SYSTEM_EMAIL
 from app.main import app
-from app.notification.alert import (
+from app.notification.mail import (
     create_mail_to_notify_sbom_upload_failed,
     create_mail_to_notify_sbom_upload_succeeded,
 )
