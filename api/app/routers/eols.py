@@ -144,13 +144,16 @@ def __handle_update_eol(
                     and eol_version.release_date is not None
                 ):
                     persisted_eol_version.release_date = eol_version.release_date
+
                 if "eol_from" in update_eol_version.keys() and eol_version.eol_from is not None:
                     persisted_eol_version.eol_from = eol_version.eol_from
+
                 if (
                     "matching_version" in update_eol_version.keys()
                     and eol_version.matching_version is not None
                 ):
                     persisted_eol_version.matching_version = eol_version.matching_version
+
                 persisted_eol_version.updated_at = now
             else:
                 new_eol_version = models.EoLVersion(
