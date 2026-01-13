@@ -452,3 +452,8 @@ class EoLProductResponse(ORMModel):
     is_ecosystem: bool
     matching_name: str
     eol_versions: list[EoLVersionResponse] = []
+
+
+class EoLProductListResponse(BaseModel):
+    total: int
+    products: list[EoLProductResponse]
