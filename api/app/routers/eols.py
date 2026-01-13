@@ -78,6 +78,21 @@ def __handle_create_eol(
     request: schemas.EoLProductRequest,
     db: Session,
 ) -> models.EoLProduct:
+    update_request = request.model_dump(exclude_unset=True)
+    if (
+        ("name" not in update_request.keys())
+        or ("product_category" not in update_request.keys())
+        or ("is_ecosystem" not in update_request.keys())
+        or ("matching_name" not in update_request.keys())
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "'name' and 'product_category' and 'is_ecosystem' and "
+                "'matching_name' are required when creating a eol."
+            ),
+        )
+
     _check_request_fields(request)
 
     # create eol product

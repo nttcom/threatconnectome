@@ -234,6 +234,34 @@ class TestUpdateEol:
         assert response.status_code == 400
         assert response.json()["detail"] == f"Cannot specify None for {field_name}"
 
+    @pytest.mark.parametrize(
+        "field_name",
+        [
+            "name",
+            "product_category",
+            "is_ecosystem",
+            "matching_name",
+        ],
+    )
+    def test_raise_400_when_create_if_nothing_is_specified_in_the_request(self, field_name):
+        # Given
+        new_eol_product_id = uuid4()
+        request = self.request1.copy()
+        del request[f"{field_name}"]
+
+        # When
+        response = client.put(
+            f"/eols/{new_eol_product_id}", headers=headers_with_api_key(USER1), json=request
+        )
+
+        # Then
+        assert response.status_code == 400
+        expected_message = (
+            "'name' and 'product_category' and 'is_ecosystem' and 'matching_name' "
+            "are required when creating a eol."
+        )
+        assert response.json()["detail"] == expected_message
+
     def test_raise_401_if_invalid_api_key(self):
         # Given
         invalid_headers = headers(USER1)
