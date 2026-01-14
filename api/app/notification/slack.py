@@ -142,3 +142,38 @@ def create_slack_blocks_to_notify_sbom_upload_failed(
             ]
         )
     return blocks
+
+
+def create_slack_blocks_to_notify_eol(
+    pteam_name: str,
+    service_name: str,
+    product_name: str,
+    version: str,
+    eol_from: str,
+):
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=":warning: Action Required: migrate/upgrade to a supported version"
+    )
+
+    # TODO: Once the EOL link is confirmed, implement the URL.
+    # url = urljoin(WEBUI_URL, f"?{encoded_params}")
+    blocks.extend(
+        [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"EOL (End of Life) reached on *<{eol_from}>* (no more security fixes)\n\n"
+                        f"• *Service:* {service_name}\n"
+                        f"• *Team:* {pteam_name}\n"
+                        f"• *Product:* {product_name}\n"
+                        f"• *Current Version:* {version}\n"
+                        f"• *EOL Date:* {eol_from}\n"
+                        # f"• *Reference:* <xxxxxxxxxxxx>"
+                    ),
+                },
+            },
+        ]
+    )
+    return blocks

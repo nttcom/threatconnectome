@@ -98,3 +98,29 @@ def create_mail_to_notify_sbom_upload_failed(
         ]
     )
     return subject, body
+
+
+def create_mail_to_notify_eol(
+    pteam_name: str,
+    service_name: str,
+    product_name: str,
+    version: str,
+    eol_from: str,
+) -> tuple[str, str]:
+    # TODO: Once the EOL link is confirmed, implement the URL.
+    subject = "[Tc Warning] Action Required: migrate/upgrade to a supported version"
+    body = "<br>".join(
+        [
+            f"EOL (End of Life) reached on <b><{eol_from}></b> (no more security fixes)",
+            "",
+            "<ul>",
+            f"<li><b>Service:</b> {service_name}</li>",
+            f"<li><b>Team:</b> {pteam_name}</li>",
+            f"<li><b>Product:</b> {product_name}</li>",
+            f"<li><b>Current Version:</b> {version}</li>",
+            f"<li><b>EOL Date:</b> {eol_from}</li>",
+            # f"<li><b>Reference:</b> <a href='{url}'>{url}</a></li>",
+            "</ul>",
+        ]
+    )
+    return subject, body
