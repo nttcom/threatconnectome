@@ -26,7 +26,8 @@ import {
   PTeam,
   ToDo,
 } from "./pages";
-import { ProductEolDetailPage, ProductEolListPage } from "./pages/Eol/ProductEolPage";
+import { ProductEolDetail } from "./pages/Eol/ProductEolDetailPage";
+import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboard";
 import { MOCK_SERVICES, MOCK_LAST_UPDATED } from "./pages/Eol/mocks/serviceData";
 import { AuthProvider } from "./providers/auth/AuthContext";
@@ -90,8 +91,8 @@ root.render(
                       />
                     }
                   ></Route>
-                  <Route path="/supported-products" element={<ProductEolListPage />} />
-                  <Route path="/supported-products/:productId" element={<ProductEolDetailPage />} />
+                  <Route path="/supported-products" element={<ProductEolList />} />
+                  <Route path="/supported-products/:productId" element={<ProductEolDetail />} />
                 </Route>
               </Routes>
             </Router>
