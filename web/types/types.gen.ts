@@ -219,6 +219,85 @@ export type EmailCheckRequest = {
 };
 
 /**
+ * EoLProductListResponse
+ */
+export type EoLProductListResponse = {
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Products
+     */
+    products: Array<EoLProductResponse>;
+};
+
+/**
+ * EoLProductResponse
+ */
+export type EoLProductResponse = {
+    /**
+     * Eol Product Id
+     */
+    eol_product_id: string;
+    /**
+     * Name
+     */
+    name: string;
+    product_category: ProductCategoryEnum;
+    /**
+     * Description
+     */
+    description: string | null;
+    /**
+     * Is Ecosystem
+     */
+    is_ecosystem: boolean;
+    /**
+     * Matching Name
+     */
+    matching_name: string;
+    /**
+     * Eol Versions
+     */
+    eol_versions?: Array<EoLVersionResponse>;
+};
+
+/**
+ * EoLVersionResponse
+ */
+export type EoLVersionResponse = {
+    /**
+     * Eol Version Id
+     */
+    eol_version_id: string;
+    /**
+     * Version
+     */
+    version: string;
+    /**
+     * Release Date
+     */
+    release_date: string | null;
+    /**
+     * Eol From
+     */
+    eol_from: string;
+    /**
+     * Matching Version
+     */
+    matching_version: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
  * ExploitationEnum
  */
 export type ExploitationEnum = 'active' | 'public_poc' | 'none';
@@ -663,6 +742,11 @@ export type PackageFileResponse = {
      */
     references?: Array<Reference>;
 };
+
+/**
+ * ProductCategoryEnum
+ */
+export type ProductCategoryEnum = 'os' | 'runtime' | 'middleware' | 'package';
 
 /**
  * PteamMemberGetResponse
@@ -1135,6 +1219,55 @@ export type VulnsListResponse = {
      * Vulns
      */
     vulns: Array<VulnResponse>;
+};
+
+/**
+ * EoLProductRequest
+ */
+export type EoLProductRequest = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    product_category?: ProductCategoryEnum | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Is Ecosystem
+     */
+    is_ecosystem?: boolean | null;
+    /**
+     * Matching Name
+     */
+    matching_name?: string | null;
+    /**
+     * Eol Versions
+     */
+    eol_versions?: Array<EoLVersionRequest>;
+};
+
+/**
+ * EoLVersionRequest
+ */
+export type EoLVersionRequest = {
+    /**
+     * Version
+     */
+    version: string;
+    /**
+     * Release Date
+     */
+    release_date: string;
+    /**
+     * Eol From
+     */
+    eol_from: string;
+    /**
+     * Matching Version
+     */
+    matching_version: string;
 };
 
 /**
@@ -2763,6 +2896,116 @@ export type UpdateInsightTicketsTicketIdInsightPutResponses = {
 };
 
 export type UpdateInsightTicketsTicketIdInsightPutResponse = UpdateInsightTicketsTicketIdInsightPutResponses[keyof UpdateInsightTicketsTicketIdInsightPutResponses];
+
+export type GetEolProductsEolsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Pteam Id
+         *
+         * PTeam ID (optional)
+         */
+        pteam_id?: string | null;
+        /**
+         * Eol Product Id
+         *
+         * EoL Product ID (optional)
+         */
+        eol_product_id?: string | null;
+    };
+    url: '/eols/';
+};
+
+export type GetEolProductsEolsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEolProductsEolsGetError = GetEolProductsEolsGetErrors[keyof GetEolProductsEolsGetErrors];
+
+export type GetEolProductsEolsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EoLProductListResponse;
+};
+
+export type GetEolProductsEolsGetResponse = GetEolProductsEolsGetResponses[keyof GetEolProductsEolsGetResponses];
+
+export type DeleteEolEolsEolProductIdDeleteData = {
+    body?: never;
+    headers: {
+        /**
+         * X-Api-Key
+         */
+        'x-api-key': string;
+    };
+    path: {
+        /**
+         * Eol Product Id
+         */
+        eol_product_id: string;
+    };
+    query?: never;
+    url: '/eols/{eol_product_id}';
+};
+
+export type DeleteEolEolsEolProductIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEolEolsEolProductIdDeleteError = DeleteEolEolsEolProductIdDeleteErrors[keyof DeleteEolEolsEolProductIdDeleteErrors];
+
+export type DeleteEolEolsEolProductIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type DeleteEolEolsEolProductIdDeleteResponse = DeleteEolEolsEolProductIdDeleteResponses[keyof DeleteEolEolsEolProductIdDeleteResponses];
+
+export type UpdateEolEolsEolProductIdPutData = {
+    body: EoLProductRequest;
+    headers: {
+        /**
+         * X-Api-Key
+         */
+        'x-api-key': string;
+    };
+    path: {
+        /**
+         * Eol Product Id
+         */
+        eol_product_id: string;
+    };
+    query?: never;
+    url: '/eols/{eol_product_id}';
+};
+
+export type UpdateEolEolsEolProductIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateEolEolsEolProductIdPutError = UpdateEolEolsEolProductIdPutErrors[keyof UpdateEolEolsEolProductIdPutErrors];
+
+export type UpdateEolEolsEolProductIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EoLProductResponse;
+};
+
+export type UpdateEolEolsEolProductIdPutResponse = UpdateEolEolsEolProductIdPutResponses[keyof UpdateEolEolsEolProductIdPutResponses];
 
 export type InternalOpenapiSchemaInternalApiOpenapiJsonGetData = {
     body?: never;
