@@ -10,6 +10,11 @@ import type {
   CreateLogActionlogsPostData,
   ActionLogResponse,
   DependencyResponse,
+  EoLProductListResponse,
+  UpdateEolEolsEolProductIdPutData,
+  DeleteEolEolsEolProductIdDeleteData,
+  GetEolProductsEolsGetData,
+  EoLProductResponse,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -64,6 +69,7 @@ import type {
 const TAG_TYPES_LIST = [
   "Service",
   "Dependency",
+  "EoLDependency",
   "Threat",
   "Ticket",
   "TicketStatus",
@@ -142,6 +148,38 @@ export const tcApi = createApi({
       providesTags: (_result, _error, _arg) => [
         { type: "Service", id: "ALL" },
         { type: "Dependency", id: _arg.path.dependency_id },
+      ],
+    }),
+
+    /* EoL */
+    updateEoL: builder.mutation<EoLProductListResponse, UpdateEolEolsEolProductIdPutData>({
+      query: (arg) => ({
+        url: `eols/${arg.path.eol_product_id}`,
+        method: "PUT",
+        body: arg.body,
+      }),
+      invalidatesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
+    }),
+    deleteEoL: builder.mutation<void, DeleteEolEolsEolProductIdDeleteData>({
+      query: (arg) => ({
+        url: `eols/${arg.path.eol_product_id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "EoLDependency", id: _arg.path.eol_product_id },
+      ],
+    }),
+    getEoLs: builder.query<EoLProductResponse, GetEolProductsEolsGetData>({
+      query: (arg) => ({
+        url: "eols",
+        params: {
+          pteam_id: arg?.query?.pteam_id,
+          eol_product_id: arg?.query?.eol_product_id,
+        },
+      }),
+      providesTags: (_result, _error, _arg) => [
+        { type: "EoLDependency", id: _result?.eol_product_id },
+        { type: "EoLDependency", id: "ALL" },
       ],
     }),
 
@@ -431,7 +469,10 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (_result, _error, _arg) => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "EoLDependency", id: "ALL" },
+      ],
     }),
 
     /* Ticket */
@@ -588,6 +629,9 @@ export const {
   useGetDependenciesQuery,
   useGetDependencyQuery,
   useGetInsightQuery,
+  useUpdateEoLMutation,
+  useDeleteEoLMutation,
+  useGetEoLsQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
