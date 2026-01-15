@@ -81,9 +81,6 @@ root.render(
                   <Route path="todo">
                     <Route index element={<ToDo />} />
                   </Route>
-                  <Route path="vulnerabilities">
-                    <Route index element={<Vulnerability />} />
-                  </Route>
                   <Route
                     path="/eol"
                     element={
