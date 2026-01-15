@@ -148,7 +148,7 @@ def _send_eol_notifications(
     send_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
 
     if (not send_by_slack and not send_by_mail) or notification_sent:
-        return None
+        return
 
     if send_by_slack:
         try:
