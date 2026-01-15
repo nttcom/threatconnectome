@@ -298,7 +298,7 @@ def main() -> None:
         "--api-key",
         dest="api_key",
         type=str,
-        help="set the API key for patching vulnerability information in threatconnectome",
+        help="set the API key for patching EoL information in threatconnectome",
     )
     args = parser.parse_args()
     if args.token:
