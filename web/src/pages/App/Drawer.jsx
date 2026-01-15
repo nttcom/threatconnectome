@@ -1,4 +1,9 @@
-import { Groups as GroupsIcon, Home as HomeIcon, Topic as TopicIcon } from "@mui/icons-material";
+import {
+  HourglassBottom as HourglassBottomIcon,
+  Groups as GroupsIcon,
+  Home as HomeIcon,
+  Topic as TopicIcon,
+} from "@mui/icons-material";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import {
   Drawer as MuiDrawer,
@@ -147,7 +152,16 @@ export function Drawer() {
             </StyledListItemIcon>
             <ListItemText>Vulns</ListItemText>
           </StyledListItemButton>
-          {/* Vulnerabilities -- not listed on drawer, currently */}
+          {/* EoL */}
+          <StyledListItemButton
+            onClick={() => navigate("/eol?" + cleanedQueryParams)}
+            selected={locationReader.isEoLPage()}
+          >
+            <StyledListItemIcon>
+              <HourglassBottomIcon />
+            </StyledListItemIcon>
+            <ListItemText>EoL</ListItemText>
+          </StyledListItemButton>
           {/* ToDo */}
           <StyledListItemButton
             onClick={() => navigate("/todo?" + cleanedQueryParams)}
