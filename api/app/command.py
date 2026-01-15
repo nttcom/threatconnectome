@@ -524,7 +524,7 @@ def get_related_package_versions_by_eol_version(
 
     filters = []
     if eol_product.is_ecosystem:
-        filters.append(models.Package.ecosystem == str(eol_version.matching_version))
+        filters.append(models.Package.vuln_matching_ecosystem == str(eol_version.matching_version))
     else:
         filters.append(models.Package.name == str(eol_product.matching_name))
         filters.append(models.PackageVersion.version == str(eol_version.matching_version))
@@ -544,7 +544,8 @@ def get_related_eol_versions_by_package_version(
             or_(
                 and_(
                     models.EoLProduct.is_ecosystem.is_(True),
-                    models.EoLVersion.matching_version == package_version.package.ecosystem,
+                    models.EoLVersion.matching_version
+                    == package_version.package.vuln_matching_ecosystem,
                 ),
                 and_(
                     models.EoLProduct.is_ecosystem.is_(False),

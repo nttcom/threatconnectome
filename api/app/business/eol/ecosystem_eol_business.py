@@ -68,7 +68,10 @@ def _delete_not_match_ecosystem_eol_dependency_by_ecosystem_eol_dependencies(
 
 def _check_match_any_dependencies(ecosystem_eol_dependency, eol_version):
     for dependency in ecosystem_eol_dependency.service.dependencies:
-        if dependency.package_version.package.ecosystem == eol_version.matching_version:
+        if (
+            dependency.package_version.package.vuln_matching_ecosystem
+            == eol_version.matching_version
+        ):
             return True
 
     return False
