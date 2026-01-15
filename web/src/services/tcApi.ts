@@ -11,10 +11,7 @@ import type {
   ActionLogResponse,
   DependencyResponse,
   EoLProductListResponse,
-  UpdateEolEolsEolProductIdPutData,
-  DeleteEolEolsEolProductIdDeleteData,
   GetEolProductsEolsGetData,
-  EoLProductResponse,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -152,24 +149,7 @@ export const tcApi = createApi({
     }),
 
     /* EoL */
-    updateEoL: builder.mutation<EoLProductListResponse, UpdateEolEolsEolProductIdPutData>({
-      query: (arg) => ({
-        url: `eols/${arg.path.eol_product_id}`,
-        method: "PUT",
-        body: arg.body,
-      }),
-      invalidatesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
-    }),
-    deleteEoL: builder.mutation<void, DeleteEolEolsEolProductIdDeleteData>({
-      query: (arg) => ({
-        url: `eols/${arg.path.eol_product_id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (_result, _error, _arg) => [
-        { type: "EoLDependency", id: _arg.path.eol_product_id },
-      ],
-    }),
-    getEoLs: builder.query<EoLProductResponse, GetEolProductsEolsGetData>({
+    getEoLs: builder.query<EoLProductListResponse, GetEolProductsEolsGetData>({
       query: (arg) => ({
         url: "eols",
         params: {
@@ -177,10 +157,7 @@ export const tcApi = createApi({
           eol_product_id: arg?.query?.eol_product_id,
         },
       }),
-      providesTags: (_result, _error, _arg) => [
-        { type: "EoLDependency", id: _result?.eol_product_id },
-        { type: "EoLDependency", id: "ALL" },
-      ],
+      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
     }),
 
     /* Insight  */
@@ -629,8 +606,6 @@ export const {
   useGetDependenciesQuery,
   useGetDependencyQuery,
   useGetInsightQuery,
-  useUpdateEoLMutation,
-  useDeleteEoLMutation,
   useGetEoLsQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
