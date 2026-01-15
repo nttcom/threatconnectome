@@ -2,7 +2,7 @@ import { Box, Paper, Tooltip, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
-import { ssvcPriorityProps } from "../../utils/const";
+import { ssvcPriorityProps } from "../../utils/ssvcUtils";
 
 const countMax = 99;
 

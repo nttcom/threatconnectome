@@ -8,7 +8,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { experienceColors, noPTeamMessage } from "../../utils/const";
-import { a11yProps, errorToString } from "../../utils/func.js";
+import { a11yProps, errorToString } from "../../utils/func";
 
 import { PTeamMember } from "./PTeamMember.jsx";
 

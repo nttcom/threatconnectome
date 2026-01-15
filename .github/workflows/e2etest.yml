@@ -9,7 +9,7 @@ env:
   DB_USER: postgres
   DB_PASSWORD: postgres
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-  VULN_API_KEY: secret_api_key
+  SYSTEM_API_KEY: secret_api_key
 jobs:
   e2etest:
     name: Run e2etests

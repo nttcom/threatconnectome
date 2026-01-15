@@ -11,7 +11,6 @@ import { Status } from "./Status/StatusPage";
 import { ToDo } from "./ToDo/ToDoPage";
 import { VulnDetail } from "./VulnDetail/VulnDetailPage";
 import { VulnManagement } from "./VulnManagement/VulnManagementPage";
-import { Vulnerability } from "./Vulnerability/VulnerabilityPage";
 
 export {
   AcceptPTeamInvitation,
@@ -27,5 +26,4 @@ export {
   ToDo,
   VulnDetail,
   VulnManagement,
-  Vulnerability,
 };

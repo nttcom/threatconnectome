@@ -3,8 +3,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { cvssProps } from "../../utils/const";
-import { cvssConvertToName } from "../../utils/func";
+import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 

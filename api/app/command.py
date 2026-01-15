@@ -515,6 +515,49 @@ TICKETS_SORT_KEYS = {
 }
 
 
+def get_related_package_versions_by_eol_version(
+    db: Session, eol_product: models.EoLProduct, eol_version: models.EoLVersion
+) -> Sequence[models.PackageVersion]:
+    select_stmt = select(models.PackageVersion).join(
+        models.Package, models.Package.package_id == models.PackageVersion.package_id
+    )
+
+    filters = []
+    if eol_product.is_ecosystem:
+        filters.append(models.Package.ecosystem == str(eol_version.matching_version))
+    else:
+        filters.append(models.Package.name == str(eol_product.matching_name))
+        filters.append(models.PackageVersion.version == str(eol_version.matching_version))
+
+    return db.scalars(select_stmt.where(and_(*filters))).all()
+
+
+def get_related_eol_versions_by_package_version(
+    db: Session, package_version: models.PackageVersion
+) -> Sequence[models.EoLVersion]:
+    select_stmt = (
+        select(models.EoLVersion)
+        .join(
+            models.EoLProduct, models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id
+        )
+        .where(
+            or_(
+                and_(
+                    models.EoLProduct.is_ecosystem.is_(True),
+                    models.EoLVersion.matching_version == package_version.package.ecosystem,
+                ),
+                and_(
+                    models.EoLProduct.is_ecosystem.is_(False),
+                    models.EoLProduct.matching_name == package_version.package.name,
+                    models.EoLVersion.matching_version == str(package_version.version),
+                ),
+            ),
+        )
+    )
+
+    return db.scalars(select_stmt).all()
+
+
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
@@ -624,3 +667,60 @@ def get_sorted_paginated_tickets_for_pteams(
     total_count = db.scalar(count_stmt) or 0
 
     return total_count, tickets
+
+
+def get_eol_products(
+    db: Session,
+    pteam_id: UUID | str | None = None,
+    eol_product_id: UUID | str | None = None,
+) -> dict:
+    """
+    Get EoL products with optional filtering by pteam_id and eol_product_id
+    Returns dict with total count and list of products with eol_versions populated
+    """
+    # Join EoLVersion to automatically load the relationship (like get_vulns does with Affect)
+    query = select(models.EoLProduct).outerjoin(
+        models.EoLVersion,
+        models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id,
+    )
+
+    # Filter by pteam_id through relationships
+    if pteam_id is not None:
+        # Need to join all tables involved in the OR condition
+        # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service
+        # Path 2: EoLVersion -> EcosystemEoLDependency -> Service
+        query = (
+            query.outerjoin(
+                models.PackageEoLDependency,
+                models.PackageEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+            )
+            .outerjoin(
+                models.Dependency,
+                models.Dependency.dependency_id == models.PackageEoLDependency.dependency_id,
+            )
+            .outerjoin(
+                models.EcosystemEoLDependency,
+                models.EcosystemEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+            )
+            .join(
+                models.Service,
+                or_(
+                    models.Service.service_id == models.Dependency.service_id,
+                    models.Service.service_id == models.EcosystemEoLDependency.service_id,
+                ),
+            )
+            .where(models.Service.pteam_id == str(pteam_id))
+        )
+
+    if eol_product_id is not None:
+        query = query.where(models.EoLProduct.eol_product_id == str(eol_product_id))
+
+    # Order by name and use distinct to avoid duplicates from joins
+    query = query.order_by(models.EoLProduct.name).distinct()
+
+    products = db.scalars(query).all()
+
+    return {
+        "num_products": len(products),
+        "products": products,
+    }

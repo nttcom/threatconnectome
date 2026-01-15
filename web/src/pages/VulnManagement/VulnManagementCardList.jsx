@@ -4,8 +4,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { cvssProps } from "../../utils/const";
-import { cvssConvertToName } from "../../utils/func";
+import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 import { preserveParams } from "../../utils/urlUtils";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";

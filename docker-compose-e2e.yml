@@ -21,7 +21,7 @@ services:
       - AUTH_SERVICE=FIREBASE
       - FIREBASE_API_KEY=${FIREBASE_API_KEY}
       - FIREBASE_CRED=/key/firebase_credentials.json
-      - VULN_API_KEY=${VULN_API_KEY}
+      - SYSTEM_API_KEY=${SYSTEM_API_KEY}
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10
@@ -116,6 +116,6 @@ services:
       - traefik
     environment:
       - BASE_URL=http://traefik:80
-      - VULN_API_KEY=${VULN_API_KEY}
+      - SYSTEM_API_KEY=${SYSTEM_API_KEY}
     volumes:
       - ./e2etests:/e2etests

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.constants import SYSTEM_EMAIL
 from app.main import app
-from app.notification.alert import (
+from app.notification.mail import (
     create_mail_to_notify_sbom_upload_failed,
     create_mail_to_notify_sbom_upload_succeeded,
 )
@@ -1252,6 +1252,47 @@ class TestPostUploadSBOMFileCycloneDX:
                     )
                     < now
                 )
+
+        def test_it_should_create_eol_dependency_when_ecosystem_matched(self, testdb):
+            # Given
+            update_request = {
+                "name": "ubuntu",
+                "product_category": models.ProductCategoryEnum.OS,
+                "description": "test_description",
+                "is_ecosystem": True,
+                "matching_name": "test_matching_name",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2020-04-23",
+                        "eol_from": "2025-05-31",
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+            client.put(f"/eols/{uuid4()}", headers=headers_with_api_key(USER1), json=update_request)
+
+            service_name1 = "test_service1"
+            upload_file_name = "trivy-ubuntu2004.cdx.json"
+            sbom_file = (
+                Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+            )
+            with open(sbom_file, "r") as sbom:
+                sbom_json = sbom.read()
+
+            # When
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name1, upload_file_name
+            )
+
+            # Then
+            ecosystem_eol_dependency_1 = testdb.scalars(select(models.EcosystemEoLDependency)).one()
+
+            assert ecosystem_eol_dependency_1.service.service_name == service_name1
+            assert ecosystem_eol_dependency_1.eol_version.version == "20.04"
+            assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
+            assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
+            assert ecosystem_eol_dependency_1.eol_notification_sent is False
 
         @pytest.mark.parametrize(
             "enable_slack, expected_notify",

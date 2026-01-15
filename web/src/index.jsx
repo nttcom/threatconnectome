@@ -25,7 +25,6 @@ import {
   VulnManagement,
   PTeam,
   ToDo,
-  Vulnerability,
 } from "./pages";
 import { ProductEolDetailPage, ProductEolListPage } from "./pages/Eol/ProductEolPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboard";
