@@ -11,6 +11,7 @@ import type {
   ActionLogResponse,
   DependencyResponse,
   EoLProductListResponse,
+  GetEolProductsEolsGetData,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -78,6 +79,8 @@ const TAG_TYPES_LIST = [
 ] as const;
 
 type AllowedTagTypes = (typeof TAG_TYPES_LIST)[number];
+
+type GetEoLsRequestQuery = Pick<GetEolProductsEolsGetData, "query">["query"];
 
 const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
@@ -148,13 +151,7 @@ export const tcApi = createApi({
     }),
 
     /* EoL */
-    getEoLs: builder.query<
-      EoLProductListResponse,
-      {
-        pteam_id?: string | null;
-        eol_product_id?: string | null;
-      } | void
-    >({
+    getEoLs: builder.query<EoLProductListResponse, GetEoLsRequestQuery>({
       query: (arg) => ({
         url: "eols",
         params: {
