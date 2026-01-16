@@ -23,55 +23,85 @@ import {
   ArrowBack as ArrowBackIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { SUPPORTED_PRODUCTS, DATA_LAST_UPDATED } from "./mocks/supportedProducts";
-// --- 定数 ---
-const PRODUCT_CATEGORIES = ["OS", "ランタイム", "ミドルウェア", "パッケージ"];
+
+import type { ProductCategoryEnum } from "../../../types/types.gen.ts";
+
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useGetEoLsQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
+import { errorToString } from "../../utils/func";
+
+const ProductCategoryList: ProductCategoryEnum[] = ["os", "runtime", "middleware", "package"];
 
 export function ProductEolList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: eolsData,
+    error: eolsError,
+    isLoading: eolsIsLoading,
+  } = useGetEoLsQuery(undefined, { skip });
+
   const navigate = useNavigate();
   const filteredProducts = useMemo(() => {
-    return SUPPORTED_PRODUCTS.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+    return (
+      eolsData?.products.filter((eolProduct) => {
+        const matchesSearch =
+          eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          eolProduct.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory =
+          selectedCategory === "all" || eolProduct.product_category === selectedCategory;
+        return matchesSearch && matchesCategory;
+      }) ?? []
+    );
   }, [searchTerm, selectedCategory]);
-  const latestUpdate = DATA_LAST_UPDATED;
+  const latestUpdate = filteredProducts
+    .flatMap((eolProduct) => eolProduct.eol_versions ?? [])
+    .map((eol_version) => new Date(eol_version.updated_at))
+    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
+
+  if (skip) return <>Now loading auth token...</>;
+  if (eolsError)
+    throw new APIError(errorToString(eolsError), {
+      api: "getEoLs",
+    });
+  if (eolsIsLoading) return <>Now loading EoLs...</>;
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* ヘッダー */}
+      {/* Header */}
       <Stack direction="row" spacing={2} alignItems="center" mb={3}>
         <PackageIcon color="primary" fontSize="large" />
         <Box>
           <Typography variant="h5" fontWeight="bold">
-            EOL情報自動取得対応製品一覧
+            List of Products Supporting Automatic Retrieval of EOL Information
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            EOL情報の自動取得・通知に対応している製品の一覧です
+            This is a list of products that support automatic retrieval and notification of EOL
+            information.
           </Typography>
         </Box>
       </Stack>
-      {/* 注意文 */}
+      {/* Notice */}
       <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 3 }}>
-        <AlertTitle>このページについて</AlertTitle>
+        <AlertTitle>About this page</AlertTitle>
         <Typography variant="body2">
-          このページに掲載されている製品のみ、EOL日の自動取得・通知に対応しています。
-          掲載されていない製品については、公式サイト等で別途EOL情報をご確認ください。
+          Only the products listed on this page support automatic retrieval and notification of EOL
+          dates. For products not listed here, please check the official website or other sources
+          for their EOL information.
         </Typography>
       </Alert>
-      {/* 更新日時 */}
+      {/* Last Updated */}
       <Typography
         variant="caption"
         color="text.secondary"
         sx={{ display: "block", textAlign: "right", mb: 1 }}
       >
-        データ最終更新日: {latestUpdate}
+        Last Updated: {latestUpdate.toLocaleDateString()}
       </Typography>
-      {/* 検索・フィルター */}
+      {/* Search and Filter */}
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
         <Stack
           direction={{ xs: "column", md: "row" }}
@@ -81,23 +111,23 @@ export function ProductEolList() {
         >
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
-              label="すべて"
+              label="All"
               color={selectedCategory === "all" ? "primary" : "default"}
               onClick={() => setSelectedCategory("all")}
               variant={selectedCategory === "all" ? "filled" : "outlined"}
             />
-            {PRODUCT_CATEGORIES.map((cat) => (
+            {ProductCategoryList.map((category) => (
               <Chip
-                key={cat}
-                label={cat}
-                color={selectedCategory === cat ? "primary" : "default"}
-                onClick={() => setSelectedCategory(cat)}
-                variant={selectedCategory === cat ? "filled" : "outlined"}
+                key={category}
+                label={category}
+                color={selectedCategory === category ? "primary" : "default"}
+                onClick={() => setSelectedCategory(category)}
+                variant={selectedCategory === category ? "filled" : "outlined"}
               />
             ))}
           </Stack>
           <TextField
-            placeholder="製品名で検索..."
+            placeholder="Search by product name..."
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -114,7 +144,7 @@ export function ProductEolList() {
           />
         </Stack>
       </Paper>
-      {/* 製品カード一覧 */}
+      {/* Product Card List */}
       <Grid container spacing={2}>
         {filteredProducts.map((product) => {
           return (
@@ -126,7 +156,7 @@ export function ProductEolList() {
                       <Typography variant="h6" fontWeight="bold">
                         {product.name}
                       </Typography>
-                      <Chip label={product.category} size="small" />
+                      <Chip label={product.product_category} size="small" />
                     </Stack>
                     <Typography
                       variant="body2"
@@ -144,10 +174,10 @@ export function ProductEolList() {
       </Grid>
       {filteredProducts.length === 0 && (
         <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
-          <Typography color="text.secondary">該当する製品が見つかりません</Typography>
+          <Typography color="text.secondary">No matching products found</Typography>
         </Paper>
       )}
-      {/* メインページへのリンク */}
+      {/* Link to Main Page */}
       <Box mt={4}>
         <Link
           component={RouterLink}
@@ -155,7 +185,7 @@ export function ProductEolList() {
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />
-          EOL一覧に戻る
+          Back to EOL List
         </Link>
       </Box>
     </Container>

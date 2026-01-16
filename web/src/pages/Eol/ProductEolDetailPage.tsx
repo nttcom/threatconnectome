@@ -25,7 +25,14 @@ import {
   Cancel as CancelIcon,
   Schedule as ScheduleIcon,
 } from "@mui/icons-material";
-import { SUPPORTED_PRODUCTS, DATA_LAST_UPDATED } from "./mocks/supportedProducts";
+
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useGetEoLsQuery } from "../../services/tcApi";
+import { APIError } from "../../utils/APIError";
+import { errorToString } from "../../utils/func";
+
+import { DATA_LAST_UPDATED } from "./mocks/supportedProducts";
+
 const getEolStatus = (eolDateStr: string | null | undefined) => {
   if (!eolDateStr) return "unknown";
   const today = new Date();
@@ -37,52 +44,70 @@ const getEolStatus = (eolDateStr: string | null | undefined) => {
   return "active";
 };
 const formatDate = (dateStr: string | null | undefined) => {
-  if (!dateStr) return "未定";
-  return new Date(dateStr).toLocaleDateString("ja-JP");
+  if (!dateStr) return "Undecided";
+  return new Date(dateStr).toLocaleDateString();
 };
 
 export function ProductEolDetail() {
   const { productId } = useParams();
   const [showExpired, setShowExpired] = useState(false);
-  const product = SUPPORTED_PRODUCTS.find((p) => p.id === productId);
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: eolsData,
+    error: eolsError,
+    isLoading: eolsIsLoading,
+  } = useGetEoLsQuery(undefined, { skip });
+
+  if (skip) return <>Now loading auth token...</>;
+  if (eolsError)
+    throw new APIError(errorToString(eolsError), {
+      api: "getEoLs",
+    });
+  if (eolsIsLoading) return <>Now loading EoLs...</>;
+
+  const product = eolsData?.products.find((product) => product.eol_product_id === productId);
   if (!product) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">製品が見つかりません</Alert>
+        <Alert severity="error">No products found</Alert>
         <Box mt={2}>
           <Link component={RouterLink} to="/supported-products">
-            サポート対象製品一覧に戻る
+            Back to the Supported Products List
           </Link>
         </Box>
       </Container>
     );
   }
-  const filteredReleases = showExpired
-    ? product.releases
-    : product.releases.filter((r) => getEolStatus(r.eol) !== "expired");
+  const filteredVersions =
+    (showExpired
+      ? product.eol_versions
+      : product.eol_versions?.filter(
+          (eol_version) => getEolStatus(eol_version.eol_from) !== "expired",
+        )) ?? [];
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* パンくずリスト */}
+      {/* Breadcrumb */}
       <Breadcrumbs sx={{ mb: 3 }}>
         <Link component={RouterLink} to="/" underline="hover" color="inherit">
-          EOL一覧
+          EOL List
         </Link>
         <Link component={RouterLink} to="/supported-products" underline="hover" color="inherit">
-          サポート対象製品
+          Supported Products
         </Link>
         <Typography color="text.primary">{product.name}</Typography>
       </Breadcrumbs>
-      {/* ヘッダー */}
+      {/* Header */}
       <Stack direction="row" spacing={2} alignItems="center" mb={1}>
         <Typography variant="h5" fontWeight="bold">
           {product.name}
         </Typography>
-        <Chip label={product.category} size="small" />
+        <Chip label={product.product_category} size="small" />
       </Stack>
       <Typography variant="body2" color="text.secondary" mb={3}>
         {product.description}
       </Typography>
-      {/* 更新日時・フィルター */}
+      {/* Last updated / Filter */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -91,7 +116,7 @@ export function ProductEolDetail() {
         mb={2}
       >
         <Typography variant="caption" color="text.secondary">
-          データ更新日: {DATA_LAST_UPDATED}
+          Data Updated On: {DATA_LAST_UPDATED}
         </Typography>
         <FormControlLabel
           control={
@@ -101,27 +126,27 @@ export function ProductEolDetail() {
               size="small"
             />
           }
-          label={<Typography variant="body2">終了済みバージョンを表示</Typography>}
+          label={<Typography variant="body2">Show discontinued versions</Typography>}
         />
       </Stack>
-      {/* Release/Cycle一覧テーブル */}
+      {/* Release/Cycle list table */}
       <Paper variant="outlined">
         <TableContainer>
           <Table>
             <TableHead sx={{ bgcolor: "grey.100" }}>
               <TableRow>
-                <TableCell>バージョン</TableCell>
-                <TableCell>リリース日</TableCell>
-                <TableCell>EOL日</TableCell>
-                <TableCell>ステータス</TableCell>
+                <TableCell>Version</TableCell>
+                <TableCell>Release Date</TableCell>
+                <TableCell>EOL Date</TableCell>
+                <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredReleases.map((release) => {
-                const status = getEolStatus(release.eol);
+              {filteredVersions.map((versionData) => {
+                const status = getEolStatus(versionData.eol_from);
                 return (
                   <TableRow
-                    key={release.cycle}
+                    key={versionData.eol_version_id}
                     sx={{
                       bgcolor: status === "expired" ? "error.50" : undefined,
                       opacity: status === "expired" ? 0.7 : 1,
@@ -129,30 +154,19 @@ export function ProductEolDetail() {
                   >
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography fontWeight={600}>{release.cycle}</Typography>
-                        {release.lts && (
-                          <Chip label="LTS" size="small" color="success" variant="outlined" />
-                        )}
+                        <Typography fontWeight={600}>{versionData.version}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{formatDate(release.releaseDate)}</TableCell>
-                    <TableCell>
-                      {release.eol ? (
-                        formatDate(release.eol)
-                      ) : (
-                        <Typography variant="body2" color="text.secondary" fontStyle="italic">
-                          未定
-                        </Typography>
-                      )}
-                    </TableCell>
+                    <TableCell>{formatDate(versionData.release_date)}</TableCell>
+                    <TableCell>{formatDate(versionData.eol_from)}</TableCell>
                     <TableCell>
                       {status === "expired" && (
-                        <Chip icon={<CancelIcon />} label="終了" size="small" color="error" />
+                        <Chip icon={<CancelIcon />} label="Ended" size="small" color="error" />
                       )}
                       {status === "warning" && (
                         <Chip
                           icon={<ScheduleIcon />}
-                          label="終了間近"
+                          label="Ending Soon"
                           size="small"
                           color="warning"
                         />
@@ -160,12 +174,14 @@ export function ProductEolDetail() {
                       {status === "active" && (
                         <Chip
                           icon={<CheckCircleIcon />}
-                          label="サポート中"
+                          label="Supported"
                           size="small"
                           color="success"
                         />
                       )}
-                      {status === "unknown" && <Chip label="未定" size="small" color="default" />}
+                      {status === "unknown" && (
+                        <Chip label="Undecided" size="small" color="default" />
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -173,15 +189,14 @@ export function ProductEolDetail() {
             </TableBody>
           </Table>
         </TableContainer>
-        {filteredReleases.length === 0 && (
+        {filteredVersions.length === 0 && (
           <Box p={4} textAlign="center">
             <Typography color="text.secondary">
-              表示するバージョンがありません。「終了済みバージョンを表示」をオンにしてください。
+              No versions to display. Please turn on “Show discontinued versions.”
             </Typography>
           </Box>
         )}
       </Paper>
-      {/* 戻るリンク */}
       <Box mt={4}>
         <Link
           component={RouterLink}
@@ -189,7 +204,7 @@ export function ProductEolDetail() {
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />
-          サポート対象製品一覧に戻る
+          Back to the Supported Products List
         </Link>
       </Box>
     </Container>
