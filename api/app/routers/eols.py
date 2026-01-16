@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence, schemas
+from app import models, persistence, schemas
 from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
@@ -42,35 +42,17 @@ def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductRe
     )
 
 
-@router.get("/", response_model=schemas.EoLProductListResponse)
+@router.get("", response_model=schemas.EoLProductListResponse)
 def get_eol_products(
-    pteam_id: UUID | None = Query(None, description="PTeam ID (optional)"),
-    eol_product_id: UUID | None = Query(None, description="EoL Product ID (optional)"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Get EoL products and their versions.
-    Can be filtered by pteam_id and/or eol_product_id (both optional).
     """
-    # Check if pteam exists when pteam_id is specified
-    if pteam_id is not None:
-        if not persistence.get_pteam_by_id(db, pteam_id):
-            raise NO_SUCH_PTEAM
+    eol_products = persistence.get_all_eol_products(db)
 
-    # Check if eol_product exists when eol_product_id is specified
-    if eol_product_id is not None:
-        if not persistence.get_eol_product_by_id(db, eol_product_id):
-            raise NO_SUCH_EOL
-
-    result = command.get_eol_products(db, pteam_id, eol_product_id)
-
-    # Format response with eol_versions
-    products_response = []
-    for product in result["products"]:
-        products_response.append(_create_eol_response(product))
-
-    return schemas.EoLProductListResponse(total=result["num_products"], products=products_response)
+    return schemas.EoLProductListResponse(total=len(eol_products), products=eol_products)
 
 
 @router.put(
