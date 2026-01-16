@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from logging import ERROR, INFO
 from pathlib import Path
-from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
@@ -1694,7 +1693,7 @@ class TestGetEolProductsWithPteamId:
 
         # Create EoL products
         self.eol_product_id_1 = uuid4()
-        self.eol_product_1_request: dict[str, Any] = {
+        self.eol_product_1_request = {
             "name": "product_1",
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 1 description",

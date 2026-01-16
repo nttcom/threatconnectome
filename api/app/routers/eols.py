@@ -52,7 +52,10 @@ def get_eol_products(
     """
     eol_products = persistence.get_all_eol_products(db)
 
-    return schemas.EoLProductListResponse(total=len(eol_products), products=eol_products)
+    return {
+        "total": len(eol_products),
+        "products": [schemas.EoLProductResponse.model_validate(p) for p in eol_products],
+    }
 
 
 @router.put(

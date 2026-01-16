@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -289,7 +288,7 @@ class TestGetEolProducts:
 
         # Create EoL products
         self.eol_product_id_1 = uuid4()
-        self.eol_product_1_request: dict[str, Any] = {
+        self.eol_product_1_request = {
             "name": "product_1",
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 1 description",
