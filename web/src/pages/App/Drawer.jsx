@@ -1,5 +1,5 @@
 import {
-  HourglassBottom as HourglassBottomIcon,
+  Event as EventIcon,
   Groups as GroupsIcon,
   Home as HomeIcon,
   Topic as TopicIcon,
@@ -158,7 +158,7 @@ export function Drawer() {
             selected={locationReader.isEoLPage()}
           >
             <StyledListItemIcon>
-              <HourglassBottomIcon />
+              <EventIcon />
             </StyledListItemIcon>
             <ListItemText>EoL</ListItemText>
           </StyledListItemButton>
