@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -9,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.main import app
-from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import PTEAM1, USER1
 from app.tests.medium.utils import (
     create_pteam,
@@ -285,9 +283,9 @@ class TestUpdateEol:
 
 class TestGetEolProducts:
     @pytest.fixture(scope="function", autouse=True)
-    def common_setup(self, testdb: Session):
-        self.user1 = create_user(USER1)
-        self.pteam1 = create_pteam(USER1, PTEAM1)
+    def common_setup(self):
+        create_user(USER1)
+        create_pteam(USER1, PTEAM1)
 
         # Create EoL products
         self.eol_product_id_1 = uuid4()
@@ -313,135 +311,21 @@ class TestGetEolProducts:
             ],
         }
 
-        self.eol_product_id_2 = uuid4()
-        self.eol_product_2_request: dict[str, Any] = {
-            "name": "product_2",
-            "product_category": models.ProductCategoryEnum.RUNTIME,
-            "description": "product 2 description",
-            "is_ecosystem": True,
-            "matching_name": "product_2",
-            "eol_versions": [
-                {
-                    "version": "20.04",
-                    "release_date": "2021-01-01",
-                    "eol_from": "2026-01-01",
-                    "matching_version": "ubuntu-20.04",
-                }
-            ],
-        }
-
-        self.eol_product_id_3 = uuid4()
-        self.eol_product_3_request: dict[str, Any] = {
-            "name": "product_3",
-            "product_category": models.ProductCategoryEnum.PACKAGE,
-            "description": "product 3 description",
-            "is_ecosystem": False,
-            "matching_name": "axios",
-            "eol_versions": [
-                {
-                    "version": "1.6.7",
-                    "release_date": "2019-01-01",
-                    "eol_from": "2024-01-01",
-                    "matching_version": "1.6.7",
-                }
-            ],
-        }
-
         self.current_time = datetime.now(timezone.utc)
         client.put(
             f"/eols/{self.eol_product_id_1}",
             headers=headers_with_api_key(USER1),
             json=self.eol_product_1_request,
         )
-        client.put(
-            f"/eols/{self.eol_product_id_2}",
-            headers=headers_with_api_key(USER1),
-            json=self.eol_product_2_request,
-        )
-        client.put(
-            f"/eols/{self.eol_product_id_3}",
-            headers=headers_with_api_key(USER1),
-            json=self.eol_product_3_request,
-        )
 
-        # Add package data to match with self.eol_product_2_request
-        service_name1 = "test_service1"
-        upload_file_name1 = "trivy-ubuntu2004.cdx.json"
-        sbom_file1 = (
-            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name1
-        )
-        with open(sbom_file1, "r") as sbom:
-            sbom_json1 = sbom.read()
-
-        bg_create_tags_from_sbom_json(
-            sbom_json1, self.pteam1.pteam_id, service_name1, upload_file_name1
-        )
-
-        # Add package data to match with self.eol_product_3_request
-        service_name2 = "test_service2"
-        upload_file_name2 = "test_trivy_cyclonedx_axios.json"
-        sbom_file2 = (
-            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name2
-        )
-        with open(sbom_file2, "r") as sbom:
-            sbom_json2 = sbom.read()
-
-        bg_create_tags_from_sbom_json(
-            sbom_json2, self.pteam1.pteam_id, service_name2, upload_file_name2
-        )
-
-    def test_get_all_eol_products(self):
-        # When: Get all products without filters
+    def test_get_eol_products(self):
+        # When
         response = client.get("/eols", headers=headers(USER1))
 
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["total"] == 3
-        assert len(data["products"]) == 3
 
-        # Verify product structure
-        product_names = {p["name"] for p in data["products"]}
-        assert "product_1" in product_names
-        assert "product_2" in product_names
-        assert "product_3" in product_names
-
-        # Verify eol_versions are included
-        for product in data["products"]:
-            assert "eol_versions" in product
-            if product["name"] == "product_1":
-                assert len(product["eol_versions"]) == 2
-            elif product["name"] == "product_2":
-                assert len(product["eol_versions"]) == 1
-            elif product["name"] == "product_3":
-                assert len(product["eol_versions"]) == 1
-
-    def test_get_eol_products_filtered_by_pteam_id(self):
-        # When: Filter by pteam_id
-        response = client.get(f"/eols?pteam_id={self.pteam1.pteam_id}", headers=headers(USER1))
-
-        # Then
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total"] == 2
-        assert len(data["products"]) == 2
-
-        product_names = {p["name"] for p in data["products"]}
-        assert "product_2" in product_names  # linked via EcosystemEoLDependency
-        assert "product_3" in product_names  # linked via PackageEoLDependency
-
-    def test_get_eol_products_filtered_by_eol_product_id(self):
-        # When: Filter by eol_product_id
-        response = client.get(
-            f"/eols?eol_product_id={self.eol_product_id_1}", headers=headers(USER1)
-        )
-
-        # Then
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total"] == 1
-        assert len(data["products"]) == 1
-        assert len(data["products"][0]["eol_versions"]) == 2
         assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_1)
         assert data["products"][0]["name"] == self.eol_product_1_request["name"]
         assert (
@@ -509,97 +393,6 @@ class TestGetEolProducts:
             <= self.current_time + timedelta(seconds=10)
         )
 
-    def test_get_eol_products_filtered_by_both_pteam_id_and_eol_product_id(self):
-        # When: Filter by both pteam_id and eol_product_id (product_2 is linked to pteam1)
-        response = client.get(
-            f"/eols?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_2}",
-            headers=headers(USER1),
-        )
-
-        # Then
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total"] == 1
-        assert len(data["products"]) == 1
-        assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_2)
-        assert data["products"][0]["name"] == self.eol_product_2_request["name"]
-        assert (
-            data["products"][0]["product_category"]
-            == self.eol_product_2_request["product_category"]
-        )
-        assert data["products"][0]["description"] == self.eol_product_2_request["description"]
-        assert data["products"][0]["is_ecosystem"] == self.eol_product_2_request["is_ecosystem"]
-        assert data["products"][0]["matching_name"] == self.eol_product_2_request["matching_name"]
-
-        assert (
-            data["products"][0]["eol_versions"][0]["version"]
-            == self.eol_product_2_request["eol_versions"][0]["version"]
-        )
-        assert (
-            data["products"][0]["eol_versions"][0]["release_date"]
-            == self.eol_product_2_request["eol_versions"][0]["release_date"]
-        )
-        assert (
-            data["products"][0]["eol_versions"][0]["eol_from"]
-            == self.eol_product_2_request["eol_versions"][0]["eol_from"]
-        )
-        assert (
-            data["products"][0]["eol_versions"][0]["matching_version"]
-            == self.eol_product_2_request["eol_versions"][0]["matching_version"]
-        )
-        assert (
-            self.current_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(
-                data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
-            )
-            <= self.current_time + timedelta(seconds=10)
-        )
-        assert (
-            self.current_time - timedelta(seconds=10)
-            <= datetime.fromisoformat(
-                data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
-            )
-            <= self.current_time + timedelta(seconds=10)
-        )
-
-    def test_get_eol_products_no_match_for_pteam_and_product_combination(self):
-        # When: Filter by pteam_id and eol_product_id that don't match
-        # (product_1 is not linked to pteam1)
-        response = client.get(
-            f"/eols?pteam_id={self.pteam1.pteam_id}&eol_product_id={self.eol_product_id_1}",
-            headers=headers(USER1),
-        )
-
-        # Then
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total"] == 0
-        assert len(data["products"]) == 0
-
-    def test_return_404_when_pteam_id_does_not_exist(self):
-        # Given
-        non_existing_pteam_id = uuid4()
-
-        # When
-        response = client.get(f"/eols?pteam_id={non_existing_pteam_id}", headers=headers(USER1))
-
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such pteam"
-
-    def test_return_404_when_eol_product_id_does_not_exist(self):
-        # Given
-        non_existing_eol_product_id = uuid4()
-
-        # When
-        response = client.get(
-            f"/eols?eol_product_id={non_existing_eol_product_id}", headers=headers(USER1)
-        )
-
-        # Then
-        assert response.status_code == 404
-        assert response.json()["detail"] == "No such eol"
-
 
 class TestDeleteEol:
     @pytest.fixture(scope="function", autouse=True)
@@ -630,6 +423,9 @@ class TestDeleteEol:
         )
 
     def test_it_should_delete_eol_when_eol_product_id_exists(self, testdb: Session):
+        # Given
+        before_get_response = client.get("/eols", headers=headers(USER1))
+
         # When
         response = client.delete(
             f"/eols/{self.new_eol_product_id}", headers=headers_with_api_key(USER1)
@@ -637,11 +433,13 @@ class TestDeleteEol:
 
         # Then
         assert response.status_code == 204
-        get_response = client.get(
-            f"/eols?eol_product_id={self.new_eol_product_id}", headers=headers(USER1)
+        after_get_response = client.get("/eols", headers=headers(USER1))
+        assert before_get_response.json()["total"] == 1
+        assert before_get_response.json()["products"][0]["eol_product_id"] == str(
+            self.new_eol_product_id
         )
-        assert get_response.status_code == 404
-        assert get_response.json()["detail"] == "No such eol"
+        assert after_get_response.json()["total"] == 0
+        assert after_get_response.json()["products"] == []
 
     def test_it_should_return_404_when_eol_product_id_does_not_exist(self):
         # Given
