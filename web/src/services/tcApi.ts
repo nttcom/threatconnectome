@@ -11,7 +11,6 @@ import type {
   ActionLogResponse,
   DependencyResponse,
   EoLProductListResponse,
-  GetEolProductsEolsGetData,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -149,12 +148,18 @@ export const tcApi = createApi({
     }),
 
     /* EoL */
-    getEoLs: builder.query<EoLProductListResponse, GetEolProductsEolsGetData>({
+    getEoLs: builder.query<
+      EoLProductListResponse,
+      {
+        pteam_id?: string | null;
+        eol_product_id?: string | null;
+      } | void
+    >({
       query: (arg) => ({
         url: "eols",
         params: {
-          pteam_id: arg?.query?.pteam_id,
-          eol_product_id: arg?.query?.eol_product_id,
+          pteam_id: arg?.pteam_id,
+          eol_product_id: arg?.eol_product_id,
         },
       }),
       providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
