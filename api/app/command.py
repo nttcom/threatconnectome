@@ -670,58 +670,99 @@ def get_sorted_paginated_tickets_for_pteams(
     return total_count, tickets
 
 
-def get_eol_products(
-    db: Session,
-    pteam_id: UUID | str | None = None,
-    eol_product_id: UUID | str | None = None,
-) -> dict:
+def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str) -> dict:
     """
-    Get EoL products with optional filtering by pteam_id and eol_product_id
-    Returns dict with total count and list of products with eol_versions populated
+    Get the EoLProduct associated with pteam_id
     """
-    # Join EoLVersion to automatically load the relationship (like get_vulns does with Affect)
-    query = select(models.EoLProduct).outerjoin(
-        models.EoLVersion,
-        models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id,
+    # Need to join all tables involved in the OR condition
+    # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service
+    # Path 2: EoLVersion -> EcosystemEoLDependency -> Service
+    query = (
+        select(models.EoLProduct, models.EoLVersion, models.Service)
+        .outerjoin(
+            models.EoLVersion,
+            models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id,
+        )
+        .outerjoin(
+            models.PackageEoLDependency,
+            models.PackageEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+        )
+        .outerjoin(
+            models.Dependency,
+            models.Dependency.dependency_id == models.PackageEoLDependency.dependency_id,
+        )
+        .outerjoin(
+            models.EcosystemEoLDependency,
+            models.EcosystemEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+        )
+        .join(
+            models.Service,
+            or_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.service_id == models.EcosystemEoLDependency.service_id,
+            ),
+        )
+        .where(models.Service.pteam_id == str(pteam_id))
     )
 
-    # Filter by pteam_id through relationships
-    if pteam_id is not None:
-        # Need to join all tables involved in the OR condition
-        # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service
-        # Path 2: EoLVersion -> EcosystemEoLDependency -> Service
-        query = (
-            query.outerjoin(
-                models.PackageEoLDependency,
-                models.PackageEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+    results = db.execute(query).all()
+
+    grouped_data = {}
+
+    # Eliminate duplicates
+    for eol_product, eol_version, service in results:
+        p_id = eol_product.eol_product_id
+        v_id = eol_version.eol_version_id
+
+        if p_id not in grouped_data:
+            grouped_data[p_id] = {"product": eol_product, "versions": {}}
+
+        if v_id not in grouped_data[p_id]["versions"]:
+            grouped_data[p_id]["versions"][v_id] = {"version": eol_version, "services": []}
+
+        if service not in grouped_data[p_id]["versions"][v_id]["services"]:
+            grouped_data[p_id]["versions"][v_id]["services"].append(service)
+
+    # Change to Response format
+    final_list = []
+    for content in grouped_data.values():
+        product = content["product"]
+
+        version_list = []
+
+        for v_content in content["versions"].values():
+            version = v_content["version"]
+            service_list = [
+                {"service_id": s.service_id, "service_name": s.service_name}
+                for s in v_content["services"]
+            ]
+
+            version_list.append(
+                {
+                    "eol_version_id": version.eol_version_id,
+                    "version": version.version,
+                    "release_date": version.release_date,
+                    "eol_from": version.eol_from,
+                    "matching_version": version.matching_version,
+                    "created_at": version.created_at,
+                    "updated_at": version.updated_at,
+                    "services": service_list,
+                }
             )
-            .outerjoin(
-                models.Dependency,
-                models.Dependency.dependency_id == models.PackageEoLDependency.dependency_id,
-            )
-            .outerjoin(
-                models.EcosystemEoLDependency,
-                models.EcosystemEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
-            )
-            .join(
-                models.Service,
-                or_(
-                    models.Service.service_id == models.Dependency.service_id,
-                    models.Service.service_id == models.EcosystemEoLDependency.service_id,
-                ),
-            )
-            .where(models.Service.pteam_id == str(pteam_id))
+
+        final_list.append(
+            {
+                "eol_product_id": product.eol_product_id,
+                "name": product.name,
+                "product_category": product.product_category,
+                "description": product.description,
+                "is_ecosystem": product.is_ecosystem,
+                "matching_name": product.matching_name,
+                "eol_versions": version_list,
+            }
         )
 
-    if eol_product_id is not None:
-        query = query.where(models.EoLProduct.eol_product_id == str(eol_product_id))
-
-    # Order by name and use distinct to avoid duplicates from joins
-    query = query.order_by(models.EoLProduct.name).distinct()
-
-    products = db.scalars(query).all()
-
     return {
-        "num_products": len(products),
-        "products": products,
+        "total": len(final_list),
+        "products": final_list,
     }
