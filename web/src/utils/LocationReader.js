@@ -19,6 +19,10 @@ export class LocationReader {
     return this.location.pathname.includes("/vulns");
   }
 
+  isEoLPage() {
+    return this.location.pathname.includes("/eol");
+  }
+
   isToDoPage() {
     return this.location.pathname === "/todo";
   }

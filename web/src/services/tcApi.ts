@@ -10,6 +10,8 @@ import type {
   CreateLogActionlogsPostData,
   ActionLogResponse,
   DependencyResponse,
+  EoLProductListResponse,
+  GetEolProductsEolsGetData,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -64,6 +66,7 @@ import type {
 const TAG_TYPES_LIST = [
   "Service",
   "Dependency",
+  "EoLDependency",
   "Threat",
   "Ticket",
   "TicketStatus",
@@ -76,6 +79,8 @@ const TAG_TYPES_LIST = [
 ] as const;
 
 type AllowedTagTypes = (typeof TAG_TYPES_LIST)[number];
+
+type GetEoLsRequestQuery = Pick<GetEolProductsEolsGetData, "query">["query"];
 
 const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
@@ -143,6 +148,18 @@ export const tcApi = createApi({
         { type: "Service", id: "ALL" },
         { type: "Dependency", id: _arg.path.dependency_id },
       ],
+    }),
+
+    /* EoL */
+    getEoLs: builder.query<EoLProductListResponse, GetEoLsRequestQuery>({
+      query: (arg) => ({
+        url: "eols",
+        params: {
+          pteam_id: arg?.pteam_id,
+          eol_product_id: arg?.eol_product_id,
+        },
+      }),
+      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
     }),
 
     /* Insight  */
@@ -431,7 +448,10 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (_result, _error, _arg) => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "EoLDependency", id: "ALL" },
+      ],
     }),
 
     /* Ticket */
@@ -588,6 +608,7 @@ export const {
   useGetDependenciesQuery,
   useGetDependencyQuery,
   useGetInsightQuery,
+  useGetEoLsQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
