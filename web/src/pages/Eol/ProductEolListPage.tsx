@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Container,
@@ -24,14 +24,12 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 
-import type { ProductCategoryEnum } from "../../../types/types.gen.ts";
-
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-
-const ProductCategoryList: ProductCategoryEnum[] = ["os", "runtime", "middleware", "package"];
+import { preserveParams } from "../../utils/urlUtils";
 
 export function ProductEolList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +43,8 @@ export function ProductEolList() {
   } = useGetEoLsQuery(undefined, { skip });
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const preservedParams = preserveParams(location.search);
   const filteredProducts = useMemo(() => {
     return (
       eolsData?.products.filter((eolProduct) => {
@@ -118,13 +118,13 @@ export function ProductEolList() {
               onClick={() => setSelectedCategory("all")}
               variant={selectedCategory === "all" ? "filled" : "outlined"}
             />
-            {ProductCategoryList.map((category) => (
+            {EoLProductCategoryList.map((category) => (
               <Chip
-                key={category}
-                label={category}
-                color={selectedCategory === category ? "primary" : "default"}
-                onClick={() => setSelectedCategory(category)}
-                variant={selectedCategory === category ? "filled" : "outlined"}
+                key={category.value}
+                label={category.label}
+                color={selectedCategory === category.value ? "primary" : "default"}
+                onClick={() => setSelectedCategory(category.value)}
+                variant={selectedCategory === category.value ? "filled" : "outlined"}
               />
             ))}
           </Stack>
@@ -153,7 +153,11 @@ export function ProductEolList() {
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.eol_product_id}>
               <Card variant="outlined">
                 <CardActionArea
-                  onClick={() => navigate(`/supported-products/${product.eol_product_id}`)}
+                  onClick={() =>
+                    navigate(
+                      `/supported-products/${product.eol_product_id}?` + preservedParams.toString(),
+                    )
+                  }
                 >
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -185,7 +189,7 @@ export function ProductEolList() {
       <Box mt={4}>
         <Link
           component={RouterLink}
-          to="/"
+          to={`/eol?${preservedParams.toString()}`}
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />

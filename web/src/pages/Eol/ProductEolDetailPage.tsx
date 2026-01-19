@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { useLocation, useParams, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Container,
@@ -29,7 +29,9 @@ import {
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import { preserveParams } from "../../utils/urlUtils";
 
 const getEolStatus = (eolDateStr: string | null | undefined) => {
   if (!eolDateStr) return "unknown";
@@ -57,6 +59,9 @@ export function ProductEolDetail() {
     isLoading: eolsIsLoading,
   } = useGetEoLsQuery(undefined, { skip });
 
+  const location = useLocation();
+  const preservedParams = preserveParams(location.search);
+
   if (skip) return <>Now loading auth token...</>;
   if (eolsError)
     throw new APIError(errorToString(eolsError), {
@@ -70,7 +75,7 @@ export function ProductEolDetail() {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Alert severity="error">No products found</Alert>
         <Box mt={2}>
-          <Link component={RouterLink} to="/supported-products">
+          <Link component={RouterLink} to={`/supported-products?${preservedParams.toString()}`}>
             Back to the Supported Products List
           </Link>
         </Box>
@@ -84,6 +89,9 @@ export function ProductEolDetail() {
           (eol_version) => getEolStatus(eol_version.eol_from) !== "expired",
         )) ?? [];
 
+  const category =
+    EoLProductCategoryList.find((item) => item.value === product.product_category)?.label ?? "";
+
   const latestUpdateDate = filteredVersions
     .map((eol_version) => new Date(eol_version.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
@@ -94,10 +102,20 @@ export function ProductEolDetail() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Breadcrumb */}
       <Breadcrumbs sx={{ mb: 3 }}>
-        <Link component={RouterLink} to="/" underline="hover" color="inherit">
+        <Link
+          component={RouterLink}
+          to={`/eol?${preservedParams.toString()}`}
+          underline="hover"
+          color="inherit"
+        >
           EOL List
         </Link>
-        <Link component={RouterLink} to="/supported-products" underline="hover" color="inherit">
+        <Link
+          component={RouterLink}
+          to={`/supported-products?${preservedParams.toString()}`}
+          underline="hover"
+          color="inherit"
+        >
           Supported Products
         </Link>
         <Typography color="text.primary">{product.name}</Typography>
@@ -107,7 +125,7 @@ export function ProductEolDetail() {
         <Typography variant="h5" fontWeight="bold">
           {product.name}
         </Typography>
-        <Chip label={product.product_category} size="small" />
+        <Chip label={category} size="small" />
       </Stack>
       <Typography variant="body2" color="text.secondary" mb={3}>
         {product.description}
@@ -205,7 +223,7 @@ export function ProductEolDetail() {
       <Box mt={4}>
         <Link
           component={RouterLink}
-          to="/supported-products"
+          to={`/supported-products?${preservedParams.toString()}`}
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />
