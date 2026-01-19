@@ -1738,3 +1738,25 @@ def delete_pteam(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{pteam_id}/eols", response_model=schemas.PTeamEoLProductListResponse)
+def get_eol_products_with_pteam_id(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get EoL products and their versions associated with pteam_id
+    """
+    # Check if pteam exists
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+
+    # Check
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    result = command.get_eol_products_associated_with_pteam_id(db, pteam_id)
+
+    return result

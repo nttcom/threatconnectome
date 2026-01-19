@@ -2,7 +2,7 @@ from typing import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app import models
 
@@ -453,6 +453,11 @@ def get_eol_product_by_id(db: Session, eol_product_id: UUID | str) -> models.EoL
     return db.scalars(
         select(models.EoLProduct).where(models.EoLProduct.eol_product_id == str(eol_product_id))
     ).one_or_none()
+
+
+def get_all_eol_products(db: Session) -> Sequence[models.EoLProduct]:
+    stmt = select(models.EoLProduct).options(selectinload(models.EoLProduct.eol_versions))
+    return db.scalars(stmt).all()
 
 
 def create_eol_product(db: Session, eol: models.EoLProduct):
