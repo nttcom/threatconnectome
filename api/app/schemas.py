@@ -434,7 +434,12 @@ class EoLProductRequest(ORMModel):
     eol_versions: list[EoLVersionRequest] = []
 
 
-class EoLVersionResponse(ORMModel):
+class ServiceEntry(ORMModel):
+    service_id: UUID
+    service_name: str
+
+
+class EoLVersionResponseBase(ORMModel):
     eol_version_id: UUID
     version: str
     release_date: date | None
@@ -444,16 +449,38 @@ class EoLVersionResponse(ORMModel):
     updated_at: datetime
 
 
-class EoLProductResponse(ORMModel):
+class EoLVersionResponse(EoLVersionResponseBase):
+    pass
+
+
+class PTeamEoLVersionResponse(EoLVersionResponseBase):
+    services: list[ServiceEntry]
+
+
+class EoLProductResponseBase(ORMModel):
     eol_product_id: UUID
     name: str
     product_category: ProductCategoryEnum
     description: str | None
     is_ecosystem: bool
     matching_name: str
+
+
+class EoLProductResponse(EoLProductResponseBase):
     eol_versions: list[EoLVersionResponse] = []
 
 
-class EoLProductListResponse(BaseModel):
+class PTeamEoLProductResponse(EoLProductResponseBase):
+    eol_versions: list[PTeamEoLVersionResponse] = []
+
+
+class EoLProductListResponseBase(BaseModel):
     total: int
+
+
+class EoLProductListResponse(EoLProductListResponseBase):
     products: list[EoLProductResponse]
+
+
+class PTeamEoLProductListResponse(EoLProductListResponseBase):
+    products: list[PTeamEoLProductResponse]
