@@ -3,7 +3,6 @@
 import argparse
 import enum
 import os
-import random
 import sys
 import uuid
 from functools import partial
@@ -61,8 +60,7 @@ class EoLParamCreator:
         self.product_eol_info = product_eol_info
 
     def get_eol_product_id(self) -> str:
-        random.seed(self.product)
-        return str(uuid.UUID(int=random.getrandbits(128), version=4))
+        return str(uuid.uuid5(uuid.NAMESPACE_DNS, self.product))
 
     def _get_matching_name(self) -> str:
         return self.product
