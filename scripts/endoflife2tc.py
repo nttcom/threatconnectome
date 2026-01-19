@@ -252,6 +252,8 @@ def get_product_eol_info_by_endoflife_date(product: str) -> list[ProductEoLInfo]
         return product_eol_info
 
     for release in result.get("releases", []):
+        if release.get("eolFrom") is None:
+            continue
         eol_data: ProductEoLInfo = {
             "release": release.get("name"),
             "releaseDate": release.get("releaseDate"),
