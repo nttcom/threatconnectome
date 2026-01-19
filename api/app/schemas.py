@@ -434,7 +434,7 @@ class EoLProductRequest(ORMModel):
     eol_versions: list[EoLVersionRequest] = []
 
 
-class ServiceResponse(ORMModel):
+class ServiceEntry(ORMModel):
     service_id: UUID
     service_name: str
 
@@ -454,7 +454,7 @@ class EoLVersionResponse(EoLVersionResopnseBase):
 
 
 class EoLVersionExpandedResponse(EoLVersionResopnseBase):
-    services: list[ServiceResponse]
+    services: list[ServiceEntry]
 
 
 class EoLProductResponseBase(ORMModel):
@@ -482,5 +482,5 @@ class EoLProductListResponse(EoLProductListResponseBase):
     products: list[EoLProductResponse]
 
 
-class EoLProductExpandedListResponse(EoLProductListResponseBase):
+class PTeamEoLProductListResponse(EoLProductListResponseBase):
     products: list[EoLProductExpandedResponse]

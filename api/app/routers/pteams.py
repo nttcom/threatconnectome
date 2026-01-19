@@ -1740,7 +1740,7 @@ def delete_pteam(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{pteam_id}/eols", response_model=schemas.EoLProductExpandedListResponse)
+@router.get("/{pteam_id}/eols", response_model=schemas.PTeamEoLProductListResponse)
 def get_eol_products_with_pteam_id(
     pteam_id: UUID,
     current_user: models.Account = Depends(get_current_user),
