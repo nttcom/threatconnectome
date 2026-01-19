@@ -266,6 +266,8 @@ def register_eol_info(tc_client: ThreatconnectomeClient) -> None:
     for eol_product_item in eol_product_list:
         product = eol_product_item.get("product", "")
         product_eol_info = get_product_eol_info_by_endoflife_date(product)
+        if len(product_eol_info) == 0:
+            continue
 
         eol_param_creator = create_eol_param_creator(product, eol_product_item, product_eol_info)
         eol_product_id = eol_param_creator.get_eol_product_id()
