@@ -1800,7 +1800,7 @@ class TestGetEolProductsWithPteamId:
             service_name2,
         ]
 
-    def test_do_not_get_eol_products_not_associated_with_ptam_id(self):
+    def test_do_not_get_eol_products_not_associated_with_pteam_id(self):
         # Given
         pteam2 = create_pteam(USER1, PTEAM2)
 

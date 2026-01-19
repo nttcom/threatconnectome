@@ -672,7 +672,7 @@ def get_sorted_paginated_tickets_for_pteams(
 
 def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str) -> dict:
     """
-    Get the EoLProduct associated with pteam_id
+    Get the EoLProducts associated with pteam_id
     """
     # Need to join all tables involved in the OR condition
     # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service

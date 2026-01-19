@@ -439,7 +439,7 @@ class ServiceEntry(ORMModel):
     service_name: str
 
 
-class EoLVersionResopnseBase(ORMModel):
+class EoLVersionResponseBase(ORMModel):
     eol_version_id: UUID
     version: str
     release_date: date | None
@@ -449,11 +449,11 @@ class EoLVersionResopnseBase(ORMModel):
     updated_at: datetime
 
 
-class EoLVersionResponse(EoLVersionResopnseBase):
+class EoLVersionResponse(EoLVersionResponseBase):
     pass
 
 
-class PTeamEoLVersionResponse(EoLVersionResopnseBase):
+class PTeamEoLVersionResponse(EoLVersionResponseBase):
     services: list[ServiceEntry]
 
 
