@@ -455,6 +455,89 @@ export type PTeamEntry = {
 };
 
 /**
+ * PTeamEoLProductListResponse
+ */
+export type PTeamEoLProductListResponse = {
+    /**
+     * Total
+     */
+    total: number;
+    /**
+     * Products
+     */
+    products: Array<PTeamEoLProductResponse>;
+};
+
+/**
+ * PTeamEoLProductResponse
+ */
+export type PTeamEoLProductResponse = {
+    /**
+     * Eol Product Id
+     */
+    eol_product_id: string;
+    /**
+     * Name
+     */
+    name: string;
+    product_category: ProductCategoryEnum;
+    /**
+     * Description
+     */
+    description: string | null;
+    /**
+     * Is Ecosystem
+     */
+    is_ecosystem: boolean;
+    /**
+     * Matching Name
+     */
+    matching_name: string;
+    /**
+     * Eol Versions
+     */
+    eol_versions?: Array<PTeamEoLVersionResponse>;
+};
+
+/**
+ * PTeamEoLVersionResponse
+ */
+export type PTeamEoLVersionResponse = {
+    /**
+     * Eol Version Id
+     */
+    eol_version_id: string;
+    /**
+     * Version
+     */
+    version: string;
+    /**
+     * Release Date
+     */
+    release_date: string | null;
+    /**
+     * Eol From
+     */
+    eol_from: string;
+    /**
+     * Matching Version
+     */
+    matching_version: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Services
+     */
+    services: Array<ServiceEntry>;
+};
+
+/**
  * PTeamInfo
  */
 export type PTeamInfo = {
@@ -824,6 +907,20 @@ export type SsvcDeployerPriorityEnum = 'immediate' | 'out_of_cycle' | 'scheduled
  * SafetyImpactEnum
  */
 export type SafetyImpactEnum = 'catastrophic' | 'critical' | 'marginal' | 'negligible';
+
+/**
+ * ServiceEntry
+ */
+export type ServiceEntry = {
+    /**
+     * Service Id
+     */
+    service_id: string;
+    /**
+     * Service Name
+     */
+    service_name: string;
+};
 
 /**
  * ServicePackageTicketCountsSolvedUnsolved
@@ -2470,6 +2567,36 @@ export type DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponses =
 
 export type DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponse = DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponses[keyof DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponses];
 
+export type GetEolProductsWithPteamIdPteamsPteamIdEolsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Pteam Id
+         */
+        pteam_id: string;
+    };
+    query?: never;
+    url: '/pteams/{pteam_id}/eols';
+};
+
+export type GetEolProductsWithPteamIdPteamsPteamIdEolsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetEolProductsWithPteamIdPteamsPteamIdEolsGetError = GetEolProductsWithPteamIdPteamsPteamIdEolsGetErrors[keyof GetEolProductsWithPteamIdPteamsPteamIdEolsGetErrors];
+
+export type GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PTeamEoLProductListResponse;
+};
+
+export type GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponse = GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponses[keyof GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponses];
+
 export type DeleteUserUsersMeDeleteData = {
     body?: never;
     path?: never;
@@ -2900,31 +3027,9 @@ export type UpdateInsightTicketsTicketIdInsightPutResponse = UpdateInsightTicket
 export type GetEolProductsEolsGetData = {
     body?: never;
     path?: never;
-    query?: {
-        /**
-         * Pteam Id
-         *
-         * PTeam ID (optional)
-         */
-        pteam_id?: string | null;
-        /**
-         * Eol Product Id
-         *
-         * EoL Product ID (optional)
-         */
-        eol_product_id?: string | null;
-    };
-    url: '/eols/';
+    query?: never;
+    url: '/eols';
 };
-
-export type GetEolProductsEolsGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetEolProductsEolsGetError = GetEolProductsEolsGetErrors[keyof GetEolProductsEolsGetErrors];
 
 export type GetEolProductsEolsGetResponses = {
     /**

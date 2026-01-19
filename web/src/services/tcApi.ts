@@ -11,7 +11,8 @@ import type {
   ActionLogResponse,
   DependencyResponse,
   EoLProductListResponse,
-  GetEolProductsEolsGetData,
+  PTeamEoLProductListResponse,
+  GetEolProductsWithPteamIdPteamsPteamIdEolsGetData,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -80,7 +81,10 @@ const TAG_TYPES_LIST = [
 
 type AllowedTagTypes = (typeof TAG_TYPES_LIST)[number];
 
-type GetEoLsRequestQuery = Pick<GetEolProductsEolsGetData, "query">["query"];
+type GetPTeamEoLsRequestQuery = Pick<
+  GetEolProductsWithPteamIdPteamsPteamIdEolsGetData,
+  "path"
+>["path"];
 
 const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
@@ -151,15 +155,10 @@ export const tcApi = createApi({
     }),
 
     /* EoL */
-    getEoLs: builder.query<EoLProductListResponse, GetEoLsRequestQuery>({
-      query: (arg) => ({
+    getEoLs: builder.query<EoLProductListResponse, void>({
+      query: () => ({
         url: "eols",
-        params: {
-          pteam_id: arg?.pteam_id,
-          eol_product_id: arg?.eol_product_id,
-        },
       }),
-      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
     }),
 
     /* Insight  */
@@ -200,6 +199,14 @@ export const tcApi = createApi({
         { type: "PTeam", id: _arg.path.pteam_id },
         { type: "PTeam", id: "ALL" },
       ],
+    }),
+
+    /* PTeam EoL */
+    getPTeamEoLs: builder.query<PTeamEoLProductListResponse, GetPTeamEoLsRequestQuery>({
+      query: (arg) => ({
+        url: `pteams/${arg.pteam_id}/eols`,
+      }),
+      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
     }),
 
     /* PTeam Invitation */
@@ -612,6 +619,7 @@ export const {
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
+  useGetPTeamEoLsQuery,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
   useApplyPTeamInvitationMutation,
