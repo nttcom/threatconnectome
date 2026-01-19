@@ -677,11 +677,26 @@ def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str)
     # Need to join all tables involved in the OR condition
     # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service
     # Path 2: EoLVersion -> EcosystemEoLDependency -> Service
-    query = (
-        select(models.EoLProduct, models.EoLVersion, models.Service)
-        .outerjoin(
-            models.EoLVersion,
-            models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id,
+
+    # --- Step 1: Aggregate the service list by eol_version (CTE) ---
+    subquery = (
+        select(
+            models.EoLVersion.eol_version_id,
+            models.EoLVersion.eol_product_id,
+            models.EoLVersion.version,
+            models.EoLVersion.release_date,
+            models.EoLVersion.eol_from,
+            models.EoLVersion.matching_version,
+            models.EoLVersion.created_at,
+            models.EoLVersion.updated_at,
+            func.jsonb_agg(
+                func.jsonb_build_object(
+                    "service_id",
+                    models.Service.service_id,
+                    "service_name",
+                    models.Service.service_name,
+                ).distinct()
+            ).label("services_json"),
         )
         .outerjoin(
             models.PackageEoLDependency,
@@ -703,66 +718,46 @@ def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str)
             ),
         )
         .where(models.Service.pteam_id == str(pteam_id))
+        .group_by(models.EoLVersion.eol_version_id)
+    ).cte("version_services")
+
+    # --- Step 2: Aggregate eol_versions per eol_product ---
+    stmt = (
+        select(
+            models.EoLProduct.eol_product_id,
+            models.EoLProduct.name,
+            models.EoLProduct.product_category,
+            models.EoLProduct.description,
+            models.EoLProduct.is_ecosystem,
+            models.EoLProduct.matching_name,
+            func.jsonb_agg(
+                func.jsonb_build_object(
+                    "eol_version_id",
+                    subquery.c.eol_version_id,
+                    "version",
+                    subquery.c.version,
+                    "release_date",
+                    func.to_jsonb(subquery.c.release_date),
+                    "eol_from",
+                    func.to_jsonb(subquery.c.eol_from),
+                    "matching_version",
+                    subquery.c.matching_version,
+                    "created_at",
+                    func.to_jsonb(subquery.c.created_at),
+                    "updated_at",
+                    func.to_jsonb(subquery.c.updated_at),
+                    "services",
+                    subquery.c.services_json,
+                )
+            ).label("eol_versions"),
+        )
+        .join(subquery, subquery.c.eol_product_id == models.EoLProduct.eol_product_id)
+        .group_by(models.EoLProduct.eol_product_id)
     )
 
-    results = db.execute(query).all()
-
-    grouped_data = {}
-
-    # Eliminate duplicates
-    for eol_product, eol_version, service in results:
-        p_id = eol_product.eol_product_id
-        v_id = eol_version.eol_version_id
-
-        if p_id not in grouped_data:
-            grouped_data[p_id] = {"product": eol_product, "versions": {}}
-
-        if v_id not in grouped_data[p_id]["versions"]:
-            grouped_data[p_id]["versions"][v_id] = {"version": eol_version, "services": []}
-
-        if service not in grouped_data[p_id]["versions"][v_id]["services"]:
-            grouped_data[p_id]["versions"][v_id]["services"].append(service)
-
-    # Change to Response format
-    final_list = []
-    for content in grouped_data.values():
-        product = content["product"]
-
-        version_list = []
-
-        for v_content in content["versions"].values():
-            version = v_content["version"]
-            service_list = [
-                {"service_id": s.service_id, "service_name": s.service_name}
-                for s in v_content["services"]
-            ]
-
-            version_list.append(
-                {
-                    "eol_version_id": version.eol_version_id,
-                    "version": version.version,
-                    "release_date": version.release_date,
-                    "eol_from": version.eol_from,
-                    "matching_version": version.matching_version,
-                    "created_at": version.created_at,
-                    "updated_at": version.updated_at,
-                    "services": service_list,
-                }
-            )
-
-        final_list.append(
-            {
-                "eol_product_id": product.eol_product_id,
-                "name": product.name,
-                "product_category": product.product_category,
-                "description": product.description,
-                "is_ecosystem": product.is_ecosystem,
-                "matching_name": product.matching_name,
-                "eol_versions": version_list,
-            }
-        )
+    results = db.execute(stmt).all()
 
     return {
-        "total": len(final_list),
-        "products": final_list,
+        "total": len(results),
+        "products": results,
     }
