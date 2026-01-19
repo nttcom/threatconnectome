@@ -453,7 +453,7 @@ class EoLVersionResponse(EoLVersionResopnseBase):
     pass
 
 
-class EoLVersionExpandedResponse(EoLVersionResopnseBase):
+class PTeamEoLVersionResponse(EoLVersionResopnseBase):
     services: list[ServiceEntry]
 
 
@@ -470,8 +470,8 @@ class EoLProductResponse(EoLProductResponseBase):
     eol_versions: list[EoLVersionResponse] = []
 
 
-class EoLProductExpandedResponse(EoLProductResponseBase):
-    eol_versions: list[EoLVersionExpandedResponse] = []
+class PTeamEoLProductResponse(EoLProductResponseBase):
+    eol_versions: list[PTeamEoLVersionResponse] = []
 
 
 class EoLProductListResponseBase(BaseModel):
@@ -483,4 +483,4 @@ class EoLProductListResponse(EoLProductListResponseBase):
 
 
 class PTeamEoLProductListResponse(EoLProductListResponseBase):
-    products: list[EoLProductExpandedResponse]
+    products: list[PTeamEoLProductResponse]
