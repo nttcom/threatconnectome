@@ -353,4 +353,3 @@ export const SUPPORTED_PRODUCTS = [
     ],
   },
 ];
-export const DATA_LAST_UPDATED = "2025-12-18";

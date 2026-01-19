@@ -56,11 +56,13 @@ export function ProductEolList() {
         return matchesSearch && matchesCategory;
       }) ?? []
     );
-  }, [searchTerm, selectedCategory]);
-  const latestUpdate = filteredProducts
+  }, [eolsData, searchTerm, selectedCategory]);
+  const latestUpdateDate = filteredProducts
     .flatMap((eolProduct) => eolProduct.eol_versions ?? [])
     .map((eol_version) => new Date(eol_version.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
+  const latestUpdate =
+    latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
 
   if (skip) return <>Now loading auth token...</>;
   if (eolsError)
@@ -99,7 +101,7 @@ export function ProductEolList() {
         color="text.secondary"
         sx={{ display: "block", textAlign: "right", mb: 1 }}
       >
-        Last Updated: {latestUpdate.toLocaleDateString()}
+        Last Updated: {latestUpdate}
       </Typography>
       {/* Search and Filter */}
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
@@ -148,9 +150,11 @@ export function ProductEolList() {
       <Grid container spacing={2}>
         {filteredProducts.map((product) => {
           return (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.eol_product_id}>
               <Card variant="outlined">
-                <CardActionArea onClick={() => navigate(`/supported-products/${product.id}`)}>
+                <CardActionArea
+                  onClick={() => navigate(`/supported-products/${product.eol_product_id}`)}
+                >
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                       <Typography variant="h6" fontWeight="bold">

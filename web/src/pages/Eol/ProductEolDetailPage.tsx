@@ -31,8 +31,6 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
-import { DATA_LAST_UPDATED } from "./mocks/supportedProducts";
-
 const getEolStatus = (eolDateStr: string | null | undefined) => {
   if (!eolDateStr) return "unknown";
   const today = new Date();
@@ -85,6 +83,13 @@ export function ProductEolDetail() {
       : product.eol_versions?.filter(
           (eol_version) => getEolStatus(eol_version.eol_from) !== "expired",
         )) ?? [];
+
+  const latestUpdateDate = filteredVersions
+    .map((eol_version) => new Date(eol_version.updated_at))
+    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
+  const latestUpdate =
+    latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Breadcrumb */}
@@ -116,7 +121,7 @@ export function ProductEolDetail() {
         mb={2}
       >
         <Typography variant="caption" color="text.secondary">
-          Data Updated On: {DATA_LAST_UPDATED}
+          Last Updated: {latestUpdate}
         </Typography>
         <FormControlLabel
           control={
