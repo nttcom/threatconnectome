@@ -37,11 +37,13 @@ import { formatDate, getDiffDays } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
+const WARNING_THRESHOLD_DAYS = 180;
+
 const getEolStatus = (eolDateStr: string | null | undefined) => {
   const diffDays = getDiffDays(eolDateStr);
   if (!diffDays) return "unknown";
   if (diffDays < 0) return "expired";
-  if (diffDays <= 180) return "warning";
+  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
   return "active";
 };
 
