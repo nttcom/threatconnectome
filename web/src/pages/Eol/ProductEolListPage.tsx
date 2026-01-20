@@ -48,9 +48,7 @@ export function ProductEolList() {
   const filteredProducts = useMemo(() => {
     return (
       eolsData?.products.filter((eolProduct) => {
-        const matchesSearch =
-          eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          eolProduct.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory =
           selectedCategory === "all" || eolProduct.product_category === selectedCategory;
         return matchesSearch && matchesCategory;
