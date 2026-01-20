@@ -50,17 +50,6 @@ import type { PTeamEoLProductResponse } from "../../../types/types.gen.ts";
 // ---  Type definition ---
 type Status = "expired" | "warning" | "safe";
 
-const getStatus = (eolDateStr: string): Status => {
-  const today = new Date();
-  const eolDate = new Date(eolDateStr);
-  const diffTime = eolDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "expired";
-  if (diffDays <= 180) return "warning";
-  return "safe";
-};
-
 const getStatusLabel = (status: Status) => {
   switch (status) {
     case "expired":
@@ -74,13 +63,33 @@ const getStatusLabel = (status: Status) => {
   }
 };
 
-const getDiffText = (eolDateStr: string) => {
-  if (!eolDateStr) return "-";
+const getDiffDays = (eolDateStr: string): number | null => {
+  if (!eolDateStr) return null;
   const eolDate = new Date(eolDateStr);
   const now = new Date();
+
   const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const diffTime = eolDate.getTime() - todayUtc.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const eolUtc = new Date(
+    Date.UTC(eolDate.getUTCFullYear(), eolDate.getUTCMonth(), eolDate.getUTCDate()),
+  );
+
+  const diffTime = eolUtc.getTime() - todayUtc.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+const getStatus = (eolDateStr: string): Status => {
+  const diffDays = getDiffDays(eolDateStr);
+
+  if (diffDays === null) return "safe";
+  if (diffDays < 0) return "expired";
+  if (diffDays <= 180) return "warning";
+  return "safe";
+};
+
+const getDiffText = (eolDateStr: string) => {
+  const diffDays = getDiffDays(eolDateStr);
+
+  if (!diffDays) return "-";
   if (diffDays < 0) return `${Math.abs(diffDays)}days over`;
   if (diffDays === 0) return "Expires today ";
   return `${diffDays} days left`;
