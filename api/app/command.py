@@ -11,6 +11,7 @@ from sqlalchemy import (
     delete,
     false,
     func,
+    literal,
     or_,
     select,
 )
@@ -491,30 +492,6 @@ def get_related_affects_by_package(db: Session, package: models.Package) -> Sequ
     ).all()
 
 
-SSVC_PRIORITY_ORDER = {
-    "IMMEDIATE": 3,
-    "OUT_OF_CYCLE": 2,
-    "SCHEDULED": 1,
-    "DEFER": 0,
-}
-
-ssvc_priority_case = case(
-    SSVC_PRIORITY_ORDER,
-    value=models.Ticket.ssvc_deployer_priority,
-    else_=None,
-)
-
-TICKETS_SORT_KEYS = {
-    "ssvc_deployer_priority": ssvc_priority_case,
-    "created_at": models.TicketStatus.created_at,
-    "scheduled_at": models.TicketStatus.scheduled_at,
-    "cve_id": models.Vuln.cve_id,
-    "package_name": models.Package.name,
-    "pteam_name": models.PTeam.pteam_name,
-    "service_name": models.Service.service_name,
-}
-
-
 def get_related_package_versions_by_eol_version(
     db: Session, eol_product: models.EoLProduct, eol_version: models.EoLVersion
 ) -> Sequence[models.PackageVersion]:
@@ -527,7 +504,7 @@ def get_related_package_versions_by_eol_version(
         filters.append(models.Package.vuln_matching_ecosystem == str(eol_version.matching_version))
     else:
         filters.append(models.Package.name == str(eol_product.matching_name))
-        filters.append(models.PackageVersion.version == str(eol_version.matching_version))
+        filters.append(models.PackageVersion.version.like(f"{eol_version.matching_version}%"))
 
     return db.scalars(select_stmt.where(and_(*filters))).all()
 
@@ -550,13 +527,39 @@ def get_related_eol_versions_by_package_version(
                 and_(
                     models.EoLProduct.is_ecosystem.is_(False),
                     models.EoLProduct.matching_name == package_version.package.name,
-                    models.EoLVersion.matching_version == str(package_version.version),
+                    literal(str(package_version.version)).like(
+                        models.EoLVersion.matching_version + "%"
+                    ),
                 ),
             ),
         )
     )
 
     return db.scalars(select_stmt).all()
+
+
+SSVC_PRIORITY_ORDER = {
+    "IMMEDIATE": 3,
+    "OUT_OF_CYCLE": 2,
+    "SCHEDULED": 1,
+    "DEFER": 0,
+}
+
+ssvc_priority_case = case(
+    SSVC_PRIORITY_ORDER,
+    value=models.Ticket.ssvc_deployer_priority,
+    else_=None,
+)
+
+TICKETS_SORT_KEYS = {
+    "ssvc_deployer_priority": ssvc_priority_case,
+    "created_at": models.TicketStatus.created_at,
+    "scheduled_at": models.TicketStatus.scheduled_at,
+    "cve_id": models.Vuln.cve_id,
+    "package_name": models.Package.name,
+    "pteam_name": models.PTeam.pteam_name,
+    "service_name": models.Service.service_name,
+}
 
 
 def get_sorted_paginated_tickets_for_pteams(

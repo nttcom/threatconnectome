@@ -100,7 +100,7 @@ def eol_version2(
         version="3.118-ubuntu2",
         release_date="2020-04-23",
         eol_from="2025-05-31",
-        matching_version="3.118ubuntu2",
+        matching_version="3.118",
         created_at=now,
         updated_at=now,
     )
