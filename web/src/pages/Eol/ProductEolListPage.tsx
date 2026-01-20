@@ -24,11 +24,14 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 
+// @ts-expect-error TS7016
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
+// @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+// @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
 export function ProductEolList() {
