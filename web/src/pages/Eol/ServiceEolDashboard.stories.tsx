@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ServiceEolDashboard } from "./ServiceEolDashboard";
+import { ServiceEolDashboard } from "./ServiceEolDashboardPage";
 import {
   MOCK_SERVICES,
   MOCK_SERVICES_EXPIRED_ONLY,
