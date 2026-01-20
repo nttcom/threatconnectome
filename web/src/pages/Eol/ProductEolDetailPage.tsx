@@ -90,7 +90,7 @@ export function ProductEolDetail() {
         )) ?? [];
 
   const category =
-    EoLProductCategoryList.find((item) => item.value === product.product_category)?.label ?? "";
+    EoLProductCategoryList.find((item) => item.value === product.product_category)?.label ?? "N/A";
 
   const latestUpdateDate = filteredVersions
     .map((eol_version) => new Date(eol_version.updated_at))
