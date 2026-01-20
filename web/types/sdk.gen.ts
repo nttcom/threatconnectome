@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { ApplyInvitationPteamsApplyInvitationPostData, ApplyInvitationPteamsApplyInvitationPostErrors, ApplyInvitationPteamsApplyInvitationPostResponses, CheckEmailExternalEmailCheckPostData, CheckEmailExternalEmailCheckPostErrors, CheckEmailExternalEmailCheckPostResponses, CheckWebhookUrlExternalSlackCheckPostData, CheckWebhookUrlExternalSlackCheckPostErrors, CheckWebhookUrlExternalSlackCheckPostResponses, CreateInvitationPteamsPteamIdInvitationPostData, CreateInvitationPteamsPteamIdInvitationPostErrors, CreateInvitationPteamsPteamIdInvitationPostResponses, CreateLogActionlogsPostData, CreateLogActionlogsPostErrors, CreateLogActionlogsPostResponses, CreatePteamPteamsPostData, CreatePteamPteamsPostErrors, CreatePteamPteamsPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, DeleteInsightTicketsTicketIdInsightDeleteData, DeleteInsightTicketsTicketIdInsightDeleteErrors, DeleteInsightTicketsTicketIdInsightDeleteResponses, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteData, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteErrors, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponses, DeleteMemberPteamsPteamIdMembersUserIdDeleteData, DeleteMemberPteamsPteamIdMembersUserIdDeleteErrors, DeleteMemberPteamsPteamIdMembersUserIdDeleteResponses, DeletePteamPteamsPteamIdDeleteData, DeletePteamPteamsPteamIdDeleteErrors, DeletePteamPteamsPteamIdDeleteResponses, DeleteUserUsersMeDeleteData, DeleteUserUsersMeDeleteResponses, DeleteVulnVulnsVulnIdDeleteData, DeleteVulnVulnsVulnIdDeleteErrors, DeleteVulnVulnsVulnIdDeleteResponses, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostData, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostErrors, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostResponses, GetDependenciesPteamsPteamIdDependenciesGetData, GetDependenciesPteamsPteamIdDependenciesGetErrors, GetDependenciesPteamsPteamIdDependenciesGetResponses, GetDependencyPteamsPteamIdDependenciesDependencyIdGetData, GetDependencyPteamsPteamIdDependenciesDependencyIdGetErrors, GetDependencyPteamsPteamIdDependenciesDependencyIdGetResponses, GetInsightTicketsTicketIdInsightGetData, GetInsightTicketsTicketIdInsightGetErrors, GetInsightTicketsTicketIdInsightGetResponses, GetLogsActionlogsGetData, GetLogsActionlogsGetResponses, GetMyUserInfoUsersMeGetData, GetMyUserInfoUsersMeGetResponses, GetPteamMembersPteamsPteamIdMembersGetData, GetPteamMembersPteamsPteamIdMembersGetErrors, GetPteamMembersPteamsPteamIdMembersGetResponses, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetErrors, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponses, GetPteamPteamsPteamIdGetData, GetPteamPteamsPteamIdGetErrors, GetPteamPteamsPteamIdGetResponses, GetPteamServicesPteamsPteamIdServicesGetData, GetPteamServicesPteamsPteamIdServicesGetErrors, GetPteamServicesPteamsPteamIdServicesGetResponses, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetErrors, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetResponses, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetData, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetErrors, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetResponses, GetTicketPteamsPteamIdTicketsTicketIdGetData, GetTicketPteamsPteamIdTicketsTicketIdGetErrors, GetTicketPteamsPteamIdTicketsTicketIdGetResponses, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetErrors, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetResponses, GetTicketsTicketsGetData, GetTicketsTicketsGetErrors, GetTicketsTicketsGetResponses, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetErrors, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetResponses, GetVulnLogsActionlogsVulnsVulnIdGetData, GetVulnLogsActionlogsVulnsVulnIdGetErrors, GetVulnLogsActionlogsVulnsVulnIdGetResponses, GetVulnsVulnsGetData, GetVulnsVulnsGetErrors, GetVulnsVulnsGetResponses, GetVulnVulnsVulnIdGetData, GetVulnVulnsVulnIdGetErrors, GetVulnVulnsVulnIdGetResponses, InternalOpenapiSchemaInternalApiOpenapiJsonGetData, InternalOpenapiSchemaInternalApiOpenapiJsonGetResponses, InvitedPteamPteamsInvitationInvitationIdGetData, InvitedPteamPteamsInvitationInvitationIdGetErrors, InvitedPteamPteamsInvitationInvitationIdGetResponses, ListInvitationsPteamsPteamIdInvitationGetData, ListInvitationsPteamsPteamIdInvitationGetErrors, ListInvitationsPteamsPteamIdInvitationGetResponses, LoginForAccessTokenAuthTokenPostData, LoginForAccessTokenAuthTokenPostErrors, LoginForAccessTokenAuthTokenPostResponses, RefreshAccessTokenAuthRefreshPostData, RefreshAccessTokenAuthRefreshPostErrors, RefreshAccessTokenAuthRefreshPostResponses, RemoveServicePteamsPteamIdServicesServiceIdDeleteData, RemoveServicePteamsPteamIdServicesServiceIdDeleteErrors, RemoveServicePteamsPteamIdServicesServiceIdDeleteResponses, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteData, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteErrors, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteResponses, UpdateInsightTicketsTicketIdInsightPutData, UpdateInsightTicketsTicketIdInsightPutErrors, UpdateInsightTicketsTicketIdInsightPutResponses, UpdatePteamMemberPteamsPteamIdMembersUserIdPutData, UpdatePteamMemberPteamsPteamIdMembersUserIdPutErrors, UpdatePteamMemberPteamsPteamIdMembersUserIdPutResponses, UpdatePteamPteamsPteamIdPutData, UpdatePteamPteamsPteamIdPutErrors, UpdatePteamPteamsPteamIdPutResponses, UpdatePteamServicePteamsPteamIdServicesServiceIdPutData, UpdatePteamServicePteamsPteamIdServicesServiceIdPutErrors, UpdatePteamServicePteamsPteamIdServicesServiceIdPutResponses, UpdateTicketPteamsPteamIdTicketsTicketIdPutData, UpdateTicketPteamsPteamIdTicketsTicketIdPutErrors, UpdateTicketPteamsPteamIdTicketsTicketIdPutResponses, UpdateUserUsersUserIdPutData, UpdateUserUsersUserIdPutErrors, UpdateUserUsersUserIdPutResponses, UpdateVulnVulnsVulnIdPutData, UpdateVulnVulnsVulnIdPutErrors, UpdateVulnVulnsVulnIdPutResponses, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostData, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostErrors, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponses, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostErrors, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostResponses, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostData, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostErrors, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostResponses } from './types.gen';
+import type { ApplyInvitationPteamsApplyInvitationPostData, ApplyInvitationPteamsApplyInvitationPostErrors, ApplyInvitationPteamsApplyInvitationPostResponses, CheckEmailExternalEmailCheckPostData, CheckEmailExternalEmailCheckPostErrors, CheckEmailExternalEmailCheckPostResponses, CheckWebhookUrlExternalSlackCheckPostData, CheckWebhookUrlExternalSlackCheckPostErrors, CheckWebhookUrlExternalSlackCheckPostResponses, CreateInvitationPteamsPteamIdInvitationPostData, CreateInvitationPteamsPteamIdInvitationPostErrors, CreateInvitationPteamsPteamIdInvitationPostResponses, CreateLogActionlogsPostData, CreateLogActionlogsPostErrors, CreateLogActionlogsPostResponses, CreatePteamPteamsPostData, CreatePteamPteamsPostErrors, CreatePteamPteamsPostResponses, CreateUserUsersPostData, CreateUserUsersPostErrors, CreateUserUsersPostResponses, DeleteEolEolsEolProductIdDeleteData, DeleteEolEolsEolProductIdDeleteErrors, DeleteEolEolsEolProductIdDeleteResponses, DeleteInsightTicketsTicketIdInsightDeleteData, DeleteInsightTicketsTicketIdInsightDeleteErrors, DeleteInsightTicketsTicketIdInsightDeleteResponses, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteData, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteErrors, DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteResponses, DeleteMemberPteamsPteamIdMembersUserIdDeleteData, DeleteMemberPteamsPteamIdMembersUserIdDeleteErrors, DeleteMemberPteamsPteamIdMembersUserIdDeleteResponses, DeletePteamPteamsPteamIdDeleteData, DeletePteamPteamsPteamIdDeleteErrors, DeletePteamPteamsPteamIdDeleteResponses, DeleteUserUsersMeDeleteData, DeleteUserUsersMeDeleteResponses, DeleteVulnVulnsVulnIdDeleteData, DeleteVulnVulnsVulnIdDeleteErrors, DeleteVulnVulnsVulnIdDeleteResponses, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostData, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostErrors, ForceCalculateSsvcPriorityPteamsPteamIdFixSsvcPrioritiesPostResponses, GetDependenciesPteamsPteamIdDependenciesGetData, GetDependenciesPteamsPteamIdDependenciesGetErrors, GetDependenciesPteamsPteamIdDependenciesGetResponses, GetDependencyPteamsPteamIdDependenciesDependencyIdGetData, GetDependencyPteamsPteamIdDependenciesDependencyIdGetErrors, GetDependencyPteamsPteamIdDependenciesDependencyIdGetResponses, GetEolProductsEolsGetData, GetEolProductsEolsGetResponses, GetEolProductsWithPteamIdPteamsPteamIdEolsGetData, GetEolProductsWithPteamIdPteamsPteamIdEolsGetErrors, GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponses, GetInsightTicketsTicketIdInsightGetData, GetInsightTicketsTicketIdInsightGetErrors, GetInsightTicketsTicketIdInsightGetResponses, GetLogsActionlogsGetData, GetLogsActionlogsGetResponses, GetMyUserInfoUsersMeGetData, GetMyUserInfoUsersMeGetResponses, GetPteamMembersPteamsPteamIdMembersGetData, GetPteamMembersPteamsPteamIdMembersGetErrors, GetPteamMembersPteamsPteamIdMembersGetResponses, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetErrors, GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponses, GetPteamPteamsPteamIdGetData, GetPteamPteamsPteamIdGetErrors, GetPteamPteamsPteamIdGetResponses, GetPteamServicesPteamsPteamIdServicesGetData, GetPteamServicesPteamsPteamIdServicesGetErrors, GetPteamServicesPteamsPteamIdServicesGetResponses, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetErrors, GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetResponses, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetData, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetErrors, GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetResponses, GetTicketPteamsPteamIdTicketsTicketIdGetData, GetTicketPteamsPteamIdTicketsTicketIdGetErrors, GetTicketPteamsPteamIdTicketsTicketIdGetResponses, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetErrors, GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetResponses, GetTicketsTicketsGetData, GetTicketsTicketsGetErrors, GetTicketsTicketsGetResponses, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetErrors, GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetResponses, GetVulnLogsActionlogsVulnsVulnIdGetData, GetVulnLogsActionlogsVulnsVulnIdGetErrors, GetVulnLogsActionlogsVulnsVulnIdGetResponses, GetVulnsVulnsGetData, GetVulnsVulnsGetErrors, GetVulnsVulnsGetResponses, GetVulnVulnsVulnIdGetData, GetVulnVulnsVulnIdGetErrors, GetVulnVulnsVulnIdGetResponses, InternalOpenapiSchemaInternalApiOpenapiJsonGetData, InternalOpenapiSchemaInternalApiOpenapiJsonGetResponses, InvitedPteamPteamsInvitationInvitationIdGetData, InvitedPteamPteamsInvitationInvitationIdGetErrors, InvitedPteamPteamsInvitationInvitationIdGetResponses, ListInvitationsPteamsPteamIdInvitationGetData, ListInvitationsPteamsPteamIdInvitationGetErrors, ListInvitationsPteamsPteamIdInvitationGetResponses, LoginForAccessTokenAuthTokenPostData, LoginForAccessTokenAuthTokenPostErrors, LoginForAccessTokenAuthTokenPostResponses, RefreshAccessTokenAuthRefreshPostData, RefreshAccessTokenAuthRefreshPostErrors, RefreshAccessTokenAuthRefreshPostResponses, RemoveServicePteamsPteamIdServicesServiceIdDeleteData, RemoveServicePteamsPteamIdServicesServiceIdDeleteErrors, RemoveServicePteamsPteamIdServicesServiceIdDeleteResponses, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteData, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteErrors, RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteResponses, UpdateEolEolsEolProductIdPutData, UpdateEolEolsEolProductIdPutErrors, UpdateEolEolsEolProductIdPutResponses, UpdateInsightTicketsTicketIdInsightPutData, UpdateInsightTicketsTicketIdInsightPutErrors, UpdateInsightTicketsTicketIdInsightPutResponses, UpdatePteamMemberPteamsPteamIdMembersUserIdPutData, UpdatePteamMemberPteamsPteamIdMembersUserIdPutErrors, UpdatePteamMemberPteamsPteamIdMembersUserIdPutResponses, UpdatePteamPteamsPteamIdPutData, UpdatePteamPteamsPteamIdPutErrors, UpdatePteamPteamsPteamIdPutResponses, UpdatePteamServicePteamsPteamIdServicesServiceIdPutData, UpdatePteamServicePteamsPteamIdServicesServiceIdPutErrors, UpdatePteamServicePteamsPteamIdServicesServiceIdPutResponses, UpdateTicketPteamsPteamIdTicketsTicketIdPutData, UpdateTicketPteamsPteamIdTicketsTicketIdPutErrors, UpdateTicketPteamsPteamIdTicketsTicketIdPutResponses, UpdateUserUsersUserIdPutData, UpdateUserUsersUserIdPutErrors, UpdateUserUsersUserIdPutResponses, UpdateVulnVulnsVulnIdPutData, UpdateVulnVulnsVulnIdPutErrors, UpdateVulnVulnsVulnIdPutResponses, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostData, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostErrors, UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponses, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostErrors, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostResponses, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostData, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostErrors, UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -726,6 +726,24 @@ export const deleteInvitationPteamsPteamIdInvitationInvitationIdDelete = <ThrowO
 };
 
 /**
+ * Get Eol Products With Pteam Id
+ *
+ * Get EoL products and their versions associated with pteam_id
+ */
+export const getEolProductsWithPteamIdPteamsPteamIdEolsGet = <ThrowOnError extends boolean = false>(options: Options<GetEolProductsWithPteamIdPteamsPteamIdEolsGetData, ThrowOnError>) => {
+    return (options.client ?? client).get<GetEolProductsWithPteamIdPteamsPteamIdEolsGetResponses, GetEolProductsWithPteamIdPteamsPteamIdEolsGetErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/pteams/{pteam_id}/eols',
+        ...options
+    });
+};
+
+/**
  * Delete User
  *
  * Delete current user and left admin-less pteams.
@@ -1031,6 +1049,65 @@ export const updateInsightTicketsTicketIdInsightPut = <ThrowOnError extends bool
             }
         ],
         url: '/tickets/{ticket_id}/insight',
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+};
+
+/**
+ * Get Eol Products
+ *
+ * Get EoL products and their versions.
+ */
+export const getEolProductsEolsGet = <ThrowOnError extends boolean = false>(options?: Options<GetEolProductsEolsGetData, ThrowOnError>) => {
+    return (options?.client ?? client).get<GetEolProductsEolsGetResponses, unknown, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/eols',
+        ...options
+    });
+};
+
+/**
+ * Delete Eol
+ *
+ * Delete a eol.
+ */
+export const deleteEolEolsEolProductIdDelete = <ThrowOnError extends boolean = false>(options: Options<DeleteEolEolsEolProductIdDeleteData, ThrowOnError>) => {
+    return (options.client ?? client).delete<DeleteEolEolsEolProductIdDeleteResponses, DeleteEolEolsEolProductIdDeleteErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/eols/{eol_product_id}',
+        ...options
+    });
+};
+
+/**
+ * Update Eol
+ *
+ * Update a eol if it exists,
+ * or create a new eol if the specified eol_id is not found in the database.
+ */
+export const updateEolEolsEolProductIdPut = <ThrowOnError extends boolean = false>(options: Options<UpdateEolEolsEolProductIdPutData, ThrowOnError>) => {
+    return (options.client ?? client).put<UpdateEolEolsEolProductIdPutResponses, UpdateEolEolsEolProductIdPutErrors, ThrowOnError>({
+        security: [
+            {
+                scheme: 'bearer',
+                type: 'http'
+            }
+        ],
+        url: '/eols/{eol_product_id}',
         ...options,
         headers: {
             'Content-Type': 'application/json',
