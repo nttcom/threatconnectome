@@ -79,8 +79,8 @@ const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
 
   if (!diffDays) return "-";
-  if (diffDays < 0) return `${Math.abs(diffDays)}days over`;
-  if (diffDays === 0) return "Expires today ";
+  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
+  if (diffDays === 0) return "Expires today";
   return `${diffDays} days left`;
 };
 
