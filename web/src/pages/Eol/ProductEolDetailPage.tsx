@@ -33,11 +33,9 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { formatDate, getDiffDays } from "../../utils/eolUtils";
+import { formatDate, getDiffDays, WARNING_THRESHOLD_DAYS } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
-
-const WARNING_THRESHOLD_DAYS = 180;
 
 const getEolStatus = (eolDateStr: string | null | undefined) => {
   const diffDays = getDiffDays(eolDateStr);

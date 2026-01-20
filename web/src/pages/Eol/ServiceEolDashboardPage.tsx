@@ -41,7 +41,12 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import { formatDate, getLatestUpdateDate, getDiffDays } from "../../utils/eolUtils";
+import {
+  formatDate,
+  getLatestUpdateDate,
+  getDiffDay,
+  WARNING_THRESHOLD_DAYS,
+} from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { EoLProductCategoryList } from "../../utils/const";
@@ -63,8 +68,6 @@ const getStatusLabel = (status: Status) => {
       return "";
   }
 };
-
-const WARNING_THRESHOLD_DAYS = 180;
 
 const getStatus = (eolDateStr: string): Status => {
   const diffDays = getDiffDays(eolDateStr);

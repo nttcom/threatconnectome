@@ -31,3 +31,5 @@ export const getDiffDays = (eolDateStr: string | null | undefined): number | nul
   const diffTime = eolUtc.getTime() - todayUtc.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
+
+export const WARNING_THRESHOLD_DAYS = 180;
