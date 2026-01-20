@@ -44,7 +44,7 @@ import { errorToString } from "../../utils/func";
 import {
   formatDate,
   getLatestUpdateDate,
-  getDiffDay,
+  getDiffDays,
   WARNING_THRESHOLD_DAYS,
 } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
