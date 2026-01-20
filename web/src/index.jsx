@@ -26,7 +26,9 @@ import {
   PTeam,
   ToDo,
 } from "./pages";
-import { ProductEolDetailPage, ProductEolListPage } from "./pages/Eol/ProductEolPage";
+
+import { ProductEolDetail } from "./pages/Eol/ProductEolDetailPage";
+import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboardPage";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
@@ -81,8 +83,8 @@ root.render(
                     <Route index element={<ToDo />} />
                   </Route>
                   <Route path="/eol" element={<ServiceEolDashboard />} />
-                  <Route path="/supported-products" element={<ProductEolListPage />} />
-                  <Route path="/supported-products/:productId" element={<ProductEolDetailPage />} />
+                  <Route path="/supported-products" element={<ProductEolList />} />
+                  <Route path="/supported-products/:productId" element={<ProductEolDetail />} />
                 </Route>
               </Routes>
             </Router>

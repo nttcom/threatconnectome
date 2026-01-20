@@ -1,0 +1,42 @@
+{
+  "total": 1,
+  "products": [
+    {
+      "eol_product_id": "8ca0b1eb-3982-5f42-a6a9-02040360e02b",
+      "name": "django",
+      "product_category": "middleware",
+      "description": "Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.",
+      "is_ecosystem": "False",
+      "matching_name": "django",
+      "eol_versions":  [
+        {
+            "eol_version_id": "eol_version_id_1",
+            "version": "6.0",
+            "release_date": "2025-12-03",
+            "eol_from": "2026-08-31",
+            "matching_version": "6.0",
+            "created_at": "2025-12-03T10:23:45Z",
+            "updated_at": "2025-12-03T10:23:45Z"
+        },
+        {
+            "eol_version_id": "eol_version_id_2",
+            "version": "5.2",
+            "release_date": "2024-08-07",
+            "eol_from": "2028-04-30",
+            "matching_version": "5.2",
+            "created_at": "2025-12-03T10:23:45Z",
+            "updated_at": "2025-12-03T10:23:45Z"
+        },
+        {
+            "eol_version_id": "eol_version_id_3",
+            "version": "5.1",
+            "release_date": "2025-04-02",
+            "eol_from": "2025-12-03",
+            "matching_version": "5.1",
+            "created_at": "2025-12-03T10:23:45Z",
+            "updated_at": "2025-12-03T10:23:45Z"
+        }
+      ]
+    }
+  ]
+}
