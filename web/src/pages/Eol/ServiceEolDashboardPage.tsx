@@ -64,12 +64,14 @@ const getStatusLabel = (status: Status) => {
   }
 };
 
+const WARNING_THRESHOLD_DAYS = 180;
+
 const getStatus = (eolDateStr: string): Status => {
   const diffDays = getDiffDays(eolDateStr);
 
   if (diffDays === null) return "safe";
   if (diffDays < 0) return "expired";
-  if (diffDays <= 180) return "warning";
+  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
   return "safe";
 };
 
