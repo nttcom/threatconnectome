@@ -1,15 +1,26 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ProductEolListPage } from "./ProductEolPage";
+import { http, HttpResponse } from "msw";
 
-// --- ProductEolListPage のストーリー ---
+import generalEoLData from "../../mocks/generalEoLData.json";
+
+import { ProductEolList } from "./ProductEolListPage";
+
+// --- ProductEolListPage story ---
 const listMeta = {
   title: "Eol/ProductEolListPage",
-  component: ProductEolListPage,
+  component: ProductEolList,
   parameters: {
     layout: "fullscreen",
+    msw: {
+      handlers: [
+        http.get("*/eols", () => {
+          return HttpResponse.json(generalEoLData);
+        }),
+      ],
+    },
   },
   tags: ["autodocs"],
-} satisfies Meta<typeof ProductEolListPage>;
+} satisfies Meta<typeof ProductEolList>;
 
 export default listMeta;
 type ListStory = StoryObj<typeof listMeta>;
