@@ -172,7 +172,7 @@ export function ServiceEolDashboard() {
     .filter((eolProduct) => {
       return (eolProduct?.eol_versions ?? []).some((eolVersion) => {
         const status = getStatus(eolVersion.eol_from);
-        const matchesFilter = filter === "all" || status === filter || filter === "safe";
+        const matchesFilter = filter === "all" || filter === status;
         const matchesSearch =
           eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           eolVersion.services.some((s) =>
