@@ -33,6 +33,7 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import { formatDate } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
@@ -45,10 +46,6 @@ const getEolStatus = (eolDateStr: string | null | undefined) => {
   if (diffDays < 0) return "expired";
   if (diffDays <= 180) return "warning";
   return "active";
-};
-const formatDate = (dateStr: string | null | undefined) => {
-  if (!dateStr) return "Undecided";
-  return new Date(dateStr).toLocaleDateString();
 };
 
 export function ProductEolDetail() {

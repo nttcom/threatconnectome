@@ -41,6 +41,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
+import { formatDate, getLatestUpdateDate } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { EoLProductCategoryList } from "../../utils/const";
@@ -103,11 +104,6 @@ const getMinEol = (product: PTeamEoLProductResponse) => {
     .filter((t) => !isNaN(t));
 
   return timestamps.length > 0 ? Math.min(...timestamps) : Infinity;
-};
-
-const formatDate = (dateStr: string | null | undefined) => {
-  if (!dateStr) return "Undecided";
-  return new Date(dateStr).toLocaleDateString();
 };
 
 const getProductCategorybyValue = (value: string | null | undefined) => {
@@ -191,12 +187,7 @@ export function ServiceEolDashboard() {
       return minEolA - minEolB;
     });
 
-  const latestUpdateDate = filteredEoLProducts
-    .flatMap((eolProduct) => eolProduct.eol_versions ?? [])
-    .map((eol_version) => new Date(eol_version.updated_at))
-    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
-  const latestUpdate =
-    latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
+  const latestUpdate = getLatestUpdateDate(filteredEoLProducts);
 
   const handleFilterChange = (_event: React.MouseEvent<HTMLElement>, newFilter: string | null) => {
     if (newFilter !== null) {

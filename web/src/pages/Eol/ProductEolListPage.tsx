@@ -31,6 +31,7 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import { getLatestUpdateDate } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
@@ -58,12 +59,8 @@ export function ProductEolList() {
       }) ?? []
     );
   }, [eolsData, searchTerm, selectedCategory]);
-  const latestUpdateDate = filteredProducts
-    .flatMap((eolProduct) => eolProduct.eol_versions ?? [])
-    .map((eol_version) => new Date(eol_version.updated_at))
-    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
-  const latestUpdate =
-    latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
+
+  const latestUpdate = getLatestUpdateDate(filteredProducts);
 
   if (skip) return <>Now loading auth token...</>;
   if (eolsError)
