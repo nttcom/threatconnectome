@@ -17,3 +17,17 @@ export const getLatestUpdateDate = (
 
   return latestUpdate;
 };
+
+export const getDiffDays = (eolDateStr: string | null | undefined): number | null => {
+  if (!eolDateStr) return null;
+  const eolDate = new Date(eolDateStr);
+  const now = new Date();
+
+  const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const eolUtc = new Date(
+    Date.UTC(eolDate.getUTCFullYear(), eolDate.getUTCMonth(), eolDate.getUTCDate()),
+  );
+
+  const diffTime = eolUtc.getTime() - todayUtc.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};

@@ -41,7 +41,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import { formatDate, getLatestUpdateDate } from "../../utils/eolUtils";
+import { formatDate, getLatestUpdateDate, getDiffDays } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { EoLProductCategoryList } from "../../utils/const";
@@ -62,20 +62,6 @@ const getStatusLabel = (status: Status) => {
     default:
       return "";
   }
-};
-
-const getDiffDays = (eolDateStr: string): number | null => {
-  if (!eolDateStr) return null;
-  const eolDate = new Date(eolDateStr);
-  const now = new Date();
-
-  const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const eolUtc = new Date(
-    Date.UTC(eolDate.getUTCFullYear(), eolDate.getUTCMonth(), eolDate.getUTCDate()),
-  );
-
-  const diffTime = eolUtc.getTime() - todayUtc.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 const getStatus = (eolDateStr: string): Status => {

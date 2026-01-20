@@ -33,16 +33,13 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { formatDate } from "../../utils/eolUtils";
+import { formatDate, getDiffDays } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
 const getEolStatus = (eolDateStr: string | null | undefined) => {
-  if (!eolDateStr) return "unknown";
-  const today = new Date();
-  const eolDate = new Date(eolDateStr);
-  const diffTime = eolDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = getDiffDays(eolDateStr);
+  if (!diffDays) return "unknown";
   if (diffDays < 0) return "expired";
   if (diffDays <= 180) return "warning";
   return "active";
