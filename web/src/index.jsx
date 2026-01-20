@@ -26,7 +26,6 @@ import {
   PTeam,
   ToDo,
 } from "./pages";
-
 import { ProductEolDetail } from "./pages/Eol/ProductEolDetailPage";
 import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboardPage";
