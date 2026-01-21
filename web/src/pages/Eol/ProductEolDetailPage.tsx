@@ -85,11 +85,14 @@ export function ProductEolDetail() {
       : product.eol_versions?.filter(
           (eol_version) => getEolStatus(eol_version.eol_from) !== "expired",
         )) ?? [];
+  const sortedVersions = [...filteredVersions].sort(
+    (a, b) => new Date(b.eol_from).getTime() - new Date(a.eol_from).getTime(),
+  );
 
   const category =
     EoLProductCategoryList.find((item) => item.value === product.product_category)?.label ?? "N/A";
 
-  const latestUpdateDate = filteredVersions
+  const latestUpdateDate = sortedVersions
     .map((eol_version) => new Date(eol_version.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
   const latestUpdate =
@@ -162,7 +165,7 @@ export function ProductEolDetail() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredVersions.map((versionData) => {
+              {sortedVersions.map((versionData) => {
                 const status = getEolStatus(versionData.eol_from);
                 return (
                   <TableRow
@@ -209,7 +212,7 @@ export function ProductEolDetail() {
             </TableBody>
           </Table>
         </TableContainer>
-        {filteredVersions.length === 0 && (
+        {sortedVersions.length === 0 && (
           <Box p={4} textAlign="center">
             <Typography color="text.secondary">
               No versions to display. Please turn on “Show discontinued versions.”
