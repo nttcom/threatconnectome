@@ -45,9 +45,42 @@ eol_product_list: list[EOLProductItem] = [
             "description": "Alpine Linux is a security-oriented, lightweight Linux distribution "
             "based on musl libc and busybox.",
             "is_ecosystem": True,
-            "matching_name": "alpine-",
+            "matching_name": "alpine",
         },
-    }
+    },
+    {
+        "product": "rocky-linux",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.OS,
+            "description": "Rocky Linux is a Linux distribution intended to be a downstream, "
+            "complete binary-compatible release using the Red Hat Enterprise Linux (RHEL) "
+            "operating system source code. The project is led by Gregory Kurtzer, "
+            "founder of the CentOS project.",
+            "is_ecosystem": True,
+            "matching_name": "rocky",
+        },
+    },
+    {
+        "product": "ubuntu",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.OS,
+            "description": "Ubuntu is a free and open-source Linux distribution based on Debian. "
+            "Ubuntu is officially released in three editions: Desktop, Server, "
+            "and Core (for IoT devices and robots).",
+            "is_ecosystem": True,
+            "matching_name": "ubuntu",
+        },
+    },
+    {
+        "product": "django",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": "Django is a high-level Python Web framework that encourages rapid "
+            "development and clean, pragmatic design.",
+            "is_ecosystem": False,
+            "matching_name": "django",
+        },
+    },
 ]
 
 
@@ -96,12 +129,30 @@ class AlpineLinuxEoLParamCreator(EoLParamCreator):
         return f"alpine-{release}"
 
 
+class RockyLinuxEoLParamCreator(EoLParamCreator):
+    def _get_matching_version(self, eol_version_info) -> str:
+        release = eol_version_info.get("release")
+        return f"rocky-{release}"
+
+
+class UbuntuEoLParamCreator(EoLParamCreator):
+    def _get_matching_version(self, eol_version_info) -> str:
+        release = eol_version_info.get("release")
+        return f"ubuntu-{release}"
+
+
 def create_eol_param_creator(
     product: str, eol_product_item: EOLProductItem, product_eol_info: list[ProductEoLInfo]
 ) -> EoLParamCreator:
     match product:
         case "alpine-linux":
             return AlpineLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
+        case "rocky-linux":
+            return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
+        case "ubuntu":
+            return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
+        case "django":
+            return EoLParamCreator(product, eol_product_item, product_eol_info)
         case _:
             return EoLParamCreator(product, eol_product_item, product_eol_info)
 
@@ -214,7 +265,7 @@ class ThreatconnectomeClient:
             sleep(3)
 
     def get_eols(self) -> dict:
-        response = self._retry_call(requests.get, f"{self.api_url}/eols/")
+        response = self._retry_call(requests.get, f"{self.api_url}/eols")
         return response.json()
 
     def delete_eol(self, eol_product_id) -> None:
