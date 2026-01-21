@@ -205,7 +205,7 @@ def notify_eol_package(
         pteam=pteam,
         notification_sent=package_eol_dependency.eol_notification_sent,
         service_name=service.service_name,
-        product_name=eol_version.eol_product.matching_name,
-        version=eol_version.matching_version,
+        product_name=eol_version.eol_product.name,
+        version=eol_version.version,
         eol_from=eol_version.eol_from,
     )
