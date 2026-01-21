@@ -30,10 +30,8 @@ import {
   Error as ErrorIcon,
   Search as SearchIcon,
   Inventory2 as PackageIcon,
-  AllInclusive as InfinityIcon,
   Info as InfoIcon,
   Layers as LayersIcon,
-  HelpOutline as HelpOutlineIcon,
 } from "@mui/icons-material";
 
 // @ts-expect-error TS7016
