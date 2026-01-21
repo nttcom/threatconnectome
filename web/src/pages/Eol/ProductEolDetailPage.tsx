@@ -159,7 +159,6 @@ export function ProductEolDetail() {
             <TableHead sx={{ bgcolor: "grey.100" }}>
               <TableRow>
                 <TableCell>Version</TableCell>
-                <TableCell>Release Date</TableCell>
                 <TableCell>EOL Date</TableCell>
                 <TableCell>Status</TableCell>
               </TableRow>
@@ -180,7 +179,6 @@ export function ProductEolDetail() {
                         <Typography fontWeight={600}>{versionData.version}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{formatDate(versionData.release_date)}</TableCell>
                     <TableCell>{formatDate(versionData.eol_from)}</TableCell>
                     <TableCell>
                       {status === "expired" && (
