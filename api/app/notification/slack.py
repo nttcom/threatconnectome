@@ -157,8 +157,7 @@ def create_slack_blocks_to_notify_eol(
         text=":warning: Action Required: migrate/upgrade to a supported version"
     )
 
-    # TODO: Once the EOL link is confirmed, implement the URL.
-    # url = urljoin(WEBUI_URL, f"?{encoded_params}")
+    url = urljoin(EOL_URL, f"?pteamId={pteam_id}")
     blocks.extend(
         [
             {
@@ -172,7 +171,7 @@ def create_slack_blocks_to_notify_eol(
                         f"• *Product:* {product_name}\n"
                         f"• *Current Version:* {version}\n"
                         f"• *EOL Date:* {eol_from}\n"
-                        f"• *Reference:* {EOL_URL}?pteamId={pteam_id}"
+                        f"• *Reference:* {url}"
                     ),
                 },
             },

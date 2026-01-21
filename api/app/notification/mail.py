@@ -115,7 +115,6 @@ def create_mail_to_notify_eol(
     version: str,
     eol_from: str,
 ) -> tuple[str, str]:
-    # TODO: Once the EOL link is confirmed, implement the URL.
     subject = "[Tc Warning] Action Required: migrate/upgrade to a supported version"
     url = _eol_page_link(pteam_id)
     body = "<br>".join(
