@@ -41,13 +41,13 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import {
   formatDate,
-  getLatestUpdateDate,
   getDiffDays,
+  getLatestUpdateDate,
+  getProductCategorybyValue,
   WARNING_THRESHOLD_DAYS,
 } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
-import { EoLProductCategoryList } from "../../utils/const";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
 import type { PTeamEoLProductResponse } from "../../../types/types.gen.ts";
 
@@ -93,11 +93,6 @@ const getMinEol = (product: PTeamEoLProductResponse) => {
     .filter((t) => !isNaN(t));
 
   return timestamps.length > 0 ? Math.min(...timestamps) : Infinity;
-};
-
-const getProductCategorybyValue = (value: string | null | undefined) => {
-  const item = EoLProductCategoryList.find((item) => item.value === value);
-  return item ? item.label : "N/A";
 };
 
 // --- Status Settings ---
@@ -186,7 +181,7 @@ export function ServiceEolDashboard() {
             EOL List
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            List of EOL Status for Libraries and Tools Used by the Entire Team
+            List of EOL Status for Libraries and Tools Used by the Entire Team.
           </Typography>
         </Box>
       </Stack>

@@ -1,4 +1,20 @@
-import type { PTeamEoLProductResponse, EoLProductResponse } from "../../types/types.gen.ts";
+import type {
+  PTeamEoLProductResponse,
+  ProductCategoryEnum,
+  EoLProductResponse,
+} from "../../types/types.gen.ts";
+
+export const EoLProductCategoryList: { value: ProductCategoryEnum; label: string }[] = [
+  { value: "os", label: "OS" },
+  { value: "runtime", label: "Runtime" },
+  { value: "middleware", label: "Middleware" },
+  { value: "package", label: "Package" },
+];
+
+export const getProductCategorybyValue = (value: string | null | undefined) => {
+  const item = EoLProductCategoryList.find((item) => item.value === value);
+  return item ? item.label : "N/A";
+};
 
 export const formatDate = (dateStr: string | null | undefined) => {
   if (!dateStr) return "Undecided";

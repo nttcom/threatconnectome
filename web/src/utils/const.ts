@@ -15,7 +15,6 @@ import {
   teal,
   yellow,
 } from "@mui/material/colors";
-import type { ProductCategoryEnum } from "../../types/types.gen.ts";
 
 export const drawerWidth = 200;
 
@@ -261,11 +260,4 @@ export const preserveKeys = [
   "allservices", // Toggle Button on Status Page
   "related", // Toggle button on Vulns Page
   "mytasks", // Toggle button on ToDo Page
-];
-
-export const EoLProductCategoryList: { value: ProductCategoryEnum; label: string }[] = [
-  { value: "os", label: "OS" },
-  { value: "runtime", label: "Runtime" },
-  { value: "middleware", label: "Middleware" },
-  { value: "package", label: "Package" },
 ];
