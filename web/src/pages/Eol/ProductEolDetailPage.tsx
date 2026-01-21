@@ -31,9 +31,13 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
-import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { formatDate, getDiffDays, WARNING_THRESHOLD_DAYS } from "../../utils/eolUtils";
+import {
+  formatDate,
+  getDiffDays,
+  getProductCategorybyValue,
+  WARNING_THRESHOLD_DAYS,
+} from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
@@ -89,9 +93,6 @@ export function ProductEolDetail() {
     (a, b) => new Date(b.eol_from).getTime() - new Date(a.eol_from).getTime(),
   );
 
-  const category =
-    EoLProductCategoryList.find((item) => item.value === product.product_category)?.label ?? "N/A";
-
   const latestUpdateDate = sortedVersions
     .map((eol_version) => new Date(eol_version.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
@@ -125,7 +126,7 @@ export function ProductEolDetail() {
         <Typography variant="h5" fontWeight="bold">
           {product.name}
         </Typography>
-        <Chip label={category} size="small" />
+        <Chip label={getProductCategorybyValue(product.product_category)} size="small" />
       </Stack>
       <Typography variant="body2" color="text.secondary" mb={3}>
         {product.description}
@@ -159,7 +160,6 @@ export function ProductEolDetail() {
             <TableHead sx={{ bgcolor: "grey.100" }}>
               <TableRow>
                 <TableCell>Version</TableCell>
-                <TableCell>Release Date</TableCell>
                 <TableCell>EOL Date</TableCell>
                 <TableCell>Status</TableCell>
               </TableRow>
@@ -180,7 +180,6 @@ export function ProductEolDetail() {
                         <Typography fontWeight={600}>{versionData.version}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{formatDate(versionData.release_date)}</TableCell>
                     <TableCell>{formatDate(versionData.eol_from)}</TableCell>
                     <TableCell>
                       {status === "expired" && (

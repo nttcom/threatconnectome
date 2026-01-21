@@ -29,9 +29,12 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
-import { EoLProductCategoryList } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { getLatestUpdateDate } from "../../utils/eolUtils";
+import {
+  EoLProductCategoryList,
+  getLatestUpdateDate,
+  getProductCategorybyValue,
+} from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
@@ -162,7 +165,10 @@ export function ProductEolList() {
                       <Typography variant="h6" fontWeight="bold">
                         {product.name}
                       </Typography>
-                      <Chip label={product.product_category} size="small" />
+                      <Chip
+                        label={getProductCategorybyValue(product.product_category)}
+                        size="small"
+                      />
                     </Stack>
                     <Typography
                       variant="body2"
