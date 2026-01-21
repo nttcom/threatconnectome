@@ -63,7 +63,7 @@ const getStatusLabel = (status: Status) => {
     case "warning":
       return "Deadline approaching";
     case "safe":
-      return "Supporting";
+      return "Supported";
     default:
       return "";
   }
@@ -115,14 +115,6 @@ const statusConfig = {
   safe: {
     color: "success",
     icon: <CheckCircleIcon fontSize="small" />,
-  },
-  continuous: {
-    color: "info",
-    icon: <InfinityIcon fontSize="small" />,
-  },
-  unsupported: {
-    color: "default",
-    icon: <HelpOutlineIcon fontSize="small" />,
   },
 } as const;
 
@@ -251,6 +243,7 @@ export function ServiceEolDashboard() {
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="expired">Expired</MenuItem>
                 <MenuItem value="warning">Deadline approaching</MenuItem>
+                <MenuItem value="safe">Supported</MenuItem>
               </Select>
             </FormControl>
             {/* Desktop: ToggleButtonGroup */}
@@ -264,6 +257,7 @@ export function ServiceEolDashboard() {
               <ToggleButton value="all">All</ToggleButton>
               <ToggleButton value="expired">Expired</ToggleButton>
               <ToggleButton value="warning">Deadline approaching</ToggleButton>
+              <ToggleButton value="safe">Supported</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
