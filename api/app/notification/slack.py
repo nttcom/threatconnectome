@@ -12,6 +12,7 @@ WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
 PACKAGE_URL = urljoin(WEBUI_URL, "packages/")
+EOL_URL = urljoin(WEBUI_URL, "eol/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
@@ -145,6 +146,7 @@ def create_slack_blocks_to_notify_sbom_upload_failed(
 
 
 def create_slack_blocks_to_notify_eol(
+    pteam_id: str,
     pteam_name: str,
     service_name: str,
     product_name: str,
@@ -170,7 +172,7 @@ def create_slack_blocks_to_notify_eol(
                         f"• *Product:* {product_name}\n"
                         f"• *Current Version:* {version}\n"
                         f"• *EOL Date:* {eol_from}\n"
-                        # f"• *Reference:* <xxxxxxxxxxxx>"
+                        f"• *Reference:* {EOL_URL}?pteamId={pteam_id}"
                     ),
                 },
             },

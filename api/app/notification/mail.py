@@ -20,6 +20,13 @@ def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str
     return urljoin(baseurl, f"?{encoded_params}")
 
 
+def _eol_page_link(pteam_id: str) -> str:
+    return urljoin(
+        os.getenv("WEBUI_URL", "http://localhost"),
+        f"/eol?pteamId={str(pteam_id)}",
+    )
+
+
 def create_mail_alert_for_new_vuln(
     vuln_title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
@@ -101,6 +108,7 @@ def create_mail_to_notify_sbom_upload_failed(
 
 
 def create_mail_to_notify_eol(
+    pteam_id: str,
     pteam_name: str,
     service_name: str,
     product_name: str,
@@ -109,6 +117,7 @@ def create_mail_to_notify_eol(
 ) -> tuple[str, str]:
     # TODO: Once the EOL link is confirmed, implement the URL.
     subject = "[Tc Warning] Action Required: migrate/upgrade to a supported version"
+    url = _eol_page_link(pteam_id)
     body = "<br>".join(
         [
             f"EOL (End of Life) reached on <b><{eol_from}></b> (no more security fixes)",
@@ -119,7 +128,7 @@ def create_mail_to_notify_eol(
             f"<li><b>Product:</b> {product_name}</li>",
             f"<li><b>Current Version:</b> {version}</li>",
             f"<li><b>EOL Date:</b> {eol_from}</li>",
-            # f"<li><b>Reference:</b> <a href='{url}'>{url}</a></li>",
+            f"<li><b>Reference:</b> <a href='{url}'>{url}</a></li>",
             "</ul>",
         ]
     )

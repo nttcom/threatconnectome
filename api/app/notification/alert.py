@@ -153,6 +153,7 @@ def _send_eol_notifications(
     if send_by_slack:
         try:
             slack_message_blocks = create_slack_blocks_to_notify_eol(
+                pteam.pteam_id,
                 pteam.pteam_name,
                 service_name,
                 product_name,
@@ -166,6 +167,7 @@ def _send_eol_notifications(
     if send_by_mail:
         try:
             mail_subject, mail_body = create_mail_to_notify_eol(
+                pteam.pteam_id,
                 pteam.pteam_name,
                 service_name,
                 product_name,
