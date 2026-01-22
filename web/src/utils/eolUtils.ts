@@ -4,6 +4,8 @@ import type {
   EoLProductResponse,
 } from "../../types/types.gen.ts";
 
+export const WARNING_THRESHOLD_DAYS = 180;
+
 export const EoLProductCategoryList: { value: ProductCategoryEnum; label: string }[] = [
   { value: "os", label: "OS" },
   { value: "runtime", label: "Runtime" },
@@ -15,8 +17,6 @@ export const getProductCategorybyValue = (value: string | null | undefined) => {
   const item = EoLProductCategoryList.find((item) => item.value === value);
   return item ? item.label : "N/A";
 };
-
-export const WARNING_THRESHOLD_DAYS = 180;
 
 export const formatDate = (dateStr: string | null | undefined) => {
   if (!dateStr) return "Undecided";
