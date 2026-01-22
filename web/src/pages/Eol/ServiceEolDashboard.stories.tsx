@@ -1,19 +1,29 @@
+import { http, HttpResponse } from "msw";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { ServiceEolDashboard } from "./ServiceEolDashboardPage";
 import {
-  MOCK_SERVICES,
   MOCK_SERVICES_EXPIRED_ONLY,
-  MOCK_SERVICES_SAFE_ONLY,
+  MOCK_SERVICES_DEADLINE_APPROACHING_ONLY,
+  MOCK_SERVICES_SUPPORTED_ONLY,
   MOCK_SERVICES_EMPTY,
-  MOCK_SERVICES_MANY,
-  MOCK_LAST_UPDATED,
+  MOCK_SERVICES_DEFAULT,
 } from "./mocks/serviceData";
+
+const pteamId = "pteam-abc-123";
 
 const meta = {
   title: "Eol/ServiceEolDashboard",
   component: ServiceEolDashboard,
   parameters: {
     layout: "fullscreen",
+    router: {
+      memoryRouterProps: {
+        initialEntries: [`/eol?pteamId=${pteamId}`],
+      },
+      path: "/eol",
+      useRoutes: true,
+    },
   },
   tags: ["autodocs"],
 } satisfies Meta<typeof ServiceEolDashboard>;
@@ -21,42 +31,62 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// 標準的なデータを表示
 export const Default: Story = {
-  args: {
-    services: MOCK_SERVICES,
-    lastUpdated: MOCK_LAST_UPDATED,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/pteams/:pteamId/eols", () => {
+          return HttpResponse.json(MOCK_SERVICES_DEFAULT);
+        }),
+      ],
+    },
   },
 };
 
-// 期限切れのツールのみ
 export const ExpiredOnly: Story = {
-  args: {
-    services: MOCK_SERVICES_EXPIRED_ONLY,
-    lastUpdated: MOCK_LAST_UPDATED,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/pteams/:pteamId/eols", () => {
+          return HttpResponse.json(MOCK_SERVICES_EXPIRED_ONLY);
+        }),
+      ],
+    },
   },
 };
 
-// サポート中のツールのみ
-export const SafeOnly: Story = {
-  args: {
-    services: MOCK_SERVICES_SAFE_ONLY,
-    lastUpdated: MOCK_LAST_UPDATED,
+export const DeadlineApproachingOnly: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/pteams/:pteamId/eols", () => {
+          return HttpResponse.json(MOCK_SERVICES_DEADLINE_APPROACHING_ONLY);
+        }),
+      ],
+    },
   },
 };
 
-// データなし（空の状態）
+export const SupportedOnly: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/pteams/:pteamId/eols", () => {
+          return HttpResponse.json(MOCK_SERVICES_SUPPORTED_ONLY);
+        }),
+      ],
+    },
+  },
+};
+
 export const Empty: Story = {
-  args: {
-    services: MOCK_SERVICES_EMPTY,
-    lastUpdated: MOCK_LAST_UPDATED,
-  },
-};
-
-// 大量データ
-export const ManyItems: Story = {
-  args: {
-    services: MOCK_SERVICES_MANY,
-    lastUpdated: MOCK_LAST_UPDATED,
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("*/pteams/:pteamId/eols", () => {
+          return HttpResponse.json(MOCK_SERVICES_EMPTY);
+        }),
+      ],
+    },
   },
 };
