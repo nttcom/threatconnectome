@@ -61,7 +61,7 @@ export const getStatusLabel = (status: Status) => {
       return "Deadline approaching";
     case "active":
       return "Supported";
-    default:
+    case "unknown":
       return "Undecided";
   }
 };
