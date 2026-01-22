@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ServiceEolDashboard } from "./ServiceEolDashboardPage";
 import {
   MOCK_SERVICES_EXPIRED_ONLY,
-  MOCK_SERVICES_DEADLINE_APPROACHING,
+  MOCK_SERVICES_DEADLINE_APPROACHING_ONLY,
   MOCK_SERVICES_SUPPORTED_ONLY,
   MOCK_SERVICES_EMPTY,
   MOCK_SERVICES_DEFAULT,
@@ -60,7 +60,7 @@ export const DeadlineApproachingOnly: Story = {
     msw: {
       handlers: [
         http.get("*/pteams/:pteamId/eols", () => {
-          return HttpResponse.json(MOCK_SERVICES_DEADLINE_APPROACHING);
+          return HttpResponse.json(MOCK_SERVICES_DEADLINE_APPROACHING_ONLY);
         }),
       ],
     },

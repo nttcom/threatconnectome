@@ -83,7 +83,7 @@ export const MOCK_SERVICES_EXPIRED_ONLY = {
   ],
 };
 
-export const MOCK_SERVICES_DEADLINE_APPROACHING = {
+export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
   total: 4,
   products: [
     {
@@ -303,11 +303,11 @@ export const MOCK_SERVICES_EMPTY = { total: 0, products: [] };
 export const MOCK_SERVICES_DEFAULT = {
   total:
     MOCK_SERVICES_EXPIRED_ONLY.total +
-    MOCK_SERVICES_DEADLINE_APPROACHING.total +
+    MOCK_SERVICES_DEADLINE_APPROACHING_ONLY.total +
     MOCK_SERVICES_SUPPORTED_ONLY.total,
   products: [
     ...MOCK_SERVICES_EXPIRED_ONLY.products,
-    ...MOCK_SERVICES_DEADLINE_APPROACHING.products,
+    ...MOCK_SERVICES_DEADLINE_APPROACHING_ONLY.products,
     ...MOCK_SERVICES_SUPPORTED_ONLY.products,
   ],
 };
