@@ -4,6 +4,8 @@ import type {
   EoLProductResponse,
 } from "../../types/types.gen.ts";
 
+export const WARNING_THRESHOLD_DAYS = 180;
+
 export const EoLProductCategoryList: { value: ProductCategoryEnum; label: string }[] = [
   { value: "os", label: "OS" },
   { value: "runtime", label: "Runtime" },
@@ -48,4 +50,26 @@ export const getDiffDays = (eolDateStr: string | null | undefined): number | nul
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-export const WARNING_THRESHOLD_DAYS = 180;
+// ---  Type definition ---
+export type Status = "expired" | "warning" | "active" | "unknown";
+
+export const getStatusLabel = (status: Status) => {
+  switch (status) {
+    case "expired":
+      return "Expired";
+    case "warning":
+      return "Deadline approaching";
+    case "active":
+      return "Supported";
+    case "unknown":
+      return "Undecided";
+  }
+};
+
+export const getEolStatus = (eolDateStr: string | null | undefined) => {
+  const diffDays = getDiffDays(eolDateStr);
+  if (diffDays === null || diffDays === undefined) return "unknown";
+  if (diffDays < 0) return "expired";
+  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
+  return "active";
+};
