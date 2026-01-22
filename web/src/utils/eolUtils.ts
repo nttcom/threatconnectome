@@ -16,6 +16,8 @@ export const getProductCategorybyValue = (value: string | null | undefined) => {
   return item ? item.label : "N/A";
 };
 
+export const WARNING_THRESHOLD_DAYS = 180;
+
 export const formatDate = (dateStr: string | null | undefined) => {
   if (!dateStr) return "Undecided";
   return new Date(dateStr).toLocaleDateString();
@@ -48,4 +50,26 @@ export const getDiffDays = (eolDateStr: string | null | undefined): number | nul
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-export const WARNING_THRESHOLD_DAYS = 180;
+// ---  Type definition ---
+export type Status = "expired" | "warning" | "active" | "unknown";
+
+export const getStatusLabel = (status: Status) => {
+  switch (status) {
+    case "expired":
+      return "Expired";
+    case "warning":
+      return "Deadline approaching";
+    case "active":
+      return "Supported";
+    default:
+      return "Undecided";
+  }
+};
+
+export const getEolStatus = (eolDateStr: string | null | undefined) => {
+  const diffDays = getDiffDays(eolDateStr);
+  if (diffDays === null || diffDays === undefined) return "unknown";
+  if (diffDays < 0) return "expired";
+  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
+  return "active";
+};

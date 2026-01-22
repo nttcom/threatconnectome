@@ -34,20 +34,12 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import {
   formatDate,
-  getDiffDays,
   getProductCategorybyValue,
-  WARNING_THRESHOLD_DAYS,
+  getStatusLabel,
+  getEolStatus,
 } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
-
-const getEolStatus = (eolDateStr: string | null | undefined) => {
-  const diffDays = getDiffDays(eolDateStr);
-  if (diffDays === null || diffDays === undefined) return "unknown";
-  if (diffDays < 0) return "expired";
-  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
-  return "active";
-};
 
 export function ProductEolDetail() {
   const { productId } = useParams();
@@ -183,12 +175,17 @@ export function ProductEolDetail() {
                     <TableCell>{formatDate(versionData.eol_from)}</TableCell>
                     <TableCell>
                       {status === "expired" && (
-                        <Chip icon={<CancelIcon />} label="Ended" size="small" color="error" />
+                        <Chip
+                          icon={<CancelIcon />}
+                          label={getStatusLabel(status)}
+                          size="small"
+                          color="error"
+                        />
                       )}
                       {status === "warning" && (
                         <Chip
                           icon={<ScheduleIcon />}
-                          label="Ending Soon"
+                          label={getStatusLabel(status)}
                           size="small"
                           color="warning"
                         />
@@ -196,13 +193,13 @@ export function ProductEolDetail() {
                       {status === "active" && (
                         <Chip
                           icon={<CheckCircleIcon />}
-                          label="Supported"
+                          label={getStatusLabel(status)}
                           size="small"
                           color="success"
                         />
                       )}
                       {status === "unknown" && (
-                        <Chip label="Undecided" size="small" color="default" />
+                        <Chip label={getStatusLabel(status)} size="small" color="default" />
                       )}
                     </TableCell>
                   </TableRow>

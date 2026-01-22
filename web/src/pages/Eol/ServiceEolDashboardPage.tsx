@@ -44,37 +44,14 @@ import {
   getDiffDays,
   getLatestUpdateDate,
   getProductCategorybyValue,
-  WARNING_THRESHOLD_DAYS,
+  getStatusLabel,
+  getEolStatus,
 } from "../../utils/eolUtils";
+import type { Status } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
 import type { PTeamEoLProductResponse } from "../../../types/types.gen.ts";
-
-// ---  Type definition ---
-type Status = "expired" | "warning" | "safe";
-
-const getStatusLabel = (status: Status) => {
-  switch (status) {
-    case "expired":
-      return "Expired";
-    case "warning":
-      return "Deadline approaching";
-    case "safe":
-      return "Supported";
-    default:
-      return "";
-  }
-};
-
-const getStatus = (eolDateStr: string): Status => {
-  const diffDays = getDiffDays(eolDateStr);
-
-  if (diffDays === null) return "safe";
-  if (diffDays < 0) return "expired";
-  if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
-  return "safe";
-};
 
 const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
@@ -105,9 +82,13 @@ const statusConfig = {
     color: "warning",
     icon: <WarningIcon fontSize="small" />,
   },
-  safe: {
+  active: {
     color: "success",
     icon: <CheckCircleIcon fontSize="small" />,
+  },
+  unknown: {
+    color: "default",
+    icon: undefined,
   },
 } as const;
 
@@ -143,7 +124,7 @@ export function ServiceEolDashboard() {
   const filteredEoLProducts = eols.products
     .filter((eolProduct) => {
       return (eolProduct?.eol_versions ?? []).some((eolVersion) => {
-        const status = getStatus(eolVersion.eol_from);
+        const status = getEolStatus(eolVersion.eol_from);
         const matchesFilter = filter === "all" || filter === status;
         const matchesSearch =
           eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -236,7 +217,7 @@ export function ServiceEolDashboard() {
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="expired">Expired</MenuItem>
                 <MenuItem value="warning">Deadline approaching</MenuItem>
-                <MenuItem value="safe">Supported</MenuItem>
+                <MenuItem value="active">Supported</MenuItem>
               </Select>
             </FormControl>
             {/* Desktop: ToggleButtonGroup */}
@@ -250,7 +231,7 @@ export function ServiceEolDashboard() {
               <ToggleButton value="all">All</ToggleButton>
               <ToggleButton value="expired">Expired</ToggleButton>
               <ToggleButton value="warning">Deadline approaching</ToggleButton>
-              <ToggleButton value="safe">Supported</ToggleButton>
+              <ToggleButton value="active">Supported</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
@@ -293,11 +274,11 @@ export function ServiceEolDashboard() {
                       hover
                       sx={{
                         bgcolor:
-                          getStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
+                          getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
                       }}
                     >
                       <TableCell>
-                        <StatusBadge status={getStatus(eolVersion.eol_from)} />
+                        <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
                         <Typography variant="caption" display="block" color="text.secondary">
                           {getDiffText(eolVersion.eol_from)}
                         </Typography>
