@@ -259,16 +259,12 @@ def _bg_check_eol_notification(db: Session) -> None:
 
     log = logging.getLogger(__name__)
     log.info("Start EOL notification check")
-    print("tes11")
 
     ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
     for ecosystem_eol_dependency in ecosystem_eol_dependencies:
-        print("tes2")
         if ecosystem_eol_dependency.eol_notification_sent is False:
-            print("tes3")
             diff = ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
             if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-                print("tes4")
                 notify_eol_ecosystem(ecosystem_eol_dependency)
                 ecosystem_eol_dependency.eol_notification_sent = True
 
