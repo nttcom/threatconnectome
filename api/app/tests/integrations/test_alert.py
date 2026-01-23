@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -340,7 +341,11 @@ class TestAlert:
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self, testdb):
             create_user(USER1)
-            pteam = create_pteam(USER1, PTEAM1)
+            pteam_test_data = copy.deepcopy(PTEAM1)
+            pteam_test_data["alert_slack"]["webhook_url"] = SAMPLE_SLACK_WEBHOOK_URL + "0"
+            pteam_test_data["alert_mail"]["enable"] = True
+            pteam_test_data["alert_mail"]["address"] = "account0@example.com"
+            self.pteam = create_pteam(USER1, pteam_test_data)
 
             # register ubuntu-20.04
             self.service_name1 = "test_service1"
@@ -355,7 +360,7 @@ class TestAlert:
                 sbom_json1 = sbom.read()
 
             bg_create_tags_from_sbom_json(
-                sbom_json1, pteam.pteam_id, self.service_name1, upload_file_name1
+                sbom_json1, self.pteam.pteam_id, self.service_name1, upload_file_name1
             )
 
             # register axios 1.6.7
@@ -371,7 +376,7 @@ class TestAlert:
                 sbom_json2 = sbom.read()
 
             bg_create_tags_from_sbom_json(
-                sbom_json2, pteam.pteam_id, service_name2, upload_file_name2
+                sbom_json2, self.pteam.pteam_id, service_name2, upload_file_name2
             )
 
         def test_it_should_alert_when_eol_from_within_six_months(self, testdb, mocker):
@@ -463,15 +468,17 @@ class TestAlert:
             package_eol_dependency.eol_notification_sent = False
             testdb.commit()
 
-            eol_ecosystem_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
-            eol_package_notifications = mocker.patch("app.routers.eols.notify_eol_package")
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
 
             # When
-            _bg_check_eol_notification(testdb)
+            _bg_check_eol_notification()
 
             # Then
-            eol_ecosystem_notification.assert_called_once()
-            eol_package_notifications.assert_called_once()
+            assert send_slack.call_count == 2
+            assert send_mail.call_count == 2
+            assert ecosystem_eol_dependency.eol_notification_sent is True
+            assert package_eol_dependency.eol_notification_sent is True
 
         def test_it_should_not_alert_when_eol_notification_already_sent(self, testdb, mocker):
             # Given
@@ -519,13 +526,15 @@ class TestAlert:
             ecosystem_eol_dependency.eol_notification_sent = True
             testdb.commit()
 
-            send_eol_notifications = mocker.patch("app.routers.eols.notify_eol_ecosystem")
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
 
             # When
-            _bg_check_eol_notification(testdb)
+            _bg_check_eol_notification()
 
             # Then
-            send_eol_notifications.assert_not_called()
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
 
         def test_it_should_not_alert_when_eol_from_more_than_six_months(self, testdb, mocker):
             # Given
@@ -573,10 +582,84 @@ class TestAlert:
             ecosystem_eol_dependency.eol_notification_sent = False
             testdb.commit()
 
-            eol_ecosystem_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
 
             # When
-            _bg_check_eol_notification(testdb)
+            _bg_check_eol_notification()
 
             # Then
-            eol_ecosystem_notification.assert_not_called()
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
+
+        def test_it_should_not_alert_when_alert_slack_and_alert_email_are_False(
+            self, testdb, mocker
+        ):
+            # Given
+            pteam_request = {
+                "alert_slack": {
+                    "enable": False,
+                    "webhook_url": "",
+                },
+                "alert_mail": {
+                    "enable": False,
+                    "address": "",
+                },
+            }
+            client.put(f"/pteams/{self.pteam.pteam_id}", headers=headers(USER1), json=pteam_request)
+
+            # Create EcosystemEoLDependency
+            eol_product_id_1 = str(uuid4())
+            EOL_WARNING_THRESHOLD_DAYS = 180
+            eol_from_date1 = (
+                datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
+            ).strftime("%Y-%m-%d")
+            eol_product_1_request: dict[str, Any] = {
+                "name": "product_1",
+                "product_category": models.ProductCategoryEnum.RUNTIME,
+                "description": "product 1 description",
+                "is_ecosystem": True,
+                "matching_name": "product_1",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2021-01-01",
+                        "eol_from": eol_from_date1,
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_1}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_1_request,
+            )
+
+            ecosystem_eol_dependency = testdb.scalars(
+                select(models.EcosystemEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.EcosystemEoLDependency.eol_version_id
+                    == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_1)
+            ).one()
+
+            ecosystem_eol_dependency.eol_notification_sent = False
+            testdb.commit()
+
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
+
+            # When
+            _bg_check_eol_notification()
+
+            # Then
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
+            assert ecosystem_eol_dependency.eol_notification_sent is False
