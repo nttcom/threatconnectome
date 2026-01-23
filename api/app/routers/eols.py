@@ -9,7 +9,7 @@ from app import models, persistence, schemas
 from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
-from app.database import get_db
+from app.database import get_db, open_db_session
 from app.notification.alert import notify_eol_ecosystem, notify_eol_package
 
 router = APIRouter(prefix="/eols", tags=["eols"])
@@ -254,38 +254,61 @@ def delete_eol(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _bg_check_eol_notification(db: Session) -> None:
+def _bg_check_eol_notification() -> None:
     EOL_WARNING_THRESHOLD_DAYS = 180
 
     log = logging.getLogger(__name__)
     log.info("Start EOL notification check")
 
-    ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
-    for ecosystem_eol_dependency in ecosystem_eol_dependencies:
-        if ecosystem_eol_dependency.eol_notification_sent is True:
-            continue
+    with open_db_session() as db:
+        ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
+        for ecosystem_eol_dependency in ecosystem_eol_dependencies:
+            if ecosystem_eol_dependency.eol_notification_sent is True:
+                continue
 
-        time_until_eol = (
-            ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-        )
-        if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-            notify_eol_ecosystem(ecosystem_eol_dependency)
-            ecosystem_eol_dependency.eol_notification_sent = True
+            time_until_eol = (
+                ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            )
+            if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                try:
+                    sent = notify_eol_ecosystem(ecosystem_eol_dependency)
+                except Exception as e:
+                    log.exception(
+                        "Failed to send EOL notification for EcosystemEoLDependency (ID: %s): %s",
+                        getattr(
+                            ecosystem_eol_dependency, "ecosystem_eol_dependency_id", "<unknown>"
+                        ),
+                        e,
+                    )
+                    continue
 
-    package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
-    for package_eol_dependency in package_eol_dependencies:
-        if package_eol_dependency.eol_notification_sent is True:
-            continue
+                if sent:
+                    ecosystem_eol_dependency.eol_notification_sent = True
 
-        time_until_eol = (
-            package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-        )
-        if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-            notify_eol_package(package_eol_dependency)
-            package_eol_dependency.eol_notification_sent = True
+        package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
+        for package_eol_dependency in package_eol_dependencies:
+            if package_eol_dependency.eol_notification_sent is True:
+                continue
 
-    db.commit()
-    log.info("End EOL notification check")
+            time_until_eol = (
+                package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            )
+            if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                try:
+                    sent = notify_eol_package(package_eol_dependency)
+                except Exception as e:
+                    log.exception(
+                        "Failed to send EOL notification for PackageEoLDependency (ID: %s): %s",
+                        getattr(package_eol_dependency, "package_eol_dependency_id", "<unknown>"),
+                        e,
+                    )
+                    continue
+
+                if sent:
+                    package_eol_dependency.eol_notification_sent = True
+
+        db.commit()
+        log.info("End EOL notification check")
 
 
 @router.post(
@@ -304,6 +327,6 @@ async def check_eol_notification(
     where EOL is approaching within six months and eol_notification_sent is false.
     """
 
-    background_tasks.add_task(_bg_check_eol_notification, db)
+    background_tasks.add_task(_bg_check_eol_notification)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
