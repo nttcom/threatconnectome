@@ -509,6 +509,10 @@ def get_ecosystem_eol_dependency_by_eol_version_id_and_service_id(
     ).one_or_none()
 
 
+def get_all_ecosystem_eol_dependencies(db: Session) -> Sequence[models.EcosystemEoLDependency]:
+    return db.scalars(select(models.EcosystemEoLDependency)).all()
+
+
 ### PackageEoLDependency
 
 
@@ -535,3 +539,7 @@ def get_package_eol_dependency_by_eol_version_id_and_dependency_id(
             models.PackageEoLDependency.dependency_id == str(dependency_id),
         )
     ).one_or_none()
+
+
+def get_all_package_eol_dependencies(db: Session) -> Sequence[models.PackageEoLDependency]:
+    return db.scalars(select(models.PackageEoLDependency)).all()
