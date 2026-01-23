@@ -342,7 +342,7 @@ class TestAlert:
             create_user(USER1)
             pteam = create_pteam(USER1, PTEAM1)
 
-            # regisiter ubuntu-20.04
+            # register ubuntu-20.04
             self.service_name1 = "test_service1"
             upload_file_name1 = "trivy-ubuntu2004.cdx.json"
             sbom_file1 = (
@@ -358,7 +358,7 @@ class TestAlert:
                 sbom_json1, pteam.pteam_id, self.service_name1, upload_file_name1
             )
 
-            # regisiter axios 1.6.7
+            # register axios 1.6.7
             service_name2 = "test_service2"
             upload_file_name2 = "test_trivy_cyclonedx_axios.json"
             sbom_file2 = (
@@ -463,14 +463,14 @@ class TestAlert:
             package_eol_dependency.eol_notification_sent = False
             testdb.commit()
 
-            eol_ecosyste_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
+            eol_ecosystem_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
             eol_package_notifications = mocker.patch("app.routers.eols.notify_eol_package")
 
             # When
             _bg_check_eol_notification(testdb)
 
             # Then
-            eol_ecosyste_notification.assert_called_once()
+            eol_ecosystem_notification.assert_called_once()
             eol_package_notifications.assert_called_once()
 
         def test_it_should_not_alert_when_eol_notification_already_sent(self, testdb, mocker):
@@ -573,10 +573,10 @@ class TestAlert:
             ecosystem_eol_dependency.eol_notification_sent = False
             testdb.commit()
 
-            eol_ecosyste_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
+            eol_ecosystem_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
 
             # When
             _bg_check_eol_notification(testdb)
 
             # Then
-            eol_ecosyste_notification.assert_not_called()
+            eol_ecosystem_notification.assert_not_called()
