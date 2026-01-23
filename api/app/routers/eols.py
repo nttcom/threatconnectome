@@ -265,8 +265,10 @@ def _bg_check_eol_notification(db: Session) -> None:
         if ecosystem_eol_dependency.eol_notification_sent is True:
             continue
 
-        diff = ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-        if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+        time_until_eol = (
+            ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+        )
+        if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
             notify_eol_ecosystem(ecosystem_eol_dependency)
             ecosystem_eol_dependency.eol_notification_sent = True
 
@@ -275,8 +277,10 @@ def _bg_check_eol_notification(db: Session) -> None:
         if package_eol_dependency.eol_notification_sent is True:
             continue
 
-        diff = package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-        if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+        time_until_eol = (
+            package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+        )
+        if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
             notify_eol_package(package_eol_dependency)
             package_eol_dependency.eol_notification_sent = True
 
