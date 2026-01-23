@@ -262,19 +262,23 @@ def _bg_check_eol_notification(db: Session) -> None:
 
     ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
     for ecosystem_eol_dependency in ecosystem_eol_dependencies:
-        if ecosystem_eol_dependency.eol_notification_sent is False:
-            diff = ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-                notify_eol_ecosystem(ecosystem_eol_dependency)
-                ecosystem_eol_dependency.eol_notification_sent = True
+        if ecosystem_eol_dependency.eol_notification_sent is True:
+            continue
+
+        diff = ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+        if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            notify_eol_ecosystem(ecosystem_eol_dependency)
+            ecosystem_eol_dependency.eol_notification_sent = True
 
     package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
     for package_eol_dependency in package_eol_dependencies:
-        if package_eol_dependency.eol_notification_sent is False:
-            diff = package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-                notify_eol_package(package_eol_dependency)
-                package_eol_dependency.eol_notification_sent = True
+        if package_eol_dependency.eol_notification_sent is True:
+            continue
+
+        diff = package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+        if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            notify_eol_package(package_eol_dependency)
+            package_eol_dependency.eol_notification_sent = True
 
     db.commit()
     log.info("End EOL notification check")
