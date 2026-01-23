@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+import logging
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
@@ -9,6 +10,7 @@ from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
 from app.database import get_db
+from app.notification.alert import notify_eol_ecosystem, notify_eol_package
 
 router = APIRouter(prefix="/eols", tags=["eols"])
 
@@ -249,4 +251,55 @@ def delete_eol(
     persistence.delete_eol_product(db, eol_product)
 
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _bg_check_eol_notification(db: Session) -> None:
+    EOL_WARNING_THRESHOLD_DAYS = 180
+
+    log = logging.getLogger(__name__)
+    log.info("Start EOL notification check")
+    print("tes11")
+
+    ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
+    for ecosystem_eol_dependency in ecosystem_eol_dependencies:
+        print("tes2")
+        if ecosystem_eol_dependency.eol_notification_sent is False:
+            print("tes3")
+            diff = ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                print("tes4")
+                notify_eol_ecosystem(ecosystem_eol_dependency)
+                ecosystem_eol_dependency.eol_notification_sent = True
+
+    package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
+    for package_eol_dependency in package_eol_dependencies:
+        if package_eol_dependency.eol_notification_sent is False:
+            diff = package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            if diff <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                notify_eol_package(package_eol_dependency)
+                package_eol_dependency.eol_notification_sent = True
+
+    db.commit()
+    log.info("End EOL notification check")
+
+
+@router.post(
+    "/check_notifications",
+    status_code=status.HTTP_204_NO_CONTENT,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
+async def check_eol_notification(
+    background_tasks: BackgroundTasks,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Identify and notify records in EcosystemEoLDependency and PackageEoLDependency
+    where EOL is approaching within six months and eol_notification_sent is false.
+    """
+
+    background_tasks.add_task(_bg_check_eol_notification, db)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
