@@ -142,14 +142,16 @@ def _send_eol_notifications(
     product_name: str,
     version: str,
     eol_from: str,
-) -> None:
+) -> bool:
     # check alert settings
     send_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
     send_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
 
     if (not send_by_slack and not send_by_mail) or notification_sent:
-        return
+        return False
 
+    success = False
+    last_exc: Exception | None = None
     if send_by_slack:
         try:
             slack_message_blocks = create_slack_blocks_to_notify_eol(
@@ -161,8 +163,9 @@ def _send_eol_notifications(
                 eol_from,
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
-        except Exception:
-            pass
+            success = True
+        except Exception as e:
+            last_exc = e
 
     if send_by_mail:
         try:
@@ -175,18 +178,27 @@ def _send_eol_notifications(
                 eol_from,
             )
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
-        except Exception:
-            pass
+            success = True
+        except Exception as e:
+            last_exc = e
+
+    if success:
+        return True
+
+    if last_exc:
+        raise last_exc
+
+    return False
 
 
 def notify_eol_ecosystem(
     ecosystem_eol_dependency: models.EcosystemEoLDependency,
-) -> None:
+) -> bool:
     service = ecosystem_eol_dependency.service
     pteam = service.pteam
     eol_version = ecosystem_eol_dependency.eol_version
 
-    _send_eol_notifications(
+    return _send_eol_notifications(
         pteam=pteam,
         notification_sent=ecosystem_eol_dependency.eol_notification_sent,
         service_name=service.service_name,
@@ -198,12 +210,12 @@ def notify_eol_ecosystem(
 
 def notify_eol_package(
     package_eol_dependency: models.PackageEoLDependency,
-) -> None:
+) -> bool:
     service = package_eol_dependency.dependency.service
     pteam = service.pteam
     eol_version = package_eol_dependency.eol_version
 
-    _send_eol_notifications(
+    return _send_eol_notifications(
         pteam=pteam,
         notification_sent=package_eol_dependency.eol_notification_sent,
         service_name=service.service_name,
