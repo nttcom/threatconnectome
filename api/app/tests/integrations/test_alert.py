@@ -522,10 +522,7 @@ class TestAlert:
             send_eol_notifications = mocker.patch("app.routers.eols.notify_eol_ecosystem")
 
             # When
-            client.post(
-                "/eols/check_notifications",
-                headers=headers(USER1),
-            )
+            _bg_check_eol_notification(testdb)
 
             # Then
             send_eol_notifications.assert_not_called()
@@ -579,10 +576,7 @@ class TestAlert:
             eol_ecosyste_notification = mocker.patch("app.routers.eols.notify_eol_ecosystem")
 
             # When
-            client.post(
-                "/eols/check_notifications",
-                headers=headers(USER1),
-            )
+            _bg_check_eol_notification(testdb)
 
             # Then
             eol_ecosyste_notification.assert_not_called()
