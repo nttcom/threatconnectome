@@ -147,7 +147,10 @@ def _send_eol_notifications(
     send_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
     send_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
 
-    if (not send_by_slack and not send_by_mail) or notification_sent:
+    if not send_by_slack and not send_by_mail:
+        return False
+
+    if notification_sent:
         return False
 
     success = False
