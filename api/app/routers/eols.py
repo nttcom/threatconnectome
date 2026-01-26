@@ -1,19 +1,23 @@
-from datetime import datetime, timezone
+import logging
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app import models, persistence, schemas
 from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
-from app.database import get_db
+from app.database import get_db, open_db_session
+from app.notification.alert import notify_eol_ecosystem, notify_eol_package
 
 router = APIRouter(prefix="/eols", tags=["eols"])
 
 NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such eol")
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
+
+EOL_WARNING_THRESHOLD_DAYS = 180
 
 
 def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductResponse:
@@ -249,4 +253,83 @@ def delete_eol(
     persistence.delete_eol_product(db, eol_product)
 
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _bg_check_eol_notification() -> None:
+    log = logging.getLogger(__name__)
+    log.info("Start EOL notification check")
+
+    with open_db_session() as db:
+        ecosystem_eol_dependencies = persistence.get_all_ecosystem_eol_dependencies(db)
+        for ecosystem_eol_dependency in ecosystem_eol_dependencies:
+            if ecosystem_eol_dependency.eol_notification_sent is True:
+                continue
+
+            time_until_eol = (
+                ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            )
+
+            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                continue
+
+            try:
+                sent = notify_eol_ecosystem(ecosystem_eol_dependency)
+            except Exception as e:
+                log.exception(
+                    "Failed to send EOL notification for EcosystemEoLDependency (ID: %s): %s",
+                    getattr(ecosystem_eol_dependency, "ecosystem_eol_dependency_id", "<unknown>"),
+                    e,
+                )
+                continue
+
+            if sent:
+                ecosystem_eol_dependency.eol_notification_sent = True
+
+        package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
+        for package_eol_dependency in package_eol_dependencies:
+            if package_eol_dependency.eol_notification_sent is True:
+                continue
+
+            time_until_eol = (
+                package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
+            )
+            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                continue
+
+            try:
+                sent = notify_eol_package(package_eol_dependency)
+            except Exception as e:
+                log.exception(
+                    "Failed to send EOL notification for PackageEoLDependency (ID: %s): %s",
+                    getattr(package_eol_dependency, "package_eol_dependency_id", "<unknown>"),
+                    e,
+                )
+                continue
+
+            if sent:
+                package_eol_dependency.eol_notification_sent = True
+
+        db.commit()
+        log.info("End EOL notification check")
+
+
+@router.post(
+    "/check_notifications",
+    status_code=status.HTTP_204_NO_CONTENT,
+    include_in_schema=False,
+    dependencies=[Depends(api_key.verify_api_key)],
+)
+async def check_eol_notification(
+    background_tasks: BackgroundTasks,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Identify and notify records in EcosystemEoLDependency and PackageEoLDependency
+    where EOL is approaching within six months and eol_notification_sent is false.
+    """
+
+    background_tasks.add_task(_bg_check_eol_notification)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
