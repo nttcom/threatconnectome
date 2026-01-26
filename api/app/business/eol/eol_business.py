@@ -28,8 +28,6 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                     package_version, eol_version
                 ):
                     continue
-                package_eol_business.create_package_eol_dependency_if_not_exists(
-                    db, eol_version.eol_version_id, dependency.dependency_id
                 # Create package EoL dependency and notify immediately if created
                 package_eol_dependency = (
                     package_eol_business.create_package_eol_dependency_if_not_exists(
