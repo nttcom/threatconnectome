@@ -17,6 +17,8 @@ router = APIRouter(prefix="/eols", tags=["eols"])
 NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such eol")
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 
+EOL_WARNING_THRESHOLD_DAYS = 180
+
 
 def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductResponse:
     eol_versions = []
@@ -255,8 +257,6 @@ def delete_eol(
 
 
 def _bg_check_eol_notification() -> None:
-    EOL_WARNING_THRESHOLD_DAYS = 180
-
     log = logging.getLogger(__name__)
     log.info("Start EOL notification check")
 

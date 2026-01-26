@@ -19,7 +19,7 @@ from app.notification.mail import (
 from app.notification.slack import (
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
-from app.routers.eols import _bg_check_eol_notification
+from app.routers.eols import EOL_WARNING_THRESHOLD_DAYS, _bg_check_eol_notification
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
@@ -384,7 +384,6 @@ class TestAlert:
 
             # Create EcosystemEoLDependency
             eol_product_id_1 = str(uuid4())
-            EOL_WARNING_THRESHOLD_DAYS = 180
             eol_from_date1 = (
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
@@ -483,7 +482,6 @@ class TestAlert:
         def test_it_should_not_alert_when_eol_notification_already_sent(self, testdb, mocker):
             # Given
             eol_product_id_1 = str(uuid4())
-            EOL_WARNING_THRESHOLD_DAYS = 180
             eol_from_date1 = (
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
@@ -610,7 +608,6 @@ class TestAlert:
 
             # Create EcosystemEoLDependency
             eol_product_id_1 = str(uuid4())
-            EOL_WARNING_THRESHOLD_DAYS = 180
             eol_from_date1 = (
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
