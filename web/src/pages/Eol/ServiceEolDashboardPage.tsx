@@ -62,16 +62,6 @@ const getDiffText = (eolDateStr: string) => {
   return `${diffDays} days left`;
 };
 
-const getMinEol = (product: PTeamEoLProductResponse) => {
-  if (!product.eol_versions || product.eol_versions.length === 0) return Infinity;
-
-  const timestamps = product.eol_versions
-    .map((v) => (v.eol_from ? new Date(v.eol_from).getTime() : Infinity))
-    .filter((t) => !isNaN(t));
-
-  return timestamps.length > 0 ? Math.min(...timestamps) : Infinity;
-};
-
 // --- Status Settings ---
 const statusConfig = {
   expired: {
@@ -121,27 +111,35 @@ export function ServiceEolDashboard() {
   if (eolIsLoading) return <>Now loading Eol...</>;
   if (!eols) return <>Eol data not found</>;
 
-  const filteredEoLProducts = eols.products
-    .filter((eolProduct) => {
-      return (eolProduct?.eol_versions ?? []).some((eolVersion) => {
-        const status = getEolStatus(eolVersion.eol_from);
-        const matchesFilter = filter === "all" || filter === status;
-        const matchesSearch =
-          eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          eolVersion.services.some((s) =>
-            s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
-          );
-        return matchesFilter && matchesSearch;
-      });
-    })
+  const filteredEoLProducts = eols.products.filter((eolProduct) => {
+    return (eolProduct?.eol_versions ?? []).some((eolVersion) => {
+      const status = getEolStatus(eolVersion.eol_from);
+      const matchesFilter = filter === "all" || filter === status;
+      const matchesSearch =
+        eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        eolVersion.services.some((s) =>
+          s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      return matchesFilter && matchesSearch;
+    });
+  });
+
+  const sortEolList = filteredEoLProducts
+    .flatMap((eolProduct) =>
+      (eolProduct.eol_versions ?? []).map((version) => ({
+        ...version,
+        product_name: eolProduct.name,
+        product_category: eolProduct.product_category,
+      })),
+    )
     .sort((a, b) => {
       // Display expired items first, then by date (invalid dates at the bottom)
-      const minEolA = getMinEol(a);
-      const minEolB = getMinEol(b);
-      if (isNaN(minEolA) && isNaN(minEolB)) return 0;
-      if (isNaN(minEolA)) return 1;
-      if (isNaN(minEolB)) return -1;
-      return minEolA - minEolB;
+      const dateA = a.eol_from ? new Date(a.eol_from).getTime() : Infinity;
+      const dateB = b.eol_from ? new Date(b.eol_from).getTime() : Infinity;
+      const finalA = isNaN(dateA) ? Infinity : dateA;
+      const finalB = isNaN(dateB) ? Infinity : dateB;
+
+      return finalA - finalB;
     });
 
   const latestUpdate = getLatestUpdateDate(filteredEoLProducts);
@@ -267,50 +265,48 @@ export function ServiceEolDashboard() {
             </TableHead>
             <TableBody>
               {filteredEoLProducts.length > 0 ? (
-                filteredEoLProducts.map((eolProduct) =>
-                  eolProduct?.eol_versions?.map((eolVersion) => (
-                    <TableRow
-                      key={eolVersion.eol_version_id}
-                      hover
-                      sx={{
-                        bgcolor:
-                          getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
-                      }}
-                    >
-                      <TableCell>
-                        <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          {getDiffText(eolVersion.eol_from)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography fontWeight={600}>{eolProduct.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          v{eolVersion.version}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                          {eolVersion.services.map((s) => (
-                            <Chip
-                              key={s.service_id}
-                              label={s.service_name}
-                              size="small"
-                              variant="outlined"
-                            />
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={getProductCategorybyValue(eolProduct.product_category)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
-                    </TableRow>
-                  )),
-                )
+                sortEolList.map((eolVersion) => (
+                  <TableRow
+                    key={eolVersion.eol_version_id}
+                    hover
+                    sx={{
+                      bgcolor:
+                        getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
+                    }}
+                  >
+                    <TableCell>
+                      <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
+                      <Typography variant="caption" display="block" color="text.secondary">
+                        {getDiffText(eolVersion.eol_from)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography fontWeight={600}>{eolVersion.product_name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        v{eolVersion.version}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {eolVersion.services.map((s) => (
+                          <Chip
+                            key={s.service_id}
+                            label={s.service_name}
+                            size="small"
+                            variant="outlined"
+                          />
+                        ))}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getProductCategorybyValue(eolVersion.product_category)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
