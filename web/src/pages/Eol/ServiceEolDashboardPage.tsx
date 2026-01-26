@@ -51,7 +51,6 @@ import type { Status } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
-import type { PTeamEoLProductResponse } from "../../../types/types.gen.ts";
 
 const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
