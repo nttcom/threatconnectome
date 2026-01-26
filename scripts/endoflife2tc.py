@@ -81,6 +81,16 @@ eol_product_list: list[EOLProductItem] = [
             "matching_name": "django",
         },
     },
+    {
+        "product": "firefox",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": "Firefox, is a free and open-source web browser developed by the "
+            "Mozilla. Firefox is available for Windows, macOS, Android, iOS, Linux, and ChromeOS.",
+            "is_ecosystem": False,
+            "matching_name": "firefox",
+        },
+    },
 ]
 
 
@@ -151,8 +161,6 @@ def create_eol_param_creator(
             return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
         case "ubuntu":
             return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "django":
-            return EoLParamCreator(product, eol_product_item, product_eol_info)
         case _:
             return EoLParamCreator(product, eol_product_item, product_eol_info)
 
