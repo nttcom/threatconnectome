@@ -8,6 +8,7 @@ class PackageFamily(Enum):
     PYPI = 2
     NPM = 3
     GO = 4
+    RPM = 5
 
     @classmethod
     def from_registry(cls, registry: str) -> "PackageFamily":
@@ -20,4 +21,6 @@ class PackageFamily(Enum):
             return cls.NPM
         if re.match(r"^(golang)", fixed_registry):
             return cls.GO
+        if re.match(r"^(rpm)", fixed_registry):
+            return cls.RPM
         return cls.UNKNOWN
