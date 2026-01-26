@@ -47,6 +47,7 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
             notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
             if notification_sent:
                 ecosystem_eol_dependency.eol_notification_sent = True
+                db.flush()  # Ensure the change is persisted
 
 
 def _delete_eol_dependency_by_service(db: Session, service: models.Service) -> None:
