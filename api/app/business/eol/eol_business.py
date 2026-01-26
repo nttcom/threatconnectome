@@ -31,7 +31,9 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                     )
                 )
                 if package_eol_dependency:
-                    alert.notify_eol_package(package_eol_dependency)
+                    notification_sent = alert.notify_eol_package(package_eol_dependency)
+                    if notification_sent:
+                        package_eol_dependency.eol_notification_sent = True
 
     for eol_version_id in related_eol_version_id:
         # Create ecosystem EoL dependency and notify immediately if created
@@ -41,7 +43,9 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
             )
         )
         if ecosystem_eol_dependency:
-            alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+            notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+            if notification_sent:
+                ecosystem_eol_dependency.eol_notification_sent = True
 
 
 def _delete_eol_dependency_by_service(db: Session, service: models.Service) -> None:

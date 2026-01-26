@@ -24,7 +24,9 @@ def fix_ecosystem_eol_dependency_by_eol_product(
                 db, eol_version.eol_version_id, service.service_id
             )
             if ecosystem_eol_dependency:
-                alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                if notification_sent:
+                    ecosystem_eol_dependency.eol_notification_sent = True
 
 
 def create_ecosystem_eol_dependency_if_not_exists(

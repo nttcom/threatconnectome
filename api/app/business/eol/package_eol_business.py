@@ -18,7 +18,9 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
                     db, eol_version.eol_version_id, dependency.dependency_id
                 )
                 if package_eol_dependency:
-                    alert.notify_eol_package(package_eol_dependency)
+                    notification_sent = alert.notify_eol_package(package_eol_dependency)
+                    if notification_sent:
+                        package_eol_dependency.eol_notification_sent = True
 
 
 def create_package_eol_dependency_if_not_exists(
