@@ -269,21 +269,22 @@ def _bg_check_eol_notification() -> None:
             time_until_eol = (
                 ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
             )
-            if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-                try:
-                    sent = notify_eol_ecosystem(ecosystem_eol_dependency)
-                except Exception as e:
-                    log.exception(
-                        "Failed to send EOL notification for EcosystemEoLDependency (ID: %s): %s",
-                        getattr(
-                            ecosystem_eol_dependency, "ecosystem_eol_dependency_id", "<unknown>"
-                        ),
-                        e,
-                    )
-                    continue
 
-                if sent:
-                    ecosystem_eol_dependency.eol_notification_sent = True
+            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                continue
+
+            try:
+                sent = notify_eol_ecosystem(ecosystem_eol_dependency)
+            except Exception as e:
+                log.exception(
+                    "Failed to send EOL notification for EcosystemEoLDependency (ID: %s): %s",
+                    getattr(ecosystem_eol_dependency, "ecosystem_eol_dependency_id", "<unknown>"),
+                    e,
+                )
+                continue
+
+            if sent:
+                ecosystem_eol_dependency.eol_notification_sent = True
 
         package_eol_dependencies = persistence.get_all_package_eol_dependencies(db)
         for package_eol_dependency in package_eol_dependencies:
@@ -293,19 +294,21 @@ def _bg_check_eol_notification() -> None:
             time_until_eol = (
                 package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
             )
-            if time_until_eol <= timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-                try:
-                    sent = notify_eol_package(package_eol_dependency)
-                except Exception as e:
-                    log.exception(
-                        "Failed to send EOL notification for PackageEoLDependency (ID: %s): %s",
-                        getattr(package_eol_dependency, "package_eol_dependency_id", "<unknown>"),
-                        e,
-                    )
-                    continue
+            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+                continue
 
-                if sent:
-                    package_eol_dependency.eol_notification_sent = True
+            try:
+                sent = notify_eol_package(package_eol_dependency)
+            except Exception as e:
+                log.exception(
+                    "Failed to send EOL notification for PackageEoLDependency (ID: %s): %s",
+                    getattr(package_eol_dependency, "package_eol_dependency_id", "<unknown>"),
+                    e,
+                )
+                continue
+
+            if sent:
+                package_eol_dependency.eol_notification_sent = True
 
         db.commit()
         log.info("End EOL notification check")
