@@ -1,4 +1,5 @@
 // Mock Data for ServiceEolDashboard
+import { WARNING_THRESHOLD_DAYS } from "../../../utils/eolUtils";
 
 export const MOCK_SERVICES_EXPIRED_ONLY = {
   total: 3,
@@ -83,6 +84,12 @@ export const MOCK_SERVICES_EXPIRED_ONLY = {
   ],
 };
 
+const getFutureDateStr = (days: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+};
+
 export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
   total: 4,
   products: [
@@ -99,7 +106,7 @@ export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
           eol_version_id: "eol_version_id_python_3_8",
           version: "3.8",
           release_date: "2019-10-14",
-          eol_from: "2026-02-15",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS),
           matching_version: "3.8",
           created_at: "2025-10-01T10:00:00Z",
           updated_at: "2025-10-01T10:00:00Z",
@@ -124,7 +131,7 @@ export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
           eol_version_id: "eol_version_id_alpine_3_17",
           version: "3.17",
           release_date: "2022-11-22",
-          eol_from: "2026-04-01",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS),
           matching_version: "3.17",
           created_at: "2025-10-01T10:00:00Z",
           updated_at: "2025-10-01T10:00:00Z",
@@ -150,7 +157,7 @@ export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
           eol_version_id: "eol_version_id_redis_6_2",
           version: "6.2",
           release_date: "2021-03-01",
-          eol_from: "2026-06-10",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS),
           matching_version: "6.2",
           created_at: "2025-10-01T10:00:00Z",
           updated_at: "2025-10-01T10:00:00Z",
@@ -176,7 +183,7 @@ export const MOCK_SERVICES_DEADLINE_APPROACHING_ONLY = {
           eol_version_id: "eol_version_id_lodash_4",
           version: "4.17.21",
           release_date: "2021-02-20",
-          eol_from: "2026-07-20",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS),
           matching_version: "4.17.21",
           created_at: "2025-10-01T10:00:00Z",
           updated_at: "2025-10-01T10:00:00Z",
@@ -207,7 +214,7 @@ export const MOCK_SERVICES_SUPPORTED_ONLY = {
           eol_version_id: "eol_version_id_nodejs_22",
           version: "22.x",
           release_date: "2024-04-23",
-          eol_from: "2027-04-30",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS + 1),
           matching_version: "22.x",
           created_at: "2025-01-01T10:00:00Z",
           updated_at: "2025-01-01T10:00:00Z",
@@ -232,7 +239,7 @@ export const MOCK_SERVICES_SUPPORTED_ONLY = {
           eol_version_id: "eol_version_id_react_19",
           version: "19.x",
           release_date: "2024-12-05",
-          eol_from: "2028-06-01",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS + 1),
           matching_version: "19.x",
           created_at: "2025-01-01T10:00:00Z",
           updated_at: "2025-01-01T10:00:00Z",
@@ -257,7 +264,7 @@ export const MOCK_SERVICES_SUPPORTED_ONLY = {
           eol_version_id: "eol_version_id_ubuntu_2404",
           version: "24.04 LTS",
           release_date: "2024-04-25",
-          eol_from: "2029-04-01",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS + 1),
           matching_version: "24.04 LTS",
           created_at: "2025-01-01T10:00:00Z",
           updated_at: "2025-01-01T10:00:00Z",
@@ -282,7 +289,7 @@ export const MOCK_SERVICES_SUPPORTED_ONLY = {
           eol_version_id: "eol_version_id_postgresql_16",
           version: "16",
           release_date: "2023-09-14",
-          eol_from: "2028-11-09",
+          eol_from: getFutureDateStr(WARNING_THRESHOLD_DAYS + 1),
           matching_version: "16",
           created_at: "2025-01-01T10:00:00Z",
           updated_at: "2025-01-01T10:00:00Z",

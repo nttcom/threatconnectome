@@ -25,5 +25,4 @@ const listMeta = {
 export default listMeta;
 type ListStory = StoryObj<typeof listMeta>;
 
-// 標準表示
 export const Default: ListStory = {};

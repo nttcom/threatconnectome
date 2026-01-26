@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence
+from app.business.eol import eol_detector
 from app.notification import alert
 
 
@@ -12,6 +13,10 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
             db, eol_product, eol_version
         )
         for package_version in package_versions:
+            if not eol_detector.check_matched_package_version_and_eol_version(
+                package_version, eol_version
+            ):
+                continue
             for dependency in package_version.dependencies:
                 # Create package EoL dependency and notify immediately if created
                 package_eol_dependency = create_package_eol_dependency_if_not_exists(
@@ -69,8 +74,10 @@ def _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         eol_product = eol_version.eol_product
         package_version = package_eol_dependency.dependency.package_version
         if (
-            package_version.version == eol_version.matching_version
-            and package_version.package.name == eol_product.matching_name
+            package_version.package.name == eol_product.matching_name
+            and eol_detector.check_matched_package_version_and_eol_version(
+                package_version, eol_version
+            )
         ):
             continue
         delete_package_eol_dependencies.append(package_eol_dependency)

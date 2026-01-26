@@ -39,6 +39,26 @@ def service1(testdb: Session) -> models.Service:
 
 
 @pytest.fixture(scope="function")
+def service2(testdb: Session) -> models.Service:
+    create_user(USER1)
+    pteam1 = create_pteam(USER1, PTEAM1)
+
+    service_name1 = "test_service2"
+    upload_file_name = "syft-rpm-firefox.json"
+    sbom_file = (
+        Path(__file__).resolve().parent.parent.parent / "common" / "upload_test" / upload_file_name
+    )
+    with open(sbom_file, "r") as sbom:
+        sbom_json = sbom.read()
+
+    bg_create_tags_from_sbom_json(sbom_json, pteam1.pteam_id, service_name1, upload_file_name)
+
+    return testdb.scalars(
+        select(models.Service).where(models.Service.service_name == service_name1)
+    ).one()
+
+
+@pytest.fixture(scope="function")
 def eol_product1(testdb: Session) -> models.EoLProduct:
     eol_product = models.EoLProduct(
         eol_product_id="eol_product_id_1",
@@ -57,11 +77,11 @@ def eol_product1(testdb: Session) -> models.EoLProduct:
 def eol_product2(testdb: Session) -> models.EoLProduct:
     eol_product = models.EoLProduct(
         eol_product_id="eol_product_id_2",
-        name="adduser",
+        name="firefox",
         product_category=models.ProductCategoryEnum.PACKAGE,
         description="description_2",
         is_ecosystem=False,
-        matching_name="adduser",
+        matching_name="firefox",
     )
 
     persistence.create_eol_product(testdb, eol_product)
@@ -97,10 +117,10 @@ def eol_version2(
     now = datetime.now(timezone.utc)
     eol_version2 = models.EoLVersion(
         eol_product_id=eol_product2.eol_product_id,
-        version="3.118-ubuntu2",
-        release_date="2020-04-23",
-        eol_from="2025-05-31",
-        matching_version="3.118ubuntu2",
+        version="140",
+        release_date="2023-10-24",
+        eol_from="2023-11-21",
+        matching_version="140",
         created_at=now,
         updated_at=now,
     )
@@ -161,7 +181,7 @@ class TestFixEoLDependencyByEoLProduct:
     def test_it_should_create_eol_dependency_when_product_name_matched(
         self,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
@@ -175,7 +195,7 @@ class TestFixEoLDependencyByEoLProduct:
             )
         ).one()
 
-        assert package_eol_dependency_2.dependency.service.service_name == service1.service_name
+        assert package_eol_dependency_2.dependency.service.service_name == service2.service_name
         assert package_eol_dependency_2.eol_version.version == eol_version2.version
         assert (
             package_eol_dependency_2.eol_version.matching_version == eol_version2.matching_version
@@ -186,7 +206,7 @@ class TestFixEoLDependencyByEoLProduct:
     def test_it_should_delete_eol_dependency_when_package_name_unmatched(
         self,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
@@ -261,12 +281,12 @@ class TestFixEoLDependencyByService:
     def test_it_should_create_eol_dependency_when_product_name_matched(
         self,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
         # When
-        eol_business.fix_eol_dependency_by_service(testdb, service1)
+        eol_business.fix_eol_dependency_by_service(testdb, service2)
 
         # Then
         package_eol_dependency_2 = testdb.scalars(
@@ -275,7 +295,7 @@ class TestFixEoLDependencyByService:
             )
         ).one()
 
-        assert package_eol_dependency_2.dependency.service.service_name == service1.service_name
+        assert package_eol_dependency_2.dependency.service.service_name == service2.service_name
         assert package_eol_dependency_2.eol_version.version == eol_version2.version
         assert (
             package_eol_dependency_2.eol_version.matching_version == eol_version2.matching_version
@@ -286,17 +306,17 @@ class TestFixEoLDependencyByService:
     def test_it_should_delete_eol_dependency_when_package_name_unmatched(
         self,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
         # Given
-        eol_business.fix_eol_dependency_by_service(testdb, service1)
+        eol_business.fix_eol_dependency_by_service(testdb, service2)
         eol_version2.matching_version = "unmatched_version"
         testdb.commit()
 
         # When
-        eol_business.fix_eol_dependency_by_service(testdb, service1)
+        eol_business.fix_eol_dependency_by_service(testdb, service2)
 
         # Then
         package_eol_dependency_2 = testdb.scalars(
