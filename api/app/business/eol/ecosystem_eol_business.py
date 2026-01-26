@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence
+from app.notification import alert
 
 
 def fix_ecosystem_eol_dependency_by_eol_product(
@@ -18,25 +19,33 @@ def fix_ecosystem_eol_dependency_by_eol_product(
                 related_services.add(dependency.service)
 
         for service in related_services:
-            create_ecosystem_eol_dependency_if_not_exists(
+            # Create ecosystem EoL dependency and notify immediately if created
+            ecosystem_eol_dependency = create_ecosystem_eol_dependency_if_not_exists(
                 db, eol_version.eol_version_id, service.service_id
             )
+            if ecosystem_eol_dependency:
+                alert.notify_eol_ecosystem(ecosystem_eol_dependency)
 
 
 def create_ecosystem_eol_dependency_if_not_exists(
     db: Session, eol_version_id: str, service_id: str
-) -> None:
-    if not persistence.get_ecosystem_eol_dependency_by_eol_version_id_and_service_id(
-        db,
-        eol_version_id,
-        service_id,
-    ):
+) -> models.EcosystemEoLDependency | None:
+    ecosystem_eol_dependency = (
+        persistence.get_ecosystem_eol_dependency_by_eol_version_id_and_service_id(
+            db,
+            eol_version_id,
+            service_id,
+        )
+    )
+    if not ecosystem_eol_dependency:
         ecosystem_eol_dependency = models.EcosystemEoLDependency(
             eol_version_id=eol_version_id,
             service_id=service_id,
             eol_notification_sent=False,
         )
         persistence.create_ecosystem_eol_dependency(db, ecosystem_eol_dependency)
+        return ecosystem_eol_dependency
+    return None
 
 
 def _delete_not_match_ecosystem_eol_dependency(db: Session, eol_version: models.EoLVersion) -> None:

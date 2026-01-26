@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence
+from app.notification import alert
 
 
 def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
@@ -12,25 +13,33 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
         )
         for package_version in package_versions:
             for dependency in package_version.dependencies:
-                create_package_eol_dependency_if_not_exists(
+                # Create package EoL dependency and notify immediately if created
+                package_eol_dependency = create_package_eol_dependency_if_not_exists(
                     db, eol_version.eol_version_id, dependency.dependency_id
                 )
+                if package_eol_dependency:
+                    alert.notify_eol_package(package_eol_dependency)
 
 
 def create_package_eol_dependency_if_not_exists(
     db: Session, eol_version_id: str, dependency_id: str
-) -> None:
-    if not persistence.get_package_eol_dependency_by_eol_version_id_and_dependency_id(
-        db,
-        eol_version_id,
-        dependency_id,
-    ):
+) -> models.PackageEoLDependency | None:
+    package_eol_dependency = (
+        persistence.get_package_eol_dependency_by_eol_version_id_and_dependency_id(
+            db,
+            eol_version_id,
+            dependency_id,
+        )
+    )
+    if not package_eol_dependency:
         package_eol_dependency = models.PackageEoLDependency(
             eol_version_id=eol_version_id,
             dependency_id=dependency_id,
             eol_notification_sent=False,
         )
         persistence.create_package_eol_dependency(db, package_eol_dependency)
+        return package_eol_dependency
+    return None
 
 
 def _delete_not_match_package_eol_dependency(db: Session, eol_version: models.EoLVersion) -> None:
