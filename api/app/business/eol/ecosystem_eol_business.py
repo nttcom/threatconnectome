@@ -24,9 +24,12 @@ def fix_ecosystem_eol_dependency_by_eol_product(
                 db, eol_version.eol_version_id, service.service_id
             )
             if ecosystem_eol_dependency:
-                notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
-                if notification_sent:
-                    ecosystem_eol_dependency.eol_notification_sent = True
+                try:
+                    notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                    if notification_sent:
+                        ecosystem_eol_dependency.eol_notification_sent = True
+                except Exception:
+                    pass
                     db.flush()  # Ensure the change is persisted
 
 

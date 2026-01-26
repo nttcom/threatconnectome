@@ -31,9 +31,12 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                     )
                 )
                 if package_eol_dependency:
-                    notification_sent = alert.notify_eol_package(package_eol_dependency)
-                    if notification_sent:
-                        package_eol_dependency.eol_notification_sent = True
+                    try:
+                        notification_sent = alert.notify_eol_package(package_eol_dependency)
+                        if notification_sent:
+                            package_eol_dependency.eol_notification_sent = True
+                    except Exception:
+                        pass
                         db.flush()  # Ensure the change is persisted
 
     for eol_version_id in related_eol_version_id:
@@ -44,9 +47,12 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
             )
         )
         if ecosystem_eol_dependency:
-            notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
-            if notification_sent:
-                ecosystem_eol_dependency.eol_notification_sent = True
+            try:
+                notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                if notification_sent:
+                    ecosystem_eol_dependency.eol_notification_sent = True
+            except Exception:
+                pass  # Keep eol_notification_sent as False
                 db.flush()  # Ensure the change is persisted
 
 
