@@ -306,3 +306,187 @@ class TestFixEoLDependencyByService:
         ).one_or_none()
 
         assert package_eol_dependency_2 is None
+
+
+class TestEoLNotifications:
+    """Test notification behavior when creating EoL dependencies"""
+
+    def test_notify_on_ecosystem_eol_dependency_creation_by_eol_product(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product1: models.EoLProduct,
+        eol_version1: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
+        mock_notify.return_value = True
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
+
+        # Then
+        mock_notify.assert_called_once()
+        ecosystem_eol_dependency = testdb.scalars(
+            select(models.EcosystemEoLDependency).where(
+                models.EcosystemEoLDependency.eol_version_id == str(eol_version1.eol_version_id)
+            )
+        ).one()
+        assert ecosystem_eol_dependency.eol_notification_sent is True
+
+    def test_notification_flag_false_when_notification_fails_ecosystem(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product1: models.EoLProduct,
+        eol_version1: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
+        mock_notify.return_value = False
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
+
+        # Then
+        ecosystem_eol_dependency = testdb.scalars(
+            select(models.EcosystemEoLDependency).where(
+                models.EcosystemEoLDependency.eol_version_id == str(eol_version1.eol_version_id)
+            )
+        ).one()
+        assert ecosystem_eol_dependency.eol_notification_sent is False
+
+    def test_notify_on_package_eol_dependency_creation_by_eol_product(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product2: models.EoLProduct,
+        eol_version2: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
+        mock_notify.return_value = True
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
+
+        # Then
+        mock_notify.assert_called_once()
+        package_eol_dependency = testdb.scalars(
+            select(models.PackageEoLDependency).where(
+                models.PackageEoLDependency.eol_version_id == str(eol_version2.eol_version_id)
+            )
+        ).one()
+        assert package_eol_dependency.eol_notification_sent is True
+
+    def test_notification_flag_false_when_notification_fails_package(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product2: models.EoLProduct,
+        eol_version2: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
+        mock_notify.return_value = False
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
+
+        # Then
+        package_eol_dependency = testdb.scalars(
+            select(models.PackageEoLDependency).where(
+                models.PackageEoLDependency.eol_version_id == str(eol_version2.eol_version_id)
+            )
+        ).one()
+        assert package_eol_dependency.eol_notification_sent is False
+
+    def test_notify_on_ecosystem_eol_dependency_creation_by_service(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product1: models.EoLProduct,
+        eol_version1: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
+        mock_notify.return_value = True
+
+        # When
+        eol_business.fix_eol_dependency_by_service(testdb, service1)
+
+        # Then
+        mock_notify.assert_called_once()
+        ecosystem_eol_dependency = testdb.scalars(
+            select(models.EcosystemEoLDependency).where(
+                models.EcosystemEoLDependency.eol_version_id == str(eol_version1.eol_version_id)
+            )
+        ).one()
+        assert ecosystem_eol_dependency.eol_notification_sent is True
+
+    def test_notify_on_package_eol_dependency_creation_by_service(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product2: models.EoLProduct,
+        eol_version2: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
+        mock_notify.return_value = True
+
+        # When
+        eol_business.fix_eol_dependency_by_service(testdb, service1)
+
+        # Then
+        mock_notify.assert_called_once()
+        package_eol_dependency = testdb.scalars(
+            select(models.PackageEoLDependency).where(
+                models.PackageEoLDependency.eol_version_id == str(eol_version2.eol_version_id)
+            )
+        ).one()
+        assert package_eol_dependency.eol_notification_sent is True
+
+    def test_no_notification_when_ecosystem_eol_dependency_already_exists(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product1: models.EoLProduct,
+        eol_version1: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
+        mock_notify.reset_mock()
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
+
+        # Then
+        mock_notify.assert_not_called()
+
+    def test_no_notification_when_package_eol_dependency_already_exists(
+        self,
+        mocker,
+        testdb: Session,
+        service1: models.Service,
+        eol_product2: models.EoLProduct,
+        eol_version2: models.EoLVersion,
+    ):
+        # Given
+        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
+        mock_notify.reset_mock()
+
+        # When
+        eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
+
+        # Then
+        mock_notify.assert_not_called()
