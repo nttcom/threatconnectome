@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import command, models
-from app.business.eol import ecosystem_eol_business, package_eol_business
+from app.business.eol import ecosystem_eol_business, eol_detector, package_eol_business
 
 
 def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
@@ -23,6 +23,10 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
             if eol_version.eol_product.is_ecosystem:
                 related_eol_version_id.add(eol_version.eol_version_id)
             else:
+                if not eol_detector.check_matched_package_version_and_eol_version(
+                    package_version, eol_version
+                ):
+                    continue
                 package_eol_business.create_package_eol_dependency_if_not_exists(
                     db, eol_version.eol_version_id, dependency.dependency_id
                 )
