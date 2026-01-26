@@ -311,7 +311,7 @@ class TestFixEoLDependencyByService:
 class TestEoLNotifications:
     """Test notification behavior when creating EoL dependencies"""
 
-    def test_notify_on_ecosystem_eol_dependency_creation_by_eol_product(
+    def test_it_should_notify_on_ecosystem_eol_dependency_creation_by_eol_product(
         self,
         mocker,
         testdb: Session,
@@ -335,7 +335,7 @@ class TestEoLNotifications:
         ).one()
         assert ecosystem_eol_dependency.eol_notification_sent is True
 
-    def test_notification_flag_false_when_notification_fails_ecosystem(
+    def test_it_should_keep_notification_flag_false_when_notification_fails_ecosystem(
         self,
         mocker,
         testdb: Session,
@@ -358,7 +358,7 @@ class TestEoLNotifications:
         ).one()
         assert ecosystem_eol_dependency.eol_notification_sent is False
 
-    def test_notify_on_package_eol_dependency_creation_by_eol_product(
+    def test_it_should_notify_on_package_eol_dependency_creation_by_eol_product(
         self,
         mocker,
         testdb: Session,
@@ -382,7 +382,7 @@ class TestEoLNotifications:
         ).one()
         assert package_eol_dependency.eol_notification_sent is True
 
-    def test_notification_flag_false_when_notification_fails_package(
+    def test_it_should_keep_notification_flag_false_when_notification_fails_package(
         self,
         mocker,
         testdb: Session,
@@ -405,7 +405,7 @@ class TestEoLNotifications:
         ).one()
         assert package_eol_dependency.eol_notification_sent is False
 
-    def test_notify_on_ecosystem_eol_dependency_creation_by_service(
+    def test_it_should_notify_on_ecosystem_eol_dependency_creation_by_service(
         self,
         mocker,
         testdb: Session,
@@ -429,7 +429,7 @@ class TestEoLNotifications:
         ).one()
         assert ecosystem_eol_dependency.eol_notification_sent is True
 
-    def test_notify_on_package_eol_dependency_creation_by_service(
+    def test_it_should_notify_on_package_eol_dependency_creation_by_service(
         self,
         mocker,
         testdb: Session,
@@ -453,7 +453,7 @@ class TestEoLNotifications:
         ).one()
         assert package_eol_dependency.eol_notification_sent is True
 
-    def test_no_notification_when_ecosystem_eol_dependency_already_exists(
+    def test_it_should_not_notify_when_ecosystem_eol_dependency_already_exists(
         self,
         mocker,
         testdb: Session,
@@ -472,7 +472,7 @@ class TestEoLNotifications:
         # Then
         mock_notify.assert_not_called()
 
-    def test_no_notification_when_package_eol_dependency_already_exists(
+    def test_it_should_not_notify_when_package_eol_dependency_already_exists(
         self,
         mocker,
         testdb: Session,
