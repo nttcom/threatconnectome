@@ -16,4 +16,7 @@ def gen_version_instance_for_eol(
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:
-        raise ValueError(f"Invalid version string: {version_string}")
+        raise ValueError(
+            f"Invalid version string for product '{product}' "
+            f"with ecosystem '{ecosystem}': {version_string}"
+        )

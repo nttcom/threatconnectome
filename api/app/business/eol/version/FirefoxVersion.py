@@ -8,13 +8,15 @@ from .EoLBaseVersion import EoLBaseVersion
 
 class FirefoxVersion(EoLBaseVersion):
     def __init__(self, version: str, ecosystem: str):
-        self.version = version
         self.package_family = PackageFamily.from_registry(ecosystem)
 
-        match self.package_family:
-            case PackageFamily.DEBIAN:
-                self.version = DebianVersion.from_string(self.version).upstream.split(".")[0]
-            case PackageFamily.RPM:
-                self.version = RpmVersion.from_string(self.version).version.split(".")[0]
-            case _:
-                self.version = version
+        try:
+            match self.package_family:
+                case PackageFamily.DEBIAN:
+                    self.version = DebianVersion.from_string(version).upstream.split(".")[0]
+                case PackageFamily.RPM:
+                    self.version = RpmVersion.from_string(version).version.split(".")[0]
+                case _:
+                    self.version = version
+        except Exception:
+            self.version = version
