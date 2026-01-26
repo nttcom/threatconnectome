@@ -21,6 +21,7 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
                     notification_sent = alert.notify_eol_package(package_eol_dependency)
                     if notification_sent:
                         package_eol_dependency.eol_notification_sent = True
+                        db.flush()  # Ensure the change is persisted
 
 
 def create_package_eol_dependency_if_not_exists(

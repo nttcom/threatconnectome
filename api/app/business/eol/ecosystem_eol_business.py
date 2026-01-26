@@ -27,6 +27,7 @@ def fix_ecosystem_eol_dependency_by_eol_product(
                 notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
                 if notification_sent:
                     ecosystem_eol_dependency.eol_notification_sent = True
+                    db.flush()  # Ensure the change is persisted
 
 
 def create_ecosystem_eol_dependency_if_not_exists(
