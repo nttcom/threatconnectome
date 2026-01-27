@@ -1488,8 +1488,8 @@ class TestPutTicket:
             current_scheduled_at,
             expected_response_detail,
         ):
-            # When previous ticket_handling_status is scheduled and current ticket_handling_status is
-            #  not scheduled, return 400 if current_scheduled_at does not contain
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
+            # is not scheduled, return 400 if current_scheduled_at does not contain
             # a value to reset None.
 
             previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
@@ -1571,8 +1571,8 @@ class TestPutTicket:
             # When previous ticket_handling_status is scheduled and current ticket_handling_status
             # is None, return 200 if current_scheduled_at contain None.
 
-            # When previous ticket_handling_status is scheduled and current ticket_handling_status is
-            # completed, return 200 if current_scheduled_at contain
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
+            # is completed, return 200 if current_scheduled_at contain
             # a value to reset None.
 
             previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
