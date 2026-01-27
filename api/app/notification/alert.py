@@ -1,10 +1,7 @@
-from datetime import date, datetime, timedelta, timezone
-
 from email_validator import validate_email
 
 from app import models
 from app.constants import SYSTEM_EMAIL
-from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
 from app.notification.mail import (
     create_mail_alert_for_new_vuln,
     create_mail_to_notify_eol,
@@ -144,24 +141,13 @@ def _send_eol_notifications(
     service_name: str,
     product_name: str,
     version: str,
-    eol_from,
+    eol_from: str,
 ) -> bool:
     # check alert settings
     send_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
     send_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
 
     if not send_by_slack and not send_by_mail:
-        return False
-
-    # If EoL date is beyond the warning threshold, skip notification
-    try:
-        today = datetime.now(timezone.utc).date()
-        eol_date = eol_from if isinstance(eol_from, date) else date.fromisoformat(str(eol_from))
-        time_until_eol = eol_date - today
-        if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
-            return False
-    except Exception:
-        # If eol_from cannot be processed as a date, do not notify
         return False
 
     if notification_sent:
@@ -171,14 +157,13 @@ def _send_eol_notifications(
     last_exc: Exception | None = None
     if send_by_slack:
         try:
-            eol_from_str = eol_date.isoformat()
             slack_message_blocks = create_slack_blocks_to_notify_eol(
                 pteam.pteam_id,
                 pteam.pteam_name,
                 service_name,
                 product_name,
                 version,
-                eol_from_str,
+                eol_from,
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
             success = True
@@ -193,7 +178,7 @@ def _send_eol_notifications(
                 service_name,
                 product_name,
                 version,
-                eol_from_str,
+                eol_from,
             )
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
             success = True
@@ -222,7 +207,7 @@ def notify_eol_ecosystem(
         service_name=service.service_name,
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
-        eol_from=eol_version.eol_from,
+        eol_from=eol_version.eol_from.isoformat(),
     )
 
 
@@ -239,5 +224,5 @@ def notify_eol_package(
         service_name=service.service_name,
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
-        eol_from=eol_version.eol_from,
+        eol_from=eol_version.eol_from.isoformat(),
     )
