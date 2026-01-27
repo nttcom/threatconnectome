@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.business.eol import eol_business
+from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
@@ -340,14 +341,32 @@ class TestEoLNotifications:
         eol_version1: models.EoLVersion,
     ):
         # Given
-        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
-        mock_notify.return_value = True
+        from datetime import datetime, timedelta, timezone
+
+        from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
+
+        pteam = service1.pteam
+        pteam.alert_slack.enable = True
+        pteam.alert_slack.webhook_url = "https://example.com/webhook"
+        pteam.alert_mail.enable = True
+        pteam.alert_mail.address = "account0@example.com"
+        testdb.commit()
+
+        eol_version1.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS
+        )
+        testdb.commit()
+
+        mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
+        send_slack = mocker.patch("app.notification.alert.send_slack")
+        send_email = mocker.patch("app.notification.alert.send_email")
 
         # When
         eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
 
         # Then
-        mock_notify.assert_called_once()
+        assert send_slack.called
+        assert send_email.called
         ecosystem_eol_dependency = testdb.scalars(
             select(models.EcosystemEoLDependency).where(
                 models.EcosystemEoLDependency.eol_version_id == str(eol_version1.eol_version_id)
@@ -387,14 +406,28 @@ class TestEoLNotifications:
         eol_version2: models.EoLVersion,
     ):
         # Given
-        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
-        mock_notify.return_value = True
+        pteam = service2.pteam
+        pteam.alert_slack.enable = True
+        pteam.alert_slack.webhook_url = "https://example.com/webhook"
+        pteam.alert_mail.enable = True
+        pteam.alert_mail.address = "account0@example.com"
+        testdb.commit()
+
+        eol_version2.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS
+        )
+        testdb.commit()
+
+        mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
+        send_slack = mocker.patch("app.notification.alert.send_slack")
+        send_email = mocker.patch("app.notification.alert.send_email")
 
         # When
         eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
 
         # Then
-        mock_notify.assert_called_once()
+        assert send_slack.called
+        assert send_email.called
         package_eol_dependency = testdb.scalars(
             select(models.PackageEoLDependency).where(
                 models.PackageEoLDependency.eol_version_id == str(eol_version2.eol_version_id)
@@ -434,14 +467,28 @@ class TestEoLNotifications:
         eol_version1: models.EoLVersion,
     ):
         # Given
-        mock_notify = mocker.patch("app.notification.alert.notify_eol_ecosystem")
-        mock_notify.return_value = True
+        pteam = service1.pteam
+        pteam.alert_slack.enable = True
+        pteam.alert_slack.webhook_url = "https://example.com/webhook"
+        pteam.alert_mail.enable = True
+        pteam.alert_mail.address = "account0@example.com"
+        testdb.commit()
+
+        eol_version1.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS
+        )
+        testdb.commit()
+
+        mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
+        send_slack = mocker.patch("app.notification.alert.send_slack")
+        send_email = mocker.patch("app.notification.alert.send_email")
 
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service1)
 
         # Then
-        mock_notify.assert_called_once()
+        assert send_slack.called
+        assert send_email.called
         ecosystem_eol_dependency = testdb.scalars(
             select(models.EcosystemEoLDependency).where(
                 models.EcosystemEoLDependency.eol_version_id == str(eol_version1.eol_version_id)
@@ -458,14 +505,28 @@ class TestEoLNotifications:
         eol_version2: models.EoLVersion,
     ):
         # Given
-        mock_notify = mocker.patch("app.notification.alert.notify_eol_package")
-        mock_notify.return_value = True
+        pteam = service2.pteam
+        pteam.alert_slack.enable = True
+        pteam.alert_slack.webhook_url = "https://example.com/webhook"
+        pteam.alert_mail.enable = True
+        pteam.alert_mail.address = "account0@example.com"
+        testdb.commit()
+
+        eol_version2.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS
+        )
+        testdb.commit()
+
+        mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
+        send_slack = mocker.patch("app.notification.alert.send_slack")
+        send_email = mocker.patch("app.notification.alert.send_email")
 
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service2)
 
         # Then
-        mock_notify.assert_called_once()
+        assert send_slack.called
+        assert send_email.called
         package_eol_dependency = testdb.scalars(
             select(models.PackageEoLDependency).where(
                 models.PackageEoLDependency.eol_version_id == str(eol_version2.eol_version_id)

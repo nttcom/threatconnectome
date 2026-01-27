@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
@@ -10,8 +10,8 @@ from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
 from app.database import get_db, open_db_session
-from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
 from app.notification.alert import notify_eol_ecosystem, notify_eol_package
+from app.notification.eol_notification_utils import is_within_eol_warning
 
 router = APIRouter(prefix="/eols", tags=["eols"])
 
@@ -265,11 +265,7 @@ def _bg_check_eol_notification() -> None:
             if ecosystem_eol_dependency.eol_notification_sent is True:
                 continue
 
-            time_until_eol = (
-                ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            )
-
-            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            if not is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
                 continue
 
             try:
@@ -290,10 +286,7 @@ def _bg_check_eol_notification() -> None:
             if package_eol_dependency.eol_notification_sent is True:
                 continue
 
-            time_until_eol = (
-                package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            )
-            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            if not is_within_eol_warning(package_eol_dependency.eol_version.eol_from):
                 continue
 
             try:

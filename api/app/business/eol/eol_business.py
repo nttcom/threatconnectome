@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app import command, models
 from app.business.eol import ecosystem_eol_business, eol_detector, package_eol_business
 from app.notification import alert
+from app.notification.eol_notification_utils import is_within_eol_warning
 
 
 def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
@@ -36,9 +37,10 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                 )
                 if package_eol_dependency:
                     try:
-                        notification_sent = alert.notify_eol_package(package_eol_dependency)
-                        if notification_sent:
-                            package_eol_dependency.eol_notification_sent = True
+                        if is_within_eol_warning(eol_version.eol_from):
+                            notification_sent = alert.notify_eol_package(package_eol_dependency)
+                            if notification_sent:
+                                package_eol_dependency.eol_notification_sent = True
                     except Exception:
                         pass
 
@@ -51,9 +53,11 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
         )
         if ecosystem_eol_dependency:
             try:
-                notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
-                if notification_sent:
-                    ecosystem_eol_dependency.eol_notification_sent = True
+                # eol_version_id refers to eol_version above; fetch date via object on dependency
+                if is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
+                    notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                    if notification_sent:
+                        ecosystem_eol_dependency.eol_notification_sent = True
             except Exception:
                 pass
 

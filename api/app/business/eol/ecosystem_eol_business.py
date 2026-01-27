@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence
 from app.notification import alert
+from app.notification.eol_notification_utils import is_within_eol_warning
 
 
 def fix_ecosystem_eol_dependency_by_eol_product(
@@ -25,9 +26,10 @@ def fix_ecosystem_eol_dependency_by_eol_product(
             )
             if ecosystem_eol_dependency:
                 try:
-                    notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
-                    if notification_sent:
-                        ecosystem_eol_dependency.eol_notification_sent = True
+                    if is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
+                        notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                        if notification_sent:
+                            ecosystem_eol_dependency.eol_notification_sent = True
                 except Exception:
                     pass
 
