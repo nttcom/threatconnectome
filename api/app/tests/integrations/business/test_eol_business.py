@@ -382,7 +382,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
@@ -406,7 +406,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
@@ -453,7 +453,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
-        service1: models.Service,
+        service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
@@ -462,7 +462,7 @@ class TestEoLNotifications:
         mock_notify.return_value = True
 
         # When
-        eol_business.fix_eol_dependency_by_service(testdb, service1)
+        eol_business.fix_eol_dependency_by_service(testdb, service2)
 
         # Then
         mock_notify.assert_called_once()
