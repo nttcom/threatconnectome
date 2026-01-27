@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.business.eol import eol_business
-from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
+from app.notification.eol_notification_utils import EOL_WARNING_THRESHOLD_DAYS
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
@@ -340,11 +340,6 @@ class TestEoLNotifications:
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
     ):
-        # Given
-        from datetime import datetime, timedelta, timezone
-
-        from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
-
         pteam = service1.pteam
         pteam.alert_slack.enable = True
         pteam.alert_slack.webhook_url = "https://example.com/webhook"
@@ -580,12 +575,6 @@ class TestEoLNotifications:
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
     ):
-        from datetime import datetime, timedelta, timezone
-
-        from sqlalchemy import select
-
-        from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
-
         pteam = service1.pteam
         pteam.alert_slack.enable = True
         pteam.alert_slack.webhook_url = "https://example.com/webhook"
@@ -662,12 +651,6 @@ class TestEoLNotifications:
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
-        from datetime import datetime, timedelta, timezone
-
-        from sqlalchemy import select
-
-        from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
-
         pteam = service2.pteam
         pteam.alert_slack.enable = True
         pteam.alert_slack.webhook_url = "https://example.com/webhook"

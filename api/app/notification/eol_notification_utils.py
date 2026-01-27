@@ -1,6 +1,12 @@
 from datetime import date, datetime, timedelta, timezone
 
-from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
+"""EOL feature-specific constants.
+
+Modify `EOL_WARNING_THRESHOLD_DAYS` here to change the 6-month threshold
+across immediate and scheduled notifications.
+"""
+
+EOL_WARNING_THRESHOLD_DAYS: int = 180
 
 
 def is_within_eol_warning(eol_from: date) -> bool:

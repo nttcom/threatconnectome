@@ -12,8 +12,8 @@ from app import models, persistence
 from app.constants import (
     SYSTEM_EMAIL,
 )
-from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
 from app.main import app
+from app.notification.eol_notification_utils import EOL_WARNING_THRESHOLD_DAYS
 from app.notification.mail import (
     create_mail_alert_for_new_vuln,
 )
