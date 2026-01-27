@@ -10,14 +10,13 @@ from app.auth import api_key
 from app.auth.account import get_current_user
 from app.business.eol import eol_business
 from app.database import get_db, open_db_session
+from app.eol_constants import EOL_WARNING_THRESHOLD_DAYS
 from app.notification.alert import notify_eol_ecosystem, notify_eol_package
 
 router = APIRouter(prefix="/eols", tags=["eols"])
 
 NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such eol")
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-
-EOL_WARNING_THRESHOLD_DAYS = 180
 
 
 def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductResponse:
