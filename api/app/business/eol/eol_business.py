@@ -41,7 +41,6 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                             package_eol_dependency.eol_notification_sent = True
                     except Exception:
                         pass
-                        db.flush()  # Ensure the change is persisted
 
     for eol_version_id in related_eol_version_id:
         # Create ecosystem EoL dependency and notify immediately if created
@@ -56,8 +55,9 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                 if notification_sent:
                     ecosystem_eol_dependency.eol_notification_sent = True
             except Exception:
-                pass  # Keep eol_notification_sent as False
-                db.flush()  # Ensure the change is persisted
+                pass
+
+    db.flush()
 
 
 def _delete_eol_dependency_by_service(db: Session, service: models.Service) -> None:

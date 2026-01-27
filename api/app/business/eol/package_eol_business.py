@@ -29,7 +29,8 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
                             package_eol_dependency.eol_notification_sent = True
                     except Exception:
                         pass
-                        db.flush()  # Ensure the change is persisted
+
+    db.flush()
 
 
 def create_package_eol_dependency_if_not_exists(

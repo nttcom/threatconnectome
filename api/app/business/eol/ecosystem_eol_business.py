@@ -30,7 +30,8 @@ def fix_ecosystem_eol_dependency_by_eol_product(
                         ecosystem_eol_dependency.eol_notification_sent = True
                 except Exception:
                     pass
-                    db.flush()  # Ensure the change is persisted
+
+    db.flush()
 
 
 def create_ecosystem_eol_dependency_if_not_exists(
