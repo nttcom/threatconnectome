@@ -117,10 +117,9 @@ def create_mail_to_notify_eol(
 ) -> tuple[str, str]:
     subject = "[Tc Warning] Action Required: migrate/upgrade to a supported version"
     url = _eol_page_link(pteam_id)
-    body = "<br>".join(
+    body = "".join(
         [
-            f"EOL (End of Life) reached on <b><{eol_from}></b> (no more security fixes)",
-            "",
+            f"EOL (End of Life) reached on <b>{eol_from}</b> (no more security fixes)<br>",
             "<ul>",
             f"<li><b>Service:</b> {service_name}</li>",
             f"<li><b>Team:</b> {pteam_name}</li>",
