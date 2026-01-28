@@ -623,7 +623,9 @@ class TestEoLNotifications:
         pteam.alert_mail.address = "account0@example.com"
         testdb.commit()
 
-        eol_version1.eol_from = datetime.now(timezone.utc).date() + timedelta(days=181)
+        eol_version1.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS + 1
+        )
         testdb.commit()
 
         mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
@@ -698,7 +700,9 @@ class TestEoLNotifications:
         pteam.alert_mail.address = "account0@example.com"
         testdb.commit()
 
-        eol_version2.eol_from = datetime.now(timezone.utc).date() + timedelta(days=181)
+        eol_version2.eol_from = datetime.now(timezone.utc).date() + timedelta(
+            days=EOL_WARNING_THRESHOLD_DAYS + 1
+        )
         testdb.commit()
 
         mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
