@@ -13,13 +13,14 @@ from app.constants import (
     SYSTEM_EMAIL,
 )
 from app.main import app
+from app.notification.eol_notification_utils import EOL_WARNING_THRESHOLD_DAYS
 from app.notification.mail import (
     create_mail_alert_for_new_vuln,
 )
 from app.notification.slack import (
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
-from app.routers.eols import EOL_WARNING_THRESHOLD_DAYS, _bg_check_eol_notification
+from app.routers.eols import _bg_check_eol_notification
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,

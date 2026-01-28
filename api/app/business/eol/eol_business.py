@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 
 from app import command, models
 from app.business.eol import ecosystem_eol_business, eol_detector, package_eol_business
+from app.notification import alert
+from app.notification.eol_notification_utils import is_within_eol_warning
 
 
 def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
@@ -27,14 +29,39 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
                     package_version, eol_version
                 ):
                     continue
-                package_eol_business.create_package_eol_dependency_if_not_exists(
-                    db, eol_version.eol_version_id, dependency.dependency_id
+                # Create package EoL dependency and notify immediately if created
+                package_eol_dependency = (
+                    package_eol_business.create_package_eol_dependency_if_not_exists(
+                        db, eol_version.eol_version_id, dependency.dependency_id
+                    )
                 )
+                if package_eol_dependency:
+                    try:
+                        if is_within_eol_warning(eol_version.eol_from):
+                            notification_sent = alert.notify_eol_package(package_eol_dependency)
+                            if notification_sent:
+                                package_eol_dependency.eol_notification_sent = True
+                    except Exception:
+                        pass
 
     for eol_version_id in related_eol_version_id:
-        ecosystem_eol_business.create_ecosystem_eol_dependency_if_not_exists(
-            db, eol_version_id, service.service_id
+        # Create ecosystem EoL dependency and notify immediately if created
+        ecosystem_eol_dependency = (
+            ecosystem_eol_business.create_ecosystem_eol_dependency_if_not_exists(
+                db, eol_version_id, service.service_id
+            )
         )
+        if ecosystem_eol_dependency:
+            try:
+                # eol_version_id refers to eol_version above; fetch date via object on dependency
+                if is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
+                    notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                    if notification_sent:
+                        ecosystem_eol_dependency.eol_notification_sent = True
+            except Exception:
+                pass
+
+    db.flush()
 
 
 def _delete_eol_dependency_by_service(db: Session, service: models.Service) -> None:

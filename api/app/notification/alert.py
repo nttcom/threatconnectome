@@ -207,7 +207,7 @@ def notify_eol_ecosystem(
         service_name=service.service_name,
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
-        eol_from=eol_version.eol_from,
+        eol_from=eol_version.eol_from.isoformat(),
     )
 
 
@@ -224,5 +224,5 @@ def notify_eol_package(
         service_name=service.service_name,
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
-        eol_from=eol_version.eol_from,
+        eol_from=eol_version.eol_from.isoformat(),
     )
