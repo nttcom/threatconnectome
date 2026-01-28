@@ -78,7 +78,7 @@ describe("TestLoginPage", () => {
   });
 
   describe("Email authentication", () => {
-    it("Login calls signInWithEmailAndPassword with inputed values", async () => {
+    it("Login calls signInWithEmailAndPassword with inputted values", async () => {
       const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue();
       useAuth.mockReturnValue({
         ...useAuthReturnValueBase,
