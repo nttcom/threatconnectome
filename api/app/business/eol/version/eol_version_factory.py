@@ -1,7 +1,7 @@
 from univers.versions import InvalidVersion
 
-from .version.EoLBaseVersion import EoLBaseVersion
-from .version.MajorOnlyVersion import MajorOnlyVersion
+from .EoLBaseVersion import EoLBaseVersion
+from .MajorOnlyVersion import MajorOnlyVersion
 
 
 def gen_version_instance_for_eol(

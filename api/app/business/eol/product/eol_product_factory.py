@@ -1,7 +1,7 @@
 from app import models
 
-from .product.EoLBaseProduct import EoLBaseProduct
-from .product.SqliteProduct import SqliteProduct
+from .EoLBaseProduct import EoLBaseProduct
+from .SqliteProduct import SqliteProduct
 
 
 def gen_product_instance_for_eol(
