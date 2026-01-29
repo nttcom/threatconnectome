@@ -45,7 +45,7 @@ def service2(testdb: Session) -> models.Service:
     pteam1 = create_pteam(USER1, PTEAM1)
 
     service_name1 = "test_service2"
-    upload_file_name = "syft-rpm-firefox.json"
+    upload_file_name = "sqlite-alpine.json"
     sbom_file = (
         Path(__file__).resolve().parent.parent.parent / "common" / "upload_test" / upload_file_name
     )
@@ -78,11 +78,11 @@ def eol_product1(testdb: Session) -> models.EoLProduct:
 def eol_product2(testdb: Session) -> models.EoLProduct:
     eol_product = models.EoLProduct(
         eol_product_id="eol_product_id_2",
-        name="firefox",
+        name="sqlite",
         product_category=models.ProductCategoryEnum.PACKAGE,
         description="description_2",
         is_ecosystem=False,
-        matching_name="firefox",
+        matching_name="sqlite",
     )
 
     persistence.create_eol_product(testdb, eol_product)
@@ -118,10 +118,10 @@ def eol_version2(
     now = datetime.now(timezone.utc)
     eol_version2 = models.EoLVersion(
         eol_product_id=eol_product2.eol_product_id,
-        version="140",
+        version="3",
         release_date="2023-10-24",
         eol_from="2023-11-21",
-        matching_version="140",
+        matching_version="3",
         created_at=now,
         updated_at=now,
     )
