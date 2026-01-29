@@ -842,18 +842,18 @@ def check_ticket_status_update_request(
             ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, specify schduled_at",
+                    detail="If status is scheduled, specify scheduled_at",
                 )
         else:
             if data.scheduled_at is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, unable to reset schduled_at",
+                    detail="If status is scheduled, unable to reset scheduled_at",
                 )
             elif data.scheduled_at < now:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, schduled_at must be a future time",
+                    detail="If status is scheduled, scheduled_at must be a future time",
                 )
     else:
         if "scheduled_at" not in update_data.keys():
@@ -865,14 +865,14 @@ def check_ticket_status_update_request(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
                         "If current status is not scheduled and previous status is scheduled, "
-                        "need to reset schduled_at"
+                        "need to reset scheduled_at"
                     ),
                 )
         else:
             if data.scheduled_at is not None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is not scheduled, do not specify schduled_at",
+                    detail="If status is not scheduled, do not specify scheduled_at",
                 )
 
     for logging_id_ in data.logging_ids or []:
