@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app import command, models
-from app.business.eol import ecosystem_eol_business, eol_detector, package_eol_business
+from app import models, persistence
+from app.business.eol import ecosystem_eol_business, package_eol_business
 from app.notification import alert
 from app.notification.eol_notification_utils import is_within_eol_warning
 
@@ -18,31 +18,21 @@ def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
 
     related_eol_version_id = set()
 
+    eol_products = persistence.get_all_eol_products(db)
     for dependency in service.dependencies:
         package_version = dependency.package_version
-        eol_versions = command.get_related_eol_versions_by_package_version(db, package_version)
-        for eol_version in eol_versions:
-            if eol_version.eol_product.is_ecosystem:
-                related_eol_version_id.add(eol_version.eol_version_id)
+        for eol_product in eol_products:
+            if eol_product.is_ecosystem:
+                for eol_version in eol_product.eol_versions:
+                    if (
+                        eol_version.matching_version
+                        == package_version.package.vuln_matching_ecosystem
+                    ):
+                        related_eol_version_id.add(eol_version.eol_version_id)
             else:
-                if not eol_detector.check_matched_package_version_and_eol_version(
-                    package_version, eol_version
-                ):
-                    continue
-                # Create package EoL dependency and notify immediately if created
-                package_eol_dependency = (
-                    package_eol_business.create_package_eol_dependency_if_not_exists(
-                        db, eol_version.eol_version_id, dependency.dependency_id
-                    )
+                package_eol_business.fix_package_eol_dependency_by_package_version_and_eol_product(
+                    db, dependency.dependency_id, package_version, eol_product
                 )
-                if package_eol_dependency:
-                    try:
-                        if is_within_eol_warning(eol_version.eol_from):
-                            notification_sent = alert.notify_eol_package(package_eol_dependency)
-                            if notification_sent:
-                                package_eol_dependency.eol_notification_sent = True
-                    except Exception:
-                        pass
 
     for eol_version_id in related_eol_version_id:
         # Create ecosystem EoL dependency and notify immediately if created

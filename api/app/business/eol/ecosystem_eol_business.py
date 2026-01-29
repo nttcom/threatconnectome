@@ -11,8 +11,8 @@ def fix_ecosystem_eol_dependency_by_eol_product(
     for eol_version in eol_product.eol_versions:
         _delete_not_match_ecosystem_eol_dependency(db, eol_version)
 
-        package_versions = command.get_related_package_versions_by_eol_version(
-            db, eol_product, eol_version
+        package_versions = command.get_related_package_versions_by_eol_version_for_ecosystem(
+            db, eol_version
         )
         related_services = set()
         for package_version in package_versions:

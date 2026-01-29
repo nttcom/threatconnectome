@@ -1,7 +1,14 @@
 from app import models
-from app.business.eol import eol_version_factory
+from app.business.eol.product import eol_product_factory
+from app.business.eol.version import eol_version_factory
 
+from .product.EoLBaseProduct import EoLBaseProduct
 from .version.EoLBaseVersion import EoLBaseVersion
+
+
+def get_eol_product_packages(eol_product: models.EoLProduct) -> list[str]:
+    product: EoLBaseProduct = eol_product_factory.gen_product_instance_for_eol(eol_product)
+    return product.get_packages()
 
 
 def check_matched_package_version_and_eol_version(
