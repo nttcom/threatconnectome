@@ -10,8 +10,9 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
     for eol_version in eol_product.eol_versions:
         _delete_not_match_package_eol_dependency(db, eol_version)
 
-        package_versions = command.get_related_package_versions_by_eol_version(
-            db, eol_product, eol_version
+        product_packages = eol_detector.get_eol_product_packages(eol_product)
+        package_versions = command.get_related_package_versions_by_product_packages_for_product(
+            db, product_packages
         )
         for package_version in package_versions:
             if not eol_detector.check_matched_package_version_and_eol_version(
@@ -20,7 +21,7 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
                 continue
             for dependency in package_version.dependencies:
                 # Create package EoL dependency and notify immediately if created
-                package_eol_dependency = create_package_eol_dependency_if_not_exists(
+                package_eol_dependency = _create_package_eol_dependency_if_not_exists(
                     db, eol_version.eol_version_id, dependency.dependency_id
                 )
                 if package_eol_dependency:
@@ -35,7 +36,35 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
     db.flush()
 
 
-def create_package_eol_dependency_if_not_exists(
+def fix_package_eol_dependency_by_package_version_and_eol_product(
+    db: Session,
+    dependency_id: str,
+    package_version: models.PackageVersion,
+    eol_product: models.EoLProduct,
+) -> None:
+    if package_version.package.name not in eol_detector.get_eol_product_packages(eol_product):
+        return
+    for eol_version in eol_product.eol_versions:
+        if not eol_detector.check_matched_package_version_and_eol_version(
+            package_version, eol_version
+        ):
+            continue
+
+        # Create package EoL dependency and notify immediately if created
+        package_eol_dependency = _create_package_eol_dependency_if_not_exists(
+            db, eol_version.eol_version_id, dependency_id
+        )
+        if package_eol_dependency:
+            try:
+                if is_within_eol_warning(eol_version.eol_from):
+                    notification_sent = alert.notify_eol_package(package_eol_dependency)
+                    if notification_sent:
+                        package_eol_dependency.eol_notification_sent = True
+            except Exception:
+                pass
+
+
+def _create_package_eol_dependency_if_not_exists(
     db: Session, eol_version_id: str, dependency_id: str
 ) -> models.PackageEoLDependency | None:
     package_eol_dependency = (

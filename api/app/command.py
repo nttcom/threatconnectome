@@ -515,44 +515,27 @@ TICKETS_SORT_KEYS = {
 }
 
 
-def get_related_package_versions_by_eol_version(
-    db: Session, eol_product: models.EoLProduct, eol_version: models.EoLVersion
+def get_related_package_versions_by_eol_version_for_ecosystem(
+    db: Session,
+    eol_version: models.EoLVersion,
 ) -> Sequence[models.PackageVersion]:
-    select_stmt = select(models.PackageVersion).join(
-        models.Package, models.Package.package_id == models.PackageVersion.package_id
+    select_stmt = (
+        select(models.PackageVersion)
+        .join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
+        .where(models.Package.vuln_matching_ecosystem == str(eol_version.matching_version))
     )
-
-    if eol_product.is_ecosystem:
-        select_stmt = select_stmt.where(
-            models.Package.vuln_matching_ecosystem == str(eol_version.matching_version)
-        )
-    else:
-        select_stmt = select_stmt.where(models.Package.name == str(eol_product.matching_name))
 
     return db.scalars(select_stmt).all()
 
 
-def get_related_eol_versions_by_package_version(
-    db: Session, package_version: models.PackageVersion
-) -> Sequence[models.EoLVersion]:
+def get_related_package_versions_by_product_packages_for_product(
+    db: Session,
+    product_packages: list[str],
+) -> Sequence[models.PackageVersion]:
     select_stmt = (
-        select(models.EoLVersion)
-        .join(
-            models.EoLProduct, models.EoLVersion.eol_product_id == models.EoLProduct.eol_product_id
-        )
-        .where(
-            or_(
-                and_(
-                    models.EoLProduct.is_ecosystem.is_(True),
-                    models.EoLVersion.matching_version
-                    == package_version.package.vuln_matching_ecosystem,
-                ),
-                and_(
-                    models.EoLProduct.is_ecosystem.is_(False),
-                    models.EoLProduct.matching_name == package_version.package.name,
-                ),
-            ),
-        )
+        select(models.PackageVersion)
+        .join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
+        .where(models.Package.name.in_(product_packages))
     )
 
     return db.scalars(select_stmt).all()

@@ -1,7 +1,7 @@
 from univers.versions import InvalidVersion
 
 from .version.EoLBaseVersion import EoLBaseVersion
-from .version.FirefoxVersion import FirefoxVersion
+from .version.MajorOnlyVersion import MajorOnlyVersion
 
 
 def gen_version_instance_for_eol(
@@ -12,7 +12,9 @@ def gen_version_instance_for_eol(
     try:
         match product:
             case "firefox":
-                return FirefoxVersion(version_string, ecosystem)
+                return MajorOnlyVersion(version_string, ecosystem)
+            case "sqlite":
+                return MajorOnlyVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:
