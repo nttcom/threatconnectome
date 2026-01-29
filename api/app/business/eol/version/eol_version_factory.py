@@ -1,6 +1,7 @@
 from univers.versions import InvalidVersion
 
 from .EoLBaseVersion import EoLBaseVersion
+from .MajorAndMinorVersion import MajorAndMinorVersion
 from .MajorOnlyVersion import MajorOnlyVersion
 
 
@@ -15,6 +16,10 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "sqlite":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "django":
+                return MajorAndMinorVersion(version_string, ecosystem)
+            case "numpy":
+                return MajorAndMinorVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:
