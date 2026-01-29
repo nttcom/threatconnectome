@@ -74,7 +74,7 @@ eol_product_list: list[EOLProductItem] = [
     {
         "product": "django",
         "threatconnectome": {
-            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "product_category": ProductCategoryEnum.PACKAGE,
             "description": "Django is a high-level Python Web framework that encourages rapid "
             "development and clean, pragmatic design.",
             "is_ecosystem": False,
@@ -89,6 +89,106 @@ eol_product_list: list[EOLProductItem] = [
             "Mozilla. Firefox is available for Windows, macOS, Android, iOS, Linux, and ChromeOS.",
             "is_ecosystem": False,
             "matching_name": "firefox",
+        },
+    },
+    {
+        "product": "react",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": "React is an open-source JavaScript library for "
+            "building modern web applications.",
+            "is_ecosystem": False,
+            "matching_name": "react",
+        },
+    },
+    {
+        "product": "numpy",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": "NumPy offers comprehensive mathematical functions, "
+            "random number generators, linear algebra routines, Fourier transforms, and more.",
+            "is_ecosystem": False,
+            "matching_name": "numpy",
+        },
+    },
+    {
+        "product": "nodejs",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.RUNTIME,
+            "description": "Node.js is an open-source, cross-platform JavaScript run-time "
+            "environment built on Chrome’s V8 JavaScript engine that executes JavaScript "
+            "code outside a browser.",
+            "is_ecosystem": False,
+            "matching_name": "nodejs",
+        },
+    },
+    {
+        "product": "php",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.RUNTIME,
+            "description": "PHP: Hypertext Preprocessor (or simply PHP) is a general-purpose "
+            "programming language originally designed for web development.",
+            "is_ecosystem": False,
+            "matching_name": "php",
+        },
+    },
+    {
+        "product": "ruby",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.RUNTIME,
+            "description": "Ruby is a dynamic, open-source programming language with a focus "
+            "on simplicity and productivity. It has an elegant syntax that is natural to read "
+            "and easy to write.",
+            "is_ecosystem": False,
+            "matching_name": "ruby",
+        },
+    },
+    {
+        "product": "python",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.RUNTIME,
+            "description": "Python is an interpreted, high-level, "
+            "general-purpose programming language.",
+            "is_ecosystem": False,
+            "matching_name": "python",
+        },
+    },
+    {
+        "product": "postgresql",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": "PostgreSQL, also known as Postgres, is a free and open-source "
+            "relational database management system (RDBMS) emphasizing extensibility "
+            "and technical standards compliance.",
+            "is_ecosystem": False,
+            "matching_name": "postgresql",
+        },
+    },
+    {
+        "product": "redis",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": "Redis is an in-memory data structure store, used as a database, "
+            "cache and message broker. It supports data structures such as strings, hashes, lists, "
+            "sets, sorted sets with range queries, bitmaps, hyperloglogs, geospatial indexes "
+            "with radius queries and streams. Redis has built-in replication, Lua scripting, "
+            "LRU eviction, transactions and different levels of on-disk persistence, "
+            "and provides high availability via Redis Sentinel and automatic partitioning "
+            "with Redis Cluster.",
+            "is_ecosystem": False,
+            "matching_name": "redis",
+        },
+    },
+    {
+        "product": "sqlite",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": "SQLite is an in-process library that implements a self-contained, "
+            "serverless, zero-configuration, transactional SQL database engine. "
+            "The code for SQLite is in the public domain and is thus free for use for any purpose, "
+            "commercial or private.",
+            "is_ecosystem": False,
+            "matching_name": "sqlite",
         },
     },
 ]
