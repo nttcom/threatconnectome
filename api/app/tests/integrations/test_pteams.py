@@ -69,7 +69,7 @@ class TestGetVulnIdsTiedToServicePackage:
             json_data,
         )
 
-        # Create 2st ticket
+        # Create 2nd ticket
         service_name2 = "test_service2"
         upload_file_name = "test_trivy_cyclonedx_asynckit.json"
         sbom_file = (
@@ -385,7 +385,7 @@ class TestGetTicketCountsTiedToServicePackage:
             json_data,
         )
 
-        # Create 2st ticket
+        # Create 2nd ticket
         service_name2 = "test_service2"
         upload_file_name = "test_trivy_cyclonedx_asynckit.json"
         sbom_file = (

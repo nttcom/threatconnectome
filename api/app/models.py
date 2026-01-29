@@ -26,7 +26,7 @@ from typing_extensions import Annotated
 class ComparableStringEnum(str, enum.Enum):
     @property
     # Note: this method can be a classmethod in python3.10, but chaining classmethod descriptors
-    #       is depricated in python3.11.
+    #       is deprecated in python3.11.
     def _orders_map(self):
         # Note: list(Enum) returns enums in definition order.
         #       see enum.EnumMeta.__iter__()

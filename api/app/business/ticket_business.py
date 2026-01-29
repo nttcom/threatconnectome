@@ -36,7 +36,7 @@ def _check_need_ticket(db: Session, threat: models.Threat) -> bool:
 
 
 def ticket_meets_condition_to_create_alert(ticket: models.Ticket) -> bool:
-    # abort if deployer_priofiry is not yet calclated
+    # abort if deployer_priofiry is not yet calculated
     if ticket.ssvc_deployer_priority is None:
         return False
 

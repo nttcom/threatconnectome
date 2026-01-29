@@ -27,20 +27,20 @@ engine = create_engine(TEST_SQLALCHEMY_DATABASE_URL)
 @pytest.fixture(scope="session", autouse=True)
 def handle_db_once():
     cwd = os.getcwd()
-    os.chdir("./app")  # swich dir to where alembic.ini placed.
+    os.chdir("./app")  # switch dir to where alembic.ini placed.
     alembic.config.main(argv=["--raiseerr", "upgrade", "head"])
     os.chdir(cwd)
 
     yield
 
-    # os.chdir("./app")  # swich dir to where alembic.ini placed.
+    # os.chdir("./app")  # switch dir to where alembic.ini placed.
     # alembic.config.main(argv=["--raiseerr", "downgrade", "base"])
     # os.chdir(cwd)
 
 
 class TestingSession(Session):
     def commit(self):
-        # Not persistence becase of testing
+        # Not persistence because of testing
         self.flush()
         self.expire_all()
 

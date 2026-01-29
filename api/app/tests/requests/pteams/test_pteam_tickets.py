@@ -1348,26 +1348,26 @@ class TestPutTicket:
                 (
                     models.TicketHandlingStatusType.acknowledged.value,
                     "2000-01-01T00:00:00Z",
-                    "If status is not scheduled, do not specify schduled_at",
+                    "If status is not scheduled, do not specify scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.acknowledged.value,
                     "2345-06-07T08:09:10Z",
-                    "If status is not scheduled, do not specify schduled_at",
+                    "If status is not scheduled, do not specify scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.completed.value,
                     "2000-01-01T00:00:00Z",
-                    "If status is not scheduled, do not specify schduled_at",
+                    "If status is not scheduled, do not specify scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.completed.value,
                     "2345-06-07T08:09:10Z",
-                    "If status is not scheduled, do not specify schduled_at",
+                    "If status is not scheduled, do not specify scheduled_at",
                 ),
             ],
         )
-        def test_it_should_return_400_when_handling_status_is_not_scheduled_and_schduled_at_is_time(
+        def test_return_400_when_status_not_scheduled_and_scheduled_at_is_set(
             self,
             ticket_handling_status,
             scheduled_at,
@@ -1386,30 +1386,30 @@ class TestPutTicket:
                     models.TicketHandlingStatusType.scheduled.value,
                     False,
                     None,
-                    "If status is scheduled, specify schduled_at",
+                    "If status is scheduled, specify scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.scheduled.value,
                     True,
                     None,
-                    "If status is scheduled, unable to reset schduled_at",
+                    "If status is scheduled, unable to reset scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.scheduled.value,
                     True,
                     "2000-01-01T00:00:00Z",
-                    "If status is scheduled, schduled_at must be a future time",
+                    "If status is scheduled, scheduled_at must be a future time",
                 ),
             ],
         )
-        def test_it_should_return_400_when_schduled_at_is_not_future_time(
+        def test_it_should_return_400_when_scheduled_at_is_not_future_time(
             self,
             ticket_handling_status,
             need_scheduled_at,
             scheduled_at,
             expected_response_detail,
         ):
-            # when ticket_handling_status is schduled and schduled at is not future time,
+            # when ticket_handling_status is scheduled and scheduled at is not future time,
             # return 200.
 
             response = self.common_setup_for_set_ticket_status(
@@ -1443,7 +1443,7 @@ class TestPutTicket:
                 (models.TicketHandlingStatusType.completed.value, True, None, 200),
             ],
         )
-        def test_it_should_return_200_when_handling_status_and_schduled_at_have_the_correct_values(
+        def test_it_should_return_200_when_handling_status_and_scheduled_at_have_the_correct_values(
             self,
             ticket_handling_status,
             need_scheduled_at,
@@ -1471,25 +1471,25 @@ class TestPutTicket:
                 (
                     models.TicketHandlingStatusType.completed.value,
                     None,
-                    "If current status is not scheduled and previous status is schduled, "
-                    "need to reset schduled_at",
+                    "If current status is not scheduled and previous status is scheduled, "
+                    "need to reset scheduled_at",
                 ),
                 (
                     models.TicketHandlingStatusType.acknowledged.value,
                     None,
-                    "If current status is not scheduled and previous status is schduled, "
-                    "need to reset schduled_at",
+                    "If current status is not scheduled and previous status is scheduled, "
+                    "need to reset scheduled_at",
                 ),
             ],
         )
-        def test_it_should_return_400_when_previous_status_is_schduled_and_schduled_at_is_reset(
+        def test_it_should_return_400_when_previous_status_is_schduled_and_scheduled_at_is_reset(
             self,
             current_ticket_handling_status,
             current_scheduled_at,
             expected_response_detail,
         ):
-            # When previou ticket_handling_status is schduled and current ticket_handling_status is
-            #  not schduled, return 400 if current_scheduled_at does not contain
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
+            # is not scheduled, return 400 if current_scheduled_at does not contain
             # a value to reset None.
 
             previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value
@@ -1511,12 +1511,12 @@ class TestPutTicket:
                 (
                     None,
                     None,
-                    "If status is scheduled, unable to reset schduled_at",
+                    "If status is scheduled, unable to reset scheduled_at",
                 ),
                 (
                     None,
                     "2000-01-01T00:00:00Z",
-                    "If status is scheduled, schduled_at must be a future time",
+                    "If status is scheduled, scheduled_at must be a future time",
                 ),
             ],
         )
@@ -1526,7 +1526,7 @@ class TestPutTicket:
             current_scheduled_at,
             expected_response_detail,
         ):
-            # When previou ticket_handling_status is schduled and current ticket_handling_status
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
             #  is None, return 400 if current_scheduled_at does not contain
             # future time or None.
 
@@ -1568,11 +1568,11 @@ class TestPutTicket:
             current_scheduled_at,
             expected_response_status_code,
         ):
-            # When previou ticket_handling_status is schduled and current ticket_handling_status
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
             # is None, return 200 if current_scheduled_at contain None.
 
-            # When previou ticket_handling_status is schduled and current ticket_handling_status is
-            # completed, return 200 if current_scheduled_at contain
+            # When previous ticket_handling_status is scheduled and current ticket_handling_status
+            # is completed, return 200 if current_scheduled_at contain
             # a value to reset None.
 
             previous_ticket_handling_status = models.TicketHandlingStatusType.scheduled.value

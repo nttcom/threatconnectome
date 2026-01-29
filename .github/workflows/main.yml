@@ -111,6 +111,7 @@ jobs:
           pipenv run black --check --diff ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run ruff check ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary
+          pipenv run codespell ${{ env.PYTHON_ROOT_DIRS }}
       - name: Extract service account credentials
         run: |
           envsubst < ../key/.subst > ../key/firebase_credentials.json

@@ -43,7 +43,7 @@ def create_ticket(testdb: Session, user: dict, pteam: dict, service_name: str, v
     # Search package_version table
     package_version = testdb.scalars(select(models.PackageVersion)).one()
 
-    # Search ticket tabel
+    # Search ticket table
     ticket = testdb.scalars(select(models.Ticket)).one()
 
     return {

@@ -38,7 +38,7 @@ EMAIL_ADDRESS_TOO_LONG_MESSAGE = (
 @router.post("/slack/check")
 def check_webhook_url(data: SlackCheckRequest, current_user: Account = Depends(get_current_user)):
     """
-    Send test message to slack used by incomming webhook url
+    Send test message to slack used by incoming webhook url
     """
     # validate webhook URL length
     webhook_url = strip_and_validate_field_length(
