@@ -1367,7 +1367,7 @@ class TestPutTicket:
                 ),
             ],
         )
-        def test_it_should_return_400_when_handling_status_is_not_scheduled_and_scheduled_at_is_time(
+        def test_return_400_when_status_not_scheduled_and_scheduled_at_is_set(
             self,
             ticket_handling_status,
             scheduled_at,
