@@ -1,3 +1,5 @@
+import logging
+
 from univers.debian import Version as DebianVersion
 from univers.rpm import RpmVersion
 from univers.versions import AlpineLinuxVersion
@@ -21,5 +23,9 @@ class MajorOnlyVersion(EoLBaseVersion):
                     self.version = str(AlpineLinuxVersion(version)).split(".")[0]
                 case _:
                     self.version = version
-        except Exception:
+        except Exception as exception:
+            log = logging.getLogger(__name__)
+            log.error(
+                "Failed to parse version from" f" '{version}' (ecosystem: {ecosystem}): {exception}"
+            )
             self.version = version

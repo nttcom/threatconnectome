@@ -1,3 +1,5 @@
+import logging
+
 from univers.versions import PypiVersion
 
 from app.detector.package_family import PackageFamily
@@ -20,5 +22,9 @@ class MajorAndMinorVersion(EoLBaseVersion):
                     )
                 case _:
                     self.version = version
-        except Exception:
+        except Exception as exception:
+            log = logging.getLogger(__name__)
+            log.error(
+                "Failed to parse version from" f" '{version}' (ecosystem: {ecosystem}): {exception}"
+            )
             self.version = version
