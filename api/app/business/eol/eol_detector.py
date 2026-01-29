@@ -1,7 +1,6 @@
-from api.app.business.eol.product import eol_product_factory
-from api.app.business.eol.version import eol_version_factory
-
 from app import models
+from app.business.eol.product import eol_product_factory
+from app.business.eol.version import eol_version_factory
 
 from .product.EoLBaseProduct import EoLBaseProduct
 from .version.EoLBaseVersion import EoLBaseVersion
