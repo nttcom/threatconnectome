@@ -67,7 +67,7 @@ export function DeleteAccountDialog(props) {
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              This action cannot be undone. This will permanentlly delete your account.
+              This action cannot be undone. This will permanently delete your account.
             </DialogContentText>
             <Box>
               <Typography>Type in your email to confirm</Typography>
