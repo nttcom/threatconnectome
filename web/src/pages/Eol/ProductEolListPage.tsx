@@ -149,40 +149,52 @@ export function ProductEolList() {
       </Paper>
       {/* Product Card List */}
       <Grid container spacing={2}>
-        {filteredProducts.map((product) => {
-          return (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.eol_product_id}>
-              <Card variant="outlined">
-                <CardActionArea
-                  onClick={() =>
-                    navigate(
-                      `/supported-products/${product.eol_product_id}?` + preservedParams.toString(),
-                    )
-                  }
-                >
-                  <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                      <Typography variant="h6" fontWeight="bold">
-                        {product.name}
-                      </Typography>
-                      <Chip
-                        label={getProductCategorybyValue(product.product_category)}
-                        size="small"
-                      />
-                    </Stack>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 1, mb: 2, minHeight: 40 }}
-                    >
-                      {product.description}
+        {filteredProducts.map((product) => (
+          <Grid
+            size={{ xs: 12, sm: 6, md: 4 }}
+            key={product.eol_product_id}
+            sx={{ display: "flex" }}
+          >
+            <Card
+              variant="outlined"
+              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            >
+              <CardActionArea
+                onClick={() =>
+                  navigate(
+                    `/supported-products/${product.eol_product_id}?` + preservedParams.toString(),
+                  )
+                }
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                    <Typography variant="h6" fontWeight="bold">
+                      {product.name}
                     </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          );
-        })}
+                    <Chip
+                      label={getProductCategorybyValue(product.product_category)}
+                      size="small"
+                    />
+                  </Stack>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1, mb: 2, minHeight: 40 }}
+                  >
+                    {product.description}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
       {filteredProducts.length === 0 && (
         <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
