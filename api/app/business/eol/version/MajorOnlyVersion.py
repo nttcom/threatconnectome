@@ -2,7 +2,7 @@ import logging
 
 from univers.debian import Version as DebianVersion
 from univers.rpm import RpmVersion
-from univers.versions import AlpineLinuxVersion
+from univers.versions import AlpineLinuxVersion, PypiVersion
 
 from app.detector.package_family import PackageFamily
 
@@ -21,6 +21,9 @@ class MajorOnlyVersion(EoLBaseVersion):
                     self.version = RpmVersion.from_string(version).version.split(".")[0]
                 case PackageFamily.ALPINE:
                     self.version = str(AlpineLinuxVersion(version)).split(".")[0]
+                case PackageFamily.NPM:
+                    version_parts = str(PypiVersion(version)).split(".")
+                    self.version = version_parts[0]
                 case _:
                     self.version = version
         except Exception as exception:
