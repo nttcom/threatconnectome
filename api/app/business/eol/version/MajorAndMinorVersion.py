@@ -1,6 +1,8 @@
 import logging
 
-from univers.versions import PypiVersion
+from univers.debian import Version as DebianVersion
+from univers.rpm import RpmVersion
+from univers.versions import AlpineLinuxVersion, PypiVersion
 
 from app.detector.package_family import PackageFamily
 
@@ -13,15 +15,19 @@ class MajorAndMinorVersion(EoLBaseVersion):
 
         try:
             match package_family:
+                case PackageFamily.DEBIAN:
+                    version_parts = DebianVersion.from_string(version).upstream.split(".")
+                case PackageFamily.RPM:
+                    version_parts = RpmVersion.from_string(version).version.split(".")
+                case PackageFamily.ALPINE:
+                    version_parts = str(AlpineLinuxVersion(version)).split(".")
                 case PackageFamily.PYPI:
                     version_parts = str(PypiVersion(version)).split(".")
-                    self.version = (
-                        version_parts[0]
-                        if len(version_parts) == 1
-                        else f"{version_parts[0]}.{version_parts[1]}"
-                    )
                 case _:
                     self.version = version
+                    return
+
+            self.version = ".".join(version_parts[:2])
         except Exception as exception:
             log = logging.getLogger(__name__)
             log.error(
