@@ -16,6 +16,10 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "sqlite":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "nodejs":
+                return MajorOnlyVersion(version_string, ecosystem)
+            case "redis":
+                return MajorAndMinorVersion(version_string, ecosystem)
             case "django":
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "numpy":
