@@ -23,6 +23,8 @@ import {
   Select,
   MenuItem,
   FormControl,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Warning as WarningIcon,
@@ -51,6 +53,7 @@ import type { Status } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
+import { EolCardList } from "./EolCard";
 
 const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
@@ -92,6 +95,8 @@ const StatusBadge = ({ status }: { status: Status }) => {
 export function ServiceEolDashboard() {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -250,73 +255,79 @@ export function ServiceEolDashboard() {
           />
         </Stack>
 
-        {/* Tools Table */}
-        <TableContainer>
-          <Table>
-            <TableHead sx={{ bgcolor: "grey.100" }}>
-              <TableRow>
-                <TableCell>Status</TableCell>
-                <TableCell>Product / Version</TableCell>
-                <TableCell>Service</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>EOL date</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredEoLProducts.length > 0 ? (
-                sortEolList.map((eolVersion) => (
-                  <TableRow
-                    key={eolVersion.eol_version_id}
-                    hover
-                    sx={{
-                      bgcolor:
-                        getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
-                    }}
-                  >
-                    <TableCell>
-                      <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        {getDiffText(eolVersion.eol_from)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography fontWeight={600}>{eolVersion.product_name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        v{eolVersion.version}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        {eolVersion.services.map((s) => (
-                          <Chip
-                            key={s.service_id}
-                            label={s.service_name}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getProductCategorybyValue(eolVersion.product_category)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
+        {/* Tools Table / Card View */}
+        {isMdDown ? (
+          // Mobile: Card View (mock data)
+          <EolCardList />
+        ) : (
+          // Desktop: Table View
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ bgcolor: "grey.100" }}>
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                    <LayersIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
-                    <Typography color="text.secondary">No matching products found</Typography>
-                  </TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Product / Version</TableCell>
+                  <TableCell>Service</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>EOL date</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {filteredEoLProducts.length > 0 ? (
+                  sortEolList.map((eolVersion) => (
+                    <TableRow
+                      key={eolVersion.eol_version_id}
+                      hover
+                      sx={{
+                        bgcolor:
+                          getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
+                      }}
+                    >
+                      <TableCell>
+                        <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          {getDiffText(eolVersion.eol_from)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography fontWeight={600}>{eolVersion.product_name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          v{eolVersion.version}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                          {eolVersion.services.map((s) => (
+                            <Chip
+                              key={s.service_id}
+                              label={s.service_name}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ))}
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={getProductCategorybyValue(eolVersion.product_category)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                      <LayersIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
+                      <Typography color="text.secondary">No matching products found</Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
         <Box p={2} borderTop={1} borderColor="divider">
           <Typography variant="caption" color="text.secondary">
