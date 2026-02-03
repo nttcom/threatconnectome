@@ -16,6 +16,8 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "sqlite":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "react":
+                return MajorOnlyVersion(version_string, ecosystem)
             case "postgresql":
                 return MajorOnlyVersion(version_string, ecosystem)
             case "nodejs":
