@@ -389,6 +389,7 @@ class ThreatconnectomeClient:
             f"{self.api_url}/eols/{eol_product_id}",
             json=eol_parameters,
             use_api_key=True,
+            timeout=180,
         )
 
 
