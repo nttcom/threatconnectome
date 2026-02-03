@@ -2,6 +2,7 @@ from app import models
 
 from .EoLBaseProduct import EoLBaseProduct
 from .PostgresqlProduct import PostgresqlProduct
+from .RedisProduct import RedisProduct
 from .SqliteProduct import SqliteProduct
 
 
@@ -14,5 +15,7 @@ def gen_product_instance_for_eol(
             return SqliteProduct(ecosystem)
         case "postgresql":
             return PostgresqlProduct(ecosystem)
+        case "redis":
+            return RedisProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.matching_name)
