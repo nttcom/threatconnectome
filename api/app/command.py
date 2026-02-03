@@ -528,19 +528,6 @@ def get_related_package_versions_by_eol_version_for_ecosystem(
     return db.scalars(select_stmt).all()
 
 
-def get_related_package_versions_by_product_packages_for_product(
-    db: Session,
-    product_packages: list[str],
-) -> Sequence[models.PackageVersion]:
-    select_stmt = (
-        select(models.PackageVersion)
-        .join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
-        .where(models.Package.name.in_(product_packages))
-    )
-
-    return db.scalars(select_stmt).all()
-
-
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],

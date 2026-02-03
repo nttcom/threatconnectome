@@ -3,7 +3,7 @@ from app.detector.package_family import PackageFamily
 from .EoLBaseProduct import EoLBaseProduct
 
 
-class SqliteProduct(EoLBaseProduct):
+class RedisProduct(EoLBaseProduct):
     def __init__(self, ecosystem: str):
         self.ecosystem = ecosystem
 
@@ -12,10 +12,10 @@ class SqliteProduct(EoLBaseProduct):
 
         match package_family:
             case PackageFamily.DEBIAN:
-                return package_name in ["libsqlite3-0", "libsqlite3-dev"]
+                return package_name == "redis-server"
             case PackageFamily.RPM:
-                return package_name == "sqlite-libs"
+                return package_name == "redis"
             case PackageFamily.ALPINE:
-                return package_name == "sqlite-libs"
+                return package_name == "redis"
             case _:
                 return False

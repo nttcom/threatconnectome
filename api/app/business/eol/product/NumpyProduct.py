@@ -3,7 +3,7 @@ from app.detector.package_family import PackageFamily
 from .EoLBaseProduct import EoLBaseProduct
 
 
-class SqliteProduct(EoLBaseProduct):
+class NumpyProduct(EoLBaseProduct):
     def __init__(self, ecosystem: str):
         self.ecosystem = ecosystem
 
@@ -12,10 +12,12 @@ class SqliteProduct(EoLBaseProduct):
 
         match package_family:
             case PackageFamily.DEBIAN:
-                return package_name in ["libsqlite3-0", "libsqlite3-dev"]
+                return package_name == "python3-numpy"
             case PackageFamily.RPM:
-                return package_name == "sqlite-libs"
+                return package_name == "python3-numpy"
             case PackageFamily.ALPINE:
-                return package_name == "sqlite-libs"
+                return package_name in ["py3-numpy", "py3-numpy-pyc"]
+            case PackageFamily.PYPI:
+                return package_name == "numpy"
             case _:
                 return False

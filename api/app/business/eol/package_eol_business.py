@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence
+from app import models, persistence
 from app.business.eol import eol_detector
 from app.notification import alert
 from app.notification.eol_notification_utils import is_within_eol_warning
@@ -10,30 +10,38 @@ def fix_package_eol_dependency_by_eol_product(db: Session, eol_product: models.E
     for eol_version in eol_product.eol_versions:
         _delete_not_match_package_eol_dependency(db, eol_version)
 
-        product_packages = eol_detector.get_eol_product_packages(eol_product)
-        package_versions = command.get_related_package_versions_by_product_packages_for_product(
-            db, product_packages
-        )
-        for package_version in package_versions:
-            if not eol_detector.check_matched_package_version_and_eol_version(
-                package_version, eol_version
-            ):
-                continue
-            for dependency in package_version.dependencies:
-                # Create package EoL dependency and notify immediately if created
-                package_eol_dependency = _create_package_eol_dependency_if_not_exists(
-                    db, eol_version.eol_version_id, dependency.dependency_id
-                )
-                if package_eol_dependency:
-                    try:
-                        if is_within_eol_warning(package_eol_dependency.eol_version.eol_from):
-                            notification_sent = alert.notify_eol_package(package_eol_dependency)
-                            if notification_sent:
-                                package_eol_dependency.eol_notification_sent = True
-                    except Exception:
-                        pass
-
+        pteams = persistence.get_all_pteams(db)
+        for pteam in pteams:
+            for service in pteam.services:
+                for dependency in service.dependencies:
+                    _fix_package_eol_dependency_by_dependency(
+                        db, dependency, eol_product, eol_version
+                    )
     db.flush()
+
+
+def _fix_package_eol_dependency_by_dependency(
+    db: Session,
+    dependency: models.Dependency,
+    eol_product: models.EoLProduct,
+    eol_version: models.EoLVersion,
+) -> None:
+    package_version = dependency.package_version
+    if not eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
+        return
+
+    # Create package EoL dependency and notify immediately if created
+    package_eol_dependency = _create_package_eol_dependency_if_not_exists(
+        db, eol_version.eol_version_id, dependency.dependency_id
+    )
+    if package_eol_dependency:
+        try:
+            if is_within_eol_warning(package_eol_dependency.eol_version.eol_from):
+                notification_sent = alert.notify_eol_package(package_eol_dependency)
+                if notification_sent:
+                    package_eol_dependency.eol_notification_sent = True
+        except Exception:
+            pass
 
 
 def fix_package_eol_dependency_by_package_version_and_eol_product(
@@ -42,12 +50,8 @@ def fix_package_eol_dependency_by_package_version_and_eol_product(
     package_version: models.PackageVersion,
     eol_product: models.EoLProduct,
 ) -> None:
-    if package_version.package.name not in eol_detector.get_eol_product_packages(eol_product):
-        return
     for eol_version in eol_product.eol_versions:
-        if not eol_detector.check_matched_package_version_and_eol_version(
-            package_version, eol_version
-        ):
+        if not eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
             continue
 
         # Create package EoL dependency and notify immediately if created
@@ -105,12 +109,7 @@ def _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         eol_version = package_eol_dependency.eol_version
         eol_product = eol_version.eol_product
         package_version = package_eol_dependency.dependency.package_version
-        if (
-            package_version.package.name == eol_product.matching_name
-            and eol_detector.check_matched_package_version_and_eol_version(
-                package_version, eol_version
-            )
-        ):
+        if eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
             continue
         delete_package_eol_dependencies.append(package_eol_dependency)
 
