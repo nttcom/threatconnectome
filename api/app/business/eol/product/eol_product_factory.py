@@ -2,6 +2,7 @@ from app import models
 
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
+from .NumpyProduct import NumpyProduct
 from .PhpProduct import PhpProduct
 from .PostgresqlProduct import PostgresqlProduct
 from .PythonProduct import PythonProduct
@@ -19,6 +20,8 @@ def gen_product_instance_for_eol(
             return SqliteProduct(ecosystem)
         case "postgresql":
             return PostgresqlProduct(ecosystem)
+        case "numpy":
+            return NumpyProduct(ecosystem)
         case "redis":
             return RedisProduct(ecosystem)
         case "django":
