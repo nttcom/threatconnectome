@@ -1,9 +1,4 @@
-import type {
-  PTeamEoLProductResponse,
-  ProductCategoryEnum,
-  EoLProductResponse,
-  ServiceEntry,
-} from "../../types/types.gen.ts";
+import type { ProductCategoryEnum } from "../../types/types.gen.ts";
 
 export const WARNING_THRESHOLD_DAYS = 180;
 
