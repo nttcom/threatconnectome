@@ -16,6 +16,6 @@ def gen_product_instance_for_eol(
         case "postgresql":
             return PostgresqlProduct(ecosystem)
         case "redis":
-            return RedisProduct(eol_product.matching_name)
+            return RedisProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.matching_name)
