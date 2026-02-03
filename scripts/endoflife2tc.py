@@ -389,7 +389,6 @@ class ThreatconnectomeClient:
             f"{self.api_url}/eols/{eol_product_id}",
             json=eol_parameters,
             use_api_key=True,
-            timeout=180,
         )
 
 
@@ -491,8 +490,8 @@ def main() -> None:
         refresh_token,
         api_key=api_key,
         retry_max=3,
-        connect_timeout=60.0,
-        read_timeout=60.0,
+        connect_timeout=180.0,
+        read_timeout=180.0,
     )
 
     remove_unsupported_eol(tc_client)
