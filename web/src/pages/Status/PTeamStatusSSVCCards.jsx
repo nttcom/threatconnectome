@@ -21,7 +21,7 @@ import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
   sortedSystemExposure,
   systemExposure,
-  sortedMissionImpat,
+  sortedMissionImpact,
   missionImpact,
 } from "../../utils/const";
 import { errorToString } from "../../utils/func";
@@ -90,7 +90,7 @@ export function PTeamStatusSSVCCards(props) {
     {
       title: "Mission Impact",
       description: "Impact on Mission Essential Functions of the Organization.",
-      items: sortedMissionImpat,
+      items: sortedMissionImpact,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
       handleClickIconButton: setIsMissionImpactEditable,

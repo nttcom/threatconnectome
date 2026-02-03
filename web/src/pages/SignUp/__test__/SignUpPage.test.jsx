@@ -79,7 +79,7 @@ describe("TestSignUpPage", () => {
     });
   });
 
-  describe("Sign up button behabior", () => {
+  describe("Sign up button behavior", () => {
     it("creates an account when given valid parameters", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const emailValue = "test@example.com";

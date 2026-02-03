@@ -107,7 +107,7 @@ export const systemExposure = {
   small: "Small",
 };
 
-export const sortedMissionImpat = [
+export const sortedMissionImpact = [
   "mission_failure",
   "mef_failure",
   "mef_support_crippled",
