@@ -11,7 +11,7 @@ class PythonProduct(EoLBaseProduct):
 
     def match_package(self, package_name: str, package_version: str) -> bool:
         major_version = MajorOnlyVersion(package_version, self.ecosystem).get_version()
-        major_and_miner_version = MajorAndMinorVersion(
+        major_and_minor_version = MajorAndMinorVersion(
             package_version, self.ecosystem
         ).get_version()
         package_family = PackageFamily.from_registry(self.ecosystem)
@@ -20,7 +20,7 @@ class PythonProduct(EoLBaseProduct):
             case PackageFamily.DEBIAN:
                 return package_name in [
                     f"python{major_version}",
-                    f"python{major_and_miner_version}",
+                    f"python{major_and_minor_version}",
                 ]
             case PackageFamily.RPM:
                 return package_name == f"python{major_version}"

@@ -9,14 +9,14 @@ class RubyProduct(EoLBaseProduct):
         self.ecosystem = ecosystem
 
     def match_package(self, package_name: str, package_version: str) -> bool:
-        major_and_miner_version = MajorAndMinorVersion(
+        major_and_minor_version = MajorAndMinorVersion(
             package_version, self.ecosystem
         ).get_version()
         package_family = PackageFamily.from_registry(self.ecosystem)
 
         match package_family:
             case PackageFamily.DEBIAN:
-                return package_name == f"ruby{major_and_miner_version}"
+                return package_name == f"ruby{major_and_minor_version}"
             case PackageFamily.RPM:
                 return package_name == "ruby"
             case PackageFamily.ALPINE:
