@@ -2,6 +2,7 @@ import type {
   PTeamEoLProductResponse,
   ProductCategoryEnum,
   EoLProductResponse,
+  ServiceEntry,
 } from "../../types/types.gen.ts";
 
 export const WARNING_THRESHOLD_DAYS = 180;
@@ -23,17 +24,16 @@ export const formatDate = (dateStr: string | null | undefined) => {
   return new Date(dateStr).toLocaleDateString();
 };
 
-export const getLatestUpdateDate = (
-  eolProducts: PTeamEoLProductResponse[] | EoLProductResponse[],
-) => {
-  const latestUpdateDate = eolProducts
-    .flatMap((eolProduct) => eolProduct.eol_versions ?? [])
-    .map((eol_version) => new Date(eol_version.updated_at))
-    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
-  const latestUpdate =
-    latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
+interface HasUpdatedAt {
+  updated_at: string;
+}
 
-  return latestUpdate;
+export const getLatestUpdateDate = (items: HasUpdatedAt[]): string => {
+  const latestUpdateDate = items
+    .map((item) => new Date(item.updated_at))
+    .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
+
+  return latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
 };
 
 export const getDiffDays = (eolDateStr: string | null | undefined): number | null => {

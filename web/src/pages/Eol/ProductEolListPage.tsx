@@ -63,7 +63,7 @@ export function ProductEolList() {
     );
   }, [eolsData, searchTerm, selectedCategory]);
 
-  const latestUpdate = getLatestUpdateDate(filteredProducts);
+  const latestUpdate = getLatestUpdateDate(filteredProducts.flatMap((p) => p.eol_versions ?? []));
 
   if (skip) return <>Now loading auth token...</>;
   if (eolsError)

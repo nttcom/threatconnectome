@@ -110,20 +110,7 @@ export function ServiceEolDashboard() {
   if (eolIsLoading) return <>Now loading Eol...</>;
   if (!eols) return <>Eol data not found</>;
 
-  const filteredEoLProducts = eols.products.filter((eolProduct) => {
-    return (eolProduct?.eol_versions ?? []).some((eolVersion) => {
-      const status = getEolStatus(eolVersion.eol_from);
-      const matchesFilter = filter === "all" || filter === status;
-      const matchesSearch =
-        eolProduct.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        eolVersion.services.some((s) =>
-          s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-      return matchesFilter && matchesSearch;
-    });
-  });
-
-  const sortEolList = filteredEoLProducts
+  const filteredEolVersions = eols.products
     .flatMap((eolProduct) =>
       (eolProduct.eol_versions ?? []).map((version) => ({
         ...version,
@@ -131,6 +118,18 @@ export function ServiceEolDashboard() {
         product_category: eolProduct.product_category,
       })),
     )
+    .filter((eolVersion) => {
+      const status = getEolStatus(eolVersion.eol_from);
+      const matchesFilter = filter === "all" || filter === status;
+
+      const matchesSearch =
+        eolVersion.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        eolVersion.services.some((s) =>
+          s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+
+      return matchesFilter && matchesSearch;
+    })
     .sort((a, b) => {
       // Display expired items first, then by date (invalid dates at the bottom)
       const dateA = a.eol_from ? new Date(a.eol_from).getTime() : Infinity;
@@ -141,7 +140,7 @@ export function ServiceEolDashboard() {
       return finalA - finalB;
     });
 
-  const latestUpdate = getLatestUpdateDate(filteredEoLProducts);
+  const latestUpdate = getLatestUpdateDate(filteredEolVersions);
 
   const handleFilterChange = (_event: React.MouseEvent<HTMLElement>, newFilter: string | null) => {
     if (newFilter !== null) {
@@ -263,8 +262,8 @@ export function ServiceEolDashboard() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredEoLProducts.length > 0 ? (
-                sortEolList.map((eolVersion) => (
+              {filteredEolVersions.length > 0 ? (
+                filteredEolVersions.map((eolVersion) => (
                   <TableRow
                     key={eolVersion.eol_version_id}
                     hover
@@ -320,7 +319,7 @@ export function ServiceEolDashboard() {
 
         <Box p={2} borderTop={1} borderColor="divider">
           <Typography variant="caption" color="text.secondary">
-            Total: {eols.total}
+            Total: {filteredEolVersions.length}
           </Typography>
         </Box>
       </Paper>
