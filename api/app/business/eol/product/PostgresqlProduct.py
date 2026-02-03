@@ -8,7 +8,7 @@ class PostgresqlProduct(EoLBaseProduct):
     def __init__(self, ecosystem: str):
         self.ecosystem = ecosystem
 
-    def mutch_package(self, package_name: str, package_version: str) -> bool:
+    def match_package(self, package_name: str, package_version: str) -> bool:
         major_version = MajorOnlyVersion(package_version, self.ecosystem).get_version()
         package_family = PackageFamily.from_registry(self.ecosystem)
 

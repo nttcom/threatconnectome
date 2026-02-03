@@ -27,7 +27,7 @@ def _fix_package_eol_dependency_by_dependency(
     eol_version: models.EoLVersion,
 ) -> None:
     package_version = dependency.package_version
-    if not eol_detector.matche_eol_for_product(package_version, eol_product, eol_version):
+    if not eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
         return
 
     # Create package EoL dependency and notify immediately if created
@@ -51,7 +51,7 @@ def fix_package_eol_dependency_by_package_version_and_eol_product(
     eol_product: models.EoLProduct,
 ) -> None:
     for eol_version in eol_product.eol_versions:
-        if not eol_detector.matche_eol_for_product(package_version, eol_product, eol_version):
+        if not eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
             continue
 
         # Create package EoL dependency and notify immediately if created
@@ -109,7 +109,7 @@ def _delete_not_match_package_eol_dependency_by_package_eol_dependencies(
         eol_version = package_eol_dependency.eol_version
         eol_product = eol_version.eol_product
         package_version = package_eol_dependency.dependency.package_version
-        if eol_detector.matche_eol_for_product(package_version, eol_product, eol_version):
+        if eol_detector.match_eol_for_product(package_version, eol_product, eol_version):
             continue
         delete_package_eol_dependencies.append(package_eol_dependency)
 

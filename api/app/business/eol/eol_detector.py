@@ -6,7 +6,7 @@ from .product.EoLBaseProduct import EoLBaseProduct
 from .version.EoLBaseVersion import EoLBaseVersion
 
 
-def matche_eol_for_product(
+def match_eol_for_product(
     package_version: models.PackageVersion,
     eol_product: models.EoLProduct,
     eol_version: models.EoLVersion,
@@ -23,7 +23,7 @@ def _check_matched_package_version_and_eol_product(
     product: EoLBaseProduct = eol_product_factory.gen_product_instance_for_eol(
         eol_product, package.vuln_matching_ecosystem
     )
-    return product.mutch_package(package_version.package.name, package_version.version)
+    return product.match_package(package_version.package.name, package_version.version)
 
 
 def _check_matched_package_version_and_eol_version(
