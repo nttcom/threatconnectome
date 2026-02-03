@@ -1,8 +1,12 @@
 from app import models
 
+from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
+from .PhpProduct import PhpProduct
 from .PostgresqlProduct import PostgresqlProduct
+from .PythonProduct import PythonProduct
 from .RedisProduct import RedisProduct
+from .RubyProduct import RubyProduct
 from .SqliteProduct import SqliteProduct
 
 
@@ -17,5 +21,13 @@ def gen_product_instance_for_eol(
             return PostgresqlProduct(ecosystem)
         case "redis":
             return RedisProduct(ecosystem)
+        case "django":
+            return DjangoProduct(ecosystem)
+        case "php":
+            return PhpProduct(ecosystem)
+        case "python":
+            return PythonProduct(ecosystem)
+        case "ruby":
+            return RubyProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.matching_name)
