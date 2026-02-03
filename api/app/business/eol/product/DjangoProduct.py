@@ -7,7 +7,7 @@ class DjangoProduct(EoLBaseProduct):
     def __init__(self, ecosystem: str):
         self.ecosystem = ecosystem
 
-    def mutch_package(self, package_name: str, package_version: str) -> bool:
+    def match_package(self, package_name: str, package_version: str) -> bool:
         package_family = PackageFamily.from_registry(self.ecosystem)
 
         match package_family:
