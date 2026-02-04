@@ -80,14 +80,7 @@ def update_eol(
     if not (eol_product := persistence.get_eol_product_by_id(db, eol_product_id)):
         eol_product = __handle_create_eol(eol_product_id, request, db)
     else:
-        req_data = request.model_dump()
-        req_versions = req_data.pop("eol_versions", [])
-
-        has_changed = any(
-            getattr(eol_product, key) != value for key, value in req_data.items()
-        ) or _is_eol_versions_changed(eol_product.eol_versions, req_versions)
-
-        if has_changed:
+        if _is_eol_product_changed(eol_product, request):
             eol_product = __handle_update_eol(eol_product, request, db)
         else:
             return _create_eol_response(eol_product)
@@ -101,6 +94,22 @@ def update_eol(
     db.commit()
 
     return eol_response
+
+
+def _is_eol_product_changed(
+    eol_product: models.EoLProduct, request: schemas.EoLProductRequest
+) -> bool:
+    """
+    Check whether any top-level EoL product fields or its versions
+    have changed compared to the request payload.
+    """
+    req_data = request.model_dump()
+    req_versions = req_data.pop("eol_versions", [])
+
+    if any(getattr(eol_product, key) != value for key, value in req_data.items()):
+        return True
+
+    return _is_eol_versions_changed(eol_product.eol_versions, req_versions)
 
 
 def _is_eol_versions_changed(db_versions, req_versions) -> bool:
