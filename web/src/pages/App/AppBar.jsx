@@ -16,6 +16,7 @@ import { setDrawerOpen } from "../../slices/system";
 import { drawerWidth } from "../../utils/const";
 
 import { AppFallback } from "./AppFallback";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { TeamSelector } from "./TeamSelector";
 import { UserMenu } from "./UserMenu/UserMenu";
 
@@ -67,6 +68,7 @@ export function AppBar() {
             <TeamSelector />
           </ErrorBoundary>
           <Box flexGrow={1} />
+          <LanguageSwitcher />
           <UserMenu />
         </Toolbar>
       </StyledAppBar>
