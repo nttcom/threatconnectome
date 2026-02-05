@@ -21,6 +21,7 @@ import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useViewportOffset } from "../../hooks/useViewportOffset";
 import {
@@ -34,13 +35,14 @@ const TOOLTIP_TEXT_LIMIT = 150;
 
 export function SafetyImpactSelectorView(props) {
   const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "SafetyImpactSelectorView" });
 
   const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [readMoreDialogOpen, setReadMoreDialogOpen] = useState(false);
 
-  const defaultSafetyImpactItem = "Default";
+  const defaultSafetyImpactItem = t("defaultItem");
 
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
@@ -70,7 +72,10 @@ export function SafetyImpactSelectorView(props) {
   const handleReasonSafetyImpactLengthCheck = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxReasonSafetyImpactLengthInHalf) {
       enqueueSnackbar(
-        `Too long ticket_safety_impact_change_reason. Max length is ${maxReasonSafetyImpactLengthInHalf} in half-width or ${Math.floor(maxReasonSafetyImpactLengthInHalf / 2)} in full-width`,
+        t("reasonTooLong", {
+          maxHalf: maxReasonSafetyImpactLengthInHalf,
+          maxFull: Math.floor(maxReasonSafetyImpactLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -117,7 +122,7 @@ export function SafetyImpactSelectorView(props) {
   const tooltipContent = (
     <>
       <Typography variant="h6" sx={{ px: 1, pt: 1 }}>
-        Why was it changed from the default safety impact?
+        {t("tooltipTitle")}
       </Typography>
       <Box sx={{ p: 1 }}>
         <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
@@ -127,7 +132,7 @@ export function SafetyImpactSelectorView(props) {
       {isLongReason && (
         <Box sx={{ textAlign: "right", px: 1, pb: 1 }}>
           <Button size="small" onClick={handleOpenReadMoreDialog}>
-            Read more...
+            {t("readMore")}
           </Button>
         </Box>
       )}
@@ -160,7 +165,7 @@ export function SafetyImpactSelectorView(props) {
         </StyledTooltip>
       )}
       <Dialog open={openDialog} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Safety Impact update</DialogTitle>
+        <DialogTitle>{t("dialogTitle")}</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
             <FormControl fullWidth>
@@ -180,7 +185,7 @@ export function SafetyImpactSelectorView(props) {
               </Select>
             </FormControl>
 
-            <DialogContentText>Provide the reason for this Safety Impact</DialogContentText>
+            <DialogContentText>{t("reasonPrompt")}</DialogContentText>
             <TextField
               hiddenLabel
               variant="filled"
@@ -193,15 +198,15 @@ export function SafetyImpactSelectorView(props) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>{t("cancel")}</Button>
           <Button onClick={handleSave} disabled={isSaveDisabled}>
-            Save
+            {t("save")}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={readMoreDialogOpen} onClose={handleCloseReadMoreDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Why was it changed from the default safety impact?</DialogTitle>
+        <DialogTitle>{t("readMoreDialogTitle")}</DialogTitle>
         <DialogContent>
           <DialogContentText
             sx={{
@@ -213,7 +218,7 @@ export function SafetyImpactSelectorView(props) {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseReadMoreDialog}>Close</Button>
+          <Button onClick={handleCloseReadMoreDialog}>{t("close")}</Button>
         </DialogActions>
       </Dialog>
     </Box>
