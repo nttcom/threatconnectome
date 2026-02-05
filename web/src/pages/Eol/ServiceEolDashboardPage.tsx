@@ -27,9 +27,6 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import {
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
   Search as SearchIcon,
   Inventory2 as PackageIcon,
   Info as InfoIcon,
@@ -53,7 +50,7 @@ import type { Status } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
-import { EolCardList } from "./EolCard";
+import { statusConfig, EolCardList } from "./EolCard";
 
 const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
@@ -63,26 +60,6 @@ const getDiffText = (eolDateStr: string) => {
   if (diffDays === 0) return "Expires today";
   return `${diffDays} days left`;
 };
-
-// --- Status Settings ---
-const statusConfig = {
-  expired: {
-    color: "error",
-    icon: <ErrorIcon fontSize="small" />,
-  },
-  warning: {
-    color: "warning",
-    icon: <WarningIcon fontSize="small" />,
-  },
-  active: {
-    color: "success",
-    icon: <CheckCircleIcon fontSize="small" />,
-  },
-  unknown: {
-    color: "default",
-    icon: undefined,
-  },
-} as const;
 
 // --- Component ---
 const StatusBadge = ({ status }: { status: Status }) => {
@@ -256,8 +233,8 @@ export function ServiceEolDashboard() {
 
         {/* Tools Table / Card View */}
         {isMdDown ? (
-          // Mobile: Card View (mock data)
-          <EolCardList />
+          // Mobile: Card View
+          <EolCardList filteredEolVersions={filteredEolVersions} />
         ) : (
           // Desktop: Table View
           <TableContainer>

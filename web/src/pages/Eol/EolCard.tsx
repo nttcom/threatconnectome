@@ -3,10 +3,21 @@ import {
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
-import { mockEolCardData, type Status } from "./mocks/eolCardData";
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 
-const statusConfig = {
+import {
+  formatDate,
+  getDiffDays,
+  getEolStatus,
+  getProductCategorybyValue,
+  getStatusLabel,
+  Status,
+} from "../../utils/eolUtils";
+
+import { PTeamServiceResponse } from "../../../types/types.gen.ts";
+
+// --- Status Settings ---
+export const statusConfig = {
   expired: {
     color: "error",
     icon: <ErrorIcon />,
@@ -25,27 +36,39 @@ const statusConfig = {
   },
 } as const;
 
-const statusLabels = {
-  expired: "Expired",
-  warning: "Warning",
-  active: "Active",
-  unknown: "Unknown",
-} as const;
-
 const StatusBadge = ({ status }: { status: Status }) => {
   const config = statusConfig[status];
-  return <Chip icon={config.icon} label={statusLabels[status]} color={config.color} size="small" />;
+  return (
+    <Chip icon={config.icon} label={getStatusLabel(status)} size="small" color={config.color} />
+  );
 };
 
-// モックデータを使用
-export function EolCardList() {
+const getDiffText = (eolDateStr: string) => {
+  const diffDays = getDiffDays(eolDateStr);
+
+  if (diffDays === null || diffDays === undefined) return "-";
+  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
+  if (diffDays === 0) return "Expires today";
+  return `${diffDays} days left`;
+};
+
+type EolVersionForUi = {
+  eol_version_id: string;
+  eol_from: string;
+  product_category: string;
+  product_name: string;
+  version: string;
+  services: PTeamServiceResponse[];
+};
+
+export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolVersionForUi[] }) {
   return (
     <Stack spacing={2} sx={{ p: 2 }}>
-      {mockEolCardData.map((item) => (
+      {filteredEolVersions.map((eolVersion) => (
         <Card
-          key={item.id}
+          key={eolVersion.eol_version_id}
           variant="outlined"
-          sx={{ bgcolor: item.status === "expired" ? "error.50" : undefined }}
+          sx={{ bgcolor: getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined }}
         >
           <CardContent>
             {/* ヘッダー：ステータスとカテゴリ */}
@@ -57,28 +80,33 @@ export function EolCardList() {
                 mb: 1,
               }}
             >
-              <StatusBadge status={item.status} />
-              <Chip label={item.category} size="small" />
+              <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
+              <Chip label={getProductCategorybyValue(eolVersion.product_category)} size="small" />
             </Box>
 
             {/* プロダクト名とバージョン */}
             <Typography sx={{ fontWeight: "bold", wordBreak: "break-word" }}>
-              {item.productName}{" "}
+              {eolVersion.product_name}{" "}
             </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              v{item.version}
+              v{eolVersion.version}
             </Typography>
 
             {/* EOL日と残り日数 */}
             <Typography variant="caption" color="text.secondary">
-              EOL: {item.eolDate || "-"} ({item.diffText})
+              EOL: {formatDate(eolVersion.eol_from) || "-"} ({getDiffText(eolVersion.eol_from)})
             </Typography>
 
             {/* サービス一覧 */}
-            {item.services.length > 0 && (
+            {eolVersion.services.length > 0 && (
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                {item.services.map((service) => (
-                  <Chip key={service.id} label={service.name} size="small" variant="outlined" />
+                {eolVersion.services.map((service) => (
+                  <Chip
+                    key={service.service_id}
+                    label={service.service_name}
+                    size="small"
+                    variant="outlined"
+                  />
                 ))}
               </Stack>
             )}
