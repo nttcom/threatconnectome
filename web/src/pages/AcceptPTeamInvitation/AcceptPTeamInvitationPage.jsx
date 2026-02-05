@@ -63,7 +63,7 @@ export function AcceptPTeamInvitation() {
         {t("teamId")}: {detail.pteam_id}
       </Typography>
       <Typography>
-        {t("invitationCreatedBy")} {detail.email} ({detail.user_id})
+        {t("invitationCreatedBy")}: {detail.email} ({detail.user_id})
       </Typography>
       <Box display="flex" flexDirection="row">
         <Button onClick={handleAccept} disabled={!detail.pteam_id} sx={commonButtonStyle}>
