@@ -9,7 +9,7 @@ import { ServiceEntry } from "../../../types/types.gen.ts";
 
 import { getStatusLabel, Status } from "../../utils/eolUtils.ts";
 
-export const statusConfig = {
+const statusConfig = {
   expired: {
     color: "error",
     icon: <ErrorIcon />,
