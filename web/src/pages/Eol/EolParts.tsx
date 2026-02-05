@@ -5,9 +5,9 @@ import {
 } from "@mui/icons-material";
 import { Chip } from "@mui/material";
 
-import { ServiceEntry } from "../../../types/types.gen.ts";
+import { ServiceEntry } from "../../../types/types.gen";
 
-import { getStatusLabel, Status } from "../../utils/eolUtils.ts";
+import { getStatusLabel, Status } from "../../utils/eolUtils";
 
 const statusConfig = {
   expired: {

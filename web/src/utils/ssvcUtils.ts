@@ -5,7 +5,7 @@ import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import WarningIcon from "@mui/icons-material/Warning";
 import { amber, green, grey, orange, red } from "@mui/material/colors";
 
-import { TicketResponse } from "../../types/types.gen.ts";
+import { TicketResponse } from "../../types/types.gen";
 
 export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
 

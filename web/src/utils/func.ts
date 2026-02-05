@@ -1,7 +1,7 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { SerializedError } from "@reduxjs/toolkit";
 
-import { UserResponse } from "../../types/types.gen.ts";
+import { UserResponse } from "../../types/types.gen";
 
 export const a11yProps = (index: number) => ({
   id: `tab-${index}`,

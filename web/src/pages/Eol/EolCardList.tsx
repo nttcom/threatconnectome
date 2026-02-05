@@ -6,7 +6,7 @@ import {
   getEolStatus,
   getDiffText,
   getProductCategorybyValue,
-} from "../../utils/eolUtils.ts";
+} from "../../utils/eolUtils";
 import { EolVersionForUi, StatusBadge } from "./EolParts";
 
 export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolVersionForUi[] }) {
