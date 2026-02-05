@@ -12,9 +12,12 @@ import {
   useTheme,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function LanguageSwitcher() {
-  const [lang, setLang] = useState<"en" | "ja">("en");
+  const { i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+  const [lang, setLang] = useState<string>(currentLanguage);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -42,6 +45,7 @@ export function LanguageSwitcher() {
           onClick={() => {
             setLang("en");
             setAnchorEl(null);
+            i18n.changeLanguage("en");
           }}
         >
           <ListItemIcon>
@@ -53,6 +57,7 @@ export function LanguageSwitcher() {
           onClick={() => {
             setLang("ja");
             setAnchorEl(null);
+            i18n.changeLanguage("ja");
           }}
         >
           <ListItemIcon>
