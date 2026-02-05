@@ -1,7 +1,93 @@
 {
-    "UserMenu": {
-        "AccountSettingsDialog": {
-            "account": "Account settings"
-        }
+  "Drawer": {
+    "title": "Threatconnectome",
+    "status": "Status",
+    "team": "Team",
+    "vulns": "Vulns",
+    "eol": "EoL",
+    "todo": "ToDo"
+  },
+  "TeamSelector": {
+    "loadingUserInfo": "Now loading UserInfo...",
+    "createTeam": "Create Team"
+  },
+  "PTeamCreateModal": {
+    "title": "Create Team",
+    "teamName": "Team name",
+    "teamNamePlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "contactInfo": "Contact Info",
+    "contactInfoPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "slackWebhook": "Slack's Incoming Webhook URL",
+    "slackPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "create": "Create",
+    "teamNameTooLong": "Too long team name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "contactInfoTooLong": "Too long contact info. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "slackUrlTooLong": "Too long Slack webhook URL. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "createSucceeded": "create pteam succeeded",
+    "operationFailed": "Operation failed: {{error}}"
+  },
+  "UserMenu": {
+    "loadingUserInfo": "Now loading UserInfo...",
+    "settings": "Settings",
+    "logout": "Logout",
+    "AccountSettingsDialog": {
+      "account": "Account settings",
+      "email": "Email",
+      "userId": "User ID",
+      "yearsOfExperience": "Years of work experience in security",
+      "yearsTooltip": "Please select years of your work experience in security to support security response.",
+      "years0": "0+ year",
+      "years2": "2+ years",
+      "years5": "5+ years",
+      "years7": "7+ years",
+      "team": "Team",
+      "defaultTeam": "Default Team",
+      "defaultTeamTooltip": "Your default team. This will be shown if no other team is currently selected.",
+      "none": "None",
+      "updateSucceeded": "Update user info succeeded"
+    },
+    "DeleteAccountDialog": {
+      "deleteButton": "Delete my account",
+      "title": "Delete your account permanently?",
+      "warning": "This action cannot be undone. This will permanently delete your account.",
+      "confirmPrompt": "Type in your email to confirm",
+      "placeholder": "sample@example.com",
+      "deleteConfirm": "Permanently delete account",
+      "cancel": "Cancel",
+      "emailWrong": "EMail is wrong",
+      "operationFailed": "Operation failed: {{error}}"
+    },
+    "TwoFactorAuthSection": {
+      "title": "Two-factor Authentication",
+      "smsAuth": "SMS Authentication",
+      "enabled": "Enabled. Code required at login.",
+      "disabled": "Protect your account with SMS verification.",
+      "enabledSuccess": "SMS authentication enabled successfully!",
+      "disabledInfo": "SMS authentication disabled."
+    },
+    "MfaSetupDialog": {
+      "titleSetup": "Setup SMS Authentication",
+      "titleVerify": "Enter Verification Code",
+      "enterPhoneNumber": "Please enter your mobile phone number to enable 2FA",
+      "phoneNumber": "Phone Number",
+      "phonePlaceholder": "9012345678",
+      "codeSentTo": "We sent a 6-digit verification code to {{countryCode}} {{phoneNumber}}",
+      "verificationCode": "Verification Code",
+      "codePlaceholder": "123456",
+      "didYouReceive": "Did you receive the code?",
+      "changePhoneNumber": "Change Phone Number",
+      "cancel": "Cancel",
+      "sendCode": "Send Code",
+      "processing": "Processing...",
+      "verifyEnable": "Verify & Enable",
+      "codeResent": "The verification code has been resent."
+    },
+    "DisabledMfaConfirmDialog": {
+      "title": "Disable SMS Authentication for phone number {{phoneNumber}}?",
+      "warning": "By disabling SMS Authentication, your account will be only protected by your password.",
+      "note": "Note: To change your phone number, disable SMS Authentication first and then set it up again.",
+      "cancel": "Cancel",
+      "disable": "Disable"
     }
+  }
 }

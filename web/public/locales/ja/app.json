@@ -1,7 +1,93 @@
 {
-    "UserMenu": {
-        "AccountSettingsDialog": {
-            "account": "アカウント設定"
-        }
+  "Drawer": {
+    "title": "Threatconnectome",
+    "status": "ステータス",
+    "team": "チーム",
+    "vulns": "脆弱性",
+    "eol": "EoL",
+    "todo": "ToDo"
+  },
+  "TeamSelector": {
+    "loadingUserInfo": "ユーザー情報を読み込み中...",
+    "createTeam": "チームを作成"
+  },
+  "PTeamCreateModal": {
+    "title": "チームを作成",
+    "teamName": "チーム名",
+    "teamNamePlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "contactInfo": "連絡先情報",
+    "contactInfoPlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "slackWebhook": "SlackのIncoming Webhook URL",
+    "slackPlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "create": "作成",
+    "teamNameTooLong": "チーム名が長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "contactInfoTooLong": "連絡先情報が長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
+    "createSucceeded": "チームの作成に成功しました",
+    "operationFailed": "操作に失敗しました：{{error}}"
+  },
+  "UserMenu": {
+    "loadingUserInfo": "ユーザー情報を読み込み中...",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "AccountSettingsDialog": {
+      "account": "アカウント設定",
+      "email": "メールアドレス",
+      "userId": "ユーザーID",
+      "yearsOfExperience": "セキュリティ業務の経験年数",
+      "yearsTooltip": "セキュリティ対応をサポートするため、セキュリティ業務の経験年数を選択してください。",
+      "years0": "0年以上",
+      "years2": "2年以上",
+      "years5": "5年以上",
+      "years7": "7年以上",
+      "team": "チーム",
+      "defaultTeam": "デフォルトチーム",
+      "defaultTeamTooltip": "デフォルトチーム。他のチームが選択されていない場合に表示されます。",
+      "none": "なし",
+      "updateSucceeded": "ユーザー情報の更新に成功しました"
+    },
+    "DeleteAccountDialog": {
+      "deleteButton": "アカウントを削除",
+      "title": "アカウントを永久に削除しますか？",
+      "warning": "この操作は元に戻せません。アカウントが完全に削除されます。",
+      "confirmPrompt": "確認のためメールアドレスを入力してください",
+      "placeholder": "sample@example.com",
+      "deleteConfirm": "アカウントを永久に削除",
+      "cancel": "キャンセル",
+      "emailWrong": "メールアドレスが間違っています",
+      "operationFailed": "操作に失敗しました：{{error}}"
+    },
+    "TwoFactorAuthSection": {
+      "title": "二要素認証",
+      "smsAuth": "SMS認証",
+      "enabled": "有効。ログイン時にコードが必要です。",
+      "disabled": "SMSによる検証でアカウントを保護します。",
+      "enabledSuccess": "SMS認証が正常に有効になりました！",
+      "disabledInfo": "SMS認証が無効になりました。"
+    },
+    "MfaSetupDialog": {
+      "titleSetup": "SMS認証をセットアップ",
+      "titleVerify": "認証コードを入力",
+      "enterPhoneNumber": "2FAを有効にするために、携帯電話番号を入力してください",
+      "phoneNumber": "電話番号",
+      "phonePlaceholder": "9012345678",
+      "codeSentTo": "{{countryCode}} {{phoneNumber}}に6桁の認証コードを送信しました",
+      "verificationCode": "認証コード",
+      "codePlaceholder": "123456",
+      "didYouReceive": "コードを受信しましたか？",
+      "changePhoneNumber": "電話番号を変更",
+      "cancel": "キャンセル",
+      "sendCode": "コードを送信",
+      "processing": "処理中...",
+      "verifyEnable": "検証して有効化",
+      "codeResent": "認証コードが再送信されました。"
+    },
+    "DisabledMfaConfirmDialog": {
+      "title": "電話番号{{phoneNumber}}のSMS認証を無効にしますか？",
+      "warning": "SMS認証を無効にすると、アカウントはパスワードのみで保護されます。",
+      "note": "注意：電話番号を変更するには、まずSMS認証を無効にしてから、再度セットアップしてください。",
+      "cancel": "キャンセル",
+      "disable": "無効にする"
     }
+  }
 }

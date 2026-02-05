@@ -14,6 +14,7 @@ import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 
 import { useAuth, useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
@@ -25,6 +26,7 @@ import { errorToString } from "../../../utils/func";
 import { AccountSettings } from "./AccountSettings";
 
 export function UserMenu() {
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu" });
   const dispatch = useDispatch();
   const { signOut } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -44,7 +46,7 @@ export function UserMenu() {
     throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
     });
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
 
   const openUserMenu = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -102,7 +104,7 @@ export function UserMenu() {
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
+          <ListItemText>{t("settings")}</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem
@@ -114,7 +116,7 @@ export function UserMenu() {
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
+          <ListItemText>{t("logout")}</ListItemText>
         </MenuItem>
       </Menu>
       <AccountSettings
