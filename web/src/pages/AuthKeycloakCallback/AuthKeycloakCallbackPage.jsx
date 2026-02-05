@@ -1,5 +1,6 @@
 import { Link, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -12,9 +13,10 @@ const supabase =
   import.meta.env.VITE_AUTH_SERVICE === "supabase" ? Supabase.getClient() : undefined;
 
 export function AuthKeycloakCallback() {
+  const { t } = useTranslation("authKeycloakCallback", { keyPrefix: "AuthKeycloakCallbackPage" });
   const navigate = useNavigate();
   const location = useLocation();
-  const [message, setMessage] = useState("Now checking AuthCode...");
+  const [message, setMessage] = useState(t("checkingAuthCode"));
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const params = new URLSearchParams(location.search);
@@ -31,7 +33,7 @@ export function AuthKeycloakCallback() {
       const { data, error } = await supabase.auth.getSession();
       if (!data?.session) {
         console.log(error);
-        setMessage(`Cannot get session: ${error?.message}`);
+        setMessage(t("cannotGetSession", { error: error?.message }));
         return;
       }
       try {
@@ -43,7 +45,7 @@ export function AuthKeycloakCallback() {
                 await createUser({ body: {} })
                   .unwrap()
                   .catch((error2) => {
-                    throw new Error(`Cannot create user: ${errorToString(error2)}`);
+                    throw new Error(t("cannotCreateUser", { error: errorToString(error2) }));
                   });
                 if (navigateTo.pathname === "/") {
                   navigateTo.pathname = "/account";
@@ -52,7 +54,7 @@ export function AuthKeycloakCallback() {
                 break;
               }
               default:
-                throw new Error(`Something went wrong: ${errorToString(error)}`);
+                throw new Error(t("somethingWentWrong", { error: errorToString(error) }));
             }
           });
       } catch (error) {
@@ -69,7 +71,7 @@ export function AuthKeycloakCallback() {
   return (
     <>
       <Typography>{message}</Typography>
-      <Link href={"/login"}>Back to login</Link>
+      <Link href={"/login"}>{t("backToLogin")}</Link>
     </>
   );
 }
