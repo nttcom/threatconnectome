@@ -1,4 +1,4 @@
-import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen.ts";
+import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen";
 
 interface currentPackage {
   package_name: string;

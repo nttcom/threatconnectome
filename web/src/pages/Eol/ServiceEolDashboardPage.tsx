@@ -5,13 +5,6 @@ import {
   Container,
   Typography,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
   TextField,
   InputAdornment,
   ToggleButton,
@@ -23,15 +16,13 @@ import {
   Select,
   MenuItem,
   FormControl,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
   Search as SearchIcon,
   Inventory2 as PackageIcon,
   Info as InfoIcon,
-  Layers as LayersIcon,
 } from "@mui/icons-material";
 
 // @ts-expect-error TS7016
@@ -39,59 +30,20 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 // @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import {
-  formatDate,
-  getDiffDays,
-  getLatestUpdateDate,
-  getProductCategorybyValue,
-  getStatusLabel,
-  getEolStatus,
-} from "../../utils/eolUtils";
-import type { Status } from "../../utils/eolUtils";
+import { getLatestUpdateDate, getEolStatus } from "../../utils/eolUtils";
 // @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
 
-const getDiffText = (eolDateStr: string) => {
-  const diffDays = getDiffDays(eolDateStr);
-
-  if (diffDays === null || diffDays === undefined) return "-";
-  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
-  if (diffDays === 0) return "Expires today";
-  return `${diffDays} days left`;
-};
-
-// --- Status Settings ---
-const statusConfig = {
-  expired: {
-    color: "error",
-    icon: <ErrorIcon fontSize="small" />,
-  },
-  warning: {
-    color: "warning",
-    icon: <WarningIcon fontSize="small" />,
-  },
-  active: {
-    color: "success",
-    icon: <CheckCircleIcon fontSize="small" />,
-  },
-  unknown: {
-    color: "default",
-    icon: undefined,
-  },
-} as const;
-
-// --- Component ---
-const StatusBadge = ({ status }: { status: Status }) => {
-  const config = statusConfig[status];
-  return (
-    <Chip icon={config.icon} label={getStatusLabel(status)} size="small" color={config.color} />
-  );
-};
+import { EolCardList } from "./EolCardList";
+import { EolVersionForUi } from "./EolParts";
+import { EolTable } from "./EolTable";
 
 export function ServiceEolDashboard() {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const theme = useTheme();
+  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -110,7 +62,7 @@ export function ServiceEolDashboard() {
   if (eolIsLoading) return <>Now loading Eol...</>;
   if (!eols) return <>Eol data not found</>;
 
-  const filteredEolVersions = eols.products
+  const filteredEolVersions: EolVersionForUi[] = eols.products
     .flatMap((eolProduct) =>
       (eolProduct.eol_versions ?? []).map((version) => ({
         ...version,
@@ -249,73 +201,14 @@ export function ServiceEolDashboard() {
           />
         </Stack>
 
-        {/* Tools Table */}
-        <TableContainer>
-          <Table>
-            <TableHead sx={{ bgcolor: "grey.100" }}>
-              <TableRow>
-                <TableCell>Status</TableCell>
-                <TableCell>Product / Version</TableCell>
-                <TableCell>Service</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>EOL date</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredEolVersions.length > 0 ? (
-                filteredEolVersions.map((eolVersion) => (
-                  <TableRow
-                    key={eolVersion.eol_version_id}
-                    hover
-                    sx={{
-                      bgcolor:
-                        getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined,
-                    }}
-                  >
-                    <TableCell>
-                      <StatusBadge status={getEolStatus(eolVersion.eol_from)} />
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        {getDiffText(eolVersion.eol_from)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography fontWeight={600}>{eolVersion.product_name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        v{eolVersion.version}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        {eolVersion.services.map((s) => (
-                          <Chip
-                            key={s.service_id}
-                            label={s.service_name}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getProductCategorybyValue(eolVersion.product_category)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                    <LayersIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
-                    <Typography color="text.secondary">No matching products found</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {/* Tools Table / Card View */}
+        {isMdDown ? (
+          // Mobile: Card View
+          <EolCardList filteredEolVersions={filteredEolVersions} />
+        ) : (
+          // Desktop: Table View
+          <EolTable filteredEolVersions={filteredEolVersions} />
+        )}
 
         <Box p={2} borderTop={1} borderColor="divider">
           <Typography variant="caption" color="text.secondary">

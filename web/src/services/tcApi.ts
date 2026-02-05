@@ -62,7 +62,7 @@ import type {
   PteamMemberGetResponse,
   VulnResponse,
   GetVulnVulnsVulnIdGetData,
-} from "../../types/types.gen.ts";
+} from "../../types/types.gen";
 
 const TAG_TYPES_LIST = [
   "Service",
