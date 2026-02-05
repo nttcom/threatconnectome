@@ -1,4 +1,5 @@
-import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Layers as LayersIcon } from "@mui/icons-material";
 
 import {
   formatDate,
@@ -11,6 +12,12 @@ import { EolVersionForUi, StatusBadge } from "./EolParts";
 export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolVersionForUi[] }) {
   return (
     <Stack spacing={2} sx={{ p: 2 }}>
+      {filteredEolVersions.length === 0 && (
+        <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
+          <LayersIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
+          <Typography color="text.secondary">No matching products found</Typography>
+        </Paper>
+      )}
       {filteredEolVersions.map((eolVersion) => (
         <Card
           key={eolVersion.eol_version_id}
