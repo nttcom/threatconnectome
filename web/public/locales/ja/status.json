@@ -1,0 +1,10 @@
+{
+    "StatusPage": {
+        "all_services": "全てのサービス",
+        "search": "検索",
+        "search_enter": "検索 (ENTERで適用)",
+        "loading_team": "チームを読み込み中...",
+        "loading_packages_summary": "パッケージサマリーを読み込み中...",
+        "rows": "行"
+    }
+}

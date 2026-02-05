@@ -1,0 +1,10 @@
+{
+    "StatusPage": {
+        "all_services": "All Services",
+        "search": "Search",
+        "search_enter": "Search (press ENTER to apply)",
+        "loading_team": "Now loading Team...",
+        "loading_packages_summary": "Now loading PTeamPackagesSummary...",
+        "rows": "Rows"
+    }
+}
