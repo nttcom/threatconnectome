@@ -31,6 +31,7 @@ import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboardPage";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
+import "./i18n/config.ts";
 
 const container = document.getElementById("root");
 const root = createRoot(container);
