@@ -22,6 +22,7 @@ import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useViewportOffset } from "../hooks/useViewportOffset";
 import {
@@ -41,6 +42,7 @@ import { CheckButton } from "./CheckButton";
 
 export function PTeamNotificationSetting(props) {
   const { pteam } = props;
+  const { t } = useTranslation("components", { keyPrefix: "PTeamNotificationSetting" });
 
   const [editingSlackUrl, setEditingSlackUrl] = useState(false);
   const [slackUrl, setSlackUrl] = useState(pteam.alert_slack.webhook_url);
@@ -61,12 +63,15 @@ export function PTeamNotificationSetting(props) {
   const [updatePTeam] = useUpdatePTeamMutation();
 
   const operationError = (error) =>
-    enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+    enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
   const handleMailAddressSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxEmailAddressLengthInHalf) {
       enqueueSnackbar(
-        `Too long email address. Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`,
+        t("emailTooLong", {
+          maxHalf: maxEmailAddressLengthInHalf,
+          maxFull: Math.floor(maxEmailAddressLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -82,7 +87,10 @@ export function PTeamNotificationSetting(props) {
   const handleSlackUrlSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
       enqueueSnackbar(
-        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`,
+        t("slackUrlTooLong", {
+          maxHalf: maxSlackWebhookUrlLengthInHalf,
+          maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -99,7 +107,7 @@ export function PTeamNotificationSetting(props) {
     return (
       <Box display="flex" sx={{ color: "success.main" }}>
         <TaskAltIcon />
-        <Typography>Connection successful </Typography>
+        <Typography>{t("connectionSuccess")}</Typography>
       </Box>
     );
   };
@@ -108,7 +116,7 @@ export function PTeamNotificationSetting(props) {
     return (
       <Box display="flex" sx={{ color: "error.main" }}>
         <ErrorOutlineIcon />
-        <Typography>Connection failed. Reason: {errorToString(error)}</Typography>
+        <Typography>{t("connectionFailed", { error: errorToString(error) })}</Typography>
       </Box>
     );
   };
@@ -122,7 +130,7 @@ export function PTeamNotificationSetting(props) {
     await updatePTeam({ path: { pteam_id: pteam.pteam_id }, body: data })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("update pteam info succeeded", { variant: "success" });
+        enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
       })
       .catch((error) => operationError(error));
   };
@@ -194,7 +202,7 @@ export function PTeamNotificationSetting(props) {
     <Box>
       <Box mb={2}>
         <Typography sx={{ fontWeight: 400 }} mb={1}>
-          Alert threshold
+          {t("alertThreshold")}
         </Typography>
         <Select
           value={alertThreshold}
@@ -212,7 +220,7 @@ export function PTeamNotificationSetting(props) {
       </Box>
       <Box mb={2}>
         <Typography sx={{ fontWeight: 400 }} mb={1}>
-          Email Address
+          {t("emailAddress")}
         </Typography>
         <Box display="flex" alignItems="center">
           <FormControl
@@ -226,7 +234,10 @@ export function PTeamNotificationSetting(props) {
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => handleMailAddressSetting(event.target.value)}
-              placeholder={`Max length is ${maxEmailAddressLengthInHalf} in half-width or ${Math.floor(maxEmailAddressLengthInHalf / 2)} in full-width`}
+              placeholder={t("emailPlaceholder", {
+                maxHalf: maxEmailAddressLengthInHalf,
+                maxFull: Math.floor(maxEmailAddressLengthInHalf / 2),
+              })}
             />
           </FormControl>
           <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />
@@ -235,7 +246,7 @@ export function PTeamNotificationSetting(props) {
       </Box>
       <Box mb={2}>
         <Typography sx={{ fontWeight: 400 }} mb={1}>
-          Slack Incoming Webhook URL
+          {t("slackWebhook")}
         </Typography>
         <Box display="flex" alignItems="center">
           <FormControl
@@ -249,7 +260,10 @@ export function PTeamNotificationSetting(props) {
               autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
-              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`}
+              placeholder={t("slackPlaceholder", {
+                maxHalf: maxSlackWebhookUrlLengthInHalf,
+                maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
+              })}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
@@ -269,27 +283,27 @@ export function PTeamNotificationSetting(props) {
       </Box>
 
       <Box mb={4}>
-        <Typography sx={{ fontWeight: 400 }}>Send by</Typography>
+        <Typography sx={{ fontWeight: 400 }}>{t("sendBy")}</Typography>
         <FormControlLabel
           control={
             <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
           }
           labelPlacement="start"
-          label="Slack"
+          label={t("slack")}
         />
         <FormControlLabel
           control={
             <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
           }
           labelPlacement="start"
-          label="Email"
+          label={t("email")}
         />
       </Box>
       <Divider />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
         <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
-          Update
+          {t("update")}
         </Button>
       </Box>
     </Box>

@@ -1,0 +1,76 @@
+{
+  "PTeamSettingsModal": {
+    "loadingTeam": "チーム情報を読み込んでいます...",
+    "title": "チーム設定",
+    "tabGeneral": "一般",
+    "tabNotification": "通知"
+  },
+  "PTeamGeneralSetting": {
+    "operationFailed": "操作が失敗しました: {error}",
+    "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "contactInfoTooLong": "連絡先情報が長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "updateSucceeded": "チーム情報の更新が成功しました",
+    "teamName": "チーム名",
+    "teamNamePlaceholder": "最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "contactInfo": "連絡先情報",
+    "contactInfoPlaceholder": "最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "update": "更新"
+  },
+  "PTeamNotificationSetting": {
+    "operationFailed": "操作が失敗しました: {error}",
+    "emailTooLong": "メールアドレスが長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "connectionSuccessful": "接続が成功しました",
+    "connectionFailed": "接続が失敗しました。理由: {error}",
+    "updateSucceeded": "チーム情報の更新が成功しました",
+    "alertThreshold": "アラート閾値",
+    "emailAddress": "メールアドレス",
+    "emailPlaceholder": "最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "slackWebhookUrl": "Slack Incoming Webhook URL",
+    "slackUrlPlaceholder": "最大長は半角で{maxHalf}文字、全角で{maxFull}文字です",
+    "sendBy": "送信方法",
+    "slack": "Slack",
+    "email": "Email",
+    "update": "更新"
+  },
+  "SmsResendButton": {
+    "resend": "コードを再送信",
+    "resendIn": "{timer}秒後に再送信"
+  },
+  "SmsTroubleshootingTips": {
+    "title": "認証SMSが届かない場合は、以下をご確認ください:",
+    "tip1": "入力した電話番号が正確である。",
+    "tip2": "デバイスが十分なネットワーク接続を持ち、機内モードではない。",
+    "tip3": "SMSフィルタリング、ブロック設定、またはキャリアの制限により配信が妨げられていない。",
+    "tip4": "メッセージがスパムまたは迷惑メールフォルダに振り分けられていない。"
+  },
+  "Ticket": {
+    "AssigneesSelector": {
+      "assignees": "担当者",
+      "searchPlaceholder": "メールで検索",
+      "noSelection": "選択なし",
+      "failedToLoad": "メンバーの読み込みに失敗しました",
+      "changeSucceeded": "担当者の変更が成功しました",
+      "operationFailed": "操作が失敗しました: {error}"
+    },
+    "CompleteTicketDialog": {
+      "title1": "完了したアクションを選択してください",
+      "title2": "(オプション): 完了の証拠を入力してください",
+      "noActionAvailable": "利用可能なアクションがありません",
+      "evidencePlaceholder": "レポートURL、イベントログ、ファイルハッシュなど、アクションを完了したことを証明するもの。",
+      "done": "完了 {count}",
+      "back": "戻る",
+      "submit": "送信",
+      "submitting": "送信中...",
+      "actionSucceeded": "アクションが成功しました",
+      "ticketCompleted": "チケットが正常に完了しました",
+      "operationFailed": "操作が失敗しました: {error}"
+    },
+    "ScheduleTicketDialog": {
+      "title": "スケジュール設定",
+      "label": "スケジュール日時（未来の日付）",
+      "schedule": "スケジュール",
+      "scheduling": "スケジュール中..."
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "PTeamSettingsModal": {
+    "loadingTeam": "Now loading Team...",
+    "title": "Team settings",
+    "tabGeneral": "General",
+    "tabNotification": "Notification"
+  },
+  "PTeamGeneralSetting": {
+    "operationFailed": "Operation failed: {error}",
+    "teamNameTooLong": "Too long team name. Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "contactInfoTooLong": "Too long contact info. Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "updateSucceeded": "update pteam info succeeded",
+    "teamName": "Team name",
+    "teamNamePlaceholder": "Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "contactInfo": "Contact Info",
+    "contactInfoPlaceholder": "Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "update": "Update"
+  },
+  "PTeamNotificationSetting": {
+    "operationFailed": "Operation failed: {error}",
+    "emailTooLong": "Too long email address. Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "slackUrlTooLong": "Too long Slack webhook URL. Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "connectionSuccessful": "Connection successful",
+    "connectionFailed": "Connection failed. Reason: {error}",
+    "updateSucceeded": "update pteam info succeeded",
+    "alertThreshold": "Alert threshold",
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "slackWebhookUrl": "Slack Incoming Webhook URL",
+    "slackUrlPlaceholder": "Max length is {maxHalf} in half-width or {maxFull} in full-width",
+    "sendBy": "Send by",
+    "slack": "Slack",
+    "email": "Email",
+    "update": "Update"
+  },
+  "SmsResendButton": {
+    "resend": "Resend the code",
+    "resendIn": "Resend in {timer} seconds"
+  },
+  "SmsTroubleshootingTips": {
+    "title": "If the verification SMS does not arrive, please verify the following:",
+    "tip1": "The phone number entered is accurate.",
+    "tip2": "Your device has sufficient network coverage and is not in airplane mode.",
+    "tip3": "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
+    "tip4": "The message has not been placed in your spam or junk folder."
+  },
+  "Ticket": {
+    "AssigneesSelector": {
+      "assignees": "Assignees",
+      "searchPlaceholder": "Search by email",
+      "noSelection": "No selection",
+      "failedToLoad": "Failed to load members",
+      "changeSucceeded": "Change assignees succeeded",
+      "operationFailed": "Operation failed: {error}"
+    },
+    "CompleteTicketDialog": {
+      "title1": "Select the actions you have completed",
+      "title2": "(Optional): Enter evidence of completion",
+      "noActionAvailable": "No action available",
+      "evidencePlaceholder": "Evidence that you have completed the action, such as a report URL, event logs, file hashes, etc.",
+      "done": "Done {count}",
+      "back": "Back",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "actionSucceeded": "Action succeeded",
+      "ticketCompleted": "Ticket completed successfully",
+      "operationFailed": "Operation failed: {error}"
+    },
+    "ScheduleTicketDialog": {
+      "title": "Set schedule",
+      "label": "Schedule Date (future date)",
+      "schedule": "Schedule",
+      "scheduling": "Scheduling..."
+    }
+  }
+}
