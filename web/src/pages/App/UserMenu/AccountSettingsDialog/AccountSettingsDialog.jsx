@@ -18,6 +18,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../../hooks/auth";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
@@ -33,6 +34,7 @@ export function AccountSettingsDialog(props) {
   });
 
   const { isAuthenticatedWithSaml } = useAuth();
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettingsDialog" });
 
   const handleShowSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -51,7 +53,7 @@ export function AccountSettingsDialog(props) {
       <Dialog fullWidth maxWidth="sm" open={accountSettingOpen} onClose={handleClose}>
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            Account settings
+            {t("account")}
             <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>

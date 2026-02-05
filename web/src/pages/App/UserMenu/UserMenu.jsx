@@ -30,7 +30,7 @@ export function UserMenu() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [accountSettingOpen, setAccountSettingOpen] = useState(false);
   const theme = useTheme();
-  const matches = useMediaQuery(theme.breakpoints.up("sm"));
+  const matches = useMediaQuery(theme.breakpoints.up("md"));
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
