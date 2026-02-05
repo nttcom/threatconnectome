@@ -1,0 +1,127 @@
+{
+  "PackagePage": {
+    "nowLoadingTeam": "Now loading Team...",
+    "nowLoadingPackageDependencies": "Now loading packageDependencies...",
+    "nowLoadingSolvedVulnCount": "Now loading solved vuln count...",
+    "nowLoadingUnsolvedVulnCount": "Now loading unsolved vuln count...",
+    "serviceIdRequired": "Service ID is required",
+    "noDependenciesFound": "No dependencies found for this package.",
+    "unsolvedVulns": "UNSOLVED VULNS ({{count}})",
+    "solvedVulns": "SOLVED VULNS ({{count}})"
+  },
+  "PackageReferences": {
+    "references": "References",
+    "noReferences": "no references",
+    "target": "target",
+    "version": "version",
+    "service": "Service"
+  },
+  "CodeBlock": {
+    "install": "Install",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "VulnerabilityTable": {
+    "VulnerabilityTable": {
+      "errorLoadingData": "Error loading data",
+      "defaultSafetyImpact": "Default Safety Impact:",
+      "title": "Title",
+      "tickets": "Tickets",
+      "highestSsvc": "Highest SSVC",
+      "lastUpdated": "Last Updated",
+      "affectedVersion": "Affected Version",
+      "patchedVersion": "Patched Version",
+      "noVulnerabilitiesFound": "No vulnerabilities found",
+      "noResolvedVulnerabilities": "There are no resolved vulnerabilities for this package.",
+      "noUnresolvedVulnerabilities": "There are no unresolved vulnerabilities for this package.",
+      "nowLoading": "Now loading..."
+    },
+    "VulnerabilityTableRow": {
+      "loading": "Loading...",
+      "failedToLoadVulnerability": "Failed to load vulnerability data. Please try again later.",
+      "failedToLoadDependencies": "Failed to load dependencies. Please try again later.",
+      "noVulnerabilityData": "No vulnerability data available",
+      "noDependenciesAvailable": "No dependencies available",
+      "viewDetails": "View details for vulnerability {{title}}",
+      "title": "Title",
+      "noTitle": "No Title",
+      "error": "Error",
+      "highestSsvc": "Highest SSVC"
+    },
+    "VulnerabilitySplitDialog": {
+      "VulnerabilitySplitDialog": {
+        "ticketListAndDetails": "Ticket List & Details",
+        "close": "close",
+        "failedToLoadVulnerability": "Failed to load vulnerability data. Please try again later.",
+        "toggleDetails": "Toggle Details",
+        "cvss": "CVSS: {{score}}",
+        "notApplicable": "N/A",
+        "collapseDetails": "Collapse Details",
+        "back": "Back",
+        "details": "Details"
+      },
+      "VulnInfoContent": {
+        "description": "Description",
+        "noDescription": "No description available",
+        "references": "References",
+        "noReferences": "No references",
+        "cweId": "CWE ID",
+        "cweIdNotAvailable": "CWE ID is not available",
+        "affectedPackages": "Affected Packages",
+        "noAffectedPackages": "No affected packages",
+        "packageName": "Package Name",
+        "affectedVersions": "Affected Versions",
+        "fixedVersions": "Fixed Versions",
+        "notAvailable": "N/A",
+        "failedToLoadVulnerability": "Failed to load vulnerability details. Please try again later."
+      },
+      "TicketSidebar": {
+        "TicketSidebar": {
+          "allTickets": "All Tickets ({{count}})",
+          "loading": "Loading...",
+          "noTicketsAvailable": "No tickets available",
+          "failedToLoadTickets": "Failed to load tickets",
+          "createNewTicket": "Create New Ticket"
+        },
+        "TicketListSection": {
+          "todo": "Todo",
+          "inProgress": "In Progress",
+          "done": "Done",
+          "failedToLoadTickets": "Failed to load tickets"
+        },
+        "TicketListItem": {
+          "updated": "Updated: {{date}}"
+        }
+      },
+      "TicketDetailPanel": {
+        "TicketDetailPanel": {
+          "selectTicket": "Select a ticket from the list on the left",
+          "loading": "Loading...",
+          "failedToLoadTicket": "Failed to load ticket"
+        },
+        "TicketHeader": {
+          "viewTicket": "View ticket"
+        },
+        "StatusManagementCard": {
+          "statusManagement": "Status Management",
+          "currentStatus": "Current Status",
+          "close": "Close",
+          "closeTicket": "Close Ticket",
+          "closeTicketConfirm": "Are you sure you want to close this ticket?",
+          "cancel": "Cancel",
+          "closeTicketSuccess": "Ticket closed",
+          "closeTicketFailed": "Failed to close ticket: {{error}}",
+          "failedToLoadTicket": "Failed to load ticket"
+        },
+        "SafetyImpactCard": {
+          "safetyImpact": "Safety Impact",
+          "edit": "Edit",
+          "save": "Save",
+          "cancel": "Cancel",
+          "updateSuccess": "Safety impact updated",
+          "updateFailed": "Failed to update safety impact: {{error}}"
+        }
+      }
+    }
+  }
+}
