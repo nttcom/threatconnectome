@@ -1,0 +1,27 @@
+{
+    "LoginPage": {
+        "title": "Threatconnectome",
+        "emailLabel": "メールアドレス",
+        "passwordLabel": "パスワード",
+        "forgotPassword": "パスワードをお忘れですか？",
+        "loginWithEmail": "メールでログイン",
+        "loginWithSaml": "SAMLでログイン",
+        "loginWithKeycloak": "Keycloakでログイン",
+        "noAccount": "metemcyberアカウントをお持ちでないですか？",
+        "signUp": "サインアップ",
+        "closedBetaNotice": "このサービスはクローズドベータ版です。ログインは認可された組織のメールアドレスのみ利用可能です。",
+        "loggingIn": "ログイン中...",
+        "emailNotVerified": "メールアドレスが認証されていません。認証用のメールをアドレスに送信しました。",
+        "somethingWentWrong": "問題が発生しました。"
+    },
+    "TwoFactorAuth": {
+        "title": "二要素認証",
+        "subtitle": "SMS経由で送信された6桁のコードを入力してください。",
+        "verificationCodeLabel": "認証コード",
+        "verificationCodePlaceholder": "123456",
+        "authenticate": "認証",
+        "checkingCode": "コードを確認しています...",
+        "didYouReceive": "コードを受け取りましたか？",
+        "codeResent": "認証コードが再送信されました。"
+    }
+}
