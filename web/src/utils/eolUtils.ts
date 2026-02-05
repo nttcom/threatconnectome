@@ -68,3 +68,12 @@ export const getEolStatus = (eolDateStr: string | null | undefined) => {
   if (diffDays <= WARNING_THRESHOLD_DAYS) return "warning";
   return "active";
 };
+
+export const getDiffText = (eolDateStr: string) => {
+  const diffDays = getDiffDays(eolDateStr);
+
+  if (diffDays === null || diffDays === undefined) return "-";
+  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
+  if (diffDays === 0) return "Expires today";
+  return `${diffDays} days left`;
+};

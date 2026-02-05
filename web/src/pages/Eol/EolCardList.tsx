@@ -1,65 +1,12 @@
-import {
-  Error as ErrorIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-} from "@mui/icons-material";
 import { Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 
 import {
   formatDate,
-  getDiffDays,
   getEolStatus,
+  getDiffText,
   getProductCategorybyValue,
-  getStatusLabel,
-  Status,
-} from "../../utils/eolUtils";
-
-import { PTeamServiceResponse } from "../../../types/types.gen.ts";
-
-// --- Status Settings ---
-export const statusConfig = {
-  expired: {
-    color: "error",
-    icon: <ErrorIcon />,
-  },
-  warning: {
-    color: "warning",
-    icon: <WarningIcon />,
-  },
-  active: {
-    color: "success",
-    icon: <CheckCircleIcon />,
-  },
-  unknown: {
-    color: "default",
-    icon: undefined,
-  },
-} as const;
-
-const StatusBadge = ({ status }: { status: Status }) => {
-  const config = statusConfig[status];
-  return (
-    <Chip icon={config.icon} label={getStatusLabel(status)} size="small" color={config.color} />
-  );
-};
-
-const getDiffText = (eolDateStr: string) => {
-  const diffDays = getDiffDays(eolDateStr);
-
-  if (diffDays === null || diffDays === undefined) return "-";
-  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
-  if (diffDays === 0) return "Expires today";
-  return `${diffDays} days left`;
-};
-
-type EolVersionForUi = {
-  eol_version_id: string;
-  eol_from: string;
-  product_category: string;
-  product_name: string;
-  version: string;
-  services: PTeamServiceResponse[];
-};
+} from "../../utils/eolUtils.ts";
+import { EolVersionForUi, StatusBadge } from "./EolParts";
 
 export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolVersionForUi[] }) {
   return (
@@ -71,7 +18,7 @@ export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolV
           sx={{ bgcolor: getEolStatus(eolVersion.eol_from) === "expired" ? "error.50" : undefined }}
         >
           <CardContent>
-            {/* ヘッダー：ステータスとカテゴリ */}
+            {/* Header: Status and Category */}
             <Box
               sx={{
                 display: "flex",
@@ -84,7 +31,7 @@ export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolV
               <Chip label={getProductCategorybyValue(eolVersion.product_category)} size="small" />
             </Box>
 
-            {/* プロダクト名とバージョン */}
+            {/* Product Name and Version */}
             <Typography sx={{ fontWeight: "bold", wordBreak: "break-word" }}>
               {eolVersion.product_name}{" "}
             </Typography>
@@ -92,12 +39,12 @@ export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolV
               v{eolVersion.version}
             </Typography>
 
-            {/* EOL日と残り日数 */}
+            {/* EOL Date and Remaining Days */}
             <Typography variant="caption" color="text.secondary">
               EOL: {formatDate(eolVersion.eol_from) || "-"} ({getDiffText(eolVersion.eol_from)})
             </Typography>
 
-            {/* サービス一覧 */}
+            {/* - List of Services */}
             {eolVersion.services.length > 0 && (
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
                 {eolVersion.services.map((service) => (
