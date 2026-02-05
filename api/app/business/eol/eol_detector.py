@@ -1,10 +1,32 @@
 from app import models
-from app.business.eol import eol_version_factory
+from app.business.eol.product import eol_product_factory
+from app.business.eol.version import eol_version_factory
 
+from .product.EoLBaseProduct import EoLBaseProduct
 from .version.EoLBaseVersion import EoLBaseVersion
 
 
-def check_matched_package_version_and_eol_version(
+def match_eol_for_product(
+    package_version: models.PackageVersion,
+    eol_product: models.EoLProduct,
+    eol_version: models.EoLVersion,
+) -> bool:
+    return _check_matched_package_version_and_eol_product(
+        package_version, eol_product
+    ) and _check_matched_package_version_and_eol_version(package_version, eol_version)
+
+
+def _check_matched_package_version_and_eol_product(
+    package_version: models.PackageVersion, eol_product: models.EoLProduct
+) -> bool:
+    package = package_version.package
+    product: EoLBaseProduct = eol_product_factory.gen_product_instance_for_eol(
+        eol_product, package.vuln_matching_ecosystem
+    )
+    return product.match_package(package_version.package.name, package_version.version)
+
+
+def _check_matched_package_version_and_eol_version(
     package_version: models.PackageVersion, eol_version: models.EoLVersion
 ) -> bool:
     package = package_version.package

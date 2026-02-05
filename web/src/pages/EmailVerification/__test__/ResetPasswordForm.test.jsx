@@ -61,7 +61,7 @@ describe("TestResetPasswordForm", () => {
     });
   });
 
-  describe("Submit button behabior", () => {
+  describe("Submit button behavior", () => {
     it("triggers password reset when the submit button is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const oobCodeExample = "00000";

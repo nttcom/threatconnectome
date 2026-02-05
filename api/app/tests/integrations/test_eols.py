@@ -22,7 +22,7 @@ from app.tests.medium.utils import (
 client = TestClient(app)
 
 
-class TestUpdateVuln:
+class TestUpdateEol:
     @pytest.fixture(scope="function", autouse=True)
     def common_setup(self):
         self.user1 = create_user(USER1)
@@ -127,3 +127,143 @@ class TestUpdateVuln:
         assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
         assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
         assert ecosystem_eol_dependency_1.eol_notification_sent is False
+
+    def test_it_should_skip_eol_matching_when_no_change_in_request(self, mocker, update_setup):
+        # Given
+        same_request1 = {
+            "name": "test_eol_product",
+            "product_category": models.ProductCategoryEnum.PACKAGE,
+            "description": "test_description",
+            "is_ecosystem": False,
+            "matching_name": "test_matching_name",
+            "eol_versions": [
+                {
+                    "version": "2.0.0",
+                    "release_date": "2020-01-02",
+                    "eol_from": "2030-01-02",
+                    "matching_version": "2.0.0",
+                }
+            ],
+        }
+
+        # When
+        eol_matching = mocker.patch(
+            "app.routers.eols.eol_business.fix_eol_dependency_by_eol_product"
+        )
+        client.put(
+            f"/eols/{self.eol_product_id}", headers=headers_with_api_key(USER1), json=same_request1
+        )
+
+        # Then
+        eol_matching.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "test_request",
+        [  # test1: changes EoLProduct
+            {
+                "name": "test_eol_product1",
+                "product_category": models.ProductCategoryEnum.PACKAGE,
+                "description": "test_description",
+                "is_ecosystem": False,
+                "matching_name": "test_matching_name1",
+                "eol_versions": [
+                    {
+                        "version": "1.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2030-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                    {
+                        "version": "2.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2030-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                ],
+            },
+            {  # test2: changes EoLVersion.eol_from
+                "name": "test_eol_product",
+                "product_category": models.ProductCategoryEnum.PACKAGE,
+                "description": "test_description",
+                "is_ecosystem": False,
+                "matching_name": "test_matching_name",
+                "eol_versions": [
+                    {
+                        "version": "1.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2030-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                    {
+                        "version": "2.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2035-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                ],
+            },
+            {  # test3: changes the number of EoLVersion
+                "name": "test_eol_product",
+                "product_category": models.ProductCategoryEnum.PACKAGE,
+                "description": "test_description",
+                "is_ecosystem": False,
+                "matching_name": "test_matching_name",
+                "eol_versions": [
+                    {
+                        "version": "1.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2030-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                    {
+                        "version": "2.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2035-01-02",
+                        "matching_version": "2.0.0",
+                    },
+                    {
+                        "version": "3.0.0",
+                        "release_date": "2020-01-02",
+                        "eol_from": "2036-01-02",
+                        "matching_version": "3.0.0",
+                    },
+                ],
+            },
+        ],
+    )
+    def test_it_should_run_eol_matching_when_change_in_request(self, mocker, test_request):
+        # Given
+        request1 = {
+            "name": "test_eol_product",
+            "product_category": models.ProductCategoryEnum.PACKAGE,
+            "description": "test_description",
+            "is_ecosystem": False,
+            "matching_name": "test_matching_name",
+            "eol_versions": [
+                {
+                    "version": "1.0.0",
+                    "release_date": "2020-01-02",
+                    "eol_from": "2030-01-02",
+                    "matching_version": "2.0.0",
+                },
+                {
+                    "version": "2.0.0",
+                    "release_date": "2020-01-02",
+                    "eol_from": "2030-01-02",
+                    "matching_version": "2.0.0",
+                },
+            ],
+        }
+        eol_product_id = uuid4()
+        client.put(f"/eols/{eol_product_id}", headers=headers_with_api_key(USER1), json=request1)
+
+        # When
+        eol_matching = mocker.patch(
+            "app.routers.eols.eol_business.fix_eol_dependency_by_eol_product"
+        )
+        client.put(
+            f"/eols/{eol_product_id}", headers=headers_with_api_key(USER1), json=test_request
+        )
+
+        # Then
+        eol_matching.assert_called_once()

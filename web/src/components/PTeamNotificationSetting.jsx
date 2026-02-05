@@ -42,7 +42,7 @@ import { CheckButton } from "./CheckButton";
 export function PTeamNotificationSetting(props) {
   const { pteam } = props;
 
-  const [edittingSlackUrl, setEdittingSlackUrl] = useState(false);
+  const [editingSlackUrl, setEditingSlackUrl] = useState(false);
   const [slackUrl, setSlackUrl] = useState(pteam.alert_slack.webhook_url);
   const [slackEnable, setSlackEnable] = useState(pteam.alert_slack.enable);
   const [mailAddress, setMailAddress] = useState(pteam.alert_mail.address);
@@ -245,7 +245,7 @@ export function PTeamNotificationSetting(props) {
           >
             <OutlinedInput
               id="pteam-slack-url-field"
-              type={edittingSlackUrl ? "text" : "password"}
+              type={editingSlackUrl ? "text" : "password"}
               autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
@@ -254,10 +254,10 @@ export function PTeamNotificationSetting(props) {
                 <InputAdornment position="end">
                   <IconButton
                     aria-label="toggle password visibility"
-                    onClick={() => setEdittingSlackUrl(!edittingSlackUrl)}
+                    onClick={() => setEditingSlackUrl(!editingSlackUrl)}
                     edge="end"
                   >
-                    {edittingSlackUrl ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    {editingSlackUrl ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
                 </InputAdornment>
               }

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
@@ -11,13 +11,12 @@ from app.auth.account import get_current_user
 from app.business.eol import eol_business
 from app.database import get_db, open_db_session
 from app.notification.alert import notify_eol_ecosystem, notify_eol_package
+from app.notification.eol_notification_utils import is_within_eol_warning
 
 router = APIRouter(prefix="/eols", tags=["eols"])
 
 NO_SUCH_EOL = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such eol")
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
-
-EOL_WARNING_THRESHOLD_DAYS = 180
 
 
 def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductResponse:
@@ -81,7 +80,10 @@ def update_eol(
     if not (eol_product := persistence.get_eol_product_by_id(db, eol_product_id)):
         eol_product = __handle_create_eol(eol_product_id, request, db)
     else:
-        eol_product = __handle_update_eol(eol_product, request, db)
+        if _is_eol_product_changed(eol_product, request):
+            eol_product = __handle_update_eol(eol_product, request, db)
+        else:
+            return _create_eol_response(eol_product)
 
     db.refresh(eol_product)
 
@@ -92,6 +94,53 @@ def update_eol(
     db.commit()
 
     return eol_response
+
+
+def _is_eol_product_changed(
+    eol_product: models.EoLProduct, request: schemas.EoLProductRequest
+) -> bool:
+    """
+    Check whether any top-level EoL product fields or its versions
+    have changed compared to the request payload.
+    """
+    req_data = request.model_dump()
+    req_versions = req_data.pop("eol_versions", [])
+
+    if any(getattr(eol_product, key) != value for key, value in req_data.items()):
+        return True
+
+    return _is_eol_versions_changed(eol_product.eol_versions, req_versions)
+
+
+def _is_eol_versions_changed(db_versions, req_versions) -> bool:
+    """
+    Determine whether there is a difference between the EoLVersion in the database
+    and the eol_versions in the request.
+    """
+    if len(db_versions) != len(req_versions):
+        return True
+
+    sorted_db = sorted(db_versions, key=lambda x: x.version)
+    sorted_req = sorted(req_versions, key=lambda x: x["version"])
+
+    for v_db, v_req in zip(sorted_db, sorted_req):
+        db_values = (
+            v_db.version,
+            str(v_db.eol_from),
+            str(v_db.release_date),
+            v_db.matching_version,
+        )
+        req_values = (
+            v_req["version"],
+            str(v_req["eol_from"]),
+            str(v_req["release_date"]),
+            v_req["matching_version"],
+        )
+
+        if db_values != req_values:
+            return True
+
+    return False
 
 
 def __handle_create_eol(
@@ -266,11 +315,7 @@ def _bg_check_eol_notification() -> None:
             if ecosystem_eol_dependency.eol_notification_sent is True:
                 continue
 
-            time_until_eol = (
-                ecosystem_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            )
-
-            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            if not is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
                 continue
 
             try:
@@ -291,10 +336,7 @@ def _bg_check_eol_notification() -> None:
             if package_eol_dependency.eol_notification_sent is True:
                 continue
 
-            time_until_eol = (
-                package_eol_dependency.eol_version.eol_from - datetime.now(timezone.utc).date()
-            )
-            if time_until_eol > timedelta(days=EOL_WARNING_THRESHOLD_DAYS):
+            if not is_within_eol_warning(package_eol_dependency.eol_version.eol_from):
                 continue
 
             try:

@@ -4,9 +4,3 @@
 # The latest version X.X.X of [VULNERABLE_PACKAGE] cannot fix it.
 # - https://[reference_link1]
 # - https://[reference_link2]
-
-# Added CVE-2026-0994. There are no patched versions available for this CVE in 2026/1/26.
-# CVE-2026-0994 is a Denial of Service (DoS) vulnerability
-# and does not cause information leakage or compromise confidentiality.
-# https://github.com/advisories/GHSA-7gcm-g887-7qv7
-CVE-2026-0994

@@ -47,7 +47,7 @@ describe("TestVerifyEmail", () => {
     });
   });
 
-  describe("Verify email button behabior", () => {
+  describe("Verify email button behavior", () => {
     it("triggers verification when the verify email button is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const mockApplyActionCode = vi.fn().mockResolvedValue();

@@ -63,11 +63,11 @@ export function DeleteAccountDialog(props) {
         <Box sx={{ pt: 2, display: "flex", justifyContent: "center" }}>
           <ErrorOutlineIcon fontSize="large" color="error" />
         </Box>
-        <DialogTitle sx={{ textAlign: "center" }}>Delete your account permanantly?</DialogTitle>
+        <DialogTitle sx={{ textAlign: "center" }}>Delete your account permanently?</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              This action cannot be undone. This will permanentlly delete your account.
+              This action cannot be undone. This will permanently delete your account.
             </DialogContentText>
             <Box>
               <Typography>Type in your email to confirm</Typography>
