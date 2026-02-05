@@ -1,0 +1,47 @@
+{
+  "VulnDetailPage": {
+    "loadingVuln": "脆弱性情報を読み込んでいます..."
+  },
+  "VulnDetailView": {
+    "package": "パッケージ",
+    "hide": "隠す",
+    "more": "もっと見る",
+    "cveId": "CVE ID",
+    "noKnownCve": "既知のCVEなし",
+    "update": "アップデート",
+    "noData": "データなし",
+    "creator": "作成者",
+    "lastUpdated": "最終更新",
+    "vulnId": "脆弱性ID"
+  },
+  "VulnSSVCCards": {
+    "automatable": {
+      "title": "自動化可能性",
+      "titleDescription": "攻撃者がこの脆弱性の悪用イベントを確実に自動化できるか？",
+      "no": {
+        "name": "いいえ",
+        "valueDescription": "いいえ: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配信、(4)悪用です。"
+      },
+      "yes": {
+        "name": "はい",
+        "valueDescription": "はい: 攻撃者はキルチェーンのステップ1～4を確実に自動化できます。"
+      }
+    },
+    "exploitation": {
+      "title": "悪用",
+      "titleDescription": "脆弱性の悪用の現在の状態。",
+      "none": {
+        "name": "なし",
+        "valueDescription": "なし: アクティブな悪用の証拠がなく、脆弱性を悪用する方法の公開された実証コード（PoC）もありません。"
+      },
+      "public_poc": {
+        "name": "公開PoC",
+        "valueDescription": "公開PoC: 次のいずれかが当てはまります: (1) MetasploitやExploitDBなどのソースに典型的な公開PoCが存在する; または (2) 脆弱性にはよく知られた悪用方法があります。"
+      },
+      "active": {
+        "name": "アクティブ",
+        "valueDescription": "アクティブ: エクスプロイトが実際の攻撃者によって野生で使用されているという共有可能で観察可能な信頼できる証拠があります; 信頼できる公開レポートがあります。"
+      }
+    }
+  }
+}

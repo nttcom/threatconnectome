@@ -1,0 +1,47 @@
+{
+  "VulnDetailPage": {
+    "loadingVuln": "Now loading Vuln..."
+  },
+  "VulnDetailView": {
+    "package": "Package",
+    "hide": "Hide",
+    "more": "More",
+    "cveId": "CVE ID",
+    "noKnownCve": "No Known CVE",
+    "update": "Update",
+    "noData": "No data",
+    "creator": "Creator",
+    "lastUpdated": "Last Updated",
+    "vulnId": "Vuln ID"
+  },
+  "VulnSSVCCards": {
+    "automatable": {
+      "title": "Automatable",
+      "titleDescription": "Can an attacker reliably automate creating exploitation events for this vulnerability?",
+      "no": {
+        "name": "No",
+        "valueDescription": "No: Attackers cannot reliably automate steps 1-4 of the kill chain for this vulnerability. These steps are (1) reconnaissance, (2) weaponization, (3) delivery, and (4) exploitation."
+      },
+      "yes": {
+        "name": "Yes",
+        "valueDescription": "Yes: Attackers can reliably automate steps 1-4 of the kill chain."
+      }
+    },
+    "exploitation": {
+      "title": "Exploitation",
+      "titleDescription": "The present state of exploitation of the vulnerability.",
+      "none": {
+        "name": "None",
+        "valueDescription": "None: There is no evidence of active exploitation and no public proof of concept (PoC) of how to exploit the vulnerability."
+      },
+      "public_poc": {
+        "name": "Public PoC",
+        "valueDescription": "Public PoC: One of the following is true: (1) Typical public PoC exists in sources such as Metasploit or websites like ExploitDB; or (2) the vulnerability has a well-known method of exploitation."
+      },
+      "active": {
+        "name": "Active",
+        "valueDescription": "Active: Shared, observable, reliable evidence that the exploit is being used in the wild by real attackers; there is credible public reporting."
+      }
+    }
+  }
+}
