@@ -1,6 +1,7 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
@@ -13,6 +14,7 @@ import { a11yProps, errorToString } from "../../utils/func";
 import { PTeamMember } from "./PTeamMember.jsx";
 
 export function PTeam() {
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamPage" });
   const [tabValue, setTabValue] = useState(0);
 
   const location = useLocation();
@@ -34,7 +36,7 @@ export function PTeam() {
       api: "getPTeamMembers",
     });
 
-  if (membersIsLoading) return <>Now loading Members...</>;
+  if (membersIsLoading) return <>{t("nowLoadingMembers")}</>;
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);

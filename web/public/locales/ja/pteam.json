@@ -1,0 +1,50 @@
+{
+  "PTeamPage": {
+    "nowLoadingMembers": "メンバー読み込み中..."
+  },
+  "PTeamInviteModal": {
+    "createNewInvitationLink": "新しい招待リンクを作成",
+    "pleaseShareLink": "以下の招待リンクを共有してください:",
+    "linkAvailableUntil": "このリンクは {{date}} まで有効です",
+    "close": "閉じる",
+    "expirationDate": "有効期限（未来の日時）",
+    "maxUses": "最大使用回数: {{count}}",
+    "unlimited": "無制限",
+    "create": "作成",
+    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}"
+  },
+  "PTeamMemberRemoveModal": {
+    "confirm": "確認",
+    "confirmRemove": "{{pteamName}} から {{userName}} を削除してもよろしいですか？",
+    "remove": "削除",
+    "removeMemberSucceeded": "メンバーの削除に成功しました",
+    "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}"
+  },
+  "PTeamMember": {
+    "addMember": "メンバーを追加",
+    "userEmail": "ユーザー（メール）",
+    "experienceInSecOps": "SecOps 経験年数",
+    "actions": "操作",
+    "experienceLabel": "SecOps 経験年数:",
+    "yearsPlus": "{{years}}+"
+  },
+  "PTeamMemberMenu": {
+    "nowLoadingUserInfo": "ユーザー情報読み込み中...",
+    "nowLoadingTeam": "チーム情報読み込み中...",
+    "authorities": "権限",
+    "removeFromTeam": "チームから削除"
+  },
+  "PTeamAuthEditor": {
+    "authorityTitle": "権限: {{userEmail}}",
+    "user": "ユーザー",
+    "authority": "権限",
+    "description": "説明",
+    "administrator": "管理者",
+    "adminDescription": "チームを管理します。",
+    "updateSucceeded": "チーム権限の更新に成功しました",
+    "updateFailed": "チーム権限の更新に失敗しました: {{error}}"
+  },
+  "UpdateAuthButton": {
+    "update": "更新"
+  }
+}
