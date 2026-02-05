@@ -1,0 +1,100 @@
+{
+  "const": {
+    "threatImpact": {
+      "immediate": {
+        "chipLabel": "緊急",
+        "statusLabel": "あなたのチームには緊急の脅威があります"
+      },
+      "offcycle": {
+        "chipLabel": "定期外",
+        "statusLabel": "あなたのチームには定期外の脅威があります"
+      },
+      "acceptable": {
+        "chipLabel": "許容可能",
+        "statusLabel": "あなたのチームには許容可能な脅威があります"
+      },
+      "none": {
+        "chipLabel": "なし",
+        "statusLabel": "あなたのチームには脅威がありません"
+      },
+      "safe": {
+        "chipLabel": "安全",
+        "statusLabel": "あなたのチームは安全です"
+      }
+    },
+    "systemExposure": {
+      "open": "オープン",
+      "controlled": "管理された",
+      "small": "小規模"
+    },
+    "missionImpact": {
+      "mission_failure": "ミッション失敗",
+      "mef_failure": "MEF失敗",
+      "mef_support_crippled": "MEFサポート機能停止",
+      "degraded": "低下"
+    },
+    "safetyImpact": {
+      "catastrophic": "壊滅的",
+      "critical": "重大",
+      "marginal": "限定的",
+      "negligible": "無視可能"
+    },
+    "ticketHandlingStatus": {
+      "alerted": "警告済み",
+      "acknowledged": "確認済み",
+      "scheduled": "スケジュール済み",
+      "completed": "完了"
+    },
+    "noPTeamMessage": "あなたはどのチームにも所属していません。チームを作成してください。"
+  },
+  "eolUtils": {
+    "status": {
+      "expired": "期限切れ",
+      "warning": "期限が近づいています",
+      "active": "サポート中",
+      "unknown": "未定"
+    },
+    "diffText": {
+      "daysOver": "{{days}}日経過",
+      "expiresToday": "本日期限切れ",
+      "daysLeft": "残り{{days}}日"
+    },
+    "formatDate": {
+      "undecided": "未定"
+    },
+    "latestUpdateDate": {
+      "na": "N/A"
+    },
+    "productCategory": {
+      "os": "OS",
+      "runtime": "ランタイム",
+      "middleware": "ミドルウェア",
+      "package": "パッケージ",
+      "na": "N/A"
+    }
+  },
+  "ssvcUtils": {
+    "priority": {
+      "immediate": {
+        "displayName": "緊急",
+        "statusLabel": "緊急：直ちに行動し、可能な限り迅速に修正を適用することに全リソースを集中させてください。必要に応じて、通常の組織業務を一時停止することも含みます。"
+      },
+      "out_of_cycle": {
+        "displayName": "定期外",
+        "statusLabel": "定期外：通常よりも迅速に行動し、次の利用可能な機会に定期外で緩和策または修正を適用してください。必要に応じて残業してください。"
+      },
+      "scheduled": {
+        "displayName": "スケジュール済み",
+        "statusLabel": "スケジュール済み：定期的なメンテナンス時間中に行動してください。"
+      },
+      "defer": {
+        "displayName": "延期",
+        "statusLabel": "延期：現時点では行動しません。"
+      },
+      "safe": {
+        "chipLabel": "安全",
+        "statusLabel": "すべての脆弱性が解決されました"
+      }
+    }
+  }
+}
