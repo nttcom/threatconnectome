@@ -6,15 +6,15 @@
     "relatedVulns": "関連する脆弱性"
   },
   "VulnManagementCardList": {
-    "noKnownCve": "既知のCVEなし",
-    "noVulns": "脆弱性がありません"
+    "noKnownCve": "CVE番号なし",
+    "noVulns": "脆弱性なし"
   },
   "VulnManagementTable": {
     "lastUpdate": "最終更新",
     "timezoneTooltip": "タイムゾーンはローカル時刻です",
     "title": "タイトル",
     "cveId": "CVE ID",
-    "noVulns": "脆弱性がありません"
+    "noVulns": "脆弱性なし"
   },
   "VulnSearchModal": {
     "title": "脆弱性検索",
