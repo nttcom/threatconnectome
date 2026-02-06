@@ -21,6 +21,7 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -92,6 +93,7 @@ ServiceCard.propTypes = {
 };
 
 export function PTeamServicesListModal(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServicesListModal" });
   const { onSetShow, show, packageId, packageName, serviceIds } = props;
   const handleClose = () => onSetShow(false);
 
@@ -118,7 +120,7 @@ export function PTeamServicesListModal(props) {
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
     });
-  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (pteamIsLoading) return <>{t("loadingTeam")}</>;
 
   const targetServices = pteam.services
     .filter((service) => serviceIds.includes(service.service_id))
@@ -149,7 +151,7 @@ export function PTeamServicesListModal(props) {
         {[10, 20, 50, 100].map((num) => (
           <MenuItem key={num} value={num} sx={{ justifyContent: "flex-end" }}>
             <Typography variant="body2" sx={{ mt: 0.3 }}>
-              {num} Rows
+              {t("rows", { count: num })}
             </Typography>
           </MenuItem>
         ))}
@@ -168,7 +170,7 @@ export function PTeamServicesListModal(props) {
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth={isMdDown ? "xs" : "md"}>
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
-          <Typography variant="h6">Selected Package</Typography>
+          <Typography variant="h6">{t("selectedPackage")}</Typography>
           <KeyboardDoubleArrowRightIcon sx={{ ml: 0.5, mr: 0.5 }} />
           <Typography variant="h5" flexGrow={1}>
             {packageName}
