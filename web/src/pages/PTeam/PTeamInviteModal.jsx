@@ -57,7 +57,7 @@ export function PTeamInviteModal(props) {
   const handleCreate = async () => {
     function onSuccess(data) {
       setInvitationLink(tokenToLink(data.invitation_id));
-      enqueueSnackbar("Create new invitation succeeded", { variant: "success" });
+      enqueueSnackbar(t("createInvitationSucceeded"), { variant: "success" });
     }
     function onError(error) {
       enqueueSnackbar(t("createInvitationFailed", { error: errorToString(error) }), {

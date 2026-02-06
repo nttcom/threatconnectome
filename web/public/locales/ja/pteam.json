@@ -1,6 +1,9 @@
 {
   "PTeamPage": {
-    "nowLoadingMembers": "メンバー読み込み中..."
+    "nowLoadingMembers": "メンバー情報を読み込み中...",
+    "experience_years_one": "経験年数: {{count}}年以上",
+    "experience_years_other": "経験年数: {{count}}年以上",
+    "tabMembers": "メンバー"
   },
   "PTeamInviteModal": {
     "createNewInvitationLink": "新しい招待リンクを作成",
@@ -10,22 +13,23 @@
     "expirationDate": "有効期限（未来の日時）",
     "maxUses": "最大使用回数: {{count}}",
     "unlimited": "無制限",
-    "create": "作成",
-    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}"
+    "create": "作成する",
+    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}",
+    "createInvitationSucceeded": "招待リンクの作成に成功しました"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "確認",
     "confirmRemove": "{{pteamName}} から {{userName}} を削除してもよろしいですか？",
-    "remove": "削除",
+    "remove": "削除する",
     "removeMemberSucceeded": "メンバーの削除に成功しました",
     "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}"
   },
   "PTeamMember": {
     "addMember": "メンバーを追加",
     "userEmail": "ユーザー（メール）",
-    "experienceInSecOps": "SecOps 経験年数",
-    "actions": "操作",
-    "experienceLabel": "SecOps 経験年数:",
+    "experienceInSecOps": "SecOpsの経験年数",
+    "actions": "アクション",
+    "experienceLabel": "SecOpsの経験年数:",
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
@@ -45,6 +49,9 @@
     "updateFailed": "チーム権限の更新に失敗しました: {{error}}"
   },
   "UpdateAuthButton": {
-    "update": "更新"
+    "update": "更新する"
+  },
+  "CopiedIcon": {
+    "tooltipCopied": "コピーしました"
   }
 }

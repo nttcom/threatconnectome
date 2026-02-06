@@ -55,7 +55,7 @@ export function PTeam() {
                   <Tooltip
                     arrow
                     placement="bottom-start"
-                    title={`${maxYears}+ year${maxYears ? "s" : ""} experience`}
+                    title={t("experience_years", { count: maxYears })}
                   >
                     <Avatar
                       variant="rounded"
@@ -76,7 +76,7 @@ export function PTeam() {
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={tabHandleChange} aria-label="pteam tabs">
-            <Tab label="Members" {...a11yProps(0)} />
+            <Tab label={t("tabMembers")} {...a11yProps(0)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>

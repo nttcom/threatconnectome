@@ -1,6 +1,9 @@
 {
   "PTeamPage": {
-    "nowLoadingMembers": "Now loading Members..."
+    "nowLoadingMembers": "Now loading Members...",
+    "experience_years_one": "{{count}}+ year experience",
+    "experience_years_other": "{{count}}+ years experience",
+    "tabMembers": "Members"
   },
   "PTeamInviteModal": {
     "createNewInvitationLink": "Create New Invitation Link",
@@ -11,7 +14,8 @@
     "maxUses": "Max uses: {{count}}",
     "unlimited": "unlimited",
     "create": "Create",
-    "createInvitationFailed": "Creating invitation failed: {{error}}"
+    "createInvitationFailed": "Creating invitation failed: {{error}}",
+    "createInvitationSucceeded": "Create new invitation succeeded"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "Confirm",
@@ -46,5 +50,8 @@
   },
   "UpdateAuthButton": {
     "update": "Update"
+  },
+  "CopiedIcon": {
+    "tooltipCopied": "Copied"
   }
 }
