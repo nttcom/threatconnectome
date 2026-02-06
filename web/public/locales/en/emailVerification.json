@@ -1,0 +1,21 @@
+{
+    "EmailVerificationPage": {
+        "invalidRequest": "Invalid Request"
+    },
+    "VerifyEmail": {
+        "title": "Email Verification",
+        "verifyButton": "Verify Email",
+        "success": "email verification success",
+        "error": "Error: {{error}}"
+    },
+    "ResetPasswordForm": {
+        "title": "Reset Password",
+        "newPassword": "New Password",
+        "passwordHint": "Password should be at least 8 characters.",
+        "submit": "Submit",
+        "success": "update password success",
+        "notSupported": "Sorry. Resetting password is not supported for supabase, currently.",
+        "missingCode": "Missing oobCode",
+        "error": "Error: {{error}}"
+    }
+}

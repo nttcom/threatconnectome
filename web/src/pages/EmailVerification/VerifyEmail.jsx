@@ -1,10 +1,12 @@
 import { Box, Button, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
 
 export default function VerifyEmail(props) {
+  const { t } = useTranslation("emailVerification", { keyPrefix: "VerifyEmail" });
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
@@ -15,7 +17,7 @@ export default function VerifyEmail(props) {
     setDisabled(true);
     applyActionCode({ actionCode: oobCode })
       .then((resp) => {
-        setMessage("email verification success");
+        setMessage(t("success"));
       })
       .catch((error) => {
         console.error(error);
@@ -26,7 +28,7 @@ export default function VerifyEmail(props) {
   return (
     <Box alignItems="center" display="flex" flexDirection="column">
       <Typography variant="h5" my={2}>
-        Email Verification
+        {t("title")}
       </Typography>
       <Button
         onClick={() => handleVerifyEmail()}
@@ -36,7 +38,7 @@ export default function VerifyEmail(props) {
           textTransform: "none",
         }}
       >
-        Verify Email
+        {t("verifyButton")}
       </Button>
       <Box mt={3}>
         <Typography>{message}</Typography>
