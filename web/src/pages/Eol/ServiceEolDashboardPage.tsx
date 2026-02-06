@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import {
   Box,
@@ -40,6 +41,7 @@ import { EolVersionForUi } from "./EolParts";
 import { EolTable } from "./EolTable";
 
 export function ServiceEolDashboard() {
+  const { t } = useTranslation("eol", { keyPrefix: "ServiceEolDashboardPage" });
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const theme = useTheme();
@@ -59,8 +61,8 @@ export function ServiceEolDashboard() {
 
   if (skip) return <></>;
   if (eolError) throw new APIError(errorToString(eolError), { api: "getPTeamEoLs" });
-  if (eolIsLoading) return <>Now loading Eol...</>;
-  if (!eols) return <>Eol data not found</>;
+  if (eolIsLoading) return <>{t("loadingEol")}</>;
+  if (!eols) return <>{t("eolNotFound")}</>;
 
   const filteredEolVersions: EolVersionForUi[] = eols.products
     .flatMap((eolProduct) =>
@@ -107,34 +109,27 @@ export function ServiceEolDashboard() {
         <PackageIcon color="primary" fontSize="large" />
         <Box>
           <Typography variant="h5" fontWeight="bold">
-            EOL List
+            {t("title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            List of EOL Status for Libraries and Tools Used by the Entire Team.
+            {t("subtitle")}
           </Typography>
         </Box>
       </Stack>
 
       {/* Info / Disclaimer Box */}
       <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 4 }}>
-        <AlertTitle>EOL Notification</AlertTitle>
+        <AlertTitle>{t("notificationTitle")}</AlertTitle>
         <Typography variant="body2" component="div">
           <Box component="ul" sx={{ m: 0, pl: 2 }}>
+            <li>{t("notificationItems.autoNotify")}</li>
+            <li>{t("notificationItems.limitations")}</li>
             <li>
-              Supported tools will be automatically notified via Slack or email six months prior to
-              their EOL date.
-            </li>
-            <li>
-              Due to technical limitations, EOL information for all tools may not be accurately
-              supported. Unsupported tools are not eligible for notifications. Please check the EOL
-              information separately.
-            </li>
-            <li>
-              Please check{" "}
+              {t("notificationItems.checkSupported")}{" "}
               <Link component={RouterLink} to={`/supported-products?${preservedParams.toString()}`}>
-                here
+                {t("notificationItems.here")}
               </Link>{" "}
-              for a list of supported tools.
+              {t("notificationItems.checkSupportedEnd")}
             </li>
           </Box>
         </Typography>
@@ -146,7 +141,7 @@ export function ServiceEolDashboard() {
         color="text.secondary"
         sx={{ display: "block", textAlign: "right", mb: 1 }}
       >
-        Last Updated: {latestUpdate}
+        {t("lastUpdated")}: {latestUpdate}
       </Typography>
 
       {/* Filter & Search Controls */}
@@ -162,10 +157,10 @@ export function ServiceEolDashboard() {
             {/* Mobile: Select */}
             <FormControl size="small" sx={{ display: { xs: "block", md: "none" }, minWidth: 200 }}>
               <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="expired">Expired</MenuItem>
-                <MenuItem value="warning">Deadline approaching</MenuItem>
-                <MenuItem value="active">Supported</MenuItem>
+                <MenuItem value="all">{t("filterAll")}</MenuItem>
+                <MenuItem value="expired">{t("filterExpired")}</MenuItem>
+                <MenuItem value="warning">{t("filterWarning")}</MenuItem>
+                <MenuItem value="active">{t("filterActive")}</MenuItem>
               </Select>
             </FormControl>
             {/* Desktop: ToggleButtonGroup */}
@@ -176,15 +171,15 @@ export function ServiceEolDashboard() {
               size="small"
               sx={{ display: { xs: "none", md: "flex" } }}
             >
-              <ToggleButton value="all">All</ToggleButton>
-              <ToggleButton value="expired">Expired</ToggleButton>
-              <ToggleButton value="warning">Deadline approaching</ToggleButton>
-              <ToggleButton value="active">Supported</ToggleButton>
+              <ToggleButton value="all">{t("filterAll")}</ToggleButton>
+              <ToggleButton value="expired">{t("filterExpired")}</ToggleButton>
+              <ToggleButton value="warning">{t("filterWarning")}</ToggleButton>
+              <ToggleButton value="active">{t("filterActive")}</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
           <TextField
-            placeholder="Search by product or service name..."
+            placeholder={t("searchPlaceholder")}
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -212,7 +207,7 @@ export function ServiceEolDashboard() {
 
         <Box p={2} borderTop={1} borderColor="divider">
           <Typography variant="caption" color="text.secondary">
-            Total: {filteredEolVersions.length}
+            {t("total")}: {filteredEolVersions.length}
           </Typography>
         </Box>
       </Paper>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useParams, Link as RouterLink } from "react-router-dom";
 import {
   Box,
@@ -42,6 +43,7 @@ import {
 import { preserveParams } from "../../utils/urlUtils";
 
 export function ProductEolDetail() {
+  const { t } = useTranslation("eol", { keyPrefix: "ProductEolDetailPage" });
   const { productId } = useParams();
   const [showExpired, setShowExpired] = useState(false);
 
@@ -55,21 +57,21 @@ export function ProductEolDetail() {
   const location = useLocation();
   const preservedParams = preserveParams(location.search);
 
-  if (skip) return <>Now loading auth token...</>;
+  if (skip) return <>{t("loadingAuth")}</>;
   if (eolsError)
     throw new APIError(errorToString(eolsError), {
       api: "getEoLs",
     });
-  if (eolsIsLoading) return <>Now loading EoLs...</>;
+  if (eolsIsLoading) return <>{t("loadingEols")}</>;
 
   const product = eolsData?.products.find((product) => product.eol_product_id === productId);
   if (!product) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">No products found</Alert>
+        <Alert severity="error">{t("noProductsFound")}</Alert>
         <Box mt={2}>
           <Link component={RouterLink} to={`/supported-products?${preservedParams.toString()}`}>
-            Back to the Supported Products List
+            {t("backToSupportedProducts")}
           </Link>
         </Box>
       </Container>
@@ -101,7 +103,7 @@ export function ProductEolDetail() {
           underline="hover"
           color="inherit"
         >
-          EOL List
+          {t("breadcrumbEolList")}
         </Link>
         <Link
           component={RouterLink}
@@ -109,7 +111,7 @@ export function ProductEolDetail() {
           underline="hover"
           color="inherit"
         >
-          Supported Products
+          {t("breadcrumbSupportedProducts")}
         </Link>
         <Typography color="text.primary">{product.name}</Typography>
       </Breadcrumbs>
@@ -132,7 +134,7 @@ export function ProductEolDetail() {
         mb={2}
       >
         <Typography variant="caption" color="text.secondary">
-          Last Updated: {latestUpdate}
+          {t("lastUpdated")}: {latestUpdate}
         </Typography>
         <FormControlLabel
           control={
@@ -142,7 +144,7 @@ export function ProductEolDetail() {
               size="small"
             />
           }
-          label={<Typography variant="body2">Show discontinued versions</Typography>}
+          label={<Typography variant="body2">{t("showExpiredVersions")}</Typography>}
         />
       </Stack>
       {/* Release/Cycle list table */}
@@ -151,9 +153,9 @@ export function ProductEolDetail() {
           <Table>
             <TableHead sx={{ bgcolor: "grey.100" }}>
               <TableRow>
-                <TableCell>Version</TableCell>
-                <TableCell>EOL Date</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell>{t("tableHeaderVersion")}</TableCell>
+                <TableCell>{t("tableHeaderEolDate")}</TableCell>
+                <TableCell>{t("tableHeaderStatus")}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -210,9 +212,7 @@ export function ProductEolDetail() {
         </TableContainer>
         {sortedVersions.length === 0 && (
           <Box p={4} textAlign="center">
-            <Typography color="text.secondary">
-              No versions to display. Please turn on “Show discontinued versions.”
-            </Typography>
+            <Typography color="text.secondary">{t("noVersionsMessage")}</Typography>
           </Box>
         )}
       </Paper>
@@ -223,7 +223,7 @@ export function ProductEolDetail() {
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />
-          Back to the Supported Products List
+          {t("backToSupportedProducts")}
         </Link>
       </Box>
     </Container>
