@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -26,6 +27,7 @@ import Firebase from "../../utils/Firebase";
 import { TwoFactorAuth } from "./TwoFactorAuth";
 
 export function Login() {
+  const { t } = useTranslation("login", { keyPrefix: "LoginPage" });
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [visible, setVisible] = useState(false);
   const [isShowSmsCode, setIsShowSmsCode] = useState(false);
@@ -96,13 +98,7 @@ export function Login() {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = { url: `${window.location.origin}/login` };
           await sendEmailVerification({ actionCodeSettings })
-            .then(() =>
-              showMessage(
-                "Your email address is not verified." +
-                  " An email for verification was sent to your address.",
-                "info",
-              ),
-            )
+            .then(() => showMessage(t("emailNotVerified"), "info"))
             .catch((error) => showMessage(error.message));
           break;
         }
@@ -117,10 +113,10 @@ export function Login() {
                 },
               }),
             )
-            .catch((error) => showMessage(error.data?.detail ?? "Something went wrong."));
+            .catch((error) => showMessage(error.data?.detail ?? t("somethingWentWrong")));
           break;
         default:
-          showMessage("Something went wrong.");
+          showMessage(t("somethingWentWrong"));
           console.error(error);
       }
     }
@@ -128,7 +124,7 @@ export function Login() {
 
   const handleLoginWithEmail = async (event) => {
     event.preventDefault();
-    showMessage("Logging in...", "info");
+    showMessage(t("loggingIn"), "info");
     const data = new FormData(event.currentTarget);
     const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
     if (authData === undefined) return;
@@ -145,7 +141,7 @@ export function Login() {
     signInWithSamlPopup()
       .then(() => navigateInternalPage())
       .catch((error) => {
-        showMessage("Something went wrong.");
+        showMessage(t("somethingWentWrong"));
         console.error(error);
       });
   };
@@ -194,7 +190,7 @@ export function Login() {
             onSubmit={handleLoginWithEmail}
           >
             <Typography component="h1" mb={1} variant="h5">
-              Threatconnectome
+              {t("title")}
             </Typography>
             {!isRecaptchaVisible && (
               <>
@@ -202,7 +198,7 @@ export function Login() {
                   autoComplete="email"
                   fullWidth
                   id="email"
-                  label="Email Address"
+                  label={t("emailLabel")}
                   margin="normal"
                   name="email"
                   required
@@ -211,7 +207,7 @@ export function Login() {
                   autoComplete="current-password"
                   fullWidth
                   id="password"
-                  label="Password"
+                  label={t("passwordLabel")}
                   margin="normal"
                   name="password"
                   required
@@ -227,7 +223,7 @@ export function Login() {
                   }}
                 />
                 <Link component="button" type="button" onClick={handleResetPassword}>
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
                 <Button
                   fullWidth
@@ -235,7 +231,7 @@ export function Login() {
                   variant="contained"
                   sx={{ textTransform: "none", mb: 2, mt: 3 }}
                 >
-                  Log In with Email
+                  {t("loginWithEmail")}
                 </Button>
               </>
             )}
@@ -260,7 +256,7 @@ export function Login() {
                 variant="contained"
                 sx={{ textTransform: "none", mb: 2, mt: 2 }}
               >
-                Log In with SAML
+                {t("loginWithSaml")}
               </Button>
             </>
           )}
@@ -276,15 +272,15 @@ export function Login() {
                   variant="contained"
                   sx={{ textTransform: "none", mb: 2, mt: 2 }}
                 >
-                  Log In with Keycloak
+                  {t("loginWithKeycloak")}
                 </Button>
               </>
             )}
           <Divider />
           <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
-            <Typography mr={1}>No metemcyber account?</Typography>
+            <Typography mr={1}>{t("noAccount")}</Typography>
             <Link component="button" onClick={handleSignUp} variant="body1">
-              Sign up
+              {t("signUp")}
             </Link>
           </Box>
           <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
@@ -293,8 +289,7 @@ export function Login() {
             </Typography>
           </Box>
           <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
-            This service is in closed beta. LOGIN is only available for email addresses of
-            authorized organizations.
+            {t("closedBetaNotice")}
           </Typography>
         </>
       )}
