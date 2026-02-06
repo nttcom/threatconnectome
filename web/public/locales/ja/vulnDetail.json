@@ -16,31 +16,31 @@
   },
   "VulnSSVCCards": {
     "automatable": {
-      "title": "自動化可能性",
+      "title": "Automatable",
       "titleDescription": "攻撃者がこの脆弱性の悪用イベントを確実に自動化できるか？",
       "no": {
-        "name": "なし",
-        "valueDescription": "なし: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配送、(4)悪用です。"
+        "name": "No",
+        "valueDescription": "No: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配送、(4)悪用です。"
       },
       "yes": {
-        "name": "あり",
-        "valueDescription": "あり: 攻撃者はキルチェーンのステップ1～4を確実に自動化できます。"
+        "name": "Yes",
+        "valueDescription": "Yes: 攻撃者はキルチェーンのステップ1～4を確実に自動化できます。"
       }
     },
     "exploitation": {
-      "title": "悪用",
-      "titleDescription": "脆弱性悪用の現在の状態",
+      "title": "Exploitation",
+      "titleDescription": "脆弱性の悪用状況",
       "none": {
-        "name": "なし",
-        "valueDescription": "なし: アクティブな悪用の証拠がなく、脆弱性を悪用する方法に関する公開された実証コード（PoC）もありません。"
+        "name": "None",
+        "valueDescription": "None: アクティブな悪用の証拠がなく、脆弱性を悪用する方法に関する公開された実証コード（PoC）もありません。"
       },
       "public_poc": {
-        "name": "PoC公開済み",
-        "valueDescription": "PoC公開済み: 次のいずれかが当てはまります: (1) 典型的な公開済みのPoCがMetasploitなどのソースやExploitDBのようなウェブサイトに存在する。 または (2) 脆弱性に対して広く知られた悪用手法が存在する。"
+        "name": "Public PoC",
+        "valueDescription": "Public PoC: 次のいずれかが当てはまります: (1) 典型的な公開済みのPoCがMetasploitなどのソースやExploitDBのようなウェブサイトに存在する。 または (2) 脆弱性に対して広く知られた悪用手法が存在する。"
       },
       "active": {
-        "name": "アクティブ",
-        "valueDescription": "アクティブ: 実在する攻撃者による実環境での悪用が、共有可能かつ観察可能で信頼性の高い証拠によって確認されています。信頼できる公開報告が存在します。"
+        "name": "Active",
+        "valueDescription": "Active: 実在する攻撃者による実環境での悪用が、共有可能かつ観察可能で信頼性の高い証拠によって確認されています。信頼できる公開報告が存在します。"
       }
     }
   }
