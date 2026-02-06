@@ -1,7 +1,14 @@
 {
+    "EolTable": {
+        "status": "サポート状況",
+        "productVersion": "製品名 / バージョン",
+        "service": "サービス名",
+        "category": "区分",
+        "eolDate": "EOL日"
+    },
     "ServiceEolDashboardPage": {
         "title": "EOL一覧",
-        "subtitle": "チーム全体で使用しているライブラリやツールのEOLステータス一覧。",
+        "subtitle": "チーム全体で使用しているライブラリやツールのEOLステータス一覧",
         "notificationTitle": "EOL通知",
         "notificationItems": {
             "autoNotify": "サポートされているツールは、EOL日の6ヶ月前に自動的にSlackまたはメールで通知されます。",
@@ -22,7 +29,7 @@
     },
     "ProductEolListPage": {
         "title": "EOL情報の自動取得をサポートする製品一覧",
-        "subtitle": "EOL情報の自動取得と通知をサポートする製品の一覧です。",
+        "subtitle": "EOL情報の自動取得と通知をサポートする製品の一覧",
         "aboutPageTitle": "このページについて",
         "aboutPageContent": "このページに記載されている製品のみがEOL日の自動取得と通知をサポートしています。ここに記載されていない製品については、公式ウェブサイトや他のソースでEOL情報を確認してください。",
         "lastUpdated": "最終更新",
@@ -40,7 +47,7 @@
         "showExpiredVersions": "終了したバージョンを表示",
         "tableHeaderVersion": "バージョン",
         "tableHeaderEolDate": "EOL日",
-        "tableHeaderStatus": "ステータス",
+        "tableHeaderStatus": "サポート状況",
         "noVersionsMessage": "表示するバージョンがありません。「終了したバージョンを表示」をオンにしてください。",
         "noProductsFound": "製品が見つかりません",
         "backToSupportedProducts": "サポート製品一覧に戻る",

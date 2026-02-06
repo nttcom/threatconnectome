@@ -1,4 +1,11 @@
 {
+    "EolTable": {
+        "status": "Support Status",
+        "productVersion": "Product / Version",
+        "service": "Service",
+        "category": "Category",
+        "eolDate": "EOL date"
+    },
     "ServiceEolDashboardPage": {
         "title": "EOL List",
         "subtitle": "List of EOL Status for Libraries and Tools Used by the Entire Team.",
@@ -40,7 +47,7 @@
         "showExpiredVersions": "Show discontinued versions",
         "tableHeaderVersion": "Version",
         "tableHeaderEolDate": "EOL Date",
-        "tableHeaderStatus": "Status",
+        "tableHeaderStatus": "Support Status",
         "noVersionsMessage": "No versions to display. Please turn on \"Show discontinued versions.\"",
         "noProductsFound": "No products found",
         "backToSupportedProducts": "Back to the Supported Products List",
