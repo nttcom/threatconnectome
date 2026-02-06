@@ -6,6 +6,7 @@ import {
 import { Dialog, DialogContent, IconButton, Menu, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
@@ -17,6 +18,7 @@ import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
 export function PTeamMemberMenu(props) {
   const { pteamId, memberUserId, userEmail, isTargetMemberAdmin } = props;
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamMemberMenu" });
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
@@ -40,12 +42,12 @@ export function PTeamMemberMenu(props) {
     throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
     });
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (userMeIsLoading) return <>{t("nowLoadingUserInfo")}</>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
     });
-  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (pteamIsLoading) return <>{t("nowLoadingTeam")}</>;
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -82,12 +84,12 @@ export function PTeamMemberMenu(props) {
       >
         <MenuItem onClick={handleAuthorities}>
           <KeyIcon sx={{ mr: 1 }} />
-          Authorities
+          {t("authorities")}
         </MenuItem>
         {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
-            Remove from Team
+            {t("removeFromTeam")}
           </MenuItem>
         )}
       </Menu>

@@ -13,6 +13,7 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUpdatePTeamMemberMutation } from "../../services/tcApi";
@@ -24,6 +25,7 @@ import { UpdateAuthButton } from "./UpdateAuthButton";
 export function PTeamAuthEditor(props) {
   const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, isCurrentUserAdmin, onClose } =
     props;
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamAuthEditor" });
 
   const [checked, setChecked] = useState(isTargetMemberAdmin);
 
@@ -37,10 +39,10 @@ export function PTeamAuthEditor(props) {
 
   const handleSave = async () => {
     function onSuccess(success) {
-      enqueueSnackbar("Update pteam authority succeeded", { variant: "success" });
+      enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Update pteam authority failed: ${errorToString(error)}`, {
+      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), {
         variant: "error",
       });
     }
@@ -56,7 +58,9 @@ export function PTeamAuthEditor(props) {
   return (
     <>
       <Box display="flex" flexDirection="row">
-        <Typography className={dialogStyle.dialog_title}>Authority: {userEmail}</Typography>
+        <Typography className={dialogStyle.dialog_title}>
+          {t("authorityTitle", { userEmail })}
+        </Typography>
         <Box flexGrow={1} />
         {onClose && (
           <IconButton onClick={onClose}>
@@ -69,10 +73,10 @@ export function PTeamAuthEditor(props) {
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: "10%", fontWeight: 900 }} align="center">
-                User
+                {t("user")}
               </TableCell>
-              <TableCell sx={{ width: "30%", fontWeight: 900 }}>Authority</TableCell>
-              <TableCell sx={{ fontWeight: 900 }}>Description</TableCell>
+              <TableCell sx={{ width: "30%", fontWeight: 900 }}>{t("authority")}</TableCell>
+              <TableCell sx={{ fontWeight: 900 }}>{t("description")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -85,8 +89,8 @@ export function PTeamAuthEditor(props) {
                   onChange={handleCheckedChange}
                 />
               </TableCell>
-              <TableCell>Administrator</TableCell>
-              <TableCell>To administrate the pteam.</TableCell>
+              <TableCell>{t("administrator")}</TableCell>
+              <TableCell>{t("adminDescription")}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

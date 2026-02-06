@@ -14,6 +14,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";
@@ -23,6 +24,7 @@ import { PTeamMemberMenu } from "./PTeamMemberMenu";
 
 export function PTeamMember(props) {
   const { pteamId, members } = props;
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamMember" });
   const isMdDown = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   const filteredMembers = members
@@ -35,7 +37,7 @@ export function PTeamMember(props) {
   return (
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        {pteamId && <PTeamInviteModal pteamId={pteamId} text="Add member" />}
+        {pteamId && <PTeamInviteModal pteamId={pteamId} text={t("addMember")} />}
       </Box>
       {isMdDown ? (
         <Stack spacing={2}>
@@ -74,7 +76,7 @@ export function PTeamMember(props) {
               </Box>
               <UUIDTypography>{member.user_id}</UUIDTypography>
               <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                <Typography variant="body2">Experience in SecOps:</Typography>
+                <Typography variant="body2">{t("experienceLabel")}</Typography>
                 <Avatar
                   variant="rounded"
                   sizes="small"
@@ -87,7 +89,7 @@ export function PTeamMember(props) {
                     fontSize: 18,
                   }}
                 >
-                  {member.years}+
+                  {t("yearsPlus", { years: member.years })}
                 </Avatar>
               </Box>
             </Paper>
@@ -98,10 +100,10 @@ export function PTeamMember(props) {
           <Table sx={{ minWidth: 650 }} aria-label="memberTable">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: "30%", fontWeight: 900 }}>USER(EMAIL)</TableCell>
-                <TableCell sx={{ fontWeight: 900 }}>EXPERIENCE in SecOps</TableCell>
+                <TableCell sx={{ width: "30%", fontWeight: 900 }}>{t("userEmail")}</TableCell>
+                <TableCell sx={{ fontWeight: 900 }}>{t("experienceInSecOps")}</TableCell>
                 <TableCell sx={{ fontWeight: 900 }} align="right">
-                  ACTIONS
+                  {t("actions")}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -128,7 +130,7 @@ export function PTeamMember(props) {
                           m: 0.5,
                         }}
                       >
-                        {member.years}+
+                        {t("yearsPlus", { years: member.years })}
                       </Avatar>
                     </Box>
                   </TableCell>

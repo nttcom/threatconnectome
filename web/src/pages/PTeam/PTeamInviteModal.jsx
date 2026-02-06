@@ -18,6 +18,7 @@ import { addHours, isBefore } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import styles from "../../cssModule/button.module.css";
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -28,6 +29,7 @@ import { CopiedIcon } from "./CopiedIcon";
 
 export function PTeamInviteModal(props) {
   const { pteamId, text } = props;
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamInviteModal" });
 
   const [open, setOpen] = useState(false);
   const [maxUses, setMaxUses] = useState(0);
@@ -55,10 +57,12 @@ export function PTeamInviteModal(props) {
   const handleCreate = async () => {
     function onSuccess(data) {
       setInvitationLink(tokenToLink(data.invitation_id));
-      enqueueSnackbar("Create new invitation succeeded", { variant: "success" });
+      enqueueSnackbar(t("createInvitationSucceeded"), { variant: "success" });
     }
     function onError(error) {
-      enqueueSnackbar(`Create invitation failed: ${errorToString(error)}`, { variant: "error" });
+      enqueueSnackbar(t("createInvitationFailed", { error: errorToString(error) }), {
+        variant: "error",
+      });
     }
     const data = {
       expiration: expiration.toISOString(),
@@ -80,7 +84,9 @@ export function PTeamInviteModal(props) {
       <Dialog open={open} onClose={handleClose} fullWidth>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
-            <Typography className={dialogStyle.dialog_title}>Create New Invitation Link</Typography>
+            <Typography className={dialogStyle.dialog_title}>
+              {t("createNewInvitationLink")}
+            </Typography>
             <Box flexGrow={1} />
             <IconButton onClick={handleClose}>
               <CloseIcon />
@@ -91,7 +97,7 @@ export function PTeamInviteModal(props) {
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             {invitationLink ? (
               <Box display="flex" flexDirection="column">
-                <Typography>Please share the invitation link below:</Typography>
+                <Typography>{t("pleaseShareLink")}</Typography>
                 <Box display="flex" justifyContent="center" alignItems="center">
                   <Link href={invitationLink} sx={{ overflow: "auto" }}>
                     {invitationLink}
@@ -105,7 +111,7 @@ export function PTeamInviteModal(props) {
                   <Box sx={{ p: 1 }}>
                     <DateTimePicker
                       format="yyyy/MM/dd HH:mm"
-                      label="Expiration Date (future date)"
+                      label={t("expirationDate")}
                       mask="____/__/__ __:__"
                       minDateTime={now}
                       value={expiration}
@@ -122,7 +128,7 @@ export function PTeamInviteModal(props) {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box display="flex" flexDirection="column" justifyContent="center" sx={{ p: 1 }}>
-                    <Typography>Max uses: {maxUses || "unlimited"}</Typography>
+                    <Typography>{t("maxUses", { count: maxUses || t("unlimited") })}</Typography>
                     <Box mx={1}>
                       <Slider
                         step={1}
@@ -150,7 +156,7 @@ export function PTeamInviteModal(props) {
               disabled={!isBefore(now, expiration)}
               className={dialogStyle.submit_btn}
             >
-              Create
+              {t("create")}
             </Button>
           )}
         </DialogActions>
