@@ -1,10 +1,84 @@
 {
-    "StatusPage": {
-        "all_services": "All Services",
-        "search": "Search",
-        "search_enter": "Search (press ENTER to apply)",
-        "loading_team": "Now loading Team...",
-        "loading_packages_summary": "Now loading PTeamPackagesSummary...",
-        "rows": "Rows"
-    }
+  "StatusPage": {
+    "all_services": "All Services",
+    "search": "Search",
+    "search_enter": "Search (press ENTER to apply)",
+    "loading_team": "Now loading Team...",
+    "loading_packages_summary": "Now loading PTeamPackagesSummary...",
+    "rows": "Rows"
+  },
+  "PTeamServicesListModal": {
+    "loadingTeam": "Now loading Team...",
+    "rows": "{{count}} Rows",
+    "selectedPackage": "Selected Package"
+  },
+  "PTeamServiceSelectDialog": {
+    "selectService": "Select Service",
+    "selectAService": "Select a Service",
+    "cancel": "Cancel"
+  },
+  "SBOMDropArea": {
+    "uploadSBOMFile": "Upload SBOM File",
+    "serviceName": "Service name",
+    "serviceNameRequired": "This field is required.",
+    "maxLengthPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "selectedFile": "Selected file: ",
+    "upload": "Upload",
+    "dropSBOMFile": "Drop SBOM file here",
+    "uploadingSBOMFile": "Uploading SBOM file",
+    "alertOnlyOneFile": "Please drop only 1 file",
+    "alertOnlyJson": "Only *.json is supported",
+    "alertMissingFile": "Something went wrong: missing file or service.",
+    "uploadingFile": "Uploading SBOM file: {{fileName}}",
+    "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
+    "uploadFailed": "Operation failed: {{message}}",
+    "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width"
+  },
+  "WaitingModal": {
+    "inProgress": "{{text}} is in progress. Please wait."
+  },
+  "PTeamServiceDelete": {
+    "loadingTeam": "Now loading Team...",
+    "removeServiceSucceeded": "Remove service succeeded",
+    "removeServicesSucceeded": "Remove services succeeded",
+    "removeServiceFailed": "Remove service failed: {{error}}",
+    "removeServicesFailed": "Remove services failed: {{error}}",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
+  "PTeamServiceTabs": {
+    "upload": "Upload"
+  },
+  "PTeamStatusSSVCCards": {
+    "highestSSVCPriority": "Highest SSVC Priority",
+    "highestSSVCPriorityDesc": "The most serious security issue of the Service.",
+    "systemExposure": "System Exposure",
+    "systemExposureDesc": "The Accessible Attack Surface of the Affected System or Service.",
+    "missionImpact": "Mission Impact",
+    "missionImpactDesc": "Impact on Mission Essential Functions of the Organization.",
+    "updateSucceeded": "Update succeeded",
+    "updateFailed": "Update failed: {{error}}",
+    "cancel": "Cancel",
+    "update": "Update",
+    "updating": "Updating..."
+  },
+  "PTeamServiceDetailsSettingsView": {
+    "serviceSettings": "Service settings",
+    "name": "Name",
+    "nameRequired": "This field is required.",
+    "image": "Image",
+    "keywords": "Keywords (Max 5)",
+    "description": "Description",
+    "defaultSafetyImpact": "Default Safety Impact",
+    "defaultSafetyImpactTooltip": "Default Safety Impact is applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket.",
+    "save": "Save",
+    "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "tooLongKeyword": "Too long keyword. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "tooLongDescription": "Too long description. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "maxLengthPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "sameKeywordExists": "Same keyword already exists.",
+    "add": "Add",
+    "cancel": "Cancel",
+    "addNewKeyword": "+ Add a new keyword"
+  }
 }
