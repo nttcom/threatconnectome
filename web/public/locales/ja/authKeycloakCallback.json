@@ -4,6 +4,6 @@
         "cannotGetSession": "セッションを取得できません: {{error}}",
         "cannotCreateUser": "ユーザーを作成できません: {{error}}",
         "somethingWentWrong": "問題が発生しました: {{error}}",
-        "backToLogin": "ログインに戻る"
+        "backToLogin": "ログイン画面に戻る"
     }
 }
