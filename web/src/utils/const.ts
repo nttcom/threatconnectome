@@ -41,69 +41,6 @@ export const experienceColors = {
   7: red[500],
 };
 
-export const threatImpactNames = {
-  1: "immediate",
-  2: "offcycle",
-  3: "acceptable",
-  4: "none",
-};
-
-export const getThreatImpactProps = () => ({
-  immediate: {
-    chipLabel: i18n.t("utils:const.threatImpact.immediate.chipLabel"),
-    icon: RunningWithErrorsIcon,
-    statusLabel: i18n.t("utils:const.threatImpact.immediate.statusLabel"),
-    style: {
-      bgcolor: red[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  offcycle: {
-    chipLabel: i18n.t("utils:const.threatImpact.offcycle.chipLabel"),
-    icon: WarningIcon,
-    statusLabel: i18n.t("utils:const.threatImpact.offcycle.statusLabel"),
-    style: {
-      bgcolor: orange[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  acceptable: {
-    chipLabel: i18n.t("utils:const.threatImpact.acceptable.chipLabel"),
-    icon: PriorityHighIcon,
-    statusLabel: i18n.t("utils:const.threatImpact.acceptable.statusLabel"),
-    style: {
-      bgcolor: amber[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  none: {
-    chipLabel: i18n.t("utils:const.threatImpact.none.chipLabel"),
-    icon: CheckIcon,
-    statusLabel: i18n.t("utils:const.threatImpact.none.statusLabel"),
-    style: {
-      bgcolor: grey[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  safe: {
-    chipLabel: i18n.t("utils:const.threatImpact.safe.chipLabel"),
-    icon: HealthAndSafetyIcon,
-    statusLabel: i18n.t("utils:const.threatImpact.safe.statusLabel"),
-    style: {
-      bgcolor: green[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-});
-
-// Backward compatibility
-export const threatImpactProps = getThreatImpactProps();
-
 export const sortedSystemExposure = ["open", "controlled", "small"];
 export const getSystemExposure = () => ({
   open: i18n.t("utils:const.systemExposure.open"),
