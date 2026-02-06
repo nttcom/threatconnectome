@@ -18,7 +18,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
-import { ssvcPriorityProps } from "../../../utils/ssvcUtils";
+import { getSsvcPriorityProps } from "../../../utils/ssvcUtils";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
@@ -107,7 +107,8 @@ export function ToDoTable({
             {tickets.length > 0 ? (
               tickets.map((ticket) => {
                 const ssvcPriority =
-                  ssvcPriorityProps[ticket.ssvc_deployer_priority] || ssvcPriorityProps["defer"];
+                  getSsvcPriorityProps()[ticket.ssvc_deployer_priority] ||
+                  getSsvcPriorityProps()["defer"];
                 return (
                   <ToDoTableRow
                     key={ticket.ticket_id}

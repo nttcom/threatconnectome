@@ -4,17 +4,17 @@ import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import WarningIcon from "@mui/icons-material/Warning";
 import { amber, green, grey, orange, red } from "@mui/material/colors";
-import i18n from "../i18n";
+import i18n from "i18next";
 
 import { TicketResponse } from "../../types/types.gen";
 
 export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
 
-export const getSSVCPriorityProps = () => {
+export const getSsvcPriorityProps = () => {
   const prop_immediate = {
-    displayName: i18n.t("utils:ssvcUtils.priority.immediate.displayName"),
+    displayName: i18n.t("ssvcUtils.priority.immediate.displayName", { ns: "utils" }),
     icon: RunningWithErrorsIcon,
-    statusLabel: i18n.t("utils:ssvcUtils.priority.immediate.statusLabel"),
+    statusLabel: i18n.t("ssvcUtils.priority.immediate.statusLabel", { ns: "utils" }),
     style: {
       bgcolor: red[600],
       color: "white",
@@ -22,9 +22,9 @@ export const getSSVCPriorityProps = () => {
     },
   };
   const prop_out_of_cycle = {
-    displayName: i18n.t("utils:ssvcUtils.priority.out_of_cycle.displayName"),
+    displayName: i18n.t("ssvcUtils.priority.out_of_cycle.displayName", { ns: "utils" }),
     icon: WarningIcon,
-    statusLabel: i18n.t("utils:ssvcUtils.priority.out_of_cycle.statusLabel"),
+    statusLabel: i18n.t("ssvcUtils.priority.out_of_cycle.statusLabel", { ns: "utils" }),
     style: {
       bgcolor: orange[600],
       color: "white",
@@ -32,9 +32,9 @@ export const getSSVCPriorityProps = () => {
     },
   };
   const prop_scheduled = {
-    displayName: i18n.t("utils:ssvcUtils.priority.scheduled.displayName"),
+    displayName: i18n.t("ssvcUtils.priority.scheduled.displayName", { ns: "utils" }),
     icon: PriorityHighIcon,
-    statusLabel: i18n.t("utils:ssvcUtils.priority.scheduled.statusLabel"),
+    statusLabel: i18n.t("ssvcUtils.priority.scheduled.statusLabel", { ns: "utils" }),
     style: {
       bgcolor: amber[600],
       color: "white",
@@ -42,9 +42,9 @@ export const getSSVCPriorityProps = () => {
     },
   };
   const prop_defer = {
-    displayName: i18n.t("utils:ssvcUtils.priority.defer.displayName"),
+    displayName: i18n.t("ssvcUtils.priority.defer.displayName", { ns: "utils" }),
     icon: CheckIcon,
-    statusLabel: i18n.t("utils:ssvcUtils.priority.defer.statusLabel"),
+    statusLabel: i18n.t("ssvcUtils.priority.defer.statusLabel", { ns: "utils" }),
     style: {
       bgcolor: grey[600],
       color: "white",
@@ -52,9 +52,9 @@ export const getSSVCPriorityProps = () => {
     },
   };
   const prop_safe = {
-    chipLabel: i18n.t("utils:ssvcUtils.priority.safe.chipLabel"),
+    chipLabel: i18n.t("ssvcUtils.priority.safe.chipLabel", { ns: "utils" }),
     icon: HealthAndSafetyIcon,
-    statusLabel: i18n.t("utils:ssvcUtils.priority.safe.statusLabel"),
+    statusLabel: i18n.t("ssvcUtils.priority.safe.statusLabel", { ns: "utils" }),
     style: {
       bgcolor: green[600],
       color: "white",
@@ -76,9 +76,6 @@ export const getSSVCPriorityProps = () => {
     Empty: prop_defer,
   };
 };
-
-// Backward compatibility
-export const ssvcPriorityProps = getSSVCPriorityProps();
 
 type SSVCPriority =
   | "immediate"

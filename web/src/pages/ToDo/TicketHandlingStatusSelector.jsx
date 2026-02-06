@@ -8,7 +8,7 @@ import { CompleteTicketDialog } from "../../components/Ticket/CompleteTicketDial
 import { ScheduleTicketDialog } from "../../components/Ticket/ScheduleTicketDialog";
 import VulnDialogContext from "../../components/VulnDialogContext";
 import { useUpdateTicketMutation } from "../../services/tcApi";
-import { ticketHandlingStatusProps } from "../../utils/const";
+import { getTicketHandlingStatusProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 export function TicketHandlingStatusSelector(props) {
@@ -107,7 +107,7 @@ export function TicketHandlingStatusSelector(props) {
       <Button
         endIcon={<ArrowDropDownIcon />}
         sx={{
-          ...ticketHandlingStatusProps[currentStatus.ticket_handling_status].buttonStyle,
+          ...getTicketHandlingStatusProps()[currentStatus.ticket_handling_status].buttonStyle,
           fontSize: 14,
           padding: "1px 3px",
           minHeight: "25px",
@@ -125,7 +125,7 @@ export function TicketHandlingStatusSelector(props) {
         onClick={() => setOpen(!open)}
         ref={anchorRef}
       >
-        {ticketHandlingStatusProps[currentStatus.ticket_handling_status].chipLabelCapitalized}
+        {getTicketHandlingStatusProps()[currentStatus.ticket_handling_status].chipLabelCapitalized}
       </Button>
       <Popper
         open={open}

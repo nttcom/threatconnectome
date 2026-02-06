@@ -37,9 +37,9 @@ import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { noPTeamMessage } from "../../utils/const";
+import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
@@ -210,7 +210,7 @@ export function Status() {
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skipByAuth || !pteamId) return <></>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
@@ -262,7 +262,7 @@ export function Status() {
   }
 
   let priorityFilters = params.getAll("priorityFilter").filter((filter) =>
-    Object.values(ssvcPriorityProps)
+    Object.values(getSsvcPriorityProps())
       .map((prop) => prop.displayName)
       .includes(filter),
   );
@@ -275,7 +275,7 @@ export function Status() {
       (priorityFilters.length === 0
         ? true // show all if selected none
         : priorityFilters.includes(
-            ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
+            getSsvcPriorityProps()[packageInfo.ssvc_priority || "defer"].displayName,
           )) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
@@ -418,7 +418,7 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {sortedSSVCPriorities.map((priorityApiKey) => {
-          const priorityProp = ssvcPriorityProps[priorityApiKey];
+          const priorityProp = getSsvcPriorityProps()[priorityApiKey];
           const priorityDisplayName = priorityProp.displayName;
           const checked = priorityFilters.includes(priorityDisplayName);
           const summary = isActiveAllServicesMode

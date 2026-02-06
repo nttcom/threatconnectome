@@ -2,15 +2,15 @@ import { Box, Paper, Tooltip, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
-import { ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 const countMax = 99;
 
 export function SSVCPriorityCountChip(props) {
   const { count, ssvcPriority, reverse = false, sx, outerSx } = props;
-  const ssvcPriorityProp = ssvcPriorityProps[ssvcPriority];
+  const ssvcPriorityProp = getSsvcPriorityProps()[ssvcPriority];
 
-  const Icon = ssvcPriorityProps[ssvcPriority].icon;
+  const Icon = getSsvcPriorityProps()[ssvcPriority].icon;
   const StyledTooltip = styled((styledProps) => (
     <Tooltip classes={{ popper: styledProps.className }} {...styledProps} />
   ))`
@@ -19,7 +19,7 @@ export function SSVCPriorityCountChip(props) {
       color: ${ssvcPriorityProp.style.color};
     }
   `;
-  const baseSx = ssvcPriorityProps[ssvcPriority].style;
+  const baseSx = getSsvcPriorityProps()[ssvcPriority].style;
   const fixedSx = {
     ...baseSx,
     ...sx,
