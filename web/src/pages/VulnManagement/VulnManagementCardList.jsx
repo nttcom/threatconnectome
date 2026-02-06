@@ -2,6 +2,7 @@ import UpdateIcon from "@mui/icons-material/Update";
 import { Card, CardContent, Chip, Box, Typography, Stack } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
@@ -10,6 +11,7 @@ import { preserveParams } from "../../utils/urlUtils";
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
 export function VulnManagementCardList({ vulns }) {
+  const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementCardList" });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,7 +25,7 @@ export function VulnManagementCardList({ vulns }) {
               : vuln.cvss_v3_score;
 
           const cvss = cvssConvertToName(cvssScore);
-          const cveId = vuln.cve_id === null ? "No Known CVE" : vuln.cve_id;
+          const cveId = vuln.cve_id === null ? t("noKnownCve") : vuln.cve_id;
 
           const handleCardClick = () => {
             const preservedParams = preserveParams(location.search);
@@ -58,7 +60,7 @@ export function VulnManagementCardList({ vulns }) {
           );
         })
       ) : (
-        <Typography>No vulns</Typography>
+        <Typography>{t("noVulns")}</Typography>
       )}
     </Stack>
   );

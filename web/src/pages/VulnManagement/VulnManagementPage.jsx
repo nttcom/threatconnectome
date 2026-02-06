@@ -11,6 +11,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
@@ -26,6 +27,7 @@ import { VulnManagementTable } from "./VulnManagementTable";
 import { VulnSearchModal } from "./VulnSearchModal";
 
 export function VulnManagement() {
+  const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementPage" });
   const perPageItems = [10, 20, 50, 100];
 
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
@@ -110,12 +112,12 @@ export function VulnManagement() {
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
 
-  if (skip) return <>Now loading auth token...</>;
+  if (skip) return <>{t("loadingAuth")}</>;
   if (vulnsError)
     throw new APIError(errorToString(vulnsError), {
       api: "getVulns",
     });
-  if (vulnsIsLoading) return <>Now loading Vulns...</>;
+  if (vulnsIsLoading) return <>{t("loadingVulns")}</>;
 
   const pageMax = Math.ceil((vulnsList?.num_vulns ?? 0) / perPage);
 
@@ -178,7 +180,7 @@ export function VulnManagement() {
         {perPageItems.map((num) => (
           <MenuItem key={num} value={num} sx={{ justifyContent: "space-between" }}>
             <Typography variant="body2" sx={{ mt: 0.3 }}>
-              {num} Rows
+              {t("rows", { count: num })}
             </Typography>
           </MenuItem>
         ))}
@@ -194,7 +196,7 @@ export function VulnManagement() {
           <FormControlLabel
             sx={{ ml: -1 }}
             control={<Android12Switch checked={checkedPteam} onChange={handleChangeSwitch} />}
-            label="Related vulns"
+            label={t("relatedVulns")}
           />
         )}
 
