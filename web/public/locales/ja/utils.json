@@ -67,7 +67,7 @@
     },
     "productCategory": {
       "os": "OS",
-      "runtime": "ランタイム",
+      "runtime": "実行環境",
       "middleware": "ミドルウェア",
       "package": "パッケージ",
       "na": "N/A"
