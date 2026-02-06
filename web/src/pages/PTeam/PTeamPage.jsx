@@ -1,7 +1,7 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { TabPanel } from "../../components/TabPanel";
