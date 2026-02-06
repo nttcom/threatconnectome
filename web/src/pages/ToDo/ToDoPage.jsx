@@ -1,4 +1,5 @@
 import { useMediaQuery } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { useTodoState } from "../../hooks/ToDo/useTodoState";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -10,6 +11,7 @@ import ToDoCardView from "./ToDoCardView/ToDoCardView";
 import { ToDoTableView } from "./ToDoTableView/ToDoTableView";
 
 export function ToDo() {
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoPage" });
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   // All URL state management for the ToDo page is encapsulated in this custom hook.
@@ -29,7 +31,7 @@ export function ToDo() {
       api: "getUserMe",
     });
 
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
   const pteamIds = userMe?.pteam_roles.map((role) => role.pteam.pteam_id) ?? [];
 
   return (

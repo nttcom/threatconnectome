@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { useGetTicketsQuery } from "../../../services/tcApi";
@@ -29,6 +30,7 @@ export default function ToDoCardView({
   onItemsPerPageChange,
   onPageChange,
 }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoCardView.ToDoCardView" });
   const {
     page,
     sortConfig,
@@ -74,7 +76,7 @@ export default function ToDoCardView({
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Android12Switch checked={myTasks} onChange={onMyTasksChange} />
-          <Typography>My tasks</Typography>
+          <Typography>{t("myTasks")}</Typography>
         </Box>
         <DisplayOptionsController
           sortConfig={sortConfig}
@@ -109,7 +111,7 @@ export default function ToDoCardView({
         </Stack>
       ) : (
         <Box sx={{ textAlign: "center", py: 5 }}>
-          <Typography color="text.secondary">No tasks found.</Typography>
+          <Typography color="text.secondary">{t("noTasksFound")}</Typography>
         </Box>
       )}
 

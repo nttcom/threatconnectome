@@ -3,6 +3,7 @@ import { Button, ClickAwayListener, Grow, MenuItem, MenuList, Paper, Popper } fr
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CompleteTicketDialog } from "../../components/Ticket/CompleteTicketDialog";
 import { ScheduleTicketDialog } from "../../components/Ticket/ScheduleTicketDialog";
@@ -13,6 +14,7 @@ import { errorToString } from "../../utils/func";
 
 export function TicketHandlingStatusSelector(props) {
   const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "TicketHandlingStatusSelector" });
 
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
@@ -27,13 +29,13 @@ export function TicketHandlingStatusSelector(props) {
   const dateFormat = "yyyy/MM/dd HH:mm";
   const selectableItems = [
     {
-      display: "Acknowledge",
+      display: t("acknowledge"),
       rawStatus: "acknowledged",
       disabled: currentStatus.ticket_handling_status === "acknowledged",
     },
-    { display: "Schedule", rawStatus: "scheduled", disabled: false },
+    { display: t("schedule"), rawStatus: "scheduled", disabled: false },
     {
-      display: "Complete",
+      display: t("complete"),
       rawStatus: "completed",
       disabled: currentStatus.ticket_handling_status === "completed",
     },
@@ -53,10 +55,12 @@ export function TicketHandlingStatusSelector(props) {
     })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("Change ticket status succeeded", { variant: "success" });
+        enqueueSnackbar(t("changeSucceeded"), { variant: "success" });
       })
       .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
       );
   };
 

@@ -23,6 +23,7 @@ import {
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const sortableKeys = [
   { key: "cve_id", label: "CVE", icon: <FingerprintIcon /> },
@@ -38,6 +39,7 @@ export function DisplayOptionsController({
   itemsPerPage,
   onItemsPerPageChange,
 }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoCardView.DisplayOptionsController" });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleSortKeyChange = (key) => {
@@ -58,7 +60,7 @@ export function DisplayOptionsController({
 
   return (
     <>
-      <Tooltip title="Display Options">
+      <Tooltip title={t("tooltip")}>
         <IconButton
           onClick={() => setIsDrawerOpen(true)}
           sx={{
@@ -98,11 +100,11 @@ export function DisplayOptionsController({
             }}
           />
           <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
-            Display Options
+            {t("title")}
           </Typography>
 
           <Typography variant="overline" color="text.secondary">
-            Sort By
+            {t("sortBy")}
           </Typography>
           <ToggleButtonGroup
             value={sortConfig.direction}
@@ -113,11 +115,11 @@ export function DisplayOptionsController({
           >
             <ToggleButton value="asc">
               <ArrowUpwardIcon sx={{ mr: 1 }} />
-              Ascending
+              {t("ascending")}
             </ToggleButton>
             <ToggleButton value="desc">
               <ArrowDownwardIcon sx={{ mr: 1 }} />
-              Descending
+              {t("descending")}
             </ToggleButton>
           </ToggleButtonGroup>
           <List>
@@ -129,7 +131,7 @@ export function DisplayOptionsController({
                   sx={{ py: 1.5 }}
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.label} />
+                  <ListItemText primary={t(item.key)} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -138,7 +140,7 @@ export function DisplayOptionsController({
           <Divider sx={{ my: 2 }} />
 
           <Typography variant="overline" color="text.secondary">
-            Rows per page
+            {t("rowsPerPage")}
           </Typography>
           <ToggleButtonGroup
             value={itemsPerPage}

@@ -1,5 +1,6 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { useUpdateTicketMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
@@ -8,6 +9,7 @@ import { SafetyImpactSelectorView } from "./SafetyImpactSelectorView";
 
 export function SafetyImpactSelector(props) {
   const { pteamId, ticket } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "SafetyImpactSelector" });
 
   const [updateTicket] = useUpdateTicketMutation();
 
@@ -20,10 +22,12 @@ export function SafetyImpactSelector(props) {
     })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("Change safety impact succeeded", { variant: "success" });
+        enqueueSnackbar(t("changeSucceeded"), { variant: "success" });
       })
       .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
       );
   };
 

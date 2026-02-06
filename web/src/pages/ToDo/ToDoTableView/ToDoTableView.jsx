@@ -1,5 +1,6 @@
 import { Typography, Box } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { CVESearchField } from "../CVESearchField";
@@ -15,6 +16,7 @@ export function ToDoTableView({
   onPageChange,
   onItemsPerPageChange,
 }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTableView" });
   const { assigned_to_me: myTasks, cve_ids: cveIds } = apiParams;
   const cveId = cveIds?.[0] ?? "";
 
@@ -22,7 +24,7 @@ export function ToDoTableView({
     <>
       <Box sx={{ display: "flex", alignItems: "center" }}>
         <Android12Switch checked={myTasks} onChange={onMyTasksChange} />
-        <Typography>My tasks</Typography>
+        <Typography>{t("myTasks")}</Typography>
       </Box>
       <Box sx={{ mb: 1 }}>
         <CVESearchField word={cveId} onApply={onCveSearch} />
