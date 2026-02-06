@@ -10,7 +10,7 @@
     "pleaseShareLink": "以下の招待リンクを共有してください:",
     "linkAvailableUntil": "このリンクは {{date}} まで有効です",
     "close": "閉じる",
-    "expirationDate": "有効期限（未来の日時）",
+    "expirationDate": "有効期限",
     "maxUses": "最大使用回数: {{count}}",
     "unlimited": "無制限",
     "create": "作成する",
@@ -27,9 +27,9 @@
   "PTeamMember": {
     "addMember": "メンバーを追加",
     "userEmail": "ユーザー（メール）",
-    "experienceInSecOps": "SecOpsの経験年数",
+    "experienceInSecOps": "セキュリティ運用の経験年数",
     "actions": "アクション",
-    "experienceLabel": "SecOpsの経験年数:",
+    "experienceLabel": "セキュリティ運用の経験年数:",
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
