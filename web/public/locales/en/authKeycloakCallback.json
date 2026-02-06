@@ -1,0 +1,9 @@
+{
+    "AuthKeycloakCallbackPage": {
+        "checkingAuthCode": "Now checking AuthCode...",
+        "cannotGetSession": "Cannot get session: {{error}}",
+        "cannotCreateUser": "Cannot create user: {{error}}",
+        "somethingWentWrong": "Something went wrong: {{error}}",
+        "backToLogin": "Back to login"
+    }
+}
