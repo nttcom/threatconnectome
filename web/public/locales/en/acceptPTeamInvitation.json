@@ -1,0 +1,13 @@
+{
+    "AcceptPTeamInvitationPage": {
+        "title": "Do you accept the invitation to the team below?",
+        "teamName": "Team Name",
+        "teamId": "Team ID",
+        "invitationCreatedBy": "Invitation created by",
+        "accept": "Accept",
+        "nowMember": "Now you are a member of '{{pteamName}}'",
+        "acceptFailed": "Accepting invitation failed: {{error}}",
+        "invalidInvitation": "This invitation is invalid or already expired.",
+        "loadingUserInfo": "Now loading user info..."
+    }
+}
