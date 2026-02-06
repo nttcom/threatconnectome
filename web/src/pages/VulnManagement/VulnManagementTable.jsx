@@ -13,10 +13,12 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { VulnManagementTableRow } from "./VulnManagementTableRow";
 
 export function VulnManagementTable(props) {
+  const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementTable" });
   const { vulns } = props;
 
   return (
@@ -34,15 +36,15 @@ export function VulnManagementTable(props) {
             <TableCell style={{ width: "20%" }}>
               <Box display="flex" flexDirection="row">
                 <Typography variant="body2" sx={{ fontWeight: 900 }}>
-                  Last Update
+                  {t("lastUpdate")}
                 </Typography>
-                <Tooltip title="Timezone is local time">
+                <Tooltip title={t("timezoneTooltip")}>
                   <InfoIcon sx={{ color: grey[600], ml: 1 }} />
                 </Tooltip>
               </Box>
             </TableCell>
-            <TableCell style={{ width: "28%", fontWeight: 900 }}>Title</TableCell>
-            <TableCell style={{ width: "35%", fontWeight: 900 }}>CVE ID</TableCell>
+            <TableCell style={{ width: "28%", fontWeight: 900 }}>{t("title")}</TableCell>
+            <TableCell style={{ width: "35%", fontWeight: 900 }}>{t("cveId")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -50,7 +52,7 @@ export function VulnManagementTable(props) {
             vulns.map((vuln) => <VulnManagementTableRow key={vuln.vuln_id} vuln={vuln} />)
           ) : (
             <TableRow>
-              <TableCell>No vulns</TableCell>
+              <TableCell>{t("noVulns")}</TableCell>
             </TableRow>
           )}
         </TableBody>
