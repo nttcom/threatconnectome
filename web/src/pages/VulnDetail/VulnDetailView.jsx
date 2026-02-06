@@ -5,6 +5,7 @@ import {
 import { Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
@@ -20,6 +21,7 @@ const packageChip = (chipNumber) => {
 
 export function VulnDetailView(props) {
   const { vuln, updateActions } = props;
+  const { t } = useTranslation("vulnDetail", { keyPrefix: "VulnDetailView" });
 
   const [showAllPackages, setShowAllPackages] = useState(false);
 
@@ -30,7 +32,7 @@ export function VulnDetailView(props) {
         {/* Package */}
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
-            <Typography sx={{ fontWeight: "bold" }}>Package</Typography>
+            <Typography sx={{ fontWeight: "bold" }}>{t("package")}</Typography>
             {vuln.vulnerable_packages
               .filter((_, index) => (showAllPackages ? true : index === 0))
               .map((vulnPackage) => (
@@ -50,7 +52,7 @@ export function VulnDetailView(props) {
                     sx={{ textTransform: "none", width: 120 }}
                   >
                     <KeyboardArrowUpIcon sx={{ ml: -1 }} />
-                    Hide
+                    {t("hide")}
                   </Button>
                 ) : (
                   <Badge
@@ -65,7 +67,7 @@ export function VulnDetailView(props) {
                       sx={{ textTransform: "none", width: 120 }}
                     >
                       <KeyboardArrowDownIcon sx={{ ml: -1 }} />
-                      More
+                      {t("more")}
                     </Button>
                   </Badge>
                 )}
@@ -79,10 +81,10 @@ export function VulnDetailView(props) {
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>CVE ID</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>{t("cveId")}</Typography>
             </Box>
             {vuln.cve_id === null ? (
-              <Typography sx={{ margin: 1 }}>No Known CVE</Typography>
+              <Typography sx={{ margin: 1 }}>{t("noKnownCve")}</Typography>
             ) : (
               <Box sx={{ mt: 1 }}>
                 <Chip
@@ -99,10 +101,10 @@ export function VulnDetailView(props) {
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Box alignItems="center" display="flex" flexDirection="row">
-              <Typography sx={{ fontWeight: "bold" }}>Update</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>{t("update")}</Typography>
             </Box>
             {updateActions.length === 0 ? (
-              <Typography sx={{ margin: 1 }}>No data</Typography>
+              <Typography sx={{ margin: 1 }}>{t("noData")}</Typography>
             ) : (
               <>
                 <Box>
@@ -132,16 +134,16 @@ export function VulnDetailView(props) {
         <Card variant="outlined" sx={{ margin: 1, mb: 3 }}>
           <Box sx={{ margin: 3 }}>
             <Box display="flex" flexDirection="column">
-              <Typography sx={{ fontWeight: "bold" }}>Creator</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>{t("creator")}</Typography>
               <Typography>{vuln.created_by}</Typography>
               {/* TODO: convert to email address? */}
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
-              <Typography sx={{ fontWeight: "bold" }}>Last Updated</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>{t("lastUpdated")}</Typography>
               <Typography>{utcStringToLocalDate(vuln.updated_at, true)}</Typography>
             </Box>
             <Box display="flex" flexDirection="column" sx={{ mt: 1 }}>
-              <Typography sx={{ fontWeight: "bold" }}>Vuln ID</Typography>
+              <Typography sx={{ fontWeight: "bold" }}>{t("vulnId")}</Typography>
               <Typography>{vuln.vuln_id}</Typography>
             </Box>
           </Box>
