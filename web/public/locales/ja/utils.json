@@ -2,48 +2,48 @@
   "const": {
     "threatImpact": {
       "immediate": {
-        "chipLabel": "緊急",
+        "chipLabel": "Immediate",
         "statusLabel": "あなたのチームには緊急の脅威があります"
       },
       "offcycle": {
-        "chipLabel": "定期外",
+        "chipLabel": "Off-cycle",
         "statusLabel": "あなたのチームには定期外の脅威があります"
       },
       "acceptable": {
-        "chipLabel": "許容可能",
+        "chipLabel": "Acceptable",
         "statusLabel": "あなたのチームには許容可能な脅威があります"
       },
       "none": {
-        "chipLabel": "なし",
+        "chipLabel": "None",
         "statusLabel": "あなたのチームには脅威がありません"
       },
       "safe": {
-        "chipLabel": "安全",
+        "chipLabel": "Safe",
         "statusLabel": "あなたのチームは安全です"
       }
     },
     "systemExposure": {
-      "open": "オープン",
-      "controlled": "管理された",
-      "small": "小規模"
+      "open": "Open",
+      "controlled": "Controlled",
+      "small": "Small"
     },
     "missionImpact": {
-      "mission_failure": "ミッション失敗",
-      "mef_failure": "MEF失敗",
-      "mef_support_crippled": "MEFサポート機能停止",
-      "degraded": "低下"
+      "mission_failure": "Mission Failure",
+      "mef_failure": "MEF Failure",
+      "mef_support_crippled": "MEF Support Crippled",
+      "degraded": "Degraded"
     },
     "safetyImpact": {
-      "catastrophic": "壊滅的",
-      "critical": "重大",
-      "marginal": "限定的",
-      "negligible": "無視可能"
+      "catastrophic": "Catastrophic",
+      "critical": "Critical",
+      "marginal": "Marginal",
+      "negligible": "Negligible"
     },
     "ticketHandlingStatus": {
-      "alerted": "警告済み",
-      "acknowledged": "確認済み",
-      "scheduled": "スケジュール済み",
-      "completed": "完了"
+      "alerted": "Alerted",
+      "acknowledged": "Acknowledged",
+      "scheduled": "Scheduled",
+      "completed": "Completed"
     },
     "noPTeamMessage": "あなたはどのチームにも所属していません。チームを作成してください。"
   },
@@ -76,23 +76,23 @@
   "ssvcUtils": {
     "priority": {
       "immediate": {
-        "displayName": "緊急",
-        "statusLabel": "緊急：直ちに行動し、可能な限り迅速に修正を適用することに全リソースを集中させてください。必要に応じて、通常の組織業務を一時停止することも含みます。"
+        "displayName": "Immediate",
+        "statusLabel": "Immediate：直ちに行動し、可能な限り迅速に修正を適用することに全リソースを集中させてください。必要に応じて、通常の組織業務を一時停止することも含みます。"
       },
       "out_of_cycle": {
-        "displayName": "定期外",
-        "statusLabel": "定期外：通常よりも迅速に行動し、次の利用可能な機会に定期外で緩和策または修正を適用してください。必要に応じて残業してください。"
+        "displayName": "Out-of-cycle",
+        "statusLabel": "Out-of-cycle：通常よりも迅速に行動し、次の利用可能な機会に定期外で緩和策または修正を適用してください。必要に応じて残業してください。"
       },
       "scheduled": {
-        "displayName": "スケジュール済み",
-        "statusLabel": "スケジュール済み：定期的なメンテナンス時間中に行動してください。"
+        "displayName": "Scheduled",
+        "statusLabel": "Scheduled：定期的なメンテナンス時間中に行動してください。"
       },
       "defer": {
-        "displayName": "延期",
-        "statusLabel": "延期：現時点では行動しません。"
+        "displayName": "Defer",
+        "statusLabel": "Defer：現時点では行動しません。"
       },
       "safe": {
-        "chipLabel": "安全",
+        "chipLabel": "Safe",
         "statusLabel": "すべての脆弱性が解決されました"
       }
     }
