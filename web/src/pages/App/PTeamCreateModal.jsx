@@ -13,6 +13,7 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -27,6 +28,7 @@ import { errorToString, countFullWidthAndHalfWidthCharacters } from "../../utils
 
 export function PTeamCreateModal(props) {
   const { open, onSetOpen, onCloseTeamSelector } = props;
+  const { t } = useTranslation("app", { keyPrefix: "PTeamCreateModal" });
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -40,7 +42,10 @@ export function PTeamCreateModal(props) {
   const handlePTeamNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
       enqueueSnackbar(
-        `Too long team name. Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`,
+        t("teamNameTooLong", {
+          maxHalf: maxPTeamNameLengthInHalf,
+          maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -56,7 +61,10 @@ export function PTeamCreateModal(props) {
   const handleContactInfoSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxContactInfoLengthInHalf) {
       enqueueSnackbar(
-        `Too long contact info. Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`,
+        t("contactInfoTooLong", {
+          maxHalf: maxContactInfoLengthInHalf,
+          maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -72,7 +80,10 @@ export function PTeamCreateModal(props) {
   const handleSlackUrlSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
       enqueueSnackbar(
-        `Too long Slack webhook URL. Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`,
+        t("slackUrlTooLong", {
+          maxHalf: maxSlackWebhookUrlLengthInHalf,
+          maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -102,7 +113,7 @@ export function PTeamCreateModal(props) {
     await createPTeam({ body: data })
       .unwrap()
       .then(async (data) => {
-        enqueueSnackbar("create pteam succeeded", { variant: "success" });
+        enqueueSnackbar(t("createSucceeded"), { variant: "success" });
         onSetOpen(false);
         // fix user.pteams before navigating, to avoid overwriting pteamId by pages/App.jsx.
         const newParams = new URLSearchParams();
@@ -110,7 +121,9 @@ export function PTeamCreateModal(props) {
         navigate("/pteam?" + newParams.toString());
       })
       .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
       );
   };
 
@@ -119,7 +132,7 @@ export function PTeamCreateModal(props) {
       <Dialog fullWidth open={open} onClose={() => onSetOpen(false)}>
         <DialogTitle>
           <Box display="flex" flexDirection="row">
-            <Typography className={dialogStyle.dialog_title}>Create Team</Typography>
+            <Typography className={dialogStyle.dialog_title}>{t("title")}</Typography>
             <Box flexGrow={1} />
             <IconButton onClick={() => onSetOpen(false)}>
               <CloseIcon />
@@ -129,30 +142,39 @@ export function PTeamCreateModal(props) {
         <DialogContent>
           <Box display="flex" flexDirection="column">
             <TextField
-              label="Team name"
+              label={t("teamName")}
               onChange={(event) => handlePTeamNameSetting(event.target.value)}
-              placeholder={`Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`}
+              placeholder={t("teamNamePlaceholder", {
+                maxHalf: maxPTeamNameLengthInHalf,
+                maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
+              })}
               required
               error={!pteamName}
               margin="dense"
             ></TextField>
             <TextField
-              label="Contact Info"
+              label={t("contactInfo")}
               onChange={(event) => handleContactInfoSetting(event.target.value)}
-              placeholder={`Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`}
+              placeholder={t("contactInfoPlaceholder", {
+                maxHalf: maxContactInfoLengthInHalf,
+                maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
+              })}
               margin="dense"
             ></TextField>
             <TextField
-              label="Slack's Incoming Webhook URL"
+              label={t("slackWebhook")}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
-              placeholder={`Max length is ${maxSlackWebhookUrlLengthInHalf} in half-width or ${Math.floor(maxSlackWebhookUrlLengthInHalf / 2)} in full-width`}
+              placeholder={t("slackPlaceholder", {
+                maxHalf: maxSlackWebhookUrlLengthInHalf,
+                maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
+              })}
               margin="dense"
             ></TextField>
           </Box>
         </DialogContent>
         <DialogActions className={dialogStyle.action_area}>
           <Button onClick={handleCreate} disabled={!pteamName} className={dialogStyle.submit_btn}>
-            Create
+            {t("create")}
           </Button>
         </DialogActions>
       </Dialog>

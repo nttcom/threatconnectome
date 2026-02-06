@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -35,6 +36,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 export function Drawer() {
+  const { t } = useTranslation("app", { keyPrefix: "Drawer" });
   const location = useLocation();
   const locationReader = new LocationReader(location);
   const navigate = useNavigate();
@@ -89,8 +91,6 @@ export function Drawer() {
     };
   }, [isLgUp, isSmDown, dispatch]);
 
-  const drawerTitle = "Threatconnectome";
-
   return (
     <MuiDrawer
       anchor="left"
@@ -113,7 +113,7 @@ export function Drawer() {
     >
       <DrawerHeader>
         <Typography onClick={handleNavigateTop} variant="h7" sx={{ fontWeight: 700 }}>
-          {drawerTitle}
+          {t("title")}
         </Typography>
       </DrawerHeader>
       <Box
@@ -131,7 +131,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <HomeIcon />
             </StyledListItemIcon>
-            <ListItemText>Status</ListItemText>
+            <ListItemText>{t("status")}</ListItemText>
           </StyledListItemButton>
           <StyledListItemButton
             onClick={() => navigate("/pteam?" + cleanedQueryParams)}
@@ -140,7 +140,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <GroupsIcon />
             </StyledListItemIcon>
-            <ListItemText>Team</ListItemText>
+            <ListItemText>{t("team")}</ListItemText>
           </StyledListItemButton>
           {/* Vulns */}
           <StyledListItemButton
@@ -150,7 +150,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <TopicIcon />
             </StyledListItemIcon>
-            <ListItemText>Vulns</ListItemText>
+            <ListItemText>{t("vulns")}</ListItemText>
           </StyledListItemButton>
           {/* EoL */}
           <StyledListItemButton
@@ -160,7 +160,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <EventIcon />
             </StyledListItemIcon>
-            <ListItemText>EoL</ListItemText>
+            <ListItemText>{t("eol")}</ListItemText>
           </StyledListItemButton>
           {/* ToDo */}
           <StyledListItemButton
@@ -170,7 +170,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <FormatListBulletedIcon />
             </StyledListItemIcon>
-            <ListItemText>ToDo</ListItemText>
+            <ListItemText>{t("todo")}</ListItemText>
           </StyledListItemButton>
         </List>
       </Box>

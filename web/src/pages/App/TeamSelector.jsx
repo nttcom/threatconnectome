@@ -2,6 +2,7 @@ import { Add as AddIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui
 import { Box, Button, Menu, MenuItem } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -24,6 +25,7 @@ function textTrim(selector) {
 }
 
 export function TeamSelector() {
+  const { t } = useTranslation("app", { keyPrefix: "TeamSelector" });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -53,7 +55,7 @@ export function TeamSelector() {
 
   if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
 
   const switchToPTeam = (teamId) => {
     handleClose();
@@ -108,10 +110,10 @@ export function TeamSelector() {
                 >
                   {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>
-              ))}
+              ))}{" "}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
             <AddIcon fontSize="small" />
-            Create Team
+            {t("createTeam")}
           </MenuItem>
         </Menu>
         <PTeamCreateModal
