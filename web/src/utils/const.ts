@@ -1,10 +1,4 @@
-import CheckIcon from "@mui/icons-material/Check";
-import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
-import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
-import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
-import WarningIcon from "@mui/icons-material/Warning";
 import {
-  amber,
   blueGrey,
   brown,
   green,
@@ -15,6 +9,7 @@ import {
   teal,
   yellow,
 } from "@mui/material/colors";
+import i18n from "i18next";
 
 export const drawerWidth = 200;
 
@@ -40,72 +35,12 @@ export const experienceColors = {
   7: red[500],
 };
 
-export const threatImpactNames = {
-  1: "immediate",
-  2: "offcycle",
-  3: "acceptable",
-  4: "none",
-};
-
-export const threatImpactProps = {
-  immediate: {
-    chipLabel: "Immediate",
-    icon: RunningWithErrorsIcon,
-    statusLabel: "Your pteam has a immediate",
-    style: {
-      bgcolor: red[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  offcycle: {
-    chipLabel: "Off-cycle",
-    icon: WarningIcon,
-    statusLabel: "Your pteam has a off-cycle",
-    style: {
-      bgcolor: orange[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  acceptable: {
-    chipLabel: "Acceptable",
-    icon: PriorityHighIcon,
-    statusLabel: "Your pteam has a acceptable",
-    style: {
-      bgcolor: amber[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  none: {
-    chipLabel: "None",
-    icon: CheckIcon,
-    statusLabel: "Your pteam has none",
-    style: {
-      bgcolor: grey[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  safe: {
-    chipLabel: "Safe",
-    icon: HealthAndSafetyIcon,
-    statusLabel: "Your pteam has safe",
-    style: {
-      bgcolor: green[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-};
-
 export const sortedSystemExposure = ["open", "controlled", "small"];
-export const systemExposure = {
-  open: "Open",
-  controlled: "Controlled",
-  small: "Small",
-};
+export const getSystemExposure = () => ({
+  open: i18n.t("const.systemExposure.open", { ns: "utils" }),
+  controlled: i18n.t("const.systemExposure.controlled", { ns: "utils" }),
+  small: i18n.t("const.systemExposure.small", { ns: "utils" }),
+});
 
 export const sortedMissionImpact = [
   "mission_failure",
@@ -113,12 +48,12 @@ export const sortedMissionImpact = [
   "mef_support_crippled",
   "degraded",
 ];
-export const missionImpact = {
-  mission_failure: "Mission Failure",
-  mef_failure: "MEF Failure",
-  mef_support_crippled: "MEF Support Crippled",
-  degraded: "Degraded",
-};
+export const getMissionImpact = () => ({
+  mission_failure: i18n.t("const.missionImpact.mission_failure", { ns: "utils" }),
+  mef_failure: i18n.t("const.missionImpact.mef_failure", { ns: "utils" }),
+  mef_support_crippled: i18n.t("const.missionImpact.mef_support_crippled", { ns: "utils" }),
+  degraded: i18n.t("const.missionImpact.degraded", { ns: "utils" }),
+});
 
 /* Safety Impact */
 export const sortedSafetyImpacts = [
@@ -128,34 +63,37 @@ export const sortedSafetyImpacts = [
   "marginal",
   "negligible",
 ];
-const propSafetyImpactCatastrophic = {
-  displayName: "Catastrophic",
-};
-const propSafetyImpactCritical = {
-  displayName: "Critical",
-};
-const propSafetyImpactMarginal = {
-  displayName: "Marginal",
-};
-const propSafetyImpactNegligible = {
-  displayName: "Negligible",
-};
-export const safetyImpactProps = {
-  catastrophic: propSafetyImpactCatastrophic,
-  Catastrophic: propSafetyImpactCatastrophic,
-  critical: propSafetyImpactCritical,
-  Critical: propSafetyImpactCritical,
-  marginal: propSafetyImpactMarginal,
-  Marginal: propSafetyImpactMarginal,
-  negligible: propSafetyImpactNegligible,
-  Negligible: propSafetyImpactNegligible,
+
+export const getSafetyImpactProps = () => {
+  const propSafetyImpactCatastrophic = {
+    displayName: i18n.t("const.safetyImpact.catastrophic", { ns: "utils" }),
+  };
+  const propSafetyImpactCritical = {
+    displayName: i18n.t("const.safetyImpact.critical", { ns: "utils" }),
+  };
+  const propSafetyImpactMarginal = {
+    displayName: i18n.t("const.safetyImpact.marginal", { ns: "utils" }),
+  };
+  const propSafetyImpactNegligible = {
+    displayName: i18n.t("const.safetyImpact.negligible", { ns: "utils" }),
+  };
+  return {
+    catastrophic: propSafetyImpactCatastrophic,
+    Catastrophic: propSafetyImpactCatastrophic,
+    critical: propSafetyImpactCritical,
+    Critical: propSafetyImpactCritical,
+    marginal: propSafetyImpactMarginal,
+    Marginal: propSafetyImpactMarginal,
+    negligible: propSafetyImpactNegligible,
+    Negligible: propSafetyImpactNegligible,
+  };
 };
 
 export const sortedTicketHandlingStatus = ["alerted", "acknowledged", "scheduled", "completed"];
-export const ticketHandlingStatusProps = {
+export const getTicketHandlingStatusProps = () => ({
   alerted: {
     chipLabel: "alerted",
-    chipLabelCapitalized: "Alerted",
+    chipLabelCapitalized: i18n.t("const.ticketHandlingStatus.alerted", { ns: "utils" }),
     style: {
       bgcolor: teal[50],
       color: "red",
@@ -169,7 +107,7 @@ export const ticketHandlingStatusProps = {
   },
   acknowledged: {
     chipLabel: "acknowledged",
-    chipLabelCapitalized: "Acknowledged",
+    chipLabelCapitalized: i18n.t("const.ticketHandlingStatus.acknowledged", { ns: "utils" }),
     style: {
       bgcolor: teal[200],
       color: "black",
@@ -183,7 +121,7 @@ export const ticketHandlingStatusProps = {
   },
   scheduled: {
     chipLabel: "scheduled",
-    chipLabelCapitalized: "Scheduled",
+    chipLabelCapitalized: i18n.t("const.ticketHandlingStatus.scheduled", { ns: "utils" }),
     style: {
       bgcolor: teal[600],
       color: "white",
@@ -197,7 +135,7 @@ export const ticketHandlingStatusProps = {
   },
   completed: {
     chipLabel: "completed",
-    chipLabelCapitalized: "Completed",
+    chipLabelCapitalized: i18n.t("const.ticketHandlingStatus.completed", { ns: "utils" }),
     style: {
       bgcolor: green[600],
       color: "white",
@@ -209,7 +147,7 @@ export const ticketHandlingStatusProps = {
       },
     },
   },
-};
+});
 
 export const commonButtonStyle = {
   bgcolor: green[700],
@@ -247,7 +185,7 @@ export const sxModal = {
   p: 4,
 };
 
-export const noPTeamMessage = "You do not belong to any pteam. Please create a pteam.";
+export const getNoPTeamMessage = () => i18n.t("const.noPTeamMessage", { ns: "utils" });
 
 export const drawerParams = {
   mainColor: brown[900],

@@ -1,0 +1,100 @@
+{
+  "const": {
+    "threatImpact": {
+      "immediate": {
+        "chipLabel": "Immediate",
+        "statusLabel": "Your pteam has a immediate"
+      },
+      "offcycle": {
+        "chipLabel": "Off-cycle",
+        "statusLabel": "Your pteam has a off-cycle"
+      },
+      "acceptable": {
+        "chipLabel": "Acceptable",
+        "statusLabel": "Your pteam has a acceptable"
+      },
+      "none": {
+        "chipLabel": "None",
+        "statusLabel": "Your pteam has none"
+      },
+      "safe": {
+        "chipLabel": "Safe",
+        "statusLabel": "Your pteam has safe"
+      }
+    },
+    "systemExposure": {
+      "open": "Open",
+      "controlled": "Controlled",
+      "small": "Small"
+    },
+    "missionImpact": {
+      "mission_failure": "Mission Failure",
+      "mef_failure": "MEF Failure",
+      "mef_support_crippled": "MEF Support Crippled",
+      "degraded": "Degraded"
+    },
+    "safetyImpact": {
+      "catastrophic": "Catastrophic",
+      "critical": "Critical",
+      "marginal": "Marginal",
+      "negligible": "Negligible"
+    },
+    "ticketHandlingStatus": {
+      "alerted": "Alerted",
+      "acknowledged": "Acknowledged",
+      "scheduled": "Scheduled",
+      "completed": "Completed"
+    },
+    "noPTeamMessage": "You do not belong to any pteam. Please create a pteam."
+  },
+  "eolUtils": {
+    "status": {
+      "expired": "Expired",
+      "warning": "Deadline approaching",
+      "active": "Supported",
+      "unknown": "Undecided"
+    },
+    "diffText": {
+      "daysOver": "{{days}} days over",
+      "expiresToday": "Expires today",
+      "daysLeft": "{{days}} days left"
+    },
+    "formatDate": {
+      "undecided": "Undecided"
+    },
+    "latestUpdateDate": {
+      "na": "N/A"
+    },
+    "productCategory": {
+      "os": "OS",
+      "runtime": "Runtime",
+      "middleware": "Middleware",
+      "package": "Package",
+      "na": "N/A"
+    }
+  },
+  "ssvcUtils": {
+    "priority": {
+      "immediate": {
+        "displayName": "Immediate",
+        "statusLabel": "Immediate: Act immediately; focus all resources on applying the fix as quickly as possible, including, if necessary, pausing regular organization operations."
+      },
+      "out_of_cycle": {
+        "displayName": "Out-of-cycle",
+        "statusLabel": "Out-of-cycle: Act more quickly than usual to apply the mitigation or remediation out-of-cycle, during the next available opportunity, working overtime if necessary."
+      },
+      "scheduled": {
+        "displayName": "Scheduled",
+        "statusLabel": "Scheduled: Act during regularly scheduled maintenance time."
+      },
+      "defer": {
+        "displayName": "Defer",
+        "statusLabel": "Defer: Do not act at present."
+      },
+      "safe": {
+        "chipLabel": "Safe",
+        "statusLabel": "All vulnerabilities have been resolved"
+      }
+    }
+  }
+}

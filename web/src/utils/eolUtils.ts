@@ -1,21 +1,23 @@
 import type { ProductCategoryEnum } from "../../types/types.gen";
+import i18n from "i18next";
 
 export const WARNING_THRESHOLD_DAYS = 180;
 
-export const EoLProductCategoryList: { value: ProductCategoryEnum; label: string }[] = [
-  { value: "os", label: "OS" },
-  { value: "runtime", label: "Runtime" },
-  { value: "middleware", label: "Middleware" },
-  { value: "package", label: "Package" },
+export const getEoLProductCategoryList = (): { value: ProductCategoryEnum; label: string }[] => [
+  { value: "os", label: i18n.t("eolUtils.productCategory.os", { ns: "utils" }) },
+  { value: "runtime", label: i18n.t("eolUtils.productCategory.runtime", { ns: "utils" }) },
+  { value: "middleware", label: i18n.t("eolUtils.productCategory.middleware", { ns: "utils" }) },
+  { value: "package", label: i18n.t("eolUtils.productCategory.package", { ns: "utils" }) },
 ];
 
 export const getProductCategorybyValue = (value: string | null | undefined) => {
-  const item = EoLProductCategoryList.find((item) => item.value === value);
-  return item ? item.label : "N/A";
+  const list = getEoLProductCategoryList();
+  const item = list.find((item) => item.value === value);
+  return item ? item.label : i18n.t("eolUtils.productCategory.na", { ns: "utils" });
 };
 
-export const formatDate = (dateStr: string | null | undefined) => {
-  if (!dateStr) return "Undecided";
+export const getFormatDate = (dateStr: string | null | undefined) => {
+  if (!dateStr) return i18n.t("eolUtils.formatDate.undecided", { ns: "utils" });
   return new Date(dateStr).toLocaleDateString();
 };
 
@@ -28,7 +30,9 @@ export const getLatestUpdateDate = (items: HasUpdatedAt[]): string => {
     .map((item) => new Date(item.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
 
-  return latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
+  return latestUpdateDate > new Date(0)
+    ? latestUpdateDate.toLocaleDateString()
+    : i18n.t("eolUtils.latestUpdateDate.na", { ns: "utils" });
 };
 
 export const getDiffDays = (eolDateStr: string | null | undefined): number | null => {
@@ -51,13 +55,13 @@ export type Status = "expired" | "warning" | "active" | "unknown";
 export const getStatusLabel = (status: Status) => {
   switch (status) {
     case "expired":
-      return "Expired";
+      return i18n.t("eolUtils.status.expired", { ns: "utils" });
     case "warning":
-      return "Deadline approaching";
+      return i18n.t("eolUtils.status.warning", { ns: "utils" });
     case "active":
-      return "Supported";
+      return i18n.t("eolUtils.status.active", { ns: "utils" });
     case "unknown":
-      return "Undecided";
+      return i18n.t("eolUtils.status.unknown", { ns: "utils" });
   }
 };
 
@@ -73,7 +77,8 @@ export const getDiffText = (eolDateStr: string) => {
   const diffDays = getDiffDays(eolDateStr);
 
   if (diffDays === null || diffDays === undefined) return "-";
-  if (diffDays < 0) return `${Math.abs(diffDays)} days over`;
-  if (diffDays === 0) return "Expires today";
-  return `${diffDays} days left`;
+  if (diffDays < 0)
+    return i18n.t("eolUtils.diffText.daysOver", { ns: "utils", days: Math.abs(diffDays) });
+  if (diffDays === 0) return i18n.t("eolUtils.diffText.expiresToday", { ns: "utils" });
+  return i18n.t("eolUtils.diffText.daysLeft", { ns: "utils", days: diffDays });
 };

@@ -20,23 +20,23 @@ import { useState, useEffect } from "react";
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
   sortedSystemExposure,
-  systemExposure,
+  getSystemExposure,
   sortedMissionImpact,
-  missionImpact,
+  getMissionImpact,
 } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 export function PTeamStatusSSVCCards(props) {
   const { pteamId, service, highestSsvcPriority } = props;
-  const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
+  const ssvcPriorityProp = getSsvcPriorityProps()[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
   let ssvcPriority = {
-    ...ssvcPriorityProps,
+    ...getSsvcPriorityProps(),
   };
-  Object.keys(ssvcPriorityProps).forEach((key) => {
-    ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
+  Object.keys(getSsvcPriorityProps()).forEach((key) => {
+    ssvcPriority[key] = getSsvcPriorityProps()[key]["displayName"];
   });
 
   const [isSystemExposureEditable, setIsSystemExposureEditable] = useState(false);
@@ -82,7 +82,7 @@ export function PTeamStatusSSVCCards(props) {
       title: "System Exposure",
       description: "The Accessible Attack Surface of the Affected System or Service.",
       items: sortedSystemExposure,
-      valuePairing: systemExposure,
+      valuePairing: getSystemExposure(),
       isEditable: isSystemExposureEditable,
       handleClickIconButton: setIsSystemExposureEditable,
       handleClickToggleButton: setSystemExposureValue,
@@ -91,7 +91,7 @@ export function PTeamStatusSSVCCards(props) {
       title: "Mission Impact",
       description: "Impact on Mission Essential Functions of the Organization.",
       items: sortedMissionImpact,
-      valuePairing: missionImpact,
+      valuePairing: getMissionImpact(),
       isEditable: isMissionImpactEditable,
       handleClickIconButton: setIsMissionImpactEditable,
       handleClickToggleButton: setMissionImpactValue,
@@ -149,7 +149,7 @@ export function PTeamStatusSSVCCards(props) {
                 "& .MuiToggleButton-root": {
                   width: "100%",
                   "&.Mui-selected": {
-                    backgroundColor: ssvcPriorityProps[highestSsvcPriority].style.bgcolor,
+                    backgroundColor: getSsvcPriorityProps()[highestSsvcPriority].style.bgcolor,
                   },
                 },
               }}

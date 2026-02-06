@@ -31,7 +31,7 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import {
-  EoLProductCategoryList,
+  getEoLProductCategoryList,
   getLatestUpdateDate,
   getProductCategorybyValue,
 } from "../../utils/eolUtils";
@@ -119,7 +119,7 @@ export function ProductEolList() {
               onClick={() => setSelectedCategory("all")}
               variant={selectedCategory === "all" ? "filled" : "outlined"}
             />
-            {EoLProductCategoryList.map((category) => (
+            {getEoLProductCategoryList().map((category) => (
               <Chip
                 key={category.value}
                 label={category.label}

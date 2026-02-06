@@ -24,7 +24,7 @@ import { useState } from "react";
 
 import { useViewportOffset } from "../../hooks/useViewportOffset";
 import {
-  safetyImpactProps,
+  getSafetyImpactProps,
   sortedSafetyImpacts,
   maxReasonSafetyImpactLengthInHalf,
 } from "../../utils/const";
@@ -147,7 +147,7 @@ export function SafetyImpactSelectorView(props) {
           </MenuItem>
           {sortedSafetyImpacts.map((safetyImpact) => (
             <MenuItem key={safetyImpact} value={safetyImpact}>
-              {safetyImpactProps[safetyImpact].displayName}
+              {getSafetyImpactProps()[safetyImpact].displayName}
             </MenuItem>
           ))}
         </Select>
@@ -174,7 +174,7 @@ export function SafetyImpactSelectorView(props) {
                 </MenuItem>
                 {sortedSafetyImpacts.map((safetyImpact) => (
                   <MenuItem key={safetyImpact} value={safetyImpact}>
-                    {safetyImpactProps[safetyImpact]?.displayName}
+                    {getSafetyImpactProps()[safetyImpact]?.displayName}
                   </MenuItem>
                 ))}
               </Select>

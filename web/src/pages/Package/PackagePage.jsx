@@ -23,7 +23,7 @@ import {
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError.js";
-import { noPTeamMessage } from "../../utils/const.js";
+import { getNoPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func";
 
 import { CodeBlock } from "./CodeBlock.jsx";
@@ -67,7 +67,7 @@ export function Package() {
     if (!isMdUp) setOpen(false);
   };
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (!getVulnIdsReady) return <></>;
   if (!serviceId) return <>Service ID is required</>;
 
