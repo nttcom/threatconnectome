@@ -8,7 +8,7 @@
     },
     "ServiceEolDashboardPage": {
         "title": "EOL List",
-        "subtitle": "List of EOL Status for Libraries and Tools Used by the Entire Team.",
+        "subtitle": "List of Support Status for Libraries and Tools Used by the Entire Team.",
         "notificationTitle": "EOL Notification",
         "notificationItems": {
             "autoNotify": "Supported tools will be automatically notified via Slack or email six months prior to their EOL date.",
