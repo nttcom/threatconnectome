@@ -1,8 +1,10 @@
 import { Refresh } from "@mui/icons-material";
 import { Button, Stack } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 export function SmsResendButton({ canExecute, isBusy, timer, onResend }) {
+  const { t } = useTranslation("components", { keyPrefix: "SmsResendButton" });
   const disabled = !canExecute || isBusy;
 
   return (
@@ -10,10 +12,10 @@ export function SmsResendButton({ canExecute, isBusy, timer, onResend }) {
       {canExecute ? (
         <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
           <Refresh fontSize="small" />
-          <span>Resend the code</span>
+          <span>{t("resend")}</span>
         </Stack>
       ) : (
-        `Resend in ${timer} seconds`
+        t("resendIn", { timer })
       )}
     </Button>
   );

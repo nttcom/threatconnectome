@@ -15,6 +15,7 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import {
@@ -36,6 +37,7 @@ import { useVulnDialogContext } from "../VulnDialogContext.js";
 export function CompleteTicketDialog(props) {
   const { pteamId, serviceId, packageId, ticketId, onClose, show } = props;
   const { vulnId } = useVulnDialogContext();
+  const { t } = useTranslation("components", { keyPrefix: "Ticket.CompleteTicketDialog" });
 
   const [note, setNote] = useState("");
   const [selectedUpdateAction, setSelectedUpdateAction] = useState([]);
@@ -139,7 +141,7 @@ export function CompleteTicketDialog(props) {
     })
       .unwrap()
       .then((actionLog) => {
-        enqueueSnackbar("Action succeeded", { variant: "success" });
+        enqueueSnackbar(t("actionSucceeded"), { variant: "success" });
         return actionLog;
       })
       .then(async (actionLog) => {
@@ -158,10 +160,12 @@ export function CompleteTicketDialog(props) {
       })
       .then(() => {
         handleClose();
-        enqueueSnackbar("Ticket completed successfully", { variant: "success" });
+        enqueueSnackbar(t("ticketCompleted"), { variant: "success" });
       })
       .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
       );
   };
 
@@ -170,9 +174,7 @@ export function CompleteTicketDialog(props) {
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-            {activeStep === 0
-              ? "Select the actions you have completed"
-              : "(Optional): Enter evidence of completion"}
+            {activeStep === 0 ? t("selectActions") : t("enterEvidence")}
           </Typography>
           <IconButton onClick={handleClose}>
             <CloseIcon />
@@ -188,7 +190,7 @@ export function CompleteTicketDialog(props) {
           <>
             {updateAction === null ? (
               <Box display="flex" flexDirection="row" alignItems="center" sx={{ color: grey[500] }}>
-                <Typography variant="body2">No action available</Typography>
+                <Typography variant="body2">{t("noActionAvailable")}</Typography>
               </Box>
             ) : (
               <MenuItem
@@ -221,7 +223,7 @@ export function CompleteTicketDialog(props) {
               multiline
               rows={3}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="Evidence that you have completed the action, such as a report URL, event logs, file hashes, etc."
+              placeholder={t("evidencePlaceholder")}
               variant="outlined"
               value={note}
             />
@@ -236,17 +238,17 @@ export function CompleteTicketDialog(props) {
                 variant="contained"
                 disabled={selectedUpdateAction.length === 0}
               >
-                {`Done ${selectedUpdateAction.length}`}
+                {t("done", { count: selectedUpdateAction.length })}
               </Button>
             </>
           ) : (
             <>
               <Button onClick={handleBack} disabled={isSubmitting} sx={{ ml: -1 }}>
-                Back
+                {t("back")}
               </Button>
               <Box sx={{ flex: "1 1 auto" }} />
               <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting ? t("submitting") : t("submit")}
               </Button>
             </>
           )}

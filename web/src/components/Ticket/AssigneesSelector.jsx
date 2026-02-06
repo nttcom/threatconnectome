@@ -19,6 +19,7 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useGetMembers } from "../../hooks/Package/useApiForVulnerabilityTable.js";
 import { usePageParams } from "../../hooks/usePageParams.js";
@@ -26,6 +27,7 @@ import { useUpdateTicketMutation } from "../../services/tcApi.js";
 import { errorToString, setEquals } from "../../utils/func.js";
 
 export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
+  const { t } = useTranslation("components", { keyPrefix: "Ticket.AssigneesSelector" });
   const { pteamId } = usePageParams();
   const {
     data: members,
@@ -50,10 +52,12 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
     })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("Change assignees succeeded", { variant: "success" });
+        enqueueSnackbar(t("changeAssigneesSucceeded"), { variant: "success" });
       })
       .catch((error) =>
-        enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" }),
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
       );
   };
 
@@ -95,7 +99,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
             variant="caption"
             sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
           >
-            Assignees
+            {t("assignees")}
           </Typography>
         </Stack>
         <Paper
@@ -126,7 +130,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
             variant="caption"
             sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
           >
-            Assignees
+            {t("assignees")}
           </Typography>
         </Stack>
         <Paper
@@ -141,7 +145,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
           }}
         >
           <Typography variant="body2" color="error" sx={{ textAlign: "center" }}>
-            Failed to load members
+            {t("failedToLoadMembers")}
           </Typography>
         </Paper>
       </Box>
@@ -167,8 +171,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
           variant="caption"
           sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
         >
-          Assignees
-          {` (${selectedMembers.length})`}
+          {t("assigneesCount", { count: selectedMembers.length })}
         </Typography>
       </Stack>
       <Paper
@@ -185,7 +188,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
           <TextField
             fullWidth
             variant="standard"
-            placeholder={"Search by email"}
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => setIsFocused(true)}
@@ -197,7 +200,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
             }
             slotProps={{
               input: {
-                "aria-label": "Search by email",
+                "aria-label": t("searchPlaceholder"),
                 disableUnderline: true,
                 startAdornment: (
                   <InputAdornment>
@@ -228,7 +231,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
               color="text.secondary"
               sx={{ p: 2, fontStyle: "italic", fontSize: "0.75rem" }}
             >
-              No selection
+              {t("noSelection")}
             </Typography>
           ) : (
             <List dense disablePadding>
