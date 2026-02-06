@@ -1,0 +1,37 @@
+{
+  "VulnManagementPage": {
+    "loadingAuth": "Now loading auth token...",
+    "loadingVulns": "Now loading Vulns...",
+    "rows": "{{count}} Rows",
+    "relatedVulns": "Related vulns"
+  },
+  "VulnManagementCardList": {
+    "noKnownCve": "No Known CVE",
+    "noVulns": "No vulns"
+  },
+  "VulnManagementTable": {
+    "lastUpdate": "Last Update",
+    "timezoneTooltip": "Timezone is local time",
+    "title": "Title",
+    "cveId": "CVE ID",
+    "noVulns": "No vulns"
+  },
+  "VulnSearchModal": {
+    "title": "Vuln Search",
+    "advancedMode": "Advanced Mode",
+    "search": "Search",
+    "titleLabel": "Title",
+    "cveIdLabel": "CVE ID",
+    "cvssV3Label": "CVSS v3",
+    "lastUpdateLabel": "Last Update",
+    "creatorIdLabel": "Creator ID",
+    "vulnIdLabel": "Vuln ID",
+    "none": "None",
+    "last24h": "Last 24h",
+    "last7days": "Last 7days",
+    "dateRange": "Date Range",
+    "since": "Since",
+    "until": "Until",
+    "invalidCveFormat": "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)"
+  }
+}
