@@ -33,9 +33,16 @@
     "email": "Email",
     "update": "Update"
   },
+  "CheckButton": {
+    "check": "Check"
+  },
   "SmsResendButton": {
     "resend": "Resend the code",
     "resendIn": "Resend in {{timer}} seconds"
+  },
+  "SmsTroubleshootingToggleButton": {
+    "hide": "Hide troubleshooting tips",
+    "view": "View troubleshooting tips"
   },
   "SmsTroubleshootingTips": {
     "title": "If the verification SMS does not arrive, please verify the following:",

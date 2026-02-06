@@ -33,16 +33,23 @@
     "email": "メール",
     "update": "更新"
   },
+  "CheckButton": {
+    "check": "確認"
+  },
   "SmsResendButton": {
     "resend": "コードを再送信",
     "resendIn": "{{timer}}秒後に再送信"
   },
+  "SmsTroubleshootingToggleButton": {
+    "hide": "トラブルシューティングを非表示",
+    "view": "トラブルシューティングを表示"
+  },
   "SmsTroubleshootingTips": {
-    "title": "認証SMSが届かない場合は、以下をご確認ください:",
-    "tip1": "電話番号が正しく入力されています。",
-    "tip2": "デバイスに十分なネットワーク接続があり、機内モードではありません。",
-    "tip3": "SMSフィルタリング、ブロック設定、またはキャリアの制限により配信が妨げられていません。",
-    "tip4": "メッセージがスパムまたは迷惑メールフォルダに振り分けられていません。"
+    "title": "認証SMSが届かない場合は、以下を確認してください:",
+    "tip1": "電話番号が正しいか",
+    "tip2": "端末の電波状態と機内モードになっていないか",
+    "tip3": "SMSのブロックやキャリア設定で受信が妨げられていないか",
+    "tip4": "迷惑メールフォルダに入っていないか"
   },
   "Ticket": {
     "AssigneesSelector": {
@@ -68,8 +75,8 @@
     },
     "ScheduleTicketDialog": {
       "title": "スケジュール設定",
-      "dateLabel": "スケジュール日時（未来の日付）",
-      "schedule": "スケジュール",
+      "dateLabel": "予定日時（今後の日時を指定）",
+      "schedule": "設定",
       "scheduling": "スケジュール中..."
     }
   }
