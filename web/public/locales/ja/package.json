@@ -1,0 +1,127 @@
+{
+  "PackagePage": {
+    "nowLoadingTeam": "チーム情報読み込み中...",
+    "nowLoadingPackageDependencies": "パッケージ依存関係読み込み中...",
+    "nowLoadingSolvedVulnCount": "解決済み脆弱性数読み込み中...",
+    "nowLoadingUnsolvedVulnCount": "未解決脆弱性数読み込み中...",
+    "serviceIdRequired": "サービスIDが必要です",
+    "noDependenciesFound": "このパッケージの依存関係が見つかりません。",
+    "unsolvedVulns": "未解決脆弱性 ({{count}})",
+    "solvedVulns": "解決済み脆弱性 ({{count}})"
+  },
+  "PackageReferences": {
+    "references": "参照",
+    "noReferences": "参照なし",
+    "target": "ターゲット",
+    "version": "バージョン",
+    "service": "サービス"
+  },
+  "CodeBlock": {
+    "install": "インストール",
+    "copy": "コピー",
+    "copied": "コピーしました！"
+  },
+  "VulnerabilityTable": {
+    "VulnerabilityTable": {
+      "errorLoadingData": "データの読み込みに失敗しました",
+      "defaultSafetyImpact": "デフォルトの安全性影響:",
+      "title": "タイトル",
+      "tickets": "チケット",
+      "highestSsvc": "最高SSVC",
+      "lastUpdated": "最終更新",
+      "affectedVersion": "影響を受けるバージョン",
+      "patchedVersion": "修正バージョン",
+      "noVulnerabilitiesFound": "脆弱性が見つかりません",
+      "noResolvedVulnerabilities": "このパッケージには解決済みの脆弱性がありません。",
+      "noUnresolvedVulnerabilities": "このパッケージには未解決の脆弱性がありません。",
+      "nowLoading": "読み込み中..."
+    },
+    "VulnerabilityTableRow": {
+      "loading": "読み込み中...",
+      "failedToLoadVulnerability": "脆弱性データの読み込みに失敗しました。後でもう一度お試しください。",
+      "failedToLoadDependencies": "依存関係の読み込みに失敗しました。後でもう一度お試しください。",
+      "noVulnerabilityData": "脆弱性データがありません",
+      "noDependenciesAvailable": "利用可能な依存関係がありません",
+      "viewDetails": "脆弱性 {{title}} の詳細を表示",
+      "title": "タイトル",
+      "noTitle": "タイトルなし",
+      "error": "エラー",
+      "highestSsvc": "最高SSVC"
+    },
+    "VulnerabilitySplitDialog": {
+      "VulnerabilitySplitDialog": {
+        "ticketListAndDetails": "チケット一覧と詳細",
+        "close": "閉じる",
+        "failedToLoadVulnerability": "脆弱性データの読み込みに失敗しました。後でもう一度お試しください。",
+        "toggleDetails": "詳細を切り替え",
+        "cvss": "CVSS: {{score}}",
+        "notApplicable": "N/A",
+        "collapseDetails": "詳細を折りたたむ",
+        "back": "戻る",
+        "details": "詳細"
+      },
+      "VulnInfoContent": {
+        "description": "説明",
+        "noDescription": "説明がありません",
+        "references": "参照",
+        "noReferences": "参照なし",
+        "cweId": "CWE ID",
+        "cweIdNotAvailable": "CWE IDは利用できません",
+        "affectedPackages": "影響を受けるパッケージ",
+        "noAffectedPackages": "影響を受けるパッケージはありません",
+        "packageName": "パッケージ名",
+        "affectedVersions": "影響を受けるバージョン",
+        "fixedVersions": "修正バージョン",
+        "notAvailable": "利用不可",
+        "failedToLoadVulnerability": "脆弱性の詳細の読み込みに失敗しました。後でもう一度お試しください。"
+      },
+      "TicketSidebar": {
+        "TicketSidebar": {
+          "allTickets": "すべてのチケット ({{count}})",
+          "loading": "読み込み中...",
+          "noTicketsAvailable": "利用可能なチケットがありません",
+          "failedToLoadTickets": "チケットの読み込みに失敗しました",
+          "createNewTicket": "新しいチケットを作成"
+        },
+        "TicketListSection": {
+          "todo": "Todo",
+          "inProgress": "In Progress",
+          "done": "Done",
+          "failedToLoadTickets": "チケットの読み込みに失敗しました"
+        },
+        "TicketListItem": {
+          "updated": "更新: {{date}}"
+        }
+      },
+      "TicketDetailPanel": {
+        "TicketDetailPanel": {
+          "selectTicket": "左側のリストからチケットを選択してください",
+          "loading": "読み込み中...",
+          "failedToLoadTicket": "チケットの読み込みに失敗しました"
+        },
+        "TicketHeader": {
+          "viewTicket": "チケットを表示"
+        },
+        "StatusManagementCard": {
+          "statusManagement": "ステータス管理",
+          "currentStatus": "現在のステータス",
+          "close": "閉じる",
+          "closeTicket": "チケットを閉じる",
+          "closeTicketConfirm": "このチケットを本当に閉じてもよろしいですか？",
+          "cancel": "キャンセル",
+          "closeTicketSuccess": "チケットを閉じました",
+          "closeTicketFailed": "チケットを閉じる際にエラーが発生しました: {{error}}",
+          "failedToLoadTicket": "チケットの読み込みに失敗しました"
+        },
+        "SafetyImpactCard": {
+          "safetyImpact": "安全性影響",
+          "edit": "編集",
+          "save": "保存",
+          "cancel": "キャンセル",
+          "updateSuccess": "安全性影響を更新しました",
+          "updateFailed": "安全性影響の更新に失敗しました: {{error}}"
+        }
+      }
+    }
+  }
+}

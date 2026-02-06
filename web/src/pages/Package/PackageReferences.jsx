@@ -14,8 +14,10 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 export function PackageReferences(props) {
+  const { t } = useTranslation("package", { keyPrefix: "PackageReferences" });
   const { references, service } = props;
 
   return (
@@ -28,19 +30,19 @@ export function PackageReferences(props) {
         }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h7">References</Typography>
+          <Typography variant="h7">{t("references")}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           {references.length === 0 ? (
-            <Typography>no references</Typography>
+            <Typography>{t("noReferences")}</Typography>
           ) : (
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 900 }}>target</TableCell>
-                    <TableCell sx={{ fontWeight: 900 }}>version</TableCell>
-                    <TableCell sx={{ fontWeight: 900 }}>Service</TableCell>
+                    <TableCell sx={{ fontWeight: 900 }}>{t("target")}</TableCell>
+                    <TableCell sx={{ fontWeight: 900 }}>{t("version")}</TableCell>
+                    <TableCell sx={{ fontWeight: 900 }}>{t("service")}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
