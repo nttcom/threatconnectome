@@ -17,7 +17,7 @@
   "VulnSSVCCards": {
     "automatable": {
       "title": "Automatable",
-      "titleDescription": "攻撃者がこの脆弱性を利用した攻撃を自動化可能できるか？",
+      "titleDescription": "攻撃者がこの脆弱性を利用した攻撃を自動化できるか？",
       "no": {
         "name": "No",
         "valueDescription": "No: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配送、(4)悪用です。"
