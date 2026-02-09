@@ -118,7 +118,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleServiceNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
-        t("tooLongServiceName", { maxHalf: maxServiceNameLengthInHalf, maxFull: Math.floor(maxServiceNameLengthInHalf / 2) }),
+        t("tooLongServiceName", {
+          maxHalf: maxServiceNameLengthInHalf,
+          maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -134,7 +137,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleKeywordSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
       enqueueSnackbar(
-        t("tooLongKeyword", { maxHalf: maxKeywordLengthInHalf, maxFull: Math.floor(maxKeywordLengthInHalf / 2) }),
+        t("tooLongKeyword", {
+          maxHalf: maxKeywordLengthInHalf,
+          maxFull: Math.floor(maxKeywordLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -150,7 +156,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleDescriptionSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
       enqueueSnackbar(
-        t("tooLongDescription", { maxHalf: maxDescriptionLengthInHalf, maxFull: Math.floor(maxDescriptionLengthInHalf / 2) }),
+        t("tooLongDescription", {
+          maxHalf: maxDescriptionLengthInHalf,
+          maxFull: Math.floor(maxDescriptionLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -207,7 +216,10 @@ export function PTeamServiceDetailsSettingsView(props) {
                 required
                 size="small"
                 value={serviceName}
-                placeholder={t("maxLengthPlaceholder", { maxHalf: maxServiceNameLengthInHalf, maxFull: Math.floor(maxServiceNameLengthInHalf / 2) })}
+                placeholder={t("maxLengthPlaceholder", {
+                  maxHalf: maxServiceNameLengthInHalf,
+                  maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+                })}
                 onChange={(e) => handleServiceNameSetting(e.target.value)}
                 helperText={serviceName ? "" : t("nameRequired")}
                 error={!serviceName}
@@ -255,9 +267,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
-                        currentKeywordsList.includes(keywordText)
-                          ? t("sameKeywordExists")
-                          : ""
+                        currentKeywordsList.includes(keywordText) ? t("sameKeywordExists") : ""
                       }
                     />
                     <Button
@@ -299,7 +309,10 @@ export function PTeamServiceDetailsSettingsView(props) {
                 multiline
                 rows={3}
                 fullWidth
-                placeholder={t("maxLengthPlaceholder", { maxHalf: maxDescriptionLengthInHalf, maxFull: Math.floor(maxDescriptionLengthInHalf / 2) })}
+                placeholder={t("maxLengthPlaceholder", {
+                  maxHalf: maxDescriptionLengthInHalf,
+                  maxFull: Math.floor(maxDescriptionLengthInHalf / 2),
+                })}
                 value={currentDescription}
                 onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
@@ -313,9 +326,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                 }}
               >
                 <FormLabel>{t("defaultSafetyImpact")}</FormLabel>
-                <Tooltip
-                  title={t("defaultSafetyImpactTooltip")}
-                >
+                <Tooltip title={t("defaultSafetyImpactTooltip")}>
                   <HelpOutlineOutlinedIcon color="action" fontSize="small" />
                 </Tooltip>
               </Box>

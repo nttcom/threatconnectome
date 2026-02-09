@@ -77,7 +77,8 @@ export function PTeamServiceDelete(props) {
       );
 
       const serviceCount = checked.length;
-      const message = serviceCount === 1 ? t("removeServiceSucceeded") : t("removeServicesSucceeded");
+      const message =
+        serviceCount === 1 ? t("removeServiceSucceeded") : t("removeServicesSucceeded");
 
       enqueueSnackbar(message, { variant: "success" });
 
