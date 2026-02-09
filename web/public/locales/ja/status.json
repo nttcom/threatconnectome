@@ -80,6 +80,9 @@
     "update": "更新",
     "updating": "更新中..."
   },
+  "PTeamStatusCard": {
+    "updated": "更新 {{timeDiff}}"
+  },
   "PTeamServiceDetailsSettingsView": {
     "serviceSettings": "サービス設定",
     "name": "名前",

@@ -61,7 +61,7 @@ export function PTeamStatusSSVCCards(props) {
   const handleUpdatePTeamService = async (card) => {
     setIsUpdating(true);
     const data =
-      card.title === "System Exposure"
+      card.type === "systemExposure"
         ? { system_exposure: systemExposureValue }
         : { service_mission_impact: missionImpactValue };
     const serviceId = service.service_id;
@@ -81,6 +81,7 @@ export function PTeamStatusSSVCCards(props) {
 
   const SSVCCardsList = [
     {
+      type: "systemExposure",
       title: t("systemExposure"),
       description: t("systemExposureDesc"),
       items: sortedSystemExposure,
@@ -90,6 +91,7 @@ export function PTeamStatusSSVCCards(props) {
       handleClickToggleButton: setSystemExposureValue,
     },
     {
+      type: "missionImpact",
       title: t("missionImpact"),
       description: t("missionImpactDesc"),
       items: sortedMissionImpact,
@@ -240,7 +242,7 @@ export function PTeamStatusSSVCCards(props) {
                 size="small"
                 color="primary"
                 orientation="vertical"
-                value={card.title === "System Exposure" ? systemExposureValue : missionImpactValue}
+                value={card.type === "systemExposure" ? systemExposureValue : missionImpactValue}
               >
                 {card.items.map((item) => (
                   <ToggleButton
@@ -262,7 +264,7 @@ export function PTeamStatusSSVCCards(props) {
                   size="small"
                   onClick={() => {
                     card.handleClickIconButton(false);
-                    card.title === t("systemExposure")
+                    card.type === "systemExposure"
                       ? card.handleClickToggleButton(service.system_exposure)
                       : card.handleClickToggleButton(service.service_mission_impact);
                   }}
