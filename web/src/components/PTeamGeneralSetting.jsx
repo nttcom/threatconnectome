@@ -2,6 +2,7 @@ import { Box, Button, Divider, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useViewportOffset } from "../hooks/useViewportOffset";
 import { useUpdatePTeamMutation } from "../services/tcApi";
@@ -14,6 +15,7 @@ import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/fu
 
 export function PTeamGeneralSetting(props) {
   const { pteam } = props;
+  const { t } = useTranslation("components", { keyPrefix: "PTeamGeneralSetting" });
 
   const [pteamName, setPTeamName] = useState(pteam.pteam_name);
   const [contactInfo, setContactInfo] = useState(pteam.contact_info);
@@ -24,12 +26,15 @@ export function PTeamGeneralSetting(props) {
   const viewportOffsetTop = useViewportOffset();
 
   const operationError = (error) =>
-    enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+    enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
   const handlePTeamNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
       enqueueSnackbar(
-        `Too long team name. Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`,
+        t("teamNameTooLong", {
+          maxHalf: maxPTeamNameLengthInHalf,
+          maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -45,7 +50,10 @@ export function PTeamGeneralSetting(props) {
   const handleContactInfoSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxContactInfoLengthInHalf) {
       enqueueSnackbar(
-        `Too long contact info. Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`,
+        t("contactInfoTooLong", {
+          maxHalf: maxContactInfoLengthInHalf,
+          maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -66,7 +74,7 @@ export function PTeamGeneralSetting(props) {
     await updatePTeam({ path: { pteam_id: pteam.pteam_id }, body: data })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("update pteam info succeeded", { variant: "success" });
+        enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
       })
       .catch((error) => operationError(error));
   };
@@ -75,27 +83,33 @@ export function PTeamGeneralSetting(props) {
     <Box>
       <Box mb={4}>
         <Typography sx={{ fontWeight: 900 }} mb={1}>
-          Team name
+          {t("teamName")}
         </Typography>
         <TextField
           size="small"
           value={pteamName}
           onChange={(event) => handlePTeamNameSetting(event.target.value)}
           variant="outlined"
-          placeholder={`Max length is ${maxPTeamNameLengthInHalf} in half-width or ${Math.floor(maxPTeamNameLengthInHalf / 2)} in full-width`}
+          placeholder={t("teamNamePlaceholder", {
+            maxHalf: maxPTeamNameLengthInHalf,
+            maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
+          })}
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
       <Box mb={4}>
         <Typography sx={{ fontWeight: 900 }} mb={1}>
-          Contact Info
+          {t("contactInfo")}
         </Typography>
         <TextField
           size="small"
           value={contactInfo}
           onChange={(event) => handleContactInfoSetting(event.target.value)}
           variant="outlined"
-          placeholder={`Max length is ${maxContactInfoLengthInHalf} in half-width or ${Math.floor(maxContactInfoLengthInHalf / 2)} in full-width`}
+          placeholder={t("contactInfoPlaceholder", {
+            maxHalf: maxContactInfoLengthInHalf,
+            maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
+          })}
           sx={{ marginRight: "10px", minWidth: "800px" }}
         />
       </Box>
@@ -103,7 +117,7 @@ export function PTeamGeneralSetting(props) {
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
         <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
-          Update
+          {t("save")}
         </Button>
       </Box>
     </Box>
