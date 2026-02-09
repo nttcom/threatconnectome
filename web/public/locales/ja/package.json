@@ -4,7 +4,7 @@
     "nowLoadingPackageDependencies": "パッケージ依存関係を読み込んでいます...",
     "nowLoadingSolvedVulnCount": "解決済み脆弱性数を読み込んでいます...",
     "nowLoadingUnsolvedVulnCount": "未解決脆弱性数を読み込んでいます...",
-    "serviceIdRequired": "サービスIDが必要です",
+    "serviceIdRequired": "サービスIDが必要です。",
     "noDependenciesFound": "このパッケージの依存関係が見つかりません。",
     "unsolvedVulns": "未解決脆弱性 ({{count}})",
     "solvedVulns": "解決済み脆弱性 ({{count}})"
@@ -23,7 +23,7 @@
   },
   "VulnerabilityTable": {
     "VulnerabilityTable": {
-      "errorLoadingData": "データの読み込みに失敗しました",
+      "errorLoadingData": "データの読み込みに失敗しました。",
       "defaultSafetyImpact": "デフォルトのSafety Impact:",
       "title": "タイトル",
       "tickets": "チケット",
@@ -31,7 +31,7 @@
       "lastUpdated": "最終更新",
       "affectedVersion": "影響を受けるバージョン",
       "patchedVersion": "修正バージョン",
-      "noVulnerabilitiesFound": "脆弱性が見つかりません",
+      "noVulnerabilitiesFound": "脆弱性が見つかりません。",
       "noResolvedVulnerabilities": "このパッケージには解決済みの脆弱性がありません。",
       "noUnresolvedVulnerabilities": "このパッケージには未解決の脆弱性がありません。",
       "nowLoading": "読み込んでいます..."
@@ -40,8 +40,8 @@
       "loading": "読み込んでいます...",
       "failedToLoadVulnerability": "脆弱性データの読み込みに失敗しました。後でもう一度お試しください。",
       "failedToLoadDependencies": "依存関係の読み込みに失敗しました。後でもう一度お試しください。",
-      "noVulnerabilityData": "脆弱性データがありません",
-      "noDependenciesAvailable": "利用可能な依存関係がありません",
+      "noVulnerabilityData": "脆弱性データがありません。",
+      "noDependenciesAvailable": "利用可能な依存関係がありません。",
       "title": "タイトル",
       "noTitle": "タイトルなし",
       "error": "エラー",
@@ -71,7 +71,7 @@
           "checkVulnerabilityDetails": "脆弱性の詳細を確認する"
         },
         "TicketListSection": {
-          "failedToLoadTickets": "チケットの読み込みに失敗しました"
+          "failedToLoadTickets": "チケットの読み込みに失敗しました。"
         }
       },
       "TicketDetailPanel": {
@@ -86,9 +86,9 @@
           "packageManager": "パッケージマネージャー"
         },
         "StatusManagementCard": {
-          "failedToLoadTicket": "チケットの読み込みに失敗しました",
-          "changeTicketStatusSucceeded": "チケットのステータスを変更しました",
-          "operationFailed": "操作に失敗しました: {{error}}",
+          "failedToLoadTicket": "チケットの読み込みに失敗しました。",
+          "changeTicketStatusSucceeded": "チケットのステータスを変更しました。",
+          "operationFailed": "操作に失敗しました: {{error}}。",
           "ticketManagementStatus": "チケット管理とステータス",
           "updating": "更新中...",
           "status": "ステータス",

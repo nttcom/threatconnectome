@@ -14,15 +14,15 @@
     "maxUses": "最大使用回数: {{count}}",
     "unlimited": "無制限",
     "create": "作成する",
-    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}",
-    "createInvitationSucceeded": "招待リンクを作成しました"
+    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}。",
+    "createInvitationSucceeded": "招待リンクを作成しました。"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "確認",
     "confirmRemove": "{{pteamName}} から {{userName}} を削除してもよろしいですか？",
     "remove": "削除する",
-    "removeMemberSucceeded": "メンバーを削除しました",
-    "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}"
+    "removeMemberSucceeded": "メンバーを削除しました。",
+    "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}。"
   },
   "PTeamMember": {
     "addMember": "メンバーを追加",
@@ -45,8 +45,8 @@
     "description": "説明",
     "administrator": "管理者",
     "adminDescription": "チームを管理します。",
-    "updateSucceeded": "チーム権限を更新しました",
-    "updateFailed": "チーム権限の更新に失敗しました: {{error}}"
+    "updateSucceeded": "チーム権限を更新しました。",
+    "updateFailed": "チーム権限の更新に失敗しました: {{error}}。"
   },
   "UpdateAuthButton": {
     "update": "更新"

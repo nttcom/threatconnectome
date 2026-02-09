@@ -7,14 +7,14 @@
   },
   "VulnManagementCardList": {
     "noKnownCve": "CVE不明",
-    "noVulns": "脆弱性なし"
+    "noVulns": "脆弱性なし。"
   },
   "VulnManagementTable": {
     "lastUpdate": "最終更新",
     "timezoneTooltip": "タイムゾーンはローカル時刻です",
     "title": "タイトル",
     "cveId": "CVE ID",
-    "noVulns": "脆弱性なし"
+    "noVulns": "脆弱性なし。"
   },
   "VulnSearchModal": {
     "title": "脆弱性検索",
@@ -32,6 +32,6 @@
     "dateRange": "日付範囲",
     "since": "以降",
     "until": "以前",
-    "invalidCveFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)"
+    "invalidCveFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)。"
   }
 }

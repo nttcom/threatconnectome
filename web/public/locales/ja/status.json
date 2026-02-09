@@ -30,19 +30,19 @@
     "alertOnlyJson": "*.jsonのみサポートされています",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
-    "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください",
-    "uploadFailed": "操作に失敗しました: {{message}}",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です"
+    "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
+    "uploadFailed": "操作に失敗しました: {{message}}。",
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。"
   },
   "WaitingModal": {
-    "inProgress": "{{text}}処理中です。お待ちください"
+    "inProgress": "{{text}}処理中です。お待ちください。"
   },
   "PTeamServiceDelete": {
     "loadingTeam": "チーム情報を読み込んでいます...",
-    "removeServiceSucceeded": "サービスを削除しました",
-    "removeServicesSucceeded": "サービスを削除しました",
-    "removeServiceFailed": "サービスの削除に失敗しました: {{error}}",
-    "removeServicesFailed": "サービスの削除に失敗しました: {{error}}",
+    "removeServiceSucceeded": "サービスを削除しました。",
+    "removeServicesSucceeded": "サービスを削除しました。",
+    "removeServiceFailed": "サービスの削除に失敗しました: {{error}}。",
+    "removeServicesFailed": "サービスの削除に失敗しました: {{error}}。",
     "deleting": "削除中...",
     "delete": "削除"
   },
@@ -58,24 +58,24 @@
     "copied": "コピーしました！"
   },
   "PTeamServiceDetailsSettings": {
-    "updateSucceeded": "更新しました",
-    "updateFailed": "更新に失敗しました: {{error}}"
+    "updateSucceeded": "更新しました。",
+    "updateFailed": "更新に失敗しました: {{error}}。"
   },
   "PTeamServiceImageUploadDeleteButton": {
-    "fileSizeExceeds": "ファイルサイズが最大値（512KiB）を超えています",
-    "dimensionsMustBe": "画像サイズは{{width}}px × {{height}}pxである必要があります",
+    "fileSizeExceeds": "ファイルサイズが最大値（512KiB）を超えています。",
+    "dimensionsMustBe": "画像サイズは{{width}}px × {{height}}pxである必要があります。",
     "uploadImage": "画像をアップロード",
     "deleteImage": "画像を削除"
   },
   "PTeamStatusSSVCCards": {
     "highestSSVCPriority": "Highest SSVC Priority",
-    "highestSSVCPriorityDesc": "サービス内の脆弱性で最も高い対応優先度",
+    "highestSSVCPriorityDesc": "サービス内の脆弱性で最も高い対応優先度。",
     "systemExposure": "System Exposure",
-    "systemExposureDesc": "システムやサービスが外部に露出している範囲",
+    "systemExposureDesc": "システムやサービスが外部に露出している範囲。",
     "missionImpact": "Mission Impact",
-    "missionImpactDesc": "組織の重要業務機能への影響",
-    "updateSucceeded": "更新しました",
-    "updateFailed": "更新に失敗しました: {{error}}",
+    "missionImpactDesc": "組織の重要業務機能への影響。",
+    "updateSucceeded": "更新しました。",
+    "updateFailed": "更新に失敗しました: {{error}}。",
     "cancel": "キャンセル",
     "update": "更新",
     "updating": "更新中..."
@@ -91,13 +91,13 @@
     "keywords": "キーワード (最大5個)",
     "description": "説明",
     "defaultSafetyImpact": "デフォルトの安全性影響",
-    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます",
+    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます。",
     "save": "保存",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
-    "tooLongKeyword": "キーワードが長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
-    "tooLongDescription": "説明が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
+    "tooLongKeyword": "キーワードが長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
+    "tooLongDescription": "説明が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
     "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
-    "sameKeywordExists": "同じキーワードが既に存在します",
+    "sameKeywordExists": "同じキーワードが既に存在します。",
     "add": "追加",
     "cancel": "キャンセル",
     "addNewKeyword": "+ 新しいキーワードを追加"
