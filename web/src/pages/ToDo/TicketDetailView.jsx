@@ -230,7 +230,7 @@ export function TicketDetailView({ ticket }) {
               />
             </FormControl>
           </DetailRow>
-          <DetailRow label={t("safetyImpact")}>
+          <DetailRow label="Safety Impact">
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
               <SafetyImpactSelector
                 pteamId={ticket.pteam_id}

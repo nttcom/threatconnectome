@@ -7,23 +7,23 @@
     "invalidFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)"
   },
   "SafetyImpactSelector": {
-    "changeSucceeded": "安全性影響の変更が成功しました",
-    "operationFailed": "操作が失敗しました: {error}"
+    "changeSucceeded": "Safety Impactの変更が成功しました",
+    "operationFailed": "操作が失敗しました: {{error}}"
   },
   "SafetyImpactSelectorView": {
-    "dialogTitle": "安全性影響の更新",
-    "reasonPrompt": "この安全性影響の理由を入力してください",
+    "dialogTitle": "Safety Impactの更新",
+    "reasonPrompt": "このSafety Impactの理由を入力してください",
     "cancel": "キャンセル",
     "save": "保存",
-    "tooltipTitle": "デフォルトの安全性影響から変更された理由",
+    "tooltipTitle": "デフォルトのSafety Impactから変更された理由",
     "readMore": "続きを読む...",
-    "readMoreDialogTitle": "デフォルトの安全性影響から変更された理由",
+    "readMoreDialogTitle": "デフォルトのSafety Impactから変更された理由",
     "close": "閉じる",
-    "reasonTooLong": "ticket_safety_impact_change_reasonが長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です"
+    "reasonTooLong": "Safety Impactの理由が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です"
   },
   "TicketHandlingStatusSelector": {
     "changeSucceeded": "チケットステータスの変更が成功しました",
-    "operationFailed": "操作が失敗しました: {error}"
+    "operationFailed": "操作が失敗しました: {{error}}"
   },
   "VulnerabilityView": {
     "package": "パッケージ",
@@ -46,7 +46,6 @@
     "target": "ターゲット",
     "dueDate": "期限",
     "status": "ステータス",
-    "safetyImpact": "安全性影響",
     "assignees": "担当者",
     "loading": "読み込み中..."
   },
@@ -107,10 +106,10 @@
       "loadingInsight": "インサイトを読み込んでいます..."
     },
     "RiskAnalysisView": {
-      "title": "リスク分析: {cveId}",
-      "service": "サービス: {serviceName}",
-      "ecosystem": "エコシステム: {ecosystem}",
-      "cvss": "CVSS: {cvss}",
+      "title": "リスク分析: {{cveId}}",
+      "service": "サービス: {{serviceName}}",
+      "ecosystem": "エコシステム: {{ecosystem}}",
+      "cvss": "CVSS: {{cvss}}",
       "riskSummary": "リスク概要",
       "aiGeneratedLabel": "AI生成の概要:",
       "aiGeneratedDisclaimer": "このコンテンツはAIによって生成されており、独立して検証する必要があります。",

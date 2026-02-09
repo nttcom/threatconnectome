@@ -8,7 +8,7 @@
   },
   "SafetyImpactSelector": {
     "changeSucceeded": "Change safety impact succeeded",
-    "operationFailed": "Operation failed: {error}"
+    "operationFailed": "Operation failed: {{error}}"
   },
   "SafetyImpactSelectorView": {
     "dialogTitle": "Safety Impact update",
@@ -19,11 +19,11 @@
     "readMore": "Read more...",
     "readMoreDialogTitle": "Why was it changed from the default safety impact?",
     "close": "Close",
-    "reasonTooLong": "Too long ticket_safety_impact_change_reason. Max length is {maxHalf} in half-width or {maxFull} in full-width"
+    "reasonTooLong": "Too long reason for Safety Impact. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width"
   },
   "TicketHandlingStatusSelector": {
     "changeSucceeded": "Change ticket status succeeded",
-    "operationFailed": "Operation failed: {error}"
+    "operationFailed": "Operation failed: {{error}}"
   },
   "VulnerabilityView": {
     "package": "Package",
@@ -46,7 +46,6 @@
     "target": "Target",
     "dueDate": "Due date",
     "status": "Status",
-    "safetyImpact": "Safety Impact",
     "assignees": "Assignees",
     "loading": "Loading..."
   },
@@ -107,10 +106,10 @@
       "loadingInsight": "Now loading Insight..."
     },
     "RiskAnalysisView": {
-      "title": "Risk Analysis: {cveId}",
-      "service": "Service: {serviceName}",
-      "ecosystem": "Ecosystem: {ecosystem}",
-      "cvss": "CVSS: {cvss}",
+      "title": "Risk Analysis: {{cveId}}",
+      "service": "Service: {{serviceName}}",
+      "ecosystem": "Ecosystem: {{ecosystem}}",
+      "cvss": "CVSS: {{cvss}}",
       "riskSummary": "Risk Summary",
       "aiGeneratedLabel": "AI-Generated Summary:",
       "aiGeneratedDisclaimer": "This content is AI-generated and should be verified independently.",
