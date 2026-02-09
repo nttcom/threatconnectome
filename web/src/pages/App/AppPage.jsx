@@ -1,9 +1,9 @@
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";

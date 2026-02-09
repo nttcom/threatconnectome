@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
-import { Provider, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import i18n from "i18next";
 import { I18nextProvider, initReactI18next } from "react-i18next";
+import { Provider, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import appEn from "../../../../../public/locales/en/app.json";
 import { useAuth, useSkipUntilAuthUserIsReady } from "../../../../hooks/auth";
