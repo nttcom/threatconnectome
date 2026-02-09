@@ -10,6 +10,7 @@ import {
   Stack,
 } from "@mui/material";
 import { Layers as LayersIcon } from "@mui/icons-material";
+import { useTranslation } from "react-i18next";
 
 import {
   getFormatDate,
@@ -20,16 +21,17 @@ import {
 import { EolVersionForUi, StatusBadge } from "./EolParts";
 
 export function EolTable({ filteredEolVersions }: { filteredEolVersions: EolVersionForUi[] }) {
+  const { t } = useTranslation("eol", { keyPrefix: "EolTable" });
   return (
     <TableContainer>
       <Table>
         <TableHead sx={{ bgcolor: "grey.100" }}>
           <TableRow>
-            <TableCell>Status</TableCell>
-            <TableCell>Product / Version</TableCell>
-            <TableCell>Service</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>EOL date</TableCell>
+            <TableCell>{t("status")}</TableCell>
+            <TableCell>{t("productVersion")}</TableCell>
+            <TableCell>{t("service")}</TableCell>
+            <TableCell>{t("category")}</TableCell>
+            <TableCell>{t("eolDate")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
