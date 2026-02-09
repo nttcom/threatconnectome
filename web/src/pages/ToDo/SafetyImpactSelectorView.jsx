@@ -42,7 +42,7 @@ export function SafetyImpactSelectorView(props) {
   const [openDialog, setOpenDialog] = useState(false);
   const [readMoreDialogOpen, setReadMoreDialogOpen] = useState(false);
 
-  const defaultSafetyImpactItem = t("defaultItem");
+  const defaultSafetyImpactItem = "Default";
 
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();

@@ -11,7 +11,6 @@
     "operationFailed": "操作が失敗しました: {error}"
   },
   "SafetyImpactSelectorView": {
-    "defaultItem": "デフォルト",
     "dialogTitle": "安全性影響の更新",
     "reasonPrompt": "この安全性影響の理由を入力してください",
     "cancel": "キャンセル",
