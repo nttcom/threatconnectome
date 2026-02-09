@@ -14,13 +14,13 @@ import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
-import { getTicketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
+import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
 import { calcTimestampDiff } from "../../utils/func";
 import { compareSSVCPriority } from "../../utils/ssvcUtils";
 
 function LineWithTooltip(props) {
   const { ticketHandlingStatus, ratio, num } = props;
-  const constProp = getTicketHandlingStatusProps()[ticketHandlingStatus];
+  const constProp = ticketHandlingStatusProps[ticketHandlingStatus];
 
   const tipAreaHeight = 15;
   const lineHeight = 5;

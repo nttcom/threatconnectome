@@ -1,5 +1,5 @@
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
-import { getSystemExposure, getMissionImpact } from "../../utils/const";
+import { systemExposure, missionImpact } from "../../utils/const";
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
@@ -23,11 +23,11 @@ export function usePTeamServiceDetailsData(pteamId, service, highestSsvcPriority
     },
     {
       label: "System Exposure",
-      value: getSystemExposure()[service.system_exposure] || service.system_exposure,
+      value: systemExposure[service.system_exposure] || service.system_exposure,
     },
     {
       label: "Mission Impact",
-      value: getMissionImpact()[service.service_mission_impact] || service.service_mission_impact,
+      value: missionImpact[service.service_mission_impact] || service.service_mission_impact,
     },
     { label: "Default Safety Impact", value: service.service_safety_impact },
   ];

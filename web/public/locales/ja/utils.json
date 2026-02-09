@@ -22,29 +22,6 @@
         "statusLabel": "あなたのチームは安全です"
       }
     },
-    "systemExposure": {
-      "open": "Open",
-      "controlled": "Controlled",
-      "small": "Small"
-    },
-    "missionImpact": {
-      "mission_failure": "Mission Failure",
-      "mef_failure": "MEF Failure",
-      "mef_support_crippled": "MEF Support Crippled",
-      "degraded": "Degraded"
-    },
-    "safetyImpact": {
-      "catastrophic": "Catastrophic",
-      "critical": "Critical",
-      "marginal": "Marginal",
-      "negligible": "Negligible"
-    },
-    "ticketHandlingStatus": {
-      "alerted": "Alerted",
-      "acknowledged": "Acknowledged",
-      "scheduled": "Scheduled",
-      "completed": "Completed"
-    },
     "noPTeamMessage": "あなたはどのチームにも所属していません。チームを作成してください。"
   },
   "eolUtils": {
@@ -61,9 +38,6 @@
     },
     "formatDate": {
       "undecided": "未定"
-    },
-    "latestUpdateDate": {
-      "na": "N/A"
     },
     "productCategory": {
       "os": "OS",

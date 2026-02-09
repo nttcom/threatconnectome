@@ -30,9 +30,7 @@ export const getLatestUpdateDate = (items: HasUpdatedAt[]): string => {
     .map((item) => new Date(item.updated_at))
     .reduce((latest, current) => (current > latest ? current : latest), new Date(0));
 
-  return latestUpdateDate > new Date(0)
-    ? latestUpdateDate.toLocaleDateString()
-    : i18n.t("eolUtils.latestUpdateDate.na", { ns: "utils" });
+  return latestUpdateDate > new Date(0) ? latestUpdateDate.toLocaleDateString() : "N/A";
 };
 
 export const getDiffDays = (eolDateStr: string | null | undefined): number | null => {

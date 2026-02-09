@@ -20,9 +20,9 @@ import { useState, useEffect } from "react";
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
   sortedSystemExposure,
-  getSystemExposure,
+  systemExposure,
   sortedMissionImpact,
-  getMissionImpact,
+  missionImpact,
 } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
@@ -82,7 +82,7 @@ export function PTeamStatusSSVCCards(props) {
       title: "System Exposure",
       description: "The Accessible Attack Surface of the Affected System or Service.",
       items: sortedSystemExposure,
-      valuePairing: getSystemExposure(),
+      valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
       handleClickIconButton: setIsSystemExposureEditable,
       handleClickToggleButton: setSystemExposureValue,
@@ -91,7 +91,7 @@ export function PTeamStatusSSVCCards(props) {
       title: "Mission Impact",
       description: "Impact on Mission Essential Functions of the Organization.",
       items: sortedMissionImpact,
-      valuePairing: getMissionImpact(),
+      valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
       handleClickIconButton: setIsMissionImpactEditable,
       handleClickToggleButton: setMissionImpactValue,
