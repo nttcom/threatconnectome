@@ -53,5 +53,9 @@
         "statusLabel": "All vulnerabilities have been resolved"
       }
     }
+  },
+  "vulnUtils": {
+    "updateFromTo": "Update {{package}} from {{from}} to {{to}}",
+    "updateToVersion": "Update {{package}} to version {{to}}"
   }
 }

@@ -53,5 +53,9 @@
         "statusLabel": "すべての脆弱性が解決されました"
       }
     }
+  },
+  "vulnUtils": {
+    "updateFromTo": "{{package}} を {{from}} から {{to}} に更新してください",
+    "updateToVersion": "{{package}} をバージョン {{to}} に更新してください"
   }
 }
