@@ -1,0 +1,115 @@
+{
+  "PackagePage": {
+    "nowLoadingTeam": "チーム情報読み込み中...",
+    "nowLoadingPackageDependencies": "パッケージ依存関係読み込み中...",
+    "nowLoadingSolvedVulnCount": "解決済み脆弱性数読み込み中...",
+    "nowLoadingUnsolvedVulnCount": "未解決脆弱性数読み込み中...",
+    "serviceIdRequired": "サービスIDが必要です",
+    "noDependenciesFound": "このパッケージの依存関係が見つかりません。",
+    "unsolvedVulns": "未解決脆弱性 ({{count}})",
+    "solvedVulns": "解決済み脆弱性 ({{count}})"
+  },
+  "PackageReferences": {
+    "references": "参照",
+    "noReferences": "参照なし",
+    "target": "ターゲット",
+    "version": "バージョン",
+    "service": "サービス"
+  },
+  "CodeBlock": {
+    "install": "インストール",
+    "copy": "コピー",
+    "copied": "コピーしました！"
+  },
+  "VulnerabilityTable": {
+    "VulnerabilityTable": {
+      "errorLoadingData": "データの読み込みに失敗しました",
+      "defaultSafetyImpact": "デフォルトのSafety Impact:",
+      "title": "タイトル",
+      "tickets": "チケット",
+      "highestSsvc": "SSVC最高値",
+      "lastUpdated": "最終更新",
+      "affectedVersion": "影響を受けるバージョン",
+      "patchedVersion": "修正バージョン",
+      "noVulnerabilitiesFound": "脆弱性が見つかりません",
+      "noResolvedVulnerabilities": "このパッケージには解決済みの脆弱性がありません。",
+      "noUnresolvedVulnerabilities": "このパッケージには未解決の脆弱性がありません。",
+      "nowLoading": "読み込み中..."
+    },
+    "VulnerabilityTableRow": {
+      "loading": "読み込み中...",
+      "failedToLoadVulnerability": "脆弱性データの読み込みに失敗しました。後でもう一度お試しください。",
+      "failedToLoadDependencies": "依存関係の読み込みに失敗しました。後でもう一度お試しください。",
+      "noVulnerabilityData": "脆弱性データがありません",
+      "noDependenciesAvailable": "利用可能な依存関係がありません",
+      "title": "タイトル",
+      "noTitle": "タイトルなし",
+      "error": "エラー",
+      "highestSsvc": "SSVC最高値"
+    },
+    "VulnerabilitySplitDialog": {
+      "VulnerabilitySplitDialog": {
+        "ticketListAndDetails": "チケット一覧と詳細",
+        "failedToLoadVulnerability": "脆弱性データの読み込みに失敗しました。後でもう一度お試しください。",
+        "toggleDetails": "詳細に切り替る",
+        "collapseDetails": "詳細を折りたたむ",
+        "back": "戻る",
+        "details": "詳細"
+      },
+      "VulnInfoContent": {
+        "vulnerabilityDescription": "脆弱性の詳細",
+        "update": "更新",
+        "listItemTextPrimary": "更新情報は利用できません",
+        "affectedVersions": "影響を受けるバージョン",
+        "fixedVersions": "修正バージョン",
+        "lastUpdated": "最終更新",
+        "failedToLoadVulnerability": "脆弱性の詳細の読み込みに失敗しました。後でもう一度お試しください。"
+      },
+      "TicketSidebar": {
+        "TicketSidebar": {
+          "checkDetails": "詳細を確認する",
+          "checkVulnerabilityDetails": "脆弱性の詳細を確認する"
+        },
+        "TicketListSection": {
+          "failedToLoadTickets": "チケットの読み込みに失敗しました"
+        }
+      },
+      "TicketDetailPanel": {
+        "TicketDetailPanel": {
+          "selectTicket": "左側のリストからチケットを選択してください"
+        },
+        "TicketHeader": {
+          "loading": "読み込んでいます...",
+          "errorLoadingTarget": "ターゲットの読み込みエラー",
+          "unknownTarget": "不明なターゲット",
+          "targetFile": "ターゲットファイル",
+          "packageManager": "パッケージマネージャー"
+        },
+        "StatusManagementCard": {
+          "failedToLoadTicket": "チケットの読み込みに失敗しました",
+          "changeTicketStatusSucceeded": "チケットのステータス変更に成功しました",
+          "operationFailed": "操作に失敗しました: {{error}}",
+          "ticketManagementStatus": "チケット管理とステータス",
+          "updating": "更新中...",
+          "status": "ステータス",
+          "dueDate": "期限日"
+        },
+        "SafetyImpactCard": {
+          "alert": "チケットデータの読み込みに失敗しました。"
+        },
+        "SafetyImpactCardView": {
+          "updateSuccess": "Safety impactを更新しました",
+          "updateFailed": "Safety impactの更新に失敗しました: {{error}}",
+          "ticketSafetyImpactChangeReasonError": "変更理由が長すぎます。最大文字数は半角{{lengthHalfWidth}}文字、または全角{{lengthFullWidth}}文字です",
+          "updating": "更新中...",
+          "useDefault": "デフォルト値を使用",
+          "reasonForSafetyImpactChange": "Safety Impactの変更理由",
+          "notProvided": "未入力",
+          "textField": "Safety Impactを変更する理由を入力してください...",
+          "save": "保存中...",
+          "saveReason": "変更理由を保存する"
+        }
+      }
+    }
+  }
+}
