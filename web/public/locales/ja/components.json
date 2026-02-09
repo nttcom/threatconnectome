@@ -54,7 +54,8 @@
   "Ticket": {
     "AssigneesSelector": {
       "assignees": "担当者",
-      "searchPlaceholder": "メールで検索",
+      "assigneesCount": "担当者数: {{count}}",
+      "searchPlaceholder": "メールアドレスで検索",
       "noSelection": "選択なし",
       "failedToLoadMembers": "メンバーの読み込みに失敗しました",
       "changeAssigneesSucceeded": "担当者を変更しました",
