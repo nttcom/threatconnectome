@@ -17,6 +17,7 @@ import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip"
 import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
 import { calcTimestampDiff } from "../../utils/func";
 import { compareSSVCPriority } from "../../utils/ssvcUtils";
+
 import { useTranslation } from "react-i18next";
 
 function LineWithTooltip(props) {
