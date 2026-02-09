@@ -1,6 +1,7 @@
 import { Chip, TableCell, TableRow, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
@@ -8,6 +9,7 @@ import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
 export function VulnManagementTableRow(props) {
+  const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementCardList" });
   const { vuln } = props;
 
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ export function VulnManagementTableRow(props) {
     vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? "N/A" : vuln.cvss_v3_score;
 
   const cvss = cvssConvertToName(cvssScore);
-  const cveId = vuln.cve_id === null ? "No Known CVE" : vuln.cve_id;
+  const cveId = vuln.cve_id === null ? t("noKnownCve") : vuln.cve_id;
 
   return (
     <TableRow
