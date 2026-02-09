@@ -14,7 +14,7 @@
     "noReferences": "参照なし",
     "target": "ターゲット",
     "version": "バージョン",
-    "service": "サービス"
+    "service": "サービス名"
   },
   "CodeBlock": {
     "install": "インストール",

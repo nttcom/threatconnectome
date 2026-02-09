@@ -59,7 +59,7 @@
       "noSelection": "選択なし",
       "failedToLoadMembers": "メンバーの読み込みに失敗しました",
       "changeAssigneesSucceeded": "担当者を変更しました",
-      "operationFailed": "操作に失敗しました: {{error}}"
+      "operationFailed": "操作に失敗しました: {{error}}。"
     },
     "CompleteTicketDialog": {
       "selectActions": "完了したアクションを選択してください",
@@ -72,7 +72,7 @@
       "submitting": "送信中...",
       "actionSucceeded": "アクションを実行しました",
       "ticketCompleted": "チケットが正常に完了しました",
-      "operationFailed": "操作に失敗しました: {{error}}"
+      "operationFailed": "操作に失敗しました: {{error}}。"
     },
     "ScheduleTicketDialog": {
       "title": "スケジュール設定",

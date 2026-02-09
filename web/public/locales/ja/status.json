@@ -21,7 +21,7 @@
     "uploadSBOMFile": "SBOMファイルをアップロード",
     "serviceName": "サービス名",
     "serviceNameRequired": "この項目は必須です。",
-    "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "maxLengthPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "selectedFile": "選択されたファイル: ",
     "upload": "アップロード",
     "dropSBOMFile": "ここにSBOMファイルをドロップ",
@@ -32,7 +32,7 @@
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。"
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。"
   },
   "WaitingModal": {
     "inProgress": "{{text}}処理中です。お待ちください。"
@@ -93,10 +93,10 @@
     "defaultSafetyImpact": "デフォルトの安全性影響",
     "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます。",
     "save": "保存",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
-    "tooLongKeyword": "キーワードが長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
-    "tooLongDescription": "説明が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です。",
-    "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "tooLongKeyword": "キーワードが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "tooLongDescription": "説明が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "maxLengthPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "sameKeywordExists": "同じキーワードが既に存在します。",
     "add": "追加",
     "cancel": "キャンセル",
