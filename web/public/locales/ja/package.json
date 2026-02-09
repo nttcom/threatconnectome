@@ -103,7 +103,7 @@
           "ticketSafetyImpactChangeReasonError": "変更理由が長すぎます。最大文字数は半角{{lengthHalfWidth}}文字、または全角{{lengthFullWidth}}文字です",
           "updating": "更新中...",
           "useDefault": "デフォルト値を使用",
-          "reasonforSafetyImpactChange": "Safety Impactの変更理由",
+          "reasonForSafetyImpactChange": "Safety Impactの変更理由",
           "notProvided": "未入力",
           "textField": "Safety Impactを変更する理由を入力してください...",
           "save": "保存中...",

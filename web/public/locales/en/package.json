@@ -103,7 +103,7 @@
           "ticketSafetyImpactChangeReasonError": "Too long ticket_safety_impact_change_reason. Max length is {{lengthHalfWidth}} in half-width or {{lengthFullWidth}} in full-width",
           "updating": "Updating...",
           "useDefault": "Use Default",
-          "reasonforSafetyImpactChange": "Reason for Safety Impact Change",
+          "reasonForSafetyImpactChange": "Reason for Safety Impact Change",
           "notProvided": "Not provided",
           "textField": "Enter the reason for changing Safety Impact...",
           "save": "Saving...",
