@@ -3,12 +3,12 @@
     "all_services": "全てのサービス",
     "search": "検索",
     "search_enter": "検索 (ENTERで適用)",
-    "loading_team": "チームを読み込んでいます...",
+    "loading_team": "チーム情報を読み込んでいます...",
     "loading_packages_summary": "パッケージサマリーを読み込んでいます...",
     "rows": "行"
   },
   "PTeamServicesListModal": {
-    "loadingTeam": "チームを読み込んでいます...",
+    "loadingTeam": "チーム情報を読み込んでいます...",
     "rows": "{{count}}行",
     "selectedPackage": "選択されたパッケージ"
   },
@@ -38,9 +38,9 @@
     "inProgress": "{{text}}処理中です。お待ちください"
   },
   "PTeamServiceDelete": {
-    "loadingTeam": "チームを読み込んでいます...",
-    "removeServiceSucceeded": "サービスの削除に成功しました",
-    "removeServicesSucceeded": "サービスの削除に成功しました",
+    "loadingTeam": "チーム情報を読み込んでいます...",
+    "removeServiceSucceeded": "サービスを削除しました",
+    "removeServicesSucceeded": "サービスを削除しました",
     "removeServiceFailed": "サービスの削除に失敗しました: {{error}}",
     "removeServicesFailed": "サービスの削除に失敗しました: {{error}}",
     "deleting": "削除中...",
@@ -55,10 +55,10 @@
   },
   "ServiceIDCopyButton": {
     "copyServiceId": "サービスIDをコピー",
-    "copied": "コピーしました"
+    "copied": "コピーしました！"
   },
   "PTeamServiceDetailsSettings": {
-    "updateSucceeded": "更新に成功しました",
+    "updateSucceeded": "更新しました",
     "updateFailed": "更新に失敗しました: {{error}}"
   },
   "PTeamServiceImageUploadDeleteButton": {
@@ -74,7 +74,7 @@
     "systemExposureDesc": "システムやサービスが外部に露出している範囲",
     "missionImpact": "Mission Impact",
     "missionImpactDesc": "組織の重要業務機能への影響",
-    "updateSucceeded": "更新に成功しました",
+    "updateSucceeded": "更新しました",
     "updateFailed": "更新に失敗しました: {{error}}",
     "cancel": "キャンセル",
     "update": "更新",
@@ -86,7 +86,7 @@
   "PTeamServiceDetailsSettingsView": {
     "serviceSettings": "サービス設定",
     "name": "名前",
-    "nameRequired": "この項目は必須です",
+    "nameRequired": "この項目は必須です。",
     "image": "画像",
     "keywords": "キーワード (最大5個)",
     "description": "説明",

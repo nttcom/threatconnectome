@@ -1,12 +1,12 @@
 {
   "VulnManagementPage": {
-    "loadingAuth": "認証トークン読込中...",
-    "loadingVulns": "脆弱性読込中...",
+    "loadingAuth": "認証トークンを読み込んでいます...",
+    "loadingVulns": "脆弱性を読み込んでいます...",
     "rows": "{{count}}行",
     "relatedVulns": "関連する脆弱性"
   },
   "VulnManagementCardList": {
-    "noKnownCve": "CVE番号なし",
+    "noKnownCve": "CVE不明",
     "noVulns": "脆弱性なし"
   },
   "VulnManagementTable": {

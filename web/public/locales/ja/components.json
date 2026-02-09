@@ -20,7 +20,7 @@
     "operationFailed": "操作に失敗しました: {{error}}",
     "emailTooLong": "メールアドレスが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "connectionSuccess": "接続に成功しました",
+    "connectionSuccess": "接続しました",
     "connectionFailed": "接続に失敗しました。理由: {{error}}",
     "updateSucceeded": "チーム情報を更新しました",
     "alertThreshold": "アラート閾値",

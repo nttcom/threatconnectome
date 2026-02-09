@@ -1,6 +1,6 @@
 {
   "PTeamPage": {
-    "nowLoadingMembers": "メンバー情報を読み込み中...",
+    "nowLoadingMembers": "メンバー情報を読み込んでいます...",
     "experience_years_one": "経験年数: {{count}}年以上",
     "experience_years_other": "経験年数: {{count}}年以上",
     "tabMembers": "メンバー"
@@ -15,13 +15,13 @@
     "unlimited": "無制限",
     "create": "作成する",
     "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}",
-    "createInvitationSucceeded": "招待リンクの作成に成功しました"
+    "createInvitationSucceeded": "招待リンクを作成しました"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "確認",
     "confirmRemove": "{{pteamName}} から {{userName}} を削除してもよろしいですか？",
     "remove": "削除する",
-    "removeMemberSucceeded": "メンバーの削除に成功しました",
+    "removeMemberSucceeded": "メンバーを削除しました",
     "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}"
   },
   "PTeamMember": {
@@ -33,8 +33,8 @@
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
-    "nowLoadingUserInfo": "ユーザー情報読み込み中...",
-    "nowLoadingTeam": "チーム情報読み込み中...",
+    "nowLoadingUserInfo": "ユーザー情報を読み込んでいます...",
+    "nowLoadingTeam": "チーム情報を読み込んでいます...",
     "authorities": "権限",
     "removeFromTeam": "チームから削除"
   },
@@ -45,13 +45,13 @@
     "description": "説明",
     "administrator": "管理者",
     "adminDescription": "チームを管理します。",
-    "updateSucceeded": "チーム権限の更新に成功しました",
+    "updateSucceeded": "チーム権限を更新しました",
     "updateFailed": "チーム権限の更新に失敗しました: {{error}}"
   },
   "UpdateAuthButton": {
-    "update": "更新する"
+    "update": "更新"
   },
   "CopiedIcon": {
-    "tooltipCopied": "コピーしました"
+    "tooltipCopied": "コピーしました！"
   }
 }
