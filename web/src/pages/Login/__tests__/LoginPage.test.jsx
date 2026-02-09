@@ -1,20 +1,41 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SAMLAuthProvider } from "firebase/auth";
+import i18n from "i18next";
+import { I18nextProvider, initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import loginEn from "../../../../public/locales/en/login.json";
 import { useAuth } from "../../../hooks/auth";
 import { AuthProvider } from "../../../providers/auth/AuthContext";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
 import store from "../../../store";
 import { Login } from "../LoginPage";
 
+// Initialize i18n before test execution
+i18n.use(initReactI18next).init({
+  lng: "en",
+  fallbackLng: "en",
+  ns: ["login"],
+  defaultNS: "login",
+  resources: {
+    en: {
+      login: loginEn,
+    },
+  },
+  interpolation: {
+    escapeValue: false,
+  },
+});
+
 const renderLogin = () => {
   render(
     <Provider store={store}>
       <AuthProvider>
-        <Login />
+        <I18nextProvider i18n={i18n}>
+          <Login />
+        </I18nextProvider>
       </AuthProvider>
     </Provider>,
   );

@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { SmsResendButton } from "../../components/SmsResendButton";
 import { SmsTroubleshootingTips } from "../../components/SmsTroubleshootingTips";
@@ -21,6 +22,7 @@ import { useActionLock } from "../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
 export function TwoFactorAuth(props) {
+  const { t } = useTranslation("login", { keyPrefix: "TwoFactorAuth" });
   const { authData, navigateInternalPage } = props;
 
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +69,7 @@ export function TwoFactorAuth(props) {
         setVerificationId(resendVerificationId);
         setNotification({
           open: true,
-          message: "The verification code has been resent.",
+          message: t("codeResent"),
           type: "info",
         });
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
@@ -93,20 +95,20 @@ export function TwoFactorAuth(props) {
         <Paper elevation={3} sx={{ p: 3 }}>
           <Box textAlign="center" mb={3}>
             <Typography variant="h6" gutterBottom>
-              Two-factor authentication
+              {t("title")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Please enter the 6-digit code sent via SMS.
+              {t("subtitle")}
             </Typography>
           </Box>
           <Box component="form" onSubmit={handleVerify}>
             <Stack spacing={2}>
               <TextField
                 fullWidth
-                label="Verification code"
+                label={t("verificationCodeLabel")}
                 value={code}
                 onChange={handleCodeChange}
-                placeholder="123456"
+                placeholder={t("verificationCodePlaceholder")}
                 slotProps={{
                   htmlInput: {
                     inputMode: "numeric",
@@ -130,15 +132,15 @@ export function TwoFactorAuth(props) {
                 {isLoading ? (
                   <>
                     <CircularProgress size={18} sx={{ mr: 1 }} />
-                    Checking the code...
+                    {t("checkingCode")}
                   </>
                 ) : (
-                  "Authenticate"
+                  t("authenticate")
                 )}
               </Button>
               <Stack spacing={1.5} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
-                  Did you receive the code?
+                  {t("didYouReceive")}
                 </Typography>
                 <Stack
                   direction="row"

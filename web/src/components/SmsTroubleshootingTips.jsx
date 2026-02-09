@@ -1,12 +1,9 @@
 import { Box, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 export function SmsTroubleshootingTips() {
-  const resolvedTips = [
-    "The phone number entered is accurate.",
-    "Your device has sufficient network coverage and is not in airplane mode.",
-    "SMS filtering, blocking settings, or carrier restrictions are not preventing delivery.",
-    "The message has not been placed in your spam or junk folder.",
-  ];
+  const { t } = useTranslation("components", { keyPrefix: "SmsTroubleshootingTips" });
+  const resolvedTips = [t("tip1"), t("tip2"), t("tip3"), t("tip4")];
 
   return (
     <Box
@@ -17,7 +14,7 @@ export function SmsTroubleshootingTips() {
       }}
     >
       <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }} gutterBottom>
-        If the verification SMS does not arrive, please verify the following:
+        {t("title")}
       </Typography>
       <Box
         component="ol"

@@ -3,8 +3,10 @@ import { Tabs, Tab, Tooltip, Box } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function PTeamServiceTabs(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceTabs" });
   const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;
 
   const serviceIds = services.map((service) => service.service_id);
@@ -57,7 +59,7 @@ export function PTeamServiceTabs(props) {
         ))}
         <Tab
           icon={<UploadFile />}
-          label="Upload"
+          label={t("upload")}
           aria-label="sbom file upload area button"
           onClick={() => setIsActiveUploadMode(1)}
           sx={{

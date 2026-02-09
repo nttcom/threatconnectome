@@ -24,6 +24,7 @@ import { addDays } from "date-fns";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -31,6 +32,7 @@ import { cvssRatings, cvssConvertToScore } from "../../utils/cvssUtils";
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function VulnSearchModal(props) {
+  const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnSearchModal" });
   const { show, onSearch, onCancel } = props;
 
   const [titleWords, setTitleWords] = useState("");
@@ -62,12 +64,9 @@ export function VulnSearchModal(props) {
   const handleSearch = () => {
     const trimmedCveIds = cveIds.trim();
     if (trimmedCveIds && !isValidCVEFormat(trimmedCveIds)) {
-      enqueueSnackbar(
-        "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)",
-        {
-          variant: "error",
-        },
-      );
+      enqueueSnackbar(t("invalidCveFormat"), {
+        variant: "error",
+      });
       return;
     }
     const params = {
@@ -149,7 +148,7 @@ export function VulnSearchModal(props) {
   const titleForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>Title</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("titleLabel")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }} sx={{ display: "flex" }}>
         <TextField
@@ -166,7 +165,7 @@ export function VulnSearchModal(props) {
   const cveIdForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>CVE ID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("cveIdLabel")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }}>
         <TextField
@@ -183,7 +182,7 @@ export function VulnSearchModal(props) {
   const cvssForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }} alignItems={"center"}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>CVSS v3</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("cvssV3Label")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }}>
         <ToggleButtonGroup
@@ -226,17 +225,17 @@ export function VulnSearchModal(props) {
   const dateForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>Last Update</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("lastUpdateLabel")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }} display="flex" flexDirection="column">
         <FormControl variant="standard" sx={{ m: 1, maxWidth: 200 }}>
           <Select value={dateFormList} onChange={dateFormChange}>
-            <MenuItem value="">None</MenuItem>
-            <MenuItem value="in24hours">Last 24h</MenuItem>
-            <MenuItem value="in7days">Last 7days</MenuItem>
-            <MenuItem value="range">Date Range</MenuItem>
-            <MenuItem value="since">Since</MenuItem>
-            <MenuItem value="until">Until</MenuItem>
+            <MenuItem value="">{t("none")}</MenuItem>
+            <MenuItem value="in24hours">{t("last24h")}</MenuItem>
+            <MenuItem value="in7days">{t("last7days")}</MenuItem>
+            <MenuItem value="range">{t("dateRange")}</MenuItem>
+            <MenuItem value="since">{t("since")}</MenuItem>
+            <MenuItem value="until">{t("until")}</MenuItem>
           </Select>
         </FormControl>
         {(dateFormList === "since" || dateFormList === "until") && (
@@ -288,7 +287,7 @@ export function VulnSearchModal(props) {
   const creatorForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>Creator ID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("creatorIdLabel")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }}>
         <TextField
@@ -305,7 +304,7 @@ export function VulnSearchModal(props) {
   const uuidForm = (
     <Grid container sx={{ margin: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
-        <Typography sx={{ marginTop: "10px" }}>Vuln ID</Typography>
+        <Typography sx={{ marginTop: "10px" }}>{t("vulnIdLabel")}</Typography>
       </Grid>
       <Grid size={{ xs: 10, md: 10 }}>
         <TextField
@@ -325,7 +324,7 @@ export function VulnSearchModal(props) {
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row" sx={{ mb: -3 }}>
             <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              Vuln Search
+              {t("title")}
             </Typography>
             <IconButton onClick={handleCancel}>
               <CloseIcon />
@@ -337,7 +336,7 @@ export function VulnSearchModal(props) {
             <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
               <FormControlLabel
                 control={<Android12Switch checked={adModeChange} onChange={advancedChange} />}
-                label="Advanced Mode"
+                label={t("advancedMode")}
               />
             </Box>
             {titleForm}
@@ -359,7 +358,7 @@ export function VulnSearchModal(props) {
               onClick={handleSearch}
               disabled={!isValidUserInput}
             >
-              Search
+              {t("search")}
             </Button>
           </Box>
         </DialogActions>

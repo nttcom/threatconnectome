@@ -9,6 +9,7 @@ import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   serviceImageHeightSize,
@@ -24,6 +25,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     setIsImageChanged,
     originalImage,
   } = props;
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceImageUploadDeleteButton" });
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -39,7 +41,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
   };
   const handleUploadImage = (event) => {
     if (event.target.files[0].size >= serviceImageMaxSize) {
-      enqueueSnackbar("Filesize exceeds max(512KiB)", { variant: "error" });
+      enqueueSnackbar(t("fileSizeExceeds"), { variant: "error" });
       return;
     }
 
@@ -62,7 +64,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           }
         } else {
           enqueueSnackbar(
-            `Dimensions must be ${serviceImageWidthSize}px ${serviceImageHeightSize} px`,
+            t("dimensionsMustBe", { width: serviceImageWidthSize, height: serviceImageHeightSize }),
             {
               variant: "error",
             },
@@ -101,7 +103,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
     <>
       <ButtonGroup variant="contained" aria-label="Button group with a nested menu">
         <Button component="label" tabIndex={-1} startIcon={<CloudUploadIcon />}>
-          Upload image
+          {t("uploadImage")}
           <VisuallyHiddenInput
             type="file"
             accept=".png"
@@ -122,7 +124,7 @@ export function PTeamServiceImageUploadDeleteButton(props) {
           }}
         >
           <DeleteIcon sx={{ mr: 1 }} />
-          Delete image
+          {t("deleteImage")}
         </MenuItem>
       </Menu>
     </>
