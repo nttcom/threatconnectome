@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
@@ -39,6 +40,7 @@ import {
 import { preserveParams } from "../../utils/urlUtils";
 
 export function ProductEolList() {
+  const { t } = useTranslation("eol", { keyPrefix: "ProductEolListPage" });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -65,12 +67,12 @@ export function ProductEolList() {
 
   const latestUpdate = getLatestUpdateDate(filteredProducts.flatMap((p) => p.eol_versions ?? []));
 
-  if (skip) return <>Now loading auth token...</>;
+  if (skip) return <>{t("loadingAuth")}</>;
   if (eolsError)
     throw new APIError(errorToString(eolsError), {
       api: "getEoLs",
     });
-  if (eolsIsLoading) return <>Now loading EoLs...</>;
+  if (eolsIsLoading) return <>{t("loadingEols")}</>;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -79,22 +81,17 @@ export function ProductEolList() {
         <PackageIcon color="primary" fontSize="large" />
         <Box>
           <Typography variant="h5" fontWeight="bold">
-            List of Products Supporting Automatic Retrieval of EOL Information
+            {t("title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            This is a list of products that support automatic retrieval and notification of EOL
-            information.
+            {t("subtitle")}
           </Typography>
         </Box>
       </Stack>
       {/* Notice */}
       <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 3 }}>
-        <AlertTitle>About this page</AlertTitle>
-        <Typography variant="body2">
-          Only the products listed on this page support automatic retrieval and notification of EOL
-          dates. For products not listed here, please check the official website or other sources
-          for their EOL information.
-        </Typography>
+        <AlertTitle>{t("aboutPageTitle")}</AlertTitle>
+        <Typography variant="body2">{t("aboutPageContent")}</Typography>
       </Alert>
       {/* Last Updated */}
       <Typography
@@ -102,7 +99,7 @@ export function ProductEolList() {
         color="text.secondary"
         sx={{ display: "block", textAlign: "right", mb: 1 }}
       >
-        Last Updated: {latestUpdate}
+        {t("lastUpdated")}: {latestUpdate}
       </Typography>
       {/* Search and Filter */}
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
@@ -114,7 +111,7 @@ export function ProductEolList() {
         >
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
-              label="All"
+              label={t("filterAll")}
               color={selectedCategory === "all" ? "primary" : "default"}
               onClick={() => setSelectedCategory("all")}
               variant={selectedCategory === "all" ? "filled" : "outlined"}
@@ -130,7 +127,7 @@ export function ProductEolList() {
             ))}
           </Stack>
           <TextField
-            placeholder="Search by product name..."
+            placeholder={t("searchPlaceholder")}
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -198,7 +195,7 @@ export function ProductEolList() {
       </Grid>
       {filteredProducts.length === 0 && (
         <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
-          <Typography color="text.secondary">No matching products found</Typography>
+          <Typography color="text.secondary">{t("noMatchingProducts")}</Typography>
         </Paper>
       )}
       {/* Link to Main Page */}
@@ -209,7 +206,7 @@ export function ProductEolList() {
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
         >
           <ArrowBackIcon fontSize="small" />
-          Back to EOL List
+          {t("backToEolList")}
         </Link>
       </Box>
     </Container>

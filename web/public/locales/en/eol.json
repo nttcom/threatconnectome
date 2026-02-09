@@ -1,0 +1,57 @@
+{
+    "EolTable": {
+        "status": "Support Status",
+        "productVersion": "Product / Version",
+        "service": "Service",
+        "category": "Category",
+        "eolDate": "EOL date"
+    },
+    "ServiceEolDashboardPage": {
+        "title": "EOL List",
+        "subtitle": "List of Support Status for Libraries and Tools Used by the Entire Team.",
+        "notificationTitle": "EOL Notification",
+        "notificationItems": {
+            "autoNotify": "Supported tools will be automatically notified via Slack or email six months prior to their EOL date.",
+            "limitations": "Due to technical limitations, EOL information for all tools may not be accurately supported. Unsupported tools are not eligible for notifications. Please check the EOL information separately.",
+            "checkSupported": "Please check",
+            "here": "here",
+            "checkSupportedEnd": "for a list of supported tools."
+        },
+        "lastUpdated": "Last Updated",
+        "filterAll": "All",
+        "filterExpired": "Expired",
+        "filterWarning": "Deadline approaching",
+        "filterActive": "Supported",
+        "searchPlaceholder": "Search by product or service name...",
+        "total": "Total",
+        "loadingEol": "Now loading Eol...",
+        "eolNotFound": "Eol data not found"
+    },
+    "ProductEolListPage": {
+        "title": "List of Products Supporting Automatic Retrieval of EOL Information",
+        "subtitle": "This is a list of products that support automatic retrieval and notification of EOL information.",
+        "aboutPageTitle": "About this page",
+        "aboutPageContent": "Only the products listed on this page support automatic retrieval and notification of EOL dates. For products not listed here, please check the official website or other sources for their EOL information.",
+        "lastUpdated": "Last Updated",
+        "filterAll": "All",
+        "searchPlaceholder": "Search by product name...",
+        "noMatchingProducts": "No matching products found",
+        "backToEolList": "Back to EOL List",
+        "loadingAuth": "Now loading auth token...",
+        "loadingEols": "Now loading EoLs..."
+    },
+    "ProductEolDetailPage": {
+        "breadcrumbEolList": "EOL List",
+        "breadcrumbSupportedProducts": "Supported Products",
+        "lastUpdated": "Last Updated",
+        "showExpiredVersions": "Show discontinued versions",
+        "tableHeaderVersion": "Version",
+        "tableHeaderEolDate": "EOL Date",
+        "tableHeaderStatus": "Support Status",
+        "noVersionsMessage": "No versions to display. Please turn on \"Show discontinued versions.\"",
+        "noProductsFound": "No products found",
+        "backToSupportedProducts": "Back to the Supported Products List",
+        "loadingAuth": "Now loading auth token...",
+        "loadingEols": "Now loading EoLs..."
+    }
+}
