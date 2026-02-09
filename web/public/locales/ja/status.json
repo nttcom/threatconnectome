@@ -3,12 +3,12 @@
     "all_services": "全てのサービス",
     "search": "検索",
     "search_enter": "検索 (ENTERで適用)",
-    "loading_team": "チームを読み込み中...",
-    "loading_packages_summary": "パッケージサマリーを読み込み中...",
+    "loading_team": "チームを読み込んでいます...",
+    "loading_packages_summary": "パッケージサマリーを読み込んでいます...",
     "rows": "行"
   },
   "PTeamServicesListModal": {
-    "loadingTeam": "チームを読み込み中...",
+    "loadingTeam": "チームを読み込んでいます...",
     "rows": "{{count}}行",
     "selectedPackage": "選択されたパッケージ"
   },
@@ -35,10 +35,10 @@
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です"
   },
   "WaitingModal": {
-    "inProgress": "{{text}}処理中です。お待ちください。"
+    "inProgress": "{{text}}処理中です。お待ちください"
   },
   "PTeamServiceDelete": {
-    "loadingTeam": "チームを読み込み中...",
+    "loadingTeam": "チームを読み込んでいます...",
     "removeServiceSucceeded": "サービスの削除に成功しました",
     "removeServicesSucceeded": "サービスの削除に成功しました",
     "removeServiceFailed": "サービスの削除に失敗しました: {{error}}",
@@ -86,18 +86,18 @@
   "PTeamServiceDetailsSettingsView": {
     "serviceSettings": "サービス設定",
     "name": "名前",
-    "nameRequired": "この項目は必須です。",
+    "nameRequired": "この項目は必須です",
     "image": "画像",
     "keywords": "キーワード (最大5個)",
     "description": "説明",
     "defaultSafetyImpact": "デフォルトの安全性影響",
-    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます。",
+    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます",
     "save": "保存",
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
     "tooLongKeyword": "キーワードが長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
     "tooLongDescription": "説明が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
     "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
-    "sameKeywordExists": "同じキーワードが既に存在します。",
+    "sameKeywordExists": "同じキーワードが既に存在します",
     "add": "追加",
     "cancel": "キャンセル",
     "addNewKeyword": "+ 新しいキーワードを追加"
