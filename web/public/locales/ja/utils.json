@@ -1,27 +1,5 @@
 {
   "const": {
-    "threatImpact": {
-      "immediate": {
-        "chipLabel": "Immediate",
-        "statusLabel": "あなたのチームには緊急の脅威があります"
-      },
-      "offcycle": {
-        "chipLabel": "Off-cycle",
-        "statusLabel": "あなたのチームには定期外の脅威があります"
-      },
-      "acceptable": {
-        "chipLabel": "Acceptable",
-        "statusLabel": "あなたのチームには許容可能な脅威があります"
-      },
-      "none": {
-        "chipLabel": "None",
-        "statusLabel": "あなたのチームには脅威がありません"
-      },
-      "safe": {
-        "chipLabel": "Safe",
-        "statusLabel": "あなたのチームは安全です"
-      }
-    },
     "noPTeamMessage": "あなたはどのチームにも所属していません。チームを作成してください。"
   },
   "eolUtils": {

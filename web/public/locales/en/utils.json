@@ -1,27 +1,5 @@
 {
   "const": {
-    "threatImpact": {
-      "immediate": {
-        "chipLabel": "Immediate",
-        "statusLabel": "Your pteam has a immediate"
-      },
-      "offcycle": {
-        "chipLabel": "Off-cycle",
-        "statusLabel": "Your pteam has a off-cycle"
-      },
-      "acceptable": {
-        "chipLabel": "Acceptable",
-        "statusLabel": "Your pteam has a acceptable"
-      },
-      "none": {
-        "chipLabel": "None",
-        "statusLabel": "Your pteam has none"
-      },
-      "safe": {
-        "chipLabel": "Safe",
-        "statusLabel": "Your pteam has safe"
-      }
-    },
     "noPTeamMessage": "You do not belong to any pteam. Please create a pteam."
   },
   "eolUtils": {
