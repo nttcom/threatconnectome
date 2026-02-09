@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -40,7 +40,10 @@ function PreUploadModal(props) {
   const handleServiceNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
-        t("tooLongServiceName", { maxHalf: maxServiceNameLengthInHalf, maxFull: Math.floor(maxServiceNameLengthInHalf / 2) }),
+        t("tooLongServiceName", {
+          maxHalf: maxServiceNameLengthInHalf,
+          maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+        }),
         {
           variant: "error",
         },
@@ -70,7 +73,10 @@ function PreUploadModal(props) {
             value={serviceName}
             onChange={(event) => handleServiceNameSetting(event.target.value)}
             required
-            placeholder={t("maxLengthPlaceholder", { maxHalf: maxServiceNameLengthInHalf, maxFull: Math.floor(maxServiceNameLengthInHalf / 2) })}
+            placeholder={t("maxLengthPlaceholder", {
+              maxHalf: maxServiceNameLengthInHalf,
+              maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+            })}
             helperText={serviceName ? "" : t("serviceNameRequired")}
             error={!serviceName}
             sx={{ mt: 2 }}
@@ -110,34 +116,43 @@ export function SBOMDropArea(props) {
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  useEffect(() => {
-    dropRef.current.addEventListener("dragover", handleDragOver);
-    dropRef.current.addEventListener("drop", handleDrop);
-  }, []);
-
-  const handleDragOver = (event) => {
+  const handleDragOver = useCallback((event) => {
     event.preventDefault();
     event.stopPropagation();
     /* nothing to do */
-  };
+  }, []);
 
-  const handleDrop = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const { files } = event.dataTransfer;
-    if (files && files.length) {
-      if (files.length > 1) {
-        alert(t("alertOnlyOneFile"));
-        return;
+  const handleDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const { files } = event.dataTransfer;
+      if (files && files.length) {
+        if (files.length > 1) {
+          alert(t("alertOnlyOneFile"));
+          return;
+        }
+        if (!files[0].name.endsWith(".json")) {
+          alert(t("alertOnlyJson"));
+          return;
+        }
+        setSbomFile(files[0]);
+        setPreModalOpen(true);
       }
-      if (!files[0].name.endsWith(".json")) {
-        alert(t("alertOnlyJson"));
-        return;
-      }
-      setSbomFile(files[0]);
-      setPreModalOpen(true);
-    }
-  };
+    },
+    [t],
+  );
+
+  useEffect(() => {
+    const node = dropRef.current;
+    if (!node) return;
+    node.addEventListener("dragover", handleDragOver);
+    node.addEventListener("drop", handleDrop);
+    return () => {
+      node.removeEventListener("dragover", handleDragOver);
+      node.removeEventListener("drop", handleDrop);
+    };
+  }, [handleDragOver, handleDrop]);
   const handlePreUploadCompleted = (service) => {
     setPreModalOpen(false);
     processUploadSBOM(sbomFile, service);
