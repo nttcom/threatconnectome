@@ -1,5 +1,6 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import {
   useUpdatePTeamServiceMutation,
@@ -15,6 +16,7 @@ const serviceDetailsSettingNoImageUrl = "images/720x480.png";
 
 export function PTeamServiceDetailsSettings(props) {
   const { pteamId, service, expandService } = props;
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettings" });
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -64,10 +66,10 @@ export function PTeamServiceDetailsSettings(props) {
 
     Promise.all(promiseList.map((apiFunc) => apiFunc()))
       .then(() => {
-        enqueueSnackbar("Update succeeded", { variant: "success" });
+        enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
       })
       .catch((error) => {
-        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+        enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
       });
   };
 

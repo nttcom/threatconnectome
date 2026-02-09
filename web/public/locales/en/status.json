@@ -49,6 +49,24 @@
   "PTeamServiceTabs": {
     "upload": "Upload"
   },
+  "DeleteServiceIcon": {
+    "serviceDelete": "Service Delete",
+    "deleteServices": "Delete Services"
+  },
+  "ServiceIDCopyButton": {
+    "copyServiceId": "Copy the Service ID",
+    "copied": "Copied"
+  },
+  "PTeamServiceDetailsSettings": {
+    "updateSucceeded": "Update succeeded",
+    "updateFailed": "Update failed: {{error}}"
+  },
+  "PTeamServiceImageUploadDeleteButton": {
+    "fileSizeExceeds": "Filesize exceeds max(512KiB)",
+    "dimensionsMustBe": "Dimensions must be {{width}}px × {{height}}px",
+    "uploadImage": "Upload image",
+    "deleteImage": "Delete image"
+  },
   "PTeamStatusSSVCCards": {
     "highestSSVCPriority": "Highest SSVC Priority",
     "highestSSVCPriorityDesc": "The most serious security issue of the Service.",
