@@ -12,13 +12,12 @@ import {
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
 import { calcTimestampDiff } from "../../utils/func";
 import { compareSSVCPriority } from "../../utils/ssvcUtils";
-
-import { useTranslation } from "react-i18next";
 
 function LineWithTooltip(props) {
   const { ticketHandlingStatus, ratio, num } = props;
