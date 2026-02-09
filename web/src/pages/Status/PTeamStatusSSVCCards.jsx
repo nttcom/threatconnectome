@@ -16,6 +16,7 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useUpdatePTeamServiceMutation } from "../../services/tcApi";
 import {
@@ -28,6 +29,7 @@ import { errorToString } from "../../utils/func";
 import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 export function PTeamStatusSSVCCards(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamStatusSSVCCards" });
   const { pteamId, service, highestSsvcPriority } = props;
   const ssvcPriorityProp = getSsvcPriorityProps()[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
@@ -59,18 +61,18 @@ export function PTeamStatusSSVCCards(props) {
   const handleUpdatePTeamService = async (card) => {
     setIsUpdating(true);
     const data =
-      card.title === "System Exposure"
+      card.type === "systemExposure"
         ? { system_exposure: systemExposureValue }
         : { service_mission_impact: missionImpactValue };
     const serviceId = service.service_id;
     await updatePTeamService({ path: { pteam_id: pteamId, service_id: serviceId }, body: data })
       .unwrap()
       .then(() => {
-        enqueueSnackbar("Update succeeded", { variant: "success" });
+        enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
         card.handleClickIconButton(false);
       })
       .catch((error) => {
-        enqueueSnackbar(`Update failed: ${errorToString(error)}`, { variant: "error" });
+        enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
       })
       .finally(() => {
         setIsUpdating(false);
@@ -79,8 +81,9 @@ export function PTeamStatusSSVCCards(props) {
 
   const SSVCCardsList = [
     {
-      title: "System Exposure",
-      description: "The Accessible Attack Surface of the Affected System or Service.",
+      type: "systemExposure",
+      title: t("systemExposure"),
+      description: t("systemExposureDesc"),
       items: sortedSystemExposure,
       valuePairing: systemExposure,
       isEditable: isSystemExposureEditable,
@@ -88,8 +91,9 @@ export function PTeamStatusSSVCCards(props) {
       handleClickToggleButton: setSystemExposureValue,
     },
     {
-      title: "Mission Impact",
-      description: "Impact on Mission Essential Functions of the Organization.",
+      type: "missionImpact",
+      title: t("missionImpact"),
+      description: t("missionImpactDesc"),
       items: sortedMissionImpact,
       valuePairing: missionImpact,
       isEditable: isMissionImpactEditable,
@@ -99,8 +103,8 @@ export function PTeamStatusSSVCCards(props) {
   ];
 
   const HighestSSVCPriorityList = {
-    title: "Highest SSVC Priority",
-    description: "The most serious security issue of the Service.",
+    title: t("highestSSVCPriority"),
+    description: t("highestSSVCPriorityDesc"),
     items: sortedSSVCPriorities,
     valuePairing: ssvcPriority,
   };
@@ -238,7 +242,7 @@ export function PTeamStatusSSVCCards(props) {
                 size="small"
                 color="primary"
                 orientation="vertical"
-                value={card.title === "System Exposure" ? systemExposureValue : missionImpactValue}
+                value={card.type === "systemExposure" ? systemExposureValue : missionImpactValue}
               >
                 {card.items.map((item) => (
                   <ToggleButton
@@ -260,13 +264,13 @@ export function PTeamStatusSSVCCards(props) {
                   size="small"
                   onClick={() => {
                     card.handleClickIconButton(false);
-                    card.title === "System Exposure"
+                    card.type === "systemExposure"
                       ? card.handleClickToggleButton(service.system_exposure)
                       : card.handleClickToggleButton(service.service_mission_impact);
                   }}
                   disabled={isUpdating}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   variant="contained"
@@ -277,7 +281,7 @@ export function PTeamStatusSSVCCards(props) {
                   disabled={isUpdating}
                   startIcon={isUpdating ? <CircularProgress size={20} /> : null}
                 >
-                  {isUpdating ? "Updating..." : "Update"}
+                  {isUpdating ? t("updating") : t("update")}
                 </Button>
               </Stack>
             )}

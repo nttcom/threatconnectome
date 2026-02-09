@@ -23,6 +23,7 @@ import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
 import { useViewportOffset } from "../../../hooks/useViewportOffset";
@@ -37,6 +38,7 @@ import { countFullWidthAndHalfWidthCharacters } from "../../../utils/func";
 import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDeleteButton";
 
 export function PTeamServiceDetailsSettingsView(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettingsView" });
   const { service, image, onSave, expandService } = props;
 
   const [serviceName, setServiceName] = useState(service.service_name);
@@ -116,7 +118,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleServiceNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
-        `Too long service name. Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`,
+        t("tooLongServiceName", {
+          maxHalf: maxServiceNameLengthInHalf,
+          maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -132,7 +137,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleKeywordSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxKeywordLengthInHalf) {
       enqueueSnackbar(
-        `Too long keyword. Max length is ${maxKeywordLengthInHalf} in half-width or ${Math.floor(maxKeywordLengthInHalf / 2)} in full-width`,
+        t("tooLongKeyword", {
+          maxHalf: maxKeywordLengthInHalf,
+          maxFull: Math.floor(maxKeywordLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -148,7 +156,10 @@ export function PTeamServiceDetailsSettingsView(props) {
   const handleDescriptionSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxDescriptionLengthInHalf) {
       enqueueSnackbar(
-        `Too long description. Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`,
+        t("tooLongDescription", {
+          maxHalf: maxDescriptionLengthInHalf,
+          maxFull: Math.floor(maxDescriptionLengthInHalf / 2),
+        }),
         {
           variant: "error",
           style: {
@@ -190,7 +201,7 @@ export function PTeamServiceDetailsSettingsView(props) {
         <DialogTitle flexGrow={1}>
           <Box alignItems="center" display="flex" flexDirection="row">
             <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              Service settings
+              {t("serviceSettings")}
             </Typography>
             <IconButton onClick={handleClose} sx={{ color: grey[500] }}>
               <CloseIcon />
@@ -200,19 +211,22 @@ export function PTeamServiceDetailsSettingsView(props) {
         <DialogContent dividers>
           <Stack spacing={2}>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel required>Name</FormLabel>
+              <FormLabel required>{t("name")}</FormLabel>
               <TextField
                 required
                 size="small"
                 value={serviceName}
-                placeholder={`Max length is ${maxServiceNameLengthInHalf} in half-width or ${Math.floor(maxServiceNameLengthInHalf / 2)} in full-width`}
+                placeholder={t("maxLengthPlaceholder", {
+                  maxHalf: maxServiceNameLengthInHalf,
+                  maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
+                })}
                 onChange={(e) => handleServiceNameSetting(e.target.value)}
-                helperText={serviceName ? "" : "This field is required."}
+                helperText={serviceName ? "" : t("nameRequired")}
                 error={!serviceName}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>Image</FormLabel>
+              <FormLabel>{t("image")}</FormLabel>
               <Box>
                 <Box
                   component="img"
@@ -232,7 +246,7 @@ export function PTeamServiceDetailsSettingsView(props) {
               </Box>
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>Keywords (Max 5)</FormLabel>
+              <FormLabel>{t("keywords")}</FormLabel>
               <Box>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
                   {currentKeywordsList.map((keyword) => (
@@ -253,9 +267,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText)}
                       helperText={
-                        currentKeywordsList.includes(keywordText)
-                          ? "Same keyword already exists."
-                          : ""
+                        currentKeywordsList.includes(keywordText) ? t("sameKeywordExists") : ""
                       }
                     />
                     <Button
@@ -268,7 +280,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                       }}
                       disabled={!keywordText || currentKeywordsList.includes(keywordText)}
                     >
-                      Add
+                      {t("add")}
                     </Button>
                     <Button
                       onClick={() => {
@@ -276,7 +288,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                         setKeywordText("");
                       }}
                     >
-                      Cancel
+                      {t("cancel")}
                     </Button>
                   </Box>
                 ) : (
@@ -285,19 +297,22 @@ export function PTeamServiceDetailsSettingsView(props) {
                       onClick={() => setKeywordAddingMode(!keywordAddingMode)}
                       disabled={currentKeywordsList.length >= maxKeywords}
                     >
-                      + Add a new keyword
+                      {t("addNewKeyword")}
                     </Button>
                   </Box>
                 )}
               </Box>
             </Box>
             <Box>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t("description")}</FormLabel>
               <TextField
                 multiline
                 rows={3}
                 fullWidth
-                placeholder={`Max length is ${maxDescriptionLengthInHalf} in half-width or ${Math.floor(maxDescriptionLengthInHalf / 2)} in full-width`}
+                placeholder={t("maxLengthPlaceholder", {
+                  maxHalf: maxDescriptionLengthInHalf,
+                  maxFull: Math.floor(maxDescriptionLengthInHalf / 2),
+                })}
                 value={currentDescription}
                 onChange={(e) => handleDescriptionSetting(e.target.value)}
               />
@@ -310,12 +325,8 @@ export function PTeamServiceDetailsSettingsView(props) {
                   mb: 1,
                 }}
               >
-                <FormLabel>Default Safety Impact</FormLabel>
-                <Tooltip
-                  title={
-                    "Default Safety Impact is applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket."
-                  }
-                >
+                <FormLabel>{t("defaultSafetyImpact")}</FormLabel>
+                <Tooltip title={t("defaultSafetyImpactTooltip")}>
                   <HelpOutlineOutlinedIcon color="action" fontSize="small" />
                 </Tooltip>
               </Box>
@@ -350,7 +361,7 @@ export function PTeamServiceDetailsSettingsView(props) {
             sx={{ borderRadius: 5, mr: 2, mb: 1 }}
             disabled={!isChanged}
           >
-            Save
+            {t("save")}
           </Button>
         </DialogActions>
       </Dialog>

@@ -30,6 +30,7 @@ import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Android12Switch } from "../../components/Android12Switch";
@@ -56,12 +57,13 @@ const ssvcPriorityCountMax = 99999;
 function SearchField(props) {
   const { word, onApply } = props;
   const [newWord, setNewWord] = useState(word);
+  const { t } = useTranslation("status", { keyPrefix: "StatusPage" });
 
   return (
     <>
       <TextField
         variant="standard"
-        label={"Search" + (word === newWord ? "" : " (press ENTER to apply)")}
+        label={word === newWord ? t("search") : t("search_enter")}
         size="small"
         value={newWord}
         onChange={(event) => setNewWord(event.target.value)}
@@ -209,6 +211,7 @@ export function Status() {
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
+  const { t } = useTranslation("status", { keyPrefix: "StatusPage" });
 
   if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skipByAuth || !pteamId) return <></>;
@@ -216,7 +219,7 @@ export function Status() {
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
     });
-  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (pteamIsLoading) return <>{t("loading_team")}</>;
 
   if (pteamAllServicesPackagesSummaryError)
     throw new APIError(errorToString(pteamAllServicesPackagesSummaryError), {
@@ -238,7 +241,7 @@ export function Status() {
       !isActiveAllServicesMode &&
       (serviceId || pteam.services.length > 0))
   )
-    return <>Now loading PTeamPackagesSummary...</>;
+    return <>{t("loading_packages_summary")}</>;
 
   const service =
     isActiveAllServicesMode || !serviceId
@@ -319,7 +322,7 @@ export function Status() {
         {[10, 20, 50, 100].map((num) => (
           <MenuItem key={num} value={num} sx={{ justifyContent: "flex-end" }}>
             <Typography variant="body2" sx={{ mt: 0.3 }}>
-              {num} Rows
+              {num} {t("rows")}
             </Typography>
           </MenuItem>
         ))}
@@ -485,7 +488,7 @@ export function Status() {
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
           }
-          label="All Services"
+          label={t("all_services")}
         />
       </Box>
       {!isActiveAllServicesMode &&

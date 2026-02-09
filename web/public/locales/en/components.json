@@ -54,6 +54,7 @@
   "Ticket": {
     "AssigneesSelector": {
       "assignees": "Assignees",
+      "assigneesCount": "Assignees: {{count}}",
       "searchPlaceholder": "Search by email",
       "noSelection": "No selection",
       "failedToLoadMembers": "Failed to load members",
