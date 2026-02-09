@@ -62,7 +62,7 @@
       "assignee": "Assignee",
       "service": "Service",
       "details": "Details",
-      "ticketTitle": "Ticket #{ticketId}"
+      "ticketTitle": "Ticket {{ticketId}}"
     },
     "DisplayOptionsController": {
       "tooltip": "Display Options",
@@ -90,7 +90,7 @@
       "package": "Package",
       "assignee": "Assignee",
       "ssvc": "SSVC",
-      "details": "",
+      "details": "Details",
       "sortedDescending": "sorted descending",
       "sortedAscending": "sorted ascending",
       "noTasksFound": "No tasks found."
@@ -98,7 +98,7 @@
     "ToDoTableRow": {
       "noKnownCve": "No Known CVE",
       "details": "Details",
-      "ticketTitle": "Ticket #{ticketId}"
+      "ticketTitle": "Ticket {{ticketId}}"
     }
   },
   "Insights": {

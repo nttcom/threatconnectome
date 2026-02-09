@@ -62,7 +62,7 @@
       "assignee": "担当者",
       "service": "サービス",
       "details": "詳細",
-      "ticketTitle": "チケット #{ticketId}"
+      "ticketTitle": "チケット {{ticketId}}"
     },
     "DisplayOptionsController": {
       "tooltip": "表示オプション",
@@ -98,7 +98,7 @@
     "ToDoTableRow": {
       "noKnownCve": "既知のCVEなし",
       "details": "詳細",
-      "ticketTitle": "チケット #{ticketId}"
+      "ticketTitle": "チケット {{ticketId}}"
     }
   },
   "Insights": {
