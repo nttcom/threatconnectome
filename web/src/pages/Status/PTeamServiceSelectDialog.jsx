@@ -12,8 +12,10 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function PTeamServiceSelectDialog(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceSelectDialog" });
   const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(currentServiceId);
@@ -57,12 +59,12 @@ export function PTeamServiceSelectDialog(props) {
           }}
         >
           {services.find((s) => s.service_id === currentServiceId)?.service_name ||
-            "Select Service"}
+            t("selectService")}
         </Box>
         <ArrowDropDownIcon sx={{ color: "grey.700", marginLeft: "8px", flexShrink: 0 }} />
       </Button>
       <Dialog fullWidth maxWidth="xs" open={open} onClose={handleClose}>
-        <DialogTitle>Select a Service</DialogTitle>
+        <DialogTitle>{t("selectAService")}</DialogTitle>
         <DialogContent dividers>
           <RadioGroup
             value={selected}
@@ -99,7 +101,7 @@ export function PTeamServiceSelectDialog(props) {
           </RadioGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>{t("cancel")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

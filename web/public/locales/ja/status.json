@@ -1,0 +1,105 @@
+{
+  "StatusPage": {
+    "all_services": "全てのサービス",
+    "search": "検索",
+    "search_enter": "検索 (ENTERで適用)",
+    "loading_team": "チームを読み込んでいます...",
+    "loading_packages_summary": "パッケージサマリーを読み込んでいます...",
+    "rows": "行"
+  },
+  "PTeamServicesListModal": {
+    "loadingTeam": "チームを読み込んでいます...",
+    "rows": "{{count}}行",
+    "selectedPackage": "選択されたパッケージ"
+  },
+  "PTeamServiceSelectDialog": {
+    "selectService": "サービスを選択",
+    "selectAService": "サービスを選択",
+    "cancel": "キャンセル"
+  },
+  "SBOMDropArea": {
+    "uploadSBOMFile": "SBOMファイルをアップロード",
+    "serviceName": "サービス名",
+    "serviceNameRequired": "この項目は必須です。",
+    "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "selectedFile": "選択されたファイル: ",
+    "upload": "アップロード",
+    "dropSBOMFile": "ここにSBOMファイルをドロップ",
+    "uploadingSBOMFile": "SBOMファイルをアップロード中",
+    "alertOnlyOneFile": "1つのファイルのみをドロップしてください",
+    "alertOnlyJson": "*.jsonのみサポートされています",
+    "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
+    "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
+    "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください",
+    "uploadFailed": "操作に失敗しました: {{message}}",
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です"
+  },
+  "WaitingModal": {
+    "inProgress": "{{text}}処理中です。お待ちください"
+  },
+  "PTeamServiceDelete": {
+    "loadingTeam": "チームを読み込んでいます...",
+    "removeServiceSucceeded": "サービスの削除に成功しました",
+    "removeServicesSucceeded": "サービスの削除に成功しました",
+    "removeServiceFailed": "サービスの削除に失敗しました: {{error}}",
+    "removeServicesFailed": "サービスの削除に失敗しました: {{error}}",
+    "deleting": "削除中...",
+    "delete": "削除"
+  },
+  "PTeamServiceTabs": {
+    "upload": "アップロード"
+  },
+  "DeleteServiceIcon": {
+    "serviceDelete": "サービスを削除",
+    "deleteServices": "サービスを削除"
+  },
+  "ServiceIDCopyButton": {
+    "copyServiceId": "サービスIDをコピー",
+    "copied": "コピーしました"
+  },
+  "PTeamServiceDetailsSettings": {
+    "updateSucceeded": "更新に成功しました",
+    "updateFailed": "更新に失敗しました: {{error}}"
+  },
+  "PTeamServiceImageUploadDeleteButton": {
+    "fileSizeExceeds": "ファイルサイズが最大値（512KiB）を超えています",
+    "dimensionsMustBe": "画像サイズは{{width}}px × {{height}}pxである必要があります",
+    "uploadImage": "画像をアップロード",
+    "deleteImage": "画像を削除"
+  },
+  "PTeamStatusSSVCCards": {
+    "highestSSVCPriority": "Highest SSVC Priority",
+    "highestSSVCPriorityDesc": "サービス内の脆弱性で最も高い対応優先度",
+    "systemExposure": "System Exposure",
+    "systemExposureDesc": "システムやサービスが外部に露出している範囲",
+    "missionImpact": "Mission Impact",
+    "missionImpactDesc": "組織の重要業務機能への影響",
+    "updateSucceeded": "更新に成功しました",
+    "updateFailed": "更新に失敗しました: {{error}}",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "updating": "更新中..."
+  },
+  "PTeamStatusCard": {
+    "updated": "更新 {{timeDiff}}"
+  },
+  "PTeamServiceDetailsSettingsView": {
+    "serviceSettings": "サービス設定",
+    "name": "名前",
+    "nameRequired": "この項目は必須です",
+    "image": "画像",
+    "keywords": "キーワード (最大5個)",
+    "description": "説明",
+    "defaultSafetyImpact": "デフォルトの安全性影響",
+    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます",
+    "save": "保存",
+    "tooLongServiceName": "サービス名が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "tooLongKeyword": "キーワードが長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "tooLongDescription": "説明が長すぎます。最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "maxLengthPlaceholder": "最大長は半角{{maxHalf}}文字、または全角{{maxFull}}文字です",
+    "sameKeywordExists": "同じキーワードが既に存在します",
+    "add": "追加",
+    "cancel": "キャンセル",
+    "addNewKeyword": "+ 新しいキーワードを追加"
+  }
+}

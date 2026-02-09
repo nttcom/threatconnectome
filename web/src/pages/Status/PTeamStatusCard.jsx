@@ -12,6 +12,7 @@ import {
 import { grey, yellow, amber } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
@@ -97,6 +98,7 @@ StatusRatioGraph.propTypes = {
 
 export function PTeamStatusCard(props) {
   const { onHandleClick, pteam, packageInfo, serviceIds } = props;
+  const { t } = useTranslation("status", { keyPrefix: "PTeamStatusCard" });
 
   let displaySSVCPriority = "";
   if (!packageInfo.ssvc_priority && packageInfo.status_count["completed"] > 0) {
@@ -175,7 +177,7 @@ export function PTeamStatusCard(props) {
                     : "visible",
               }}
             >
-              Updated {calcTimestampDiff(packageInfo.updated_at)}
+              {t("updated", { timeDiff: calcTimestampDiff(packageInfo.updated_at) })}
             </Typography>
           </Box>
           <StatusRatioGraph
