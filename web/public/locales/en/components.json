@@ -14,7 +14,7 @@
     "teamNamePlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "contactInfo": "Contact Info",
     "contactInfoPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
-    "update": "Update"
+    "save": "Save"
   },
   "PTeamNotificationSetting": {
     "operationFailed": "Operation failed: {{error}}",
@@ -31,7 +31,7 @@
     "sendBy": "Send by",
     "slack": "Slack",
     "email": "Email",
-    "update": "Update"
+    "save": "Save"
   },
   "CheckButton": {
     "check": "Check"

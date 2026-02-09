@@ -117,7 +117,7 @@ export function PTeamGeneralSetting(props) {
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
         <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
-          {t("update")}
+          {t("save")}
         </Button>
       </Box>
     </Box>

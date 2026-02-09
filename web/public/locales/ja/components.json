@@ -9,12 +9,12 @@
     "operationFailed": "操作に失敗しました: {{error}}",
     "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "contactInfoTooLong": "連絡先情報が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "updateSucceeded": "チーム情報を更新しました",
+    "saved": "チーム情報を保存しました",
     "teamName": "チーム名",
     "teamNamePlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "contactInfo": "連絡先情報",
     "contactInfoPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "update": "更新"
+    "save": "保存"
   },
   "PTeamNotificationSetting": {
     "operationFailed": "操作に失敗しました: {{error}}",
@@ -22,7 +22,7 @@
     "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "connectionSuccess": "接続に成功しました",
     "connectionFailed": "接続に失敗しました。理由: {{error}}",
-    "updateSucceeded": "チーム情報を更新しました",
+    "saved": "チーム情報を保存しました",
     "alertThreshold": "アラート閾値",
     "emailAddress": "メールアドレス",
     "emailPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
@@ -31,7 +31,7 @@
     "sendBy": "送信方法",
     "slack": "Slack",
     "email": "メール",
-    "update": "更新"
+    "save": "保存"
   },
   "CheckButton": {
     "check": "確認"
