@@ -17,7 +17,7 @@
   "VulnSSVCCards": {
     "automatable": {
       "title": "Automatable",
-      "titleDescription": "攻撃者がこの脆弱性の悪用イベントを確実に自動化できるか？",
+      "titleDescription": "攻撃者がこの脆弱性を利用した攻撃を自動化可能できるか？",
       "no": {
         "name": "No",
         "valueDescription": "No: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配送、(4)悪用です。"
@@ -32,7 +32,7 @@
       "titleDescription": "脆弱性の悪用状況",
       "none": {
         "name": "None",
-        "valueDescription": "None: アクティブな悪用の証拠がなく、脆弱性を悪用する方法に関する公開された実証コード（PoC）もありません。"
+        "valueDescription": "None: 実際に悪用されている証拠がなく、脆弱性を悪用する方法に関する公開された実証コード（PoC）もありません。"
       },
       "public_poc": {
         "name": "Public PoC",
