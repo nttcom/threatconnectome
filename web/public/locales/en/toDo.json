@@ -12,7 +12,7 @@
   },
   "SafetyImpactSelectorView": {
     "dialogTitle": "Safety Impact update",
-    "reasonPrompt": "Provide the reason for this Safety Impact",
+    "reasonPrompt": "Provide the reason for this Safety Impact change",
     "cancel": "Cancel",
     "save": "Save",
     "tooltipTitle": "Why was it changed from the default safety impact?",

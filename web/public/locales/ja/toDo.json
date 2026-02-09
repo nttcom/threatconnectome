@@ -12,7 +12,7 @@
   },
   "SafetyImpactSelectorView": {
     "dialogTitle": "Safety Impactの更新",
-    "reasonPrompt": "このSafety Impactの理由を入力してください",
+    "reasonPrompt": "このSafety Impactの変更理由を入力してください",
     "cancel": "キャンセル",
     "save": "保存",
     "tooltipTitle": "デフォルトのSafety Impactから変更された理由",
