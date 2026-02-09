@@ -12,6 +12,7 @@ import {
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { isBefore } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 type ScheduleTicketDialogProps = {
   open: boolean;
@@ -30,6 +31,7 @@ export function ScheduleTicketDialog({
   onScheduleChange,
   isLoading = false,
 }: ScheduleTicketDialogProps) {
+  const { t } = useTranslation("components", { keyPrefix: "Ticket.ScheduleTicketDialog" });
   const now = new Date();
 
   return (
@@ -37,7 +39,7 @@ export function ScheduleTicketDialog({
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} sx={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-            Set schedule
+            {t("title")}
           </Typography>
           <IconButton onClick={onClose} disabled={isLoading}>
             <CloseIcon />
@@ -48,7 +50,7 @@ export function ScheduleTicketDialog({
         <Box sx={{ mt: 3 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
-              label="Schedule Date (future date)"
+              label={t("dateLabel")}
               minDateTime={now}
               value={schedule}
               onChange={(newDate) => onScheduleChange(newDate)}
@@ -64,7 +66,7 @@ export function ScheduleTicketDialog({
           disabled={!schedule || !isBefore(now, schedule) || isLoading}
           variant="contained"
         >
-          {isLoading ? "Scheduling..." : "Schedule"}
+          {isLoading ? t("scheduling") : t("schedule")}
         </Button>
       </DialogActions>
     </Dialog>
