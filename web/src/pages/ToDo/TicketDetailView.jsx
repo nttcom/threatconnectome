@@ -13,8 +13,8 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
 import { AssigneesSelector } from "../../components/Ticket/AssigneesSelector";
