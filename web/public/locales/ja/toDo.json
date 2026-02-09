@@ -30,7 +30,7 @@
     "update": "アップデート",
     "noData": "データなし",
     "cveId": "CVE ID",
-    "noKnownCve": "CVE番号なし",
+    "noKnownCve": "CVE不明",
     "detail": "詳細"
   },
   "TicketDetailView": {
@@ -39,7 +39,7 @@
     "tabInsights": "インサイト",
     "ssvc": "SSVC",
     "cveId": "CVE ID",
-    "noKnownCve": "CVE番号なし",
+    "noKnownCve": "CVE不明",
     "team": "チーム",
     "service": "サービス",
     "package": "パッケージ",
@@ -55,7 +55,7 @@
       "noTasksFound": "タスクが見つかりません。"
     },
     "VulnerabilityCard": {
-      "noKnownCve": "CVE番号なし",
+      "noKnownCve": "CVE不明",
       "team": "チーム",
       "package": "パッケージ",
       "assignee": "担当者",
@@ -95,7 +95,7 @@
       "noTasksFound": "タスクが見つかりません。"
     },
     "ToDoTableRow": {
-      "noKnownCve": "CVE番号なし",
+      "noKnownCve": "CVE不明",
       "details": "詳細",
       "ticketTitle": "チケット {{ticketId}}"
     }
