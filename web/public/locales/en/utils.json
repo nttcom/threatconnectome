@@ -25,6 +25,11 @@
       "na": "N/A"
     }
   },
+  "func": {
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "{{days}} days ago"
+  },
   "ssvcUtils": {
     "priority": {
       "immediate": {
