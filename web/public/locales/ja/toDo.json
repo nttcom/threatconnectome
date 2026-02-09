@@ -112,7 +112,7 @@
       "cvss": "CVSS: {{cvss}}",
       "riskSummary": "リスク概要",
       "aiGeneratedLabel": "AI生成の概要:",
-      "aiGeneratedDisclaimer": "このコンテンツはAIによって生成されており、独立して検証する必要があります。",
+      "aiGeneratedDisclaimer": "このコンテンツはAIによって生成されています。重要な情報は確認するようにしてください。",
       "tabThreatScenarios": "脅威シナリオ",
       "tabAffectedAssets": "影響を受ける資産",
       "tabAnalysisBasis": "分析の根拠",
