@@ -1,11 +1,15 @@
 import { Paper, Tooltip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { getSsvcPriorityProps } from "../utils/ssvcUtils";
 
 export function SSVCPriorityStatusChip(props) {
   const { displaySSVCPriority } = props;
+  // Calling useTranslation() ensures this component re-renders when the language changes.
+  const {} = useTranslation();
+
   const ssvcPriorityProp = getSsvcPriorityProps()[displaySSVCPriority];
 
   const Icon = ssvcPriorityProp.icon;
