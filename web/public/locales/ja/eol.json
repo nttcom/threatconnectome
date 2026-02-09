@@ -7,7 +7,7 @@
         "eolDate": "サポート終了日"
     },
     "ServiceEolDashboardPage": {
-        "title": "サポート終了日一覧",
+        "title": "EOL(サポート終了日)一覧",
         "subtitle": "チーム全体で使用しているライブラリやツールのサポート状況一覧",
         "notificationTitle": "サポート終了日通知",
         "notificationItems": {
