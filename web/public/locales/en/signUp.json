@@ -5,9 +5,9 @@
     "passwordRequirement": "Password should be at least 8 characters.",
     "togglePasswordVisibility": "toggle password visibility",
     "signUp": "Sign up",
-    "backToLogIn": "Back to log in",
+    "backToLogIn": "Back to log in Page",
     "verificationEmailSent": "An email for verification was sent to your address.",
     "signUpSuccess": "Signed up successfully.",
-    "betaNotice": "This service is in closed beta. SIGNUP is only available for email addresses of authorized organizations."
+    "betaNotice": "This service is in closed beta. Sign up is only available for email addresses of authorized organizations."
   }
 }
