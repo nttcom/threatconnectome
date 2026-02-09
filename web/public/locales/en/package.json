@@ -42,7 +42,6 @@
       "failedToLoadDependencies": "Failed to load dependencies. Please try again later.",
       "noVulnerabilityData": "No vulnerability data available",
       "noDependenciesAvailable": "No dependencies available",
-      "viewDetails": "View details for vulnerability {{title}}",
       "title": "Title",
       "noTitle": "No Title",
       "error": "Error",
@@ -51,75 +50,64 @@
     "VulnerabilitySplitDialog": {
       "VulnerabilitySplitDialog": {
         "ticketListAndDetails": "Ticket List & Details",
-        "close": "close",
         "failedToLoadVulnerability": "Failed to load vulnerability data. Please try again later.",
         "toggleDetails": "Toggle Details",
-        "cvss": "CVSS: {{score}}",
-        "notApplicable": "N/A",
         "collapseDetails": "Collapse Details",
         "back": "Back",
         "details": "Details"
       },
       "VulnInfoContent": {
-        "description": "Description",
-        "noDescription": "No description available",
-        "references": "References",
-        "noReferences": "No references",
-        "cweId": "CWE ID",
-        "cweIdNotAvailable": "CWE ID is not available",
-        "affectedPackages": "Affected Packages",
-        "noAffectedPackages": "No affected packages",
-        "packageName": "Package Name",
+        "vulnerabilityDescription": "Vulnerability Details",
+        "update": "Update",
+        "listItemTextPrimary": "No update information available",
         "affectedVersions": "Affected Versions",
         "fixedVersions": "Fixed Versions",
-        "notAvailable": "N/A",
+        "lastUpdated": "Last Updated",
         "failedToLoadVulnerability": "Failed to load vulnerability details. Please try again later."
       },
       "TicketSidebar": {
         "TicketSidebar": {
-          "allTickets": "All Tickets ({{count}})",
-          "loading": "Loading...",
-          "noTicketsAvailable": "No tickets available",
-          "failedToLoadTickets": "Failed to load tickets",
-          "createNewTicket": "Create New Ticket"
+          "checkDetails": "Check Details",
+          "checkVulnerabilityDetails": "Check Vulnerability Details"
         },
         "TicketListSection": {
-          "todo": "Todo",
-          "inProgress": "In Progress",
-          "done": "Done",
           "failedToLoadTickets": "Failed to load tickets"
-        },
-        "TicketListItem": {
-          "updated": "Updated: {{date}}"
         }
       },
       "TicketDetailPanel": {
         "TicketDetailPanel": {
-          "selectTicket": "Select a ticket from the list on the left",
-          "loading": "Loading...",
-          "failedToLoadTicket": "Failed to load ticket"
+          "selectTicket": "Select a ticket from the list on the left"
         },
         "TicketHeader": {
-          "viewTicket": "View ticket"
+          "loading": "Loading...",
+          "errorLoadingTarget": "Error loading target",
+          "unknownTarget": "Unknown Target",
+          "targetFile": "Target File",
+          "packageManager": "Package Manager"
         },
         "StatusManagementCard": {
-          "statusManagement": "Status Management",
-          "currentStatus": "Current Status",
-          "close": "Close",
-          "closeTicket": "Close Ticket",
-          "closeTicketConfirm": "Are you sure you want to close this ticket?",
-          "cancel": "Cancel",
-          "closeTicketSuccess": "Ticket closed",
-          "closeTicketFailed": "Failed to close ticket: {{error}}",
-          "failedToLoadTicket": "Failed to load ticket"
+          "failedToLoadTicket": "Failed to load ticket",
+          "changeTicketStatusSucceeded": "Change ticket status succeeded",
+          "operationFailed": "Operation failed: {{error}}",
+          "ticketManagementStatus": "Ticket Management & Status",
+          "updating": "Updating...",
+          "status": "Status",
+          "dueDate": "Due date"
         },
         "SafetyImpactCard": {
-          "safetyImpact": "Safety Impact",
-          "edit": "Edit",
-          "save": "Save",
-          "cancel": "Cancel",
+          "alert": "Failed to load ticket data."
+        },
+        "SafetyImpactCardView": {
           "updateSuccess": "Safety impact updated",
-          "updateFailed": "Failed to update safety impact: {{error}}"
+          "updateFailed": "Failed to update safety impact: {{error}}",
+          "ticketSafetyImpactChangeReasonError": "Too long ticket_safety_impact_change_reason. Max length is {{lengthHalfWidth}} in half-width or {{lengthFullWidth}} in full-width",
+          "updating": "Updating...",
+          "useDefault": "Use Default",
+          "reasonforSafetyImpactChange": "Reason for Safety Impact Change",
+          "notProvided": "Not provided",
+          "textField": "Enter the reason for changing Safety Impact...",
+          "save": "Saving...",
+          "saveReason": "Save Reason"
         }
       }
     }

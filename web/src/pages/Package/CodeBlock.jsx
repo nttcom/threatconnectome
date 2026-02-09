@@ -20,7 +20,7 @@ export function CodeBlock(props) {
   return (
     <Box sx={{ mb: 2 }}>
       <Typography variant="h6" gutterBottom visible={false}>
-        Install
+        {t("install")}
       </Typography>
       <Paper
         variant="outlined"
