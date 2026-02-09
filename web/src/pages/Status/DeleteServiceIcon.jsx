@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 
@@ -17,6 +18,7 @@ import { PTeamServiceDelete } from "./PTeamServiceDelete";
 
 export function DeleteServiceIcon(props) {
   const { pteamId, onServiceDeleted } = props;
+  const { t } = useTranslation("status", { keyPrefix: "DeleteServiceIcon" });
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -33,7 +35,7 @@ export function DeleteServiceIcon(props) {
 
   return (
     <>
-      <Tooltip title="Service Delete">
+      <Tooltip title={t("serviceDelete")}>
         <IconButton onClick={() => setModalOpen(true)}>
           <DeleteIcon />
         </IconButton>
@@ -48,7 +50,7 @@ export function DeleteServiceIcon(props) {
         <DialogTitle>
           <Box alignItems="center" display="flex" flexDirection="row">
             <Typography flexGrow={1} className={dialogStyle.dialog_title}>
-              Delete Services
+              {t("deleteServices")}
             </Typography>
             <IconButton onClick={handleModalClose}>
               <CloseIcon />

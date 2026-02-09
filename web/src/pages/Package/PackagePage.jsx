@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { TabPanel } from "../../components/TabPanel.jsx";
 import { UUIDTypography } from "../../components/UUIDTypography.jsx";
@@ -31,6 +32,7 @@ import { PackageReferences } from "./PackageReferences.jsx";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
 
 export function Package() {
+  const { t } = useTranslation("package", { keyPrefix: "PackagePage" });
   const { packageId, pteamId, serviceId } = usePageParams();
   const [tabValue, setTabValue] = useState(0);
   const [open, setOpen] = useState(false);
@@ -69,26 +71,26 @@ export function Package() {
 
   if (!pteamId) return <>{noPTeamMessage}</>;
   if (!getVulnIdsReady) return <></>;
-  if (!serviceId) return <>Service ID is required</>;
+  if (!serviceId) return <>{t("serviceIdRequired")}</>;
 
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
-  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (pteamIsLoading) return <>{t("nowLoadingTeam")}</>;
   if (packageDependenciesError)
     throw new APIError(errorToString(packageDependenciesError), { api: "getDependencies" });
-  if (packageDependenciesIsLoading) return <>Now loading packageDependencies...</>;
+  if (packageDependenciesIsLoading) return <>{t("nowLoadingPackageDependencies")}</>;
   if (solvedError)
     throw new APIError(errorToString(solvedError), {
       api: "getPTeamVulnIdsTiedToServicePackage (solved)",
     });
-  if (solvedLoading) return <>Now loading solved vuln count...</>;
+  if (solvedLoading) return <>{t("nowLoadingSolvedVulnCount")}</>;
   if (unsolvedError)
     throw new APIError(errorToString(unsolvedError), {
       api: "getPTeamVulnIdsTiedToServicePackage (unsolved)",
     });
-  if (unsolvedLoading) return <>Now loading unsolved vuln count...</>;
+  if (unsolvedLoading) return <>{t("nowLoadingUnsolvedVulnCount")}</>;
 
   if (!packageDependencies || packageDependencies.length === 0) {
-    return <>No dependencies found for this package.</>;
+    return <>{t("noDependenciesFound")}</>;
   }
 
   const references = packageDependencies.map((dependency) => ({
@@ -171,8 +173,8 @@ export function Package() {
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="pteam_tagged_vuln_tabs">
-            <Tab label={`UNSOLVED VULNS (${unsolvedVulnCount})`} {...a11yProps(0)} />
-            <Tab label={`SOLVED VULNS (${solvedVulnCount})`} {...a11yProps(1)} />
+            <Tab label={t("unsolvedVulns", { count: unsolvedVulnCount })} {...a11yProps(0)} />
+            <Tab label={t("solvedVulns", { count: solvedVulnCount })} {...a11yProps(1)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>

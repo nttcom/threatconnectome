@@ -13,6 +13,7 @@ import {
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import styles from "../../cssModule/dialog.module.css";
@@ -22,6 +23,7 @@ import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 
 export function PTeamServiceDelete(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDelete" });
   const { pteamId, onServiceDeleted } = props;
   const [checked, setChecked] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -46,7 +48,7 @@ export function PTeamServiceDelete(props) {
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
     });
-  if (pteamIsLoading) return <>Now loading Team...</>;
+  if (pteamIsLoading) return <>{t("loadingTeam")}</>;
 
   const services = pteam.services;
 
@@ -75,7 +77,8 @@ export function PTeamServiceDelete(props) {
       );
 
       const serviceCount = checked.length;
-      const message = serviceCount === 1 ? "Remove service succeeded" : "Remove services succeeded";
+      const message =
+        serviceCount === 1 ? t("removeServiceSucceeded") : t("removeServicesSucceeded");
 
       enqueueSnackbar(message, { variant: "success" });
 
@@ -105,8 +108,8 @@ export function PTeamServiceDelete(props) {
       const serviceCount = checked.length;
       const failureMessage =
         serviceCount === 1
-          ? `Remove service failed: ${errorToString(error)}`
-          : `Remove services failed: ${errorToString(error)}`;
+          ? t("removeServiceFailed", { error: errorToString(error) })
+          : t("removeServicesFailed", { error: errorToString(error) });
 
       enqueueSnackbar(failureMessage, {
         variant: "error",
@@ -162,7 +165,7 @@ export function PTeamServiceDelete(props) {
           startIcon={isDeleting ? <CircularProgress size={20} /> : null}
           style={{ textTransform: "none" }}
         >
-          {isDeleting ? "Deleting..." : "Delete"}
+          {isDeleting ? t("deleting") : t("delete")}
         </Button>
       </Box>
     </Box>
