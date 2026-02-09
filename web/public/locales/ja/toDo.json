@@ -23,9 +23,6 @@
     "reasonTooLong": "ticket_safety_impact_change_reasonが長すぎます。最大長は半角で{maxHalf}文字、全角で{maxFull}文字です"
   },
   "TicketHandlingStatusSelector": {
-    "acknowledge": "確認",
-    "schedule": "スケジュール",
-    "complete": "完了",
     "changeSucceeded": "チケットステータスの変更が成功しました",
     "operationFailed": "操作が失敗しました: {error}"
   },

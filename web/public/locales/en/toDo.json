@@ -23,9 +23,6 @@
     "reasonTooLong": "Too long ticket_safety_impact_change_reason. Max length is {maxHalf} in half-width or {maxFull} in full-width"
   },
   "TicketHandlingStatusSelector": {
-    "acknowledge": "Acknowledge",
-    "schedule": "Schedule",
-    "complete": "Complete",
     "changeSucceeded": "Change ticket status succeeded",
     "operationFailed": "Operation failed: {error}"
   },

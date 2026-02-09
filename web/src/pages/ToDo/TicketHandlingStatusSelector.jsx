@@ -29,13 +29,13 @@ export function TicketHandlingStatusSelector(props) {
   const dateFormat = "yyyy/MM/dd HH:mm";
   const selectableItems = [
     {
-      display: t("acknowledge"),
+      display: "Acknowledge",
       rawStatus: "acknowledged",
       disabled: currentStatus.ticket_handling_status === "acknowledged",
     },
-    { display: t("schedule"), rawStatus: "scheduled", disabled: false },
+    { display: "Schedule", rawStatus: "scheduled", disabled: false },
     {
-      display: t("complete"),
+      display: "Complete",
       rawStatus: "completed",
       disabled: currentStatus.ticket_handling_status === "completed",
     },
