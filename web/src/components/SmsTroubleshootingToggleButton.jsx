@@ -1,8 +1,11 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 export function SmsTroubleshootingToggleButton({ expanded, onToggle, disabled }) {
+  const { t } = useTranslation("components", { keyPrefix: "SmsTroubleshootingToggleButton" });
+
   return (
     <Button
       size="small"
@@ -20,7 +23,7 @@ export function SmsTroubleshootingToggleButton({ expanded, onToggle, disabled })
       }}
       startIcon={expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
     >
-      {expanded ? "Hide troubleshooting tips" : "View troubleshooting tips"}
+      {expanded ? t("hide") : t("view")}
     </Button>
   );
 }
