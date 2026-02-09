@@ -34,7 +34,9 @@ const COUNTRY_CODES = [
 ];
 
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.MfaSetupDialog" });
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog",
+  });
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
   const [loading, setLoading] = useState(false);
@@ -201,7 +203,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 variant="outlined"
                 value={phoneNumber}
                 onChange={handlePhoneNumberChange}
-                placeholder={t("phonePlaceholder")}
+                placeholder="9012345678"
                 disabled={loading}
                 error={!!error}
                 helperText={error}

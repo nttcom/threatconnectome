@@ -14,7 +14,9 @@ import { useAuth } from "../../../../../hooks/auth";
 import { maskPhoneNumber } from "../../../../../utils/phoneNumberUtils";
 
 export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.DisabledMfaConfirmDialog" });
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.DisabledMfaConfirmDialog",
+  });
   const dialogTitleId = "disable-mfa-dialog-title";
   const dialogDescriptionId = "disable-mfa-dialog-description";
 

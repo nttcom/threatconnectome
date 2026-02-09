@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("app", { keyPrefix: "LanguageSwitcher" });
   const currentLanguage = i18n.language;
   const [lang, setLang] = useState<string>(currentLanguage);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -37,7 +37,7 @@ export function LanguageSwitcher() {
           endIcon={<ArrowDropDownIcon />}
           sx={{ color: "text.primary" }}
         >
-          Language: {lang}
+          {t("language")} {lang}
         </Button>
       )}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>

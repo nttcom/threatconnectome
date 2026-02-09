@@ -110,7 +110,7 @@ export function TeamSelector() {
                 >
                   {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>
-              ))}{" "}
+              ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
             <AddIcon fontSize="small" />
             {t("createTeam")}

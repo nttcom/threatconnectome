@@ -9,7 +9,9 @@ import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
 
 export function TwoFactorAuthSection({ onShowSnackbar }) {
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.TwoFactorAuthSection" });
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.TwoFactorAuthSection",
+  });
   const { deletePhoneNumber, isSmsAuthenticationEnabled } = useAuth();
 
   const [isEnabled, setIsEnabled] = useState(isSmsAuthenticationEnabled());

@@ -10,7 +10,7 @@ import { AccountSettingsDialog } from "./AccountSettingsDialog/AccountSettingsDi
 
 export function AccountSettings(props) {
   const { accountSettingOpen, setAccountSettingOpen, userMe } = props;
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettingsDialog" });
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettings" });
 
   const { enqueueSnackbar } = useSnackbar();
   const [updateUser] = useUpdateUserMutation();

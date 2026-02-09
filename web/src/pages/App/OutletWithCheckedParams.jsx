@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
@@ -8,6 +9,7 @@ import { errorToString } from "../../utils/func";
 import { navigateSpecifiedPteam } from "../../utils/locationNavigator";
 
 export function OutletWithCheckedParams() {
+  const { t } = useTranslation("app", { keyPrefix: "OutletWithCheckedParams" });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +29,7 @@ export function OutletWithCheckedParams() {
 
   if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
-  if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (userMeIsLoading) return <>{t("loading")}</>;
 
   return <Outlet />;
 }

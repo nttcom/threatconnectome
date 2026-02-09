@@ -26,7 +26,7 @@ import { errorToString } from "../../../utils/func";
 import { AccountSettings } from "./AccountSettings";
 
 export function UserMenu() {
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu" });
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu.UserMenu" });
   const dispatch = useDispatch();
   const { signOut } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);

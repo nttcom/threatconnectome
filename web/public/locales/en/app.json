@@ -1,4 +1,11 @@
 {
+  "AppFallback": {
+    "somethingWentWrong": "Something went wrong",
+    "calledAPI": "called API:"
+  },
+  "AppPage": {
+    "message": "Please login to continue."
+  },
   "Drawer": {
     "title": "Threatconnectome",
     "status": "Status",
@@ -6,6 +13,12 @@
     "vulns": "Vulns",
     "eol": "EoL",
     "todo": "ToDo"
+  },
+  "LanguageSwitcher": {
+    "language": "Language:"
+  },
+  "OutletWithCheckedParams": {
+    "loading": "Now loading UserInfo..."
   },
   "TeamSelector": {
     "loadingUserInfo": "Now loading UserInfo...",
@@ -27,23 +40,12 @@
     "operationFailed": "Operation failed: {{error}}"
   },
   "UserMenu": {
-    "loadingUserInfo": "Now loading UserInfo...",
-    "settings": "Settings",
-    "logout": "Logout",
-    "AccountSettingsDialog": {
-      "account": "Account settings",
-      "email": "Email",
-      "userId": "User ID",
-      "yearsOfExperience": "Years of work experience in security",
-      "yearsTooltip": "Please select years of your work experience in security to support security response.",
-      "years0": "0+ year",
-      "years2": "2+ years",
-      "years5": "5+ years",
-      "years7": "7+ years",
-      "team": "Team",
-      "defaultTeam": "Default Team",
-      "defaultTeamTooltip": "Your default team. This will be shown if no other team is currently selected.",
-      "none": "None",
+    "UserMenu": {
+      "loadingUserInfo": "Now loading UserInfo...",
+      "settings": "Settings",
+      "logout": "Logout"
+    },
+    "AccountSettings": {
       "updateSucceeded": "Update user info succeeded"
     },
     "DeleteAccountDialog": {
@@ -57,37 +59,55 @@
       "emailWrong": "EMail is wrong",
       "operationFailed": "Operation failed: {{error}}"
     },
-    "TwoFactorAuthSection": {
-      "title": "Two-factor Authentication",
-      "smsAuth": "SMS Authentication",
-      "enabled": "Enabled. Code required at login.",
-      "disabled": "Protect your account with SMS verification.",
-      "enabledSuccess": "SMS authentication enabled successfully!",
-      "disabledInfo": "SMS authentication disabled."
-    },
-    "MfaSetupDialog": {
-      "titleSetup": "Setup SMS Authentication",
-      "titleVerify": "Enter Verification Code",
-      "enterPhoneNumber": "Please enter your mobile phone number to enable 2FA",
-      "phoneNumber": "Phone Number",
-      "phonePlaceholder": "9012345678",
-      "codeSentTo": "We sent a 6-digit verification code to {{countryCode}} {{phoneNumber}}",
-      "verificationCode": "Verification Code",
-      "codePlaceholder": "123456",
-      "didYouReceive": "Did you receive the code?",
-      "changePhoneNumber": "Change Phone Number",
-      "cancel": "Cancel",
-      "sendCode": "Send Code",
-      "processing": "Processing...",
-      "verifyEnable": "Verify & Enable",
-      "codeResent": "The verification code has been resent."
-    },
-    "DisabledMfaConfirmDialog": {
-      "title": "Disable SMS Authentication for phone number {{phoneNumber}}?",
-      "warning": "By disabling SMS Authentication, your account will be only protected by your password.",
-      "note": "Note: To change your phone number, disable SMS Authentication first and then set it up again.",
-      "cancel": "Cancel",
-      "disable": "Disable"
+    "AccountSettingsDialog": {
+      "AccountSettingsDialog": {
+        "account": "Account settings",
+        "email": "Email",
+        "userId": "User ID",
+        "yearsOfExperience": "Years of work experience in security",
+        "yearsTooltip": "Please select years of your work experience in security to support security response.",
+        "years0": "0+ year",
+        "years2": "2+ years",
+        "years5": "5+ years",
+        "years7": "7+ years",
+        "team": "Team",
+        "defaultTeam": "Default Team",
+        "defaultTeamTooltip": "Your default team. This will be shown if no other team is currently selected.",
+        "none": "None"
+      },
+      "TwoFactorAuthSection": {
+        "TwoFactorAuthSection": {
+          "title": "Two-factor Authentication",
+          "smsAuth": "SMS Authentication",
+          "enabled": "Enabled. Code required at login.",
+          "disabled": "Protect your account with SMS verification.",
+          "enabledSuccess": "SMS authentication enabled successfully!",
+          "disabledInfo": "SMS authentication disabled."
+        },
+        "MfaSetupDialog": {
+          "titleSetup": "Setup SMS Authentication",
+          "titleVerify": "Enter Verification Code",
+          "enterPhoneNumber": "Please enter your mobile phone number to enable 2FA",
+          "phoneNumber": "Phone Number",
+          "codeSentTo": "We sent a 6-digit verification code to {{countryCode}} {{phoneNumber}}",
+          "verificationCode": "Verification Code",
+          "codePlaceholder": "123456",
+          "didYouReceive": "Did you receive the code?",
+          "changePhoneNumber": "Change Phone Number",
+          "cancel": "Cancel",
+          "sendCode": "Send Code",
+          "processing": "Processing...",
+          "verifyEnable": "Verify & Enable",
+          "codeResent": "The verification code has been resent."
+        },
+        "DisabledMfaConfirmDialog": {
+          "title": "Disable SMS Authentication for phone number {{phoneNumber}}?",
+          "warning": "By disabling SMS Authentication, your account will be only protected by your password.",
+          "note": "Note: To change your phone number, disable SMS Authentication first and then set it up again.",
+          "cancel": "Cancel",
+          "disable": "Disable"
+        }
+      }
     }
   }
 }

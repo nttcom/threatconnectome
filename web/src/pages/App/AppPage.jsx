@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
@@ -15,6 +16,7 @@ import { Main } from "./Main";
 import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
 
 export function App() {
+  const { t } = useTranslation("app", { keyPrefix: "AppPage" });
   const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ export function App() {
       dispatch(setAuthUserIsReady(false));
       navigate("/login", {
         state: {
-          message: "Please login to continue.",
+          message: t("message"),
           messageType: "info",
         },
       });

@@ -34,7 +34,9 @@ export function AccountSettingsDialog(props) {
   });
 
   const { isAuthenticatedWithSaml } = useAuth();
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettingsDialog" });
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.AccountSettingsDialog",
+  });
 
   const handleShowSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
