@@ -89,7 +89,7 @@
           "titleVerify": "認証コードを入力",
           "enterPhoneNumber": "2FAを有効にするために、携帯電話番号を入力してください",
           "phoneNumber": "電話番号",
-          "codeSentTo": "{{countryCode}} {{phoneNumber}}に6桁の認証コードを送信しました",
+          "codeSentTo": "<0>{{countryCode}}</0> <1>{{phoneNumber}}</1>に6桁の認証コードを送信しました",
           "verificationCode": "認証コード",
           "codePlaceholder": "123456",
           "didYouReceive": "コードを受信しましたか？",

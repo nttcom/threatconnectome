@@ -89,7 +89,7 @@
           "titleVerify": "Enter Verification Code",
           "enterPhoneNumber": "Please enter your mobile phone number to enable 2FA",
           "phoneNumber": "Phone Number",
-          "codeSentTo": "We sent a 6-digit verification code to {{countryCode}} {{phoneNumber}}",
+          "codeSentTo": "We sent a 6-digit verification code to <0>{{countryCode}}</0> <1>{{phoneNumber}}</1>",
           "verificationCode": "Verification Code",
           "codePlaceholder": "123456",
           "didYouReceive": "Did you receive the code?",

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 
 import { SmsResendButton } from "../../../../../components/SmsResendButton";
 import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshootingTips";
@@ -213,7 +213,15 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         ) : (
           <>
             <DialogContentText sx={{ mb: 2 }}>
-              {t("codeSentTo", { countryCode, phoneNumber })}
+              <Trans
+                ns="app"
+                i18nKey="UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog.codeSentTo"
+                values={{ countryCode, phoneNumber }}
+                components={[
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="cc" />,
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="pn" />,
+                ]}
+              />
             </DialogContentText>
             <TextField
               label={t("verificationCode")}
