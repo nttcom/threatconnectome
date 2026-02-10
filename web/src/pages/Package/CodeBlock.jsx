@@ -12,7 +12,7 @@ export function CodeBlock(props) {
     setTooltipTitle(t("copy"));
   };
   const handleClickButton = () => {
-    setTooltipTitle(t("copied!"));
+    setTooltipTitle(t("copySuccess"));
   };
   const commandText = "pip install -U XXXXX";
   if (!visible) return null;

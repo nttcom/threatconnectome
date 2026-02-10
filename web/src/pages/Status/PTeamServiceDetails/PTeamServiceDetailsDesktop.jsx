@@ -31,13 +31,13 @@ function ServiceIDCopyButton({ ServiceId }) {
 
   // change the message when clicked
   const handleClick = () => {
-    setTooltipText(t("copied!"));
+    setTooltipText(t("copySuccess"));
     setTooltipPlacement("top");
   };
 
   // reset the tooltip state when completed
   const handleClose = () => {
-    if (tooltipText === t("copied!")) {
+    if (tooltipText === t("copySuccess")) {
       setTooltipText(defaultMessage);
       setTooltipPlacement(defaultPosition);
     }
