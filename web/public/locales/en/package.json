@@ -1,0 +1,115 @@
+{
+  "PackagePage": {
+    "nowLoadingTeam": "Now loading Team...",
+    "nowLoadingPackageDependencies": "Now loading packageDependencies...",
+    "nowLoadingSolvedVulnCount": "Now loading solved vuln count...",
+    "nowLoadingUnsolvedVulnCount": "Now loading unsolved vuln count...",
+    "serviceIdRequired": "Service ID is required",
+    "noDependenciesFound": "No dependencies found for this package.",
+    "unsolvedVulns": "UNSOLVED VULNS ({{count}})",
+    "solvedVulns": "SOLVED VULNS ({{count}})"
+  },
+  "PackageReferences": {
+    "references": "References",
+    "noReferences": "no references",
+    "target": "target",
+    "version": "version",
+    "service": "Service"
+  },
+  "CodeBlock": {
+    "install": "Install",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "VulnerabilityTable": {
+    "VulnerabilityTable": {
+      "errorLoadingData": "Error loading data",
+      "defaultSafetyImpact": "Default Safety Impact:",
+      "title": "Title",
+      "tickets": "Tickets",
+      "highestSsvc": "Highest SSVC",
+      "lastUpdated": "Last Updated",
+      "affectedVersion": "Affected Version",
+      "patchedVersion": "Patched Version",
+      "noVulnerabilitiesFound": "No vulnerabilities found",
+      "noResolvedVulnerabilities": "There are no resolved vulnerabilities for this package.",
+      "noUnresolvedVulnerabilities": "There are no unresolved vulnerabilities for this package.",
+      "nowLoading": "Now loading..."
+    },
+    "VulnerabilityTableRow": {
+      "loading": "Loading...",
+      "failedToLoadVulnerability": "Failed to load vulnerability data. Please try again later.",
+      "failedToLoadDependencies": "Failed to load dependencies. Please try again later.",
+      "noVulnerabilityData": "No vulnerability data available",
+      "noDependenciesAvailable": "No dependencies available",
+      "title": "Title",
+      "noTitle": "No Title",
+      "error": "Error",
+      "highestSsvc": "Highest SSVC"
+    },
+    "VulnerabilitySplitDialog": {
+      "VulnerabilitySplitDialog": {
+        "ticketListAndDetails": "Ticket List & Details",
+        "failedToLoadVulnerability": "Failed to load vulnerability data. Please try again later.",
+        "toggleDetails": "Toggle Details",
+        "collapseDetails": "Collapse Details",
+        "back": "Back",
+        "details": "Details"
+      },
+      "VulnInfoContent": {
+        "vulnerabilityDescription": "Vulnerability Details",
+        "update": "Update",
+        "listItemTextPrimary": "No update information available",
+        "affectedVersions": "Affected Versions",
+        "fixedVersions": "Fixed Versions",
+        "lastUpdated": "Last Updated",
+        "failedToLoadVulnerability": "Failed to load vulnerability details. Please try again later."
+      },
+      "TicketSidebar": {
+        "TicketSidebar": {
+          "checkDetails": "Check Details",
+          "checkVulnerabilityDetails": "Check Vulnerability Details"
+        },
+        "TicketListSection": {
+          "failedToLoadTickets": "Failed to load tickets"
+        }
+      },
+      "TicketDetailPanel": {
+        "TicketDetailPanel": {
+          "selectTicket": "Select a ticket from the list on the left"
+        },
+        "TicketHeader": {
+          "loading": "Loading...",
+          "errorLoadingTarget": "Error loading target",
+          "unknownTarget": "Unknown Target",
+          "targetFile": "Target File",
+          "packageManager": "Package Manager"
+        },
+        "StatusManagementCard": {
+          "failedToLoadTicket": "Failed to load ticket",
+          "changeTicketStatusSucceeded": "Change ticket status succeeded",
+          "operationFailed": "Operation failed: {{error}}",
+          "ticketManagementStatus": "Ticket Management & Status",
+          "updating": "Updating...",
+          "status": "Status",
+          "dueDate": "Due date"
+        },
+        "SafetyImpactCard": {
+          "alert": "Failed to load ticket data."
+        },
+        "SafetyImpactCardView": {
+          "updateSuccess": "Safety impact updated",
+          "updateFailed": "Failed to update safety impact: {{error}}",
+          "ticketSafetyImpactChangeReasonError": "Too long reason for Safety Impact. Max length is {{lengthHalfWidth}} in half-width or {{lengthFullWidth}} in full-width",
+          "updating": "Updating...",
+          "useDefault": "Use Default",
+          "reasonForSafetyImpactChange": "Reason for Safety Impact Change",
+          "notProvided": "Not provided",
+          "textField": "Enter the reason for changing Safety Impact...",
+          "save": "Saving...",
+          "saveReason": "Save Reason"
+        }
+      }
+    }
+  }
+}
