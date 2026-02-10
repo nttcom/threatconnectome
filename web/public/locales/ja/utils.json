@@ -4,8 +4,8 @@
   },
   "eolUtils": {
     "status": {
-      "expired": "期限切れ",
-      "warning": "期限が近づいています",
+      "expired": "サポート終了",
+      "warning": "まもなく終了",
       "active": "サポート中",
       "unknown": "未定"
     },
