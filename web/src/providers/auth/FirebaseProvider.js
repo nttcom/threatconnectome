@@ -26,9 +26,9 @@ import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
 function _errorToMessage(error) {
   const code = error.code || error;
-  const key = `FirebaseProvider.${code}`;
-  if (i18n.exists(`providers:${key}`)) {
-    return i18n.t(`providers:${key}`);
+  const key = `auth.FirebaseProvider.${code}`;
+  if (i18n.exists(key, { ns: "providers" })) {
+    return i18n.t(key, { ns: "providers" });
   }
   return error.message || code || `Something went wrong (${error}).`;
 }
@@ -117,7 +117,7 @@ export class FirebaseProvider extends AuthProvider {
     if (!samlProvider) {
       throw new FirebaseAuthError({
         code: "samlNotSupported",
-        message: i18n.t("providers:FirebaseProvider.samlNotSupported"),
+        message: i18n.t("auth.FirebaseProvider.samlNotSupported", { ns: "providers" }),
       });
     }
     return await signInWithPopup(Firebase.getAuth(), samlProvider)
@@ -193,7 +193,7 @@ export class FirebaseProvider extends AuthProvider {
     if (!isE164Format(phoneNumber)) {
       throw new FirebaseAuthError({
         code: "auth/invalid-phone-number",
-        message: i18n.t("providers:FirebaseProvider.invalidPhoneE164Example"),
+        message: i18n.t("auth.FirebaseProvider.invalidPhoneE164Example", { ns: "providers" }),
       });
     }
 

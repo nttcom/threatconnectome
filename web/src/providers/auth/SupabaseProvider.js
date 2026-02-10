@@ -77,7 +77,10 @@ export class SupabaseProvider extends AuthProvider {
       default:
         throw new SupabaseAuthError({
           code: "unsupportedProvider",
-          message: i18n.t("providers:SupabaseProvider.unsupportedProvider", { provider }),
+          message: i18n.t("providers:SupabaseProvider.unsupportedProvider", {
+            ns: "providers",
+            provider: provider,
+          }),
         });
     }
     await supabase.auth
