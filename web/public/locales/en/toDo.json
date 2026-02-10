@@ -92,7 +92,8 @@
       "details": "Details",
       "sortedDescending": "sorted descending",
       "sortedAscending": "sorted ascending",
-      "noTasksFound": "No tasks found."
+      "noTasksFound": "No tasks found.",
+      "tablePagination": "Rows per page:"
     },
     "ToDoTableRow": {
       "noKnownCve": "No Known CVE",

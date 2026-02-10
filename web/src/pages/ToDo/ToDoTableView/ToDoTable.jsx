@@ -140,6 +140,7 @@ export function ToDoTable({
         onRowsPerPageChange={handleChangeRowsPerPage}
         showFirstButton
         showLastButton
+        labelRowsPerPage={t("tablePagination")}
       />
     </Paper>
   );
