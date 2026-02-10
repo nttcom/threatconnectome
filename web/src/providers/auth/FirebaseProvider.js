@@ -18,9 +18,9 @@ import {
   getMultiFactorResolver,
 } from "firebase/auth";
 
+import i18n from "../../i18n/config";
 import Firebase from "../../utils/Firebase";
 import { isE164Format } from "../../utils/phoneNumberUtils";
-import i18n from "../../i18n/config";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 

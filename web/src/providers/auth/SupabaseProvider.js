@@ -1,5 +1,5 @@
-import Supabase from "../../utils/Supabase";
 import i18n from "../../i18n/config";
+import Supabase from "../../utils/Supabase";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
