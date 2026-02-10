@@ -5,7 +5,7 @@
     "passwordRequirement": "パスワードは8文字以上である必要があります。",
     "togglePasswordVisibility": "パスワードの表示を切り替え",
     "signUp": "サインアップ",
-    "backToLogIn": "ログインページに戻る",
+    "backToLogIn": "ログイン画面に戻る",
     "verificationEmailSent": "確認用メールをあなたのアドレスに送信しました。",
     "signUpSuccess": "サインアップに成功しました。",
     "betaNotice": "このサービスはクローズドベータ版です。サインアップは認可された組織のメールアドレスのみ利用可能です。"
