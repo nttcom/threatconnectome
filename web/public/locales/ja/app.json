@@ -30,7 +30,7 @@
     "teamNamePlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
     "contactInfo": "連絡先情報",
     "contactInfoPlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
-    "slackWebhook": "SlackのIncoming Webhook URL",
+    "slackWebhook": "Slack Incoming Webhook URL",
     "slackPlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
     "create": "作成する",
     "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
