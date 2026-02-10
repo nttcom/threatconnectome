@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -10,6 +11,7 @@ import { VulnDetailView } from "./VulnDetailView";
 
 export function VulnDetail() {
   const { vulnId } = useParams();
+  const { t } = useTranslation("vulnDetail", { keyPrefix: "VulnDetailPage" });
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -20,7 +22,7 @@ export function VulnDetail() {
 
   if (skip) return <></>;
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
-  if (vulnIsLoading) return <>Now loading Vuln...</>;
+  if (vulnIsLoading) return <>{t("loadingVuln")}</>;
 
   const updateActions = getUpdateActions(vuln);
 
