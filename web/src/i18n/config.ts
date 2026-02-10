@@ -17,7 +17,7 @@ i18n
     returnEmptyString: false,
     supportedLngs: Object.keys(supportedLngs),
     // Specify the file name as the namespace only when used outside React components.
-    ns: ["providers"],
+    ns: ["providers", "utils"],
     debug: false,
 
     // Disable it because React handles escaping.

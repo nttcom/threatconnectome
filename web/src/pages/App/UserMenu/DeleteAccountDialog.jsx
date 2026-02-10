@@ -9,6 +9,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 
 import { useAuth } from "../../../hooks/auth";
@@ -18,6 +19,7 @@ import { errorToString } from "../../../utils/func";
 
 export function DeleteAccountDialog(props) {
   const { userMe } = props;
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu.DeleteAccountDialog" });
 
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
@@ -47,30 +49,30 @@ export function DeleteAccountDialog(props) {
           await signOut();
         })
         .catch((error) => {
-          enqueueSnackbar(`Operation failed: ${errorToString(error)}`, { variant: "error" });
+          enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+            variant: "error",
+          });
         });
     } else if (email !== userMe.email) {
-      enqueueSnackbar("EMail is wrong", { variant: "error" });
+      enqueueSnackbar(t("emailWrong"), { variant: "error" });
     }
   };
 
   return (
     <>
       <Button color="error" onClick={handleClickOpen} sx={{ p: 0 }}>
-        Delete my account
+        {t("deleteButton")}
       </Button>
       <Dialog open={open} onClose={handleClose} maxWidth="xs">
         <Box sx={{ pt: 2, display: "flex", justifyContent: "center" }}>
           <ErrorOutlineIcon fontSize="large" color="error" />
         </Box>
-        <DialogTitle sx={{ textAlign: "center" }}>Delete your account permanently?</DialogTitle>
+        <DialogTitle sx={{ textAlign: "center" }}>{t("title")}</DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <DialogContentText>
-              This action cannot be undone. This will permanently delete your account.
-            </DialogContentText>
+            <DialogContentText>{t("warning")}</DialogContentText>
             <Box>
-              <Typography>Type in your email to confirm</Typography>
+              <Typography>{t("confirmPrompt")}</Typography>
               <TextField
                 hiddenLabel
                 variant="filled"
@@ -87,10 +89,10 @@ export function DeleteAccountDialog(props) {
         <DialogActions sx={{ justifyContent: "center" }}>
           <Stack spacing={1}>
             <Button variant="contained" color="error" onClick={handleDeleteAccount}>
-              Permanently delete account
+              {t("deleteConfirm")}
             </Button>
             <Button sx={{ color: "grey" }} onClick={handleClose}>
-              Cancel
+              {t("cancel")}
             </Button>
           </Stack>
         </DialogActions>

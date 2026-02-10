@@ -34,7 +34,9 @@ export function AccountSettingsDialog(props) {
   });
 
   const { isAuthenticatedWithSaml } = useAuth();
-  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettingsDialog" });
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.AccountSettingsDialog",
+  });
 
   const handleShowSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -63,13 +65,13 @@ export function AccountSettingsDialog(props) {
           <Stack spacing={2}>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Email
+                {t("email")}
               </Typography>
               <DialogContentText>{userMe.email}</DialogContentText>
             </Box>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                User ID
+                {t("userId")}
               </Typography>
               <DialogContentText>{userMe.user_id}</DialogContentText>
             </Box>
@@ -77,9 +79,9 @@ export function AccountSettingsDialog(props) {
               <Box>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    Years of work experience in security
+                    {t("yearsOfExperience")}
                   </Typography>
-                  <Tooltip title="Please select years of your work experience in security to support security response.">
+                  <Tooltip title={t("yearsTooltip")}>
                     <IconButton size="small">
                       <HelpOutlineIcon fontSize="small" />
                     </IconButton>
@@ -93,10 +95,10 @@ export function AccountSettingsDialog(props) {
                   }}
                   sx={{ minWidth: 130 }}
                 >
-                  <MenuItem value={0}>0+ year</MenuItem>
-                  <MenuItem value={2}>2+ years</MenuItem>
-                  <MenuItem value={5}>5+ years</MenuItem>
-                  <MenuItem value={7}>7+ years</MenuItem>
+                  <MenuItem value={0}>{t("years0")}</MenuItem>
+                  <MenuItem value={2}>{t("years2")}</MenuItem>
+                  <MenuItem value={5}>{t("years5")}</MenuItem>
+                  <MenuItem value={7}>{t("years7")}</MenuItem>
                 </Select>
               </Box>
             </Box>
@@ -108,7 +110,7 @@ export function AccountSettingsDialog(props) {
             <Divider />
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Team
+                {t("team")}
               </Typography>
               <Stack spacing={1}>
                 {userMe.pteam_roles.map((pteam_role) => (
@@ -121,9 +123,9 @@ export function AccountSettingsDialog(props) {
             <Box>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  Default Team
+                  {t("defaultTeam")}
                 </Typography>
-                <Tooltip title="Your default team. This will be shown if no other team is currently selected.">
+                <Tooltip title={t("defaultTeamTooltip")}>
                   <IconButton size="small">
                     <HelpOutlineIcon fontSize="small" />
                   </IconButton>
@@ -141,7 +143,7 @@ export function AccountSettingsDialog(props) {
                 displayEmpty
               >
                 <MenuItem value="none">
-                  <em>None</em>
+                  <em>{t("none")}</em>
                 </MenuItem>
                 {userMe.pteam_roles.map((pteam_role) => (
                   <MenuItem key={pteam_role.pteam.pteam_id} value={pteam_role.pteam.pteam_id}>

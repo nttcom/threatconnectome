@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
 import ResetPasswordForm from "./ResetPasswordForm";
 import VerifyEmail from "./VerifyEmail";
 
 export function EmailVerification() {
+  const { t } = useTranslation("emailVerification", { keyPrefix: "EmailVerificationPage" });
   const location = useLocation();
   const params = new URLSearchParams(location.search);
 
@@ -20,6 +22,6 @@ export function EmailVerification() {
       break;
     default:
       console.error("Invalid mode");
-      return <>Invalid Request</>;
+      return <>{t("invalidRequest")}</>;
   }
 }

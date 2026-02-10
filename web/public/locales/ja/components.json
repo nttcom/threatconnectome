@@ -6,10 +6,10 @@
     "tabNotification": "通知"
   },
   "PTeamGeneralSetting": {
-    "operationFailed": "操作に失敗しました: {{error}}",
-    "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "contactInfoTooLong": "連絡先情報が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "updateSucceeded": "チーム情報を更新しました",
+    "operationFailed": "操作に失敗しました: {{error}}。",
+    "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "contactInfoTooLong": "連絡先情報が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "updateSucceeded": "チーム情報を更新しました。",
     "teamName": "チーム名",
     "teamNamePlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "contactInfo": "連絡先情報",
@@ -17,12 +17,12 @@
     "save": "保存"
   },
   "PTeamNotificationSetting": {
-    "operationFailed": "操作に失敗しました: {{error}}",
-    "emailTooLong": "メールアドレスが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "connectionSuccess": "接続に成功しました",
-    "connectionFailed": "接続に失敗しました。理由: {{error}}",
-    "updateSucceeded": "チーム情報を更新しました",
+    "operationFailed": "操作に失敗しました: {{error}}。",
+    "emailTooLong": "メールアドレスが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "connectionSuccess": "接続しました。",
+    "connectionFailed": "接続に失敗しました。理由: {{error}}。",
+    "updateSucceeded": "チーム情報を更新しました。",
     "alertThreshold": "アラート閾値",
     "emailAddress": "メールアドレス",
     "emailPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
@@ -46,10 +46,10 @@
   },
   "SmsTroubleshootingTips": {
     "title": "認証SMSが届かない場合は、以下を確認してください:",
-    "tip1": "電話番号が正しいか",
-    "tip2": "端末の電波状態と機内モードになっていないか",
-    "tip3": "SMSのブロックやキャリア設定で受信が妨げられていないか",
-    "tip4": "迷惑メールフォルダに入っていないか"
+    "tip1": "電話番号が正しいか。",
+    "tip2": "端末の電波状態と機内モードになっていないか。",
+    "tip3": "SMSのブロックやキャリア設定で受信が妨げられていないか。",
+    "tip4": "迷惑メールフォルダに入っていないか。"
   },
   "Ticket": {
     "AssigneesSelector": {
@@ -59,7 +59,7 @@
       "noSelection": "選択なし",
       "failedToLoadMembers": "メンバーの読み込みに失敗しました",
       "changeAssigneesSucceeded": "担当者を変更しました",
-      "operationFailed": "操作に失敗しました: {{error}}"
+      "operationFailed": "操作に失敗しました: {{error}}。"
     },
     "CompleteTicketDialog": {
       "selectActions": "完了したアクションを選択してください",
@@ -72,7 +72,7 @@
       "submitting": "送信中...",
       "actionSucceeded": "アクションを実行しました",
       "ticketCompleted": "チケットが正常に完了しました",
-      "operationFailed": "操作に失敗しました: {{error}}"
+      "operationFailed": "操作に失敗しました: {{error}}。"
     },
     "ScheduleTicketDialog": {
       "title": "スケジュール設定",

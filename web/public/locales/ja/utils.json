@@ -1,0 +1,61 @@
+{
+  "const": {
+    "noPTeamMessage": "あなたはどのチームにも所属していません。チームを作成してください。"
+  },
+  "eolUtils": {
+    "status": {
+      "expired": "サポート終了",
+      "warning": "まもなく終了",
+      "active": "サポート中",
+      "unknown": "未定"
+    },
+    "diffText": {
+      "daysOver": "{{days}}日経過",
+      "expiresToday": "本日期限切れ",
+      "daysLeft": "残り{{days}}日"
+    },
+    "formatDate": {
+      "undecided": "未定"
+    },
+    "productCategory": {
+      "os": "OS",
+      "runtime": "実行環境",
+      "middleware": "ミドルウェア",
+      "package": "パッケージ",
+      "na": "N/A"
+    }
+  },
+  "func": {
+    "today": "今日",
+    "yesterday": "昨日",
+    "daysAgo": "{{days}}日前"
+  },
+  "ssvcUtils": {
+    "priority": {
+      "immediate": {
+        "displayName": "Immediate",
+        "statusLabel": "Immediate：直ちに行動し、可能な限り迅速に修正を適用することに全リソースを集中させてください。必要に応じて、通常の組織業務を一時停止することも含みます。"
+      },
+      "out_of_cycle": {
+        "displayName": "Out-of-cycle",
+        "statusLabel": "Out-of-cycle：通常よりも迅速に行動し、次の利用可能な機会に定期外で緩和策または修正を適用してください。必要に応じて残業してください。"
+      },
+      "scheduled": {
+        "displayName": "Scheduled",
+        "statusLabel": "Scheduled：定期的なメンテナンス時間中に行動してください。"
+      },
+      "defer": {
+        "displayName": "Defer",
+        "statusLabel": "Defer：現時点では行動しません。"
+      },
+      "safe": {
+        "chipLabel": "Safe",
+        "statusLabel": "すべての脆弱性が解決されました"
+      }
+    }
+  },
+  "vulnUtils": {
+    "updateFromTo": "{{package}} を {{from}} から {{to}} に更新してください",
+    "updateToVersion": "{{package}} をバージョン {{to}} に更新してください"
+  }
+}

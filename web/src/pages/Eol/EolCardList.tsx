@@ -2,7 +2,7 @@ import { Box, Card, CardContent, Chip, Paper, Stack, Typography } from "@mui/mat
 import { Layers as LayersIcon } from "@mui/icons-material";
 
 import {
-  formatDate,
+  getFormatDate,
   getEolStatus,
   getDiffText,
   getProductCategorybyValue,
@@ -48,7 +48,7 @@ export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolV
 
             {/* EOL Date and Remaining Days */}
             <Typography variant="caption" color="text.secondary">
-              EOL: {formatDate(eolVersion.eol_from) || "-"} ({getDiffText(eolVersion.eol_from)})
+              EOL: {getFormatDate(eolVersion.eol_from) || "-"} ({getDiffText(eolVersion.eol_from)})
             </Typography>
 
             {/* - List of Services */}

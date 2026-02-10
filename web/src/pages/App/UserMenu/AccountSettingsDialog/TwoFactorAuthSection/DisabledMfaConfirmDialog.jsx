@@ -8,11 +8,15 @@ import {
   DialogTitle,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../../../hooks/auth";
 import { maskPhoneNumber } from "../../../../../utils/phoneNumberUtils";
 
 export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.DisabledMfaConfirmDialog",
+  });
   const dialogTitleId = "disable-mfa-dialog-title";
   const dialogDescriptionId = "disable-mfa-dialog-description";
 
@@ -35,23 +39,22 @@ export function DisabledMfaConfirmDialog({ open, onClose, onConfirm }) {
         sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.primary" }}
       >
         <WarningAmber color="warning" />
-        Disable SMS Authentication for phone number {modifiedPhoneNumber}?
+        {t("title", { phoneNumber: modifiedPhoneNumber })}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id={dialogDescriptionId} gutterBottom>
-          By disabling SMS Authentication, your account will be only protected by your password.
+          {t("warning")}
         </DialogContentText>
         <DialogContentText variant="body2" color="text.secondary">
-          Note: To change your phone number, disable SMS Authentication first and then set it up
-          again.
+          {t("note")}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit">
-          Cancel
+          {t("cancel")}
         </Button>
         <Button onClick={onConfirm} color="warning" variant="contained">
-          Disable
+          {t("disable")}
         </Button>
       </DialogActions>
     </Dialog>

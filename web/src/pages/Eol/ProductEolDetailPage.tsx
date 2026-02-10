@@ -34,7 +34,7 @@ import { useGetEoLsQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import {
-  formatDate,
+  getFormatDate,
   getProductCategorybyValue,
   getStatusLabel,
   getEolStatus,
@@ -174,7 +174,7 @@ export function ProductEolDetail() {
                         <Typography fontWeight={600}>{versionData.version}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>{formatDate(versionData.eol_from)}</TableCell>
+                    <TableCell>{getFormatDate(versionData.eol_from)}</TableCell>
                     <TableCell>
                       {status === "expired" && (
                         <Chip

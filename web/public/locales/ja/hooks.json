@@ -1,0 +1,10 @@
+{
+  "Package": {
+    "useApiForVulnerabilityTable": {
+      "defaultSafetyImpactNotSet": "未設定"
+    }
+  },
+  "Auth": {
+    "authContextUnavailable": "実装エラー: AuthContext を使用できません"
+  }
+}

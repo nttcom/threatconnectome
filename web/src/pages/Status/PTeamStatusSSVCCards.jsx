@@ -26,11 +26,12 @@ import {
   missionImpact,
 } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 export function PTeamStatusSSVCCards(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusSSVCCards" });
   const { pteamId, service, highestSsvcPriority } = props;
+  const ssvcPriorityProps = getSsvcPriorityProps();
   const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
