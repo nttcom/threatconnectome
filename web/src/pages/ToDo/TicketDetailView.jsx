@@ -116,8 +116,8 @@ export function TicketDetailView({ ticket }) {
   const isLoading = pteamIsLoading || serviceIsLoading || vulnIsLoading || dependencyIsLoading;
 
   const ssvc = ticket.ssvc_deployer_priority;
-  const ssvcPriority =
-    getSsvcPriorityProps()[ssvc?.toLowerCase()] || getSsvcPriorityProps()["defer"];
+  const ssvcPriorityProps = getSsvcPriorityProps();
+  const ssvcPriority = ssvcPriorityProps[ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
 
   const dueDate = useMemo(() => {
     if (!ticket.ticket_status?.scheduled_at) return "-";

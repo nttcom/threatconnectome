@@ -74,6 +74,8 @@ export function ToDoTable({
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
   if (ticketsIsLoading) return <>{t("loadingTickets")}</>;
 
+  const ssvcPriorityProps = getSsvcPriorityProps();
+
   return (
     <Paper sx={{ width: "100%" }} variant="outlined">
       <TableContainer>
@@ -109,8 +111,7 @@ export function ToDoTable({
             {tickets.length > 0 ? (
               tickets.map((ticket) => {
                 const ssvcPriority =
-                  getSsvcPriorityProps()[ticket.ssvc_deployer_priority] ||
-                  getSsvcPriorityProps()["defer"];
+                  ssvcPriorityProps[ticket.ssvc_deployer_priority] || ssvcPriorityProps["defer"];
                 return (
                   <ToDoTableRow
                     key={ticket.ticket_id}

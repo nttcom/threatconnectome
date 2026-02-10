@@ -31,14 +31,15 @@ import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtil
 export function PTeamStatusSSVCCards(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusSSVCCards" });
   const { pteamId, service, highestSsvcPriority } = props;
-  const ssvcPriorityProp = getSsvcPriorityProps()[highestSsvcPriority];
+  const ssvcPriorityProps = getSsvcPriorityProps();
+  const ssvcPriorityProp = ssvcPriorityProps[highestSsvcPriority];
   const Icon = ssvcPriorityProp.icon;
 
   let ssvcPriority = {
-    ...getSsvcPriorityProps(),
+    ...ssvcPriorityProps,
   };
-  Object.keys(getSsvcPriorityProps()).forEach((key) => {
-    ssvcPriority[key] = getSsvcPriorityProps()[key]["displayName"];
+  Object.keys(ssvcPriorityProps).forEach((key) => {
+    ssvcPriority[key] = ssvcPriorityProps[key]["displayName"];
   });
 
   const [isSystemExposureEditable, setIsSystemExposureEditable] = useState(false);
@@ -153,7 +154,7 @@ export function PTeamStatusSSVCCards(props) {
                 "& .MuiToggleButton-root": {
                   width: "100%",
                   "&.Mui-selected": {
-                    backgroundColor: getSsvcPriorityProps()[highestSsvcPriority].style.bgcolor,
+                    backgroundColor: ssvcPriorityProps[highestSsvcPriority].style.bgcolor,
                   },
                 },
               }}

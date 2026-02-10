@@ -264,8 +264,9 @@ export function Status() {
     }
   }
 
+  const ssvcPriorityProps = getSsvcPriorityProps();
   let priorityFilters = params.getAll("priorityFilter").filter((filter) =>
-    Object.values(getSsvcPriorityProps())
+    Object.values(ssvcPriorityProps)
       .map((prop) => prop.displayName)
       .includes(filter),
   );
@@ -278,7 +279,7 @@ export function Status() {
       (priorityFilters.length === 0
         ? true // show all if selected none
         : priorityFilters.includes(
-            getSsvcPriorityProps()[packageInfo.ssvc_priority || "defer"].displayName,
+            ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
           )) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
@@ -421,7 +422,7 @@ export function Status() {
         sx={{ left: -55 }}
       >
         {sortedSSVCPriorities.map((priorityApiKey) => {
-          const priorityProp = getSsvcPriorityProps()[priorityApiKey];
+          const priorityProp = ssvcPriorityProps[priorityApiKey];
           const priorityDisplayName = priorityProp.displayName;
           const checked = priorityFilters.includes(priorityDisplayName);
           const summary = isActiveAllServicesMode
