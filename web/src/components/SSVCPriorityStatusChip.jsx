@@ -8,8 +8,7 @@ import { getSsvcPriorityProps } from "../utils/ssvcUtils";
 export function SSVCPriorityStatusChip(props) {
   const { displaySSVCPriority } = props;
   // Calling useTranslation() ensures this component re-renders when the language changes.
-  // eslint-disable-next-line no-empty-pattern
-  const {} = useTranslation();
+  useTranslation();
 
   const ssvcPriorityProp = getSsvcPriorityProps()[displaySSVCPriority];
 
