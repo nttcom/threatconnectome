@@ -13,7 +13,7 @@ export function useAuth() {
   const { t } = useTranslation("hooks", { keyPrefix: "Auth" });
 
   if (!context) {
-    throw new Error(t("authContextUnavailable"));
+    throw new Error("AUTH_CONTEXT_UNAVAILABLE: " + t("authContextUnavailable"));
   }
   return context;
 }
