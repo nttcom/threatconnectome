@@ -1,0 +1,23 @@
+{
+  "auth": {
+    "FirebaseProvider": {
+      "auth/email-already-in-use": "Email already in use",
+      "auth/invalid-action-code": "Invalid action code",
+      "auth/invalid-email": "Invalid email format.",
+      "auth/too-many-requests": "Too many requests.",
+      "auth/user-disabled": "User is disabled.",
+      "auth/user-not-found": "User not found.",
+      "auth/wrong-password": "Wrong password.",
+      "auth/invalid-verification-code": "The code is incorrect. Please try again.",
+      "auth/code-expired": "Session is invalid or has expired. Please try again.",
+      "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
+      "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
+      "auth/requires-recent-login": "Please log out and sign in again before trying.",
+      "samlNotSupported": "SAML is not supported.",
+      "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678)."
+    },
+    "SupabaseProvider": {
+      "unsupportedProvider": "Unsupported provider: {{provider}}"
+    }
+  }
+}
