@@ -13,7 +13,8 @@ export const createUpdateAction = (
   packageName: string,
 ) => {
   if (fixedVersions && fixedVersions.length > 0) {
-    const fromBracketed = affectedVersions && affectedVersions.length > 0 ? `[${affectedVersions.join(", ")}]` : null;
+    const fromBracketed =
+      affectedVersions && affectedVersions.length > 0 ? `[${affectedVersions.join(", ")}]` : null;
     const toBracketed = `[${fixedVersions.join(", ")}]`;
 
     if (fromBracketed) {
