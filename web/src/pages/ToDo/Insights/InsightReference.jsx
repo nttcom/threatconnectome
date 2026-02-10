@@ -11,14 +11,16 @@ import {
   Divider,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 export function InsightReference(props) {
   const { dataProcessingStrategy, insightReferences } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "Insights.InsightReference" });
 
   if (!insightReferences || insightReferences.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
-        No analysis basis available.
+        {t("noBasis")}
       </Typography>
     );
   }
@@ -27,7 +29,7 @@ export function InsightReference(props) {
     <>
       <Box>
         <Typography variant="h6" gutterBottom>
-          Data Processing Strategy
+          {t("strategyTitle")}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           {dataProcessingStrategy}
@@ -36,7 +38,7 @@ export function InsightReference(props) {
         <Divider sx={{ my: 2 }} />
 
         <Typography variant="h6" gutterBottom>
-          Data Sources
+          {t("dataSourcesTitle")}
         </Typography>
         <List dense>
           {insightReferences.map((reference, index) => (
