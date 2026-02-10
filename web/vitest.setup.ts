@@ -12,6 +12,7 @@ i18n.addResourceBundle("en", "status", enStatus, true, true);
 i18n.addResourceBundle("en", "emailVerification", enEmailVerification, true, true);
 // Preload SignUp namespace to ensure accessible names are translated in tests
 i18n.addResourceBundle("en", "signUp", enSignUp, true, true);
+// Preload ResetPassword namespace to ensure accessible names are translated in tests
 i18n.addResourceBundle("en", "resetPassword", enResetPassword, true, true);
 i18n.changeLanguage("en");
 // Disable suspense to avoid async loading issues during tests
