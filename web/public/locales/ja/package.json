@@ -34,7 +34,8 @@
       "noVulnerabilitiesFound": "脆弱性が見つかりません",
       "noResolvedVulnerabilities": "このパッケージには解決済みの脆弱性がありません。",
       "noUnresolvedVulnerabilities": "このパッケージには未解決の脆弱性がありません。",
-      "nowLoading": "読み込み中..."
+      "nowLoading": "読み込み中...",
+      "tablePagination": "ページあたりの行数:"
     },
     "VulnerabilityTableRow": {
       "loading": "読み込み中...",

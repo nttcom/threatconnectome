@@ -92,7 +92,8 @@
       "details": "詳細",
       "sortedDescending": "降順でソート済み",
       "sortedAscending": "昇順でソート済み",
-      "noTasksFound": "タスクが見つかりません。"
+      "noTasksFound": "タスクが見つかりません。",
+      "tablePagination": "ページあたりの行数:"
     },
     "ToDoTableRow": {
       "noKnownCve": "CVE不明",
