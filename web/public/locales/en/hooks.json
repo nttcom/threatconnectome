@@ -1,13 +1,7 @@
 {
-  "VulnerabilityTable": {
-    "defaultSafetyImpactNotSet": "Not Set"
-  },
-  "PTeamServiceDetails": {
-    "labels": {
-      "highestSsvcPriority": "Highest SSVC Priority",
-      "systemExposure": "System Exposure",
-      "missionImpact": "Mission Impact",
-      "defaultSafetyImpact": "Default Safety Impact"
+  "Package": {
+    "useApiForVulnerabilityTable": {
+      "defaultSafetyImpactNotSet": "Not Set"
     }
   },
   "Auth": {
