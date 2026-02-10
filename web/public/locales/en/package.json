@@ -19,7 +19,7 @@
   "CodeBlock": {
     "install": "Install",
     "copy": "Copy",
-    "copied": "Copied!"
+    "copySuccess": "Copied!"
   },
   "VulnerabilityTable": {
     "VulnerabilityTable": {

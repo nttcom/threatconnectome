@@ -8,7 +8,7 @@
     },
     "ServiceEolDashboardPage": {
         "title": "EOL(サポート終了日)一覧",
-        "subtitle": "チーム全体で使用しているライブラリやツールのサポート状況一覧",
+        "subtitle": "チーム全体で使用しているライブラリやツールのサポート状況一覧。",
         "notificationTitle": "サポート終了日通知",
         "notificationItems": {
             "autoNotify": "サポートされているツールは、サポート終了日の6ヶ月前に自動的にSlackまたはメールで通知されます。",
@@ -25,17 +25,17 @@
         "searchPlaceholder": "製品名またはサービス名で検索...",
         "total": "合計",
         "loadingEol": "サポート終了日情報を読み込んでいます...",
-        "eolNotFound": "サポート終了日情報が見つかりません"
+        "eolNotFound": "サポート終了日情報が見つかりません。"
     },
     "ProductEolListPage": {
         "title": "サポート終了日情報の自動取得をサポートする製品一覧",
-        "subtitle": "サポート終了日情報の自動取得と通知に対応している製品の一覧",
+        "subtitle": "サポート終了日情報の自動取得と通知に対応している製品の一覧。",
         "aboutPageTitle": "このページについて",
         "aboutPageContent": "このページに記載されている製品のみがサポート終了日の自動取得と通知をサポートしています。ここに記載されていない製品については、公式ウェブサイトなどでサポート終了日情報を確認してください。",
         "lastUpdated": "最終更新",
         "filterAll": "すべて",
         "searchPlaceholder": "製品名で検索...",
-        "noMatchingProducts": "一致する製品が見つかりません",
+        "noMatchingProducts": "一致する製品が見つかりません。",
         "backToEolList": "サポート終了日一覧に戻る",
         "loadingAuth": "認証トークンを読み込んでいます...",
         "loadingEols": "サポート終了日情報を読み込んでいます..."
@@ -49,7 +49,7 @@
         "tableHeaderEolDate": "サポート終了日",
         "tableHeaderStatus": "サポート状況",
         "noVersionsMessage": "表示できるバージョンがありません。「終了したバージョンを表示」をオンにしてください。",
-        "noProductsFound": "製品が見つかりません",
+        "noProductsFound": "製品が見つかりません。",
         "backToSupportedProducts": "サポート製品一覧に戻る",
         "loadingAuth": "認証トークンを読み込んでいます...",
         "loadingEols": "サポート終了日情報を読み込んでいます..."
