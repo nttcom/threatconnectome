@@ -53,7 +53,6 @@
       "title": "Delete your account permanently?",
       "warning": "This action cannot be undone. This will permanently delete your account.",
       "confirmPrompt": "Type in your email to confirm",
-      "placeholder": "sample@example.com",
       "deleteConfirm": "Permanently delete account",
       "cancel": "Cancel",
       "emailWrong": "EMail is wrong",

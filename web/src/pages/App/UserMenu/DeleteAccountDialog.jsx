@@ -80,7 +80,7 @@ export function DeleteAccountDialog(props) {
                 onChange={(event) => setEmail(event.target.value)}
                 sx={{ width: 1 }}
                 error={false}
-                placeholder={t("placeholder")}
+                placeholder="sample@example.com"
                 // helperText="The email you entered was incorrect."
               ></TextField>
             </Box>
