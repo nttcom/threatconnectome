@@ -1,0 +1,16 @@
+{
+  "VulnerabilityTable": {
+    "defaultSafetyImpactNotSet": "Not Set"
+  },
+  "PTeamServiceDetails": {
+    "labels": {
+      "highestSsvcPriority": "Highest SSVC Priority",
+      "systemExposure": "System Exposure",
+      "missionImpact": "Mission Impact",
+      "defaultSafetyImpact": "Default Safety Impact"
+    }
+  },
+  "Auth": {
+    "authContextUnavailable": "Implementation error: cannot use AuthContext"
+  }
+}

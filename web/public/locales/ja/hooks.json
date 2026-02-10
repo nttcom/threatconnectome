@@ -1,0 +1,16 @@
+{
+  "VulnerabilityTable": {
+    "defaultSafetyImpactNotSet": "未設定"
+  },
+  "PTeamServiceDetails": {
+    "labels": {
+      "highestSsvcPriority": "SSVC優先度（最高）",
+      "systemExposure": "システム露出度",
+      "missionImpact": "ミッション影響度",
+      "defaultSafetyImpact": "デフォルト安全影響度"
+    }
+  },
+  "Auth": {
+    "authContextUnavailable": "実装エラー: AuthContext を使用できません"
+  }
+}
