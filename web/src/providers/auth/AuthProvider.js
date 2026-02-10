@@ -4,8 +4,10 @@ export class AuthData {
   }
 }
 
+import i18n from "../../i18n/config";
+
 export class AuthError extends Error {
-  constructor(originalData, code = undefined, message = "Something went wrong.") {
+  constructor(originalData, code = undefined, message = i18n.t("providers:AuthError.default")) {
     super(message);
     this.originalData = originalData;
     this.code = code;

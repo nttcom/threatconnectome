@@ -1,4 +1,5 @@
 import Supabase from "../../utils/Supabase";
+import i18n from "../../i18n/config";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
@@ -74,7 +75,10 @@ export class SupabaseProvider extends AuthProvider {
         options["scopes"] = "openid";
         break;
       default:
-        throw new Error(`Implementation error. not defined provider: ${provider}`);
+        throw new SupabaseAuthError({
+          code: "unsupportedProvider",
+          message: i18n.t("providers:SupabaseProvider.unsupportedProvider", { provider }),
+        });
     }
     await supabase.auth
       .signInWithOAuth({ provider, options })

@@ -1,5 +1,6 @@
 import { FirebaseProvider } from "./FirebaseProvider";
 import { SupabaseProvider } from "./SupabaseProvider";
+import i18n from "../../i18n/config";
 
 export class AuthProviderFactory {
   static create() {
@@ -10,7 +11,9 @@ export class AuthProviderFactory {
       case "firebase":
         return new FirebaseProvider();
       default:
-        throw new Error(`Unsupported VITE_AUTH_SERVICE: ${provider}`);
+        throw new Error(
+          i18n.t("providers:AuthProviderFactory.unsupportedService", { service: provider }),
+        );
     }
   }
 }
