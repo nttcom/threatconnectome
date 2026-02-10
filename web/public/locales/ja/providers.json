@@ -1,0 +1,27 @@
+{
+  "AuthProviderFactory": {
+    "unsupportedService": "認証サービスが未対応です: {{service}}"
+  },
+  "AuthError": {
+    "default": "予期しないエラーが発生しました。"
+  },
+  "FirebaseProvider": {
+    "auth/email-already-in-use": "このメールアドレスは既に使用されています",
+    "auth/invalid-action-code": "無効なアクションコードです",
+    "auth/invalid-email": "メールアドレスの形式が正しくありません",
+    "auth/too-many-requests": "リクエストが多すぎます",
+    "auth/user-disabled": "ユーザーは無効化されています",
+    "auth/user-not-found": "ユーザーが見つかりません",
+    "auth/wrong-password": "パスワードが正しくありません",
+    "auth/invalid-verification-code": "コードが正しくありません。もう一度お試しください",
+    "auth/code-expired": "セッションが無効または期限切れです。もう一度お試しください",
+    "auth/invalid-multi-factor-session": "セッションが無効または期限切れです。もう一度お試しください",
+    "auth/invalid-phone-number": "電話番号の形式が正しくありません。E.164形式で入力してください",
+    "auth/requires-recent-login": "再ログインが必要です。いったんサインアウトしてから再度サインインしてください",
+    "samlNotSupported": "SAMLはサポートされていません",
+    "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください（例: +818012345678）"
+  },
+  "SupabaseProvider": {
+    "unsupportedProvider": "未定義のプロバイダーです: {{provider}}"
+  }
+}
