@@ -55,7 +55,7 @@
   },
   "ServiceIDCopyButton": {
     "copyServiceId": "Copy the Service ID",
-    "copied": "Copied"
+    "copySuccess": "Copied!"
   },
   "PTeamServiceDetailsSettings": {
     "updateSucceeded": "Update succeeded",

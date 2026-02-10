@@ -1,15 +1,17 @@
 import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { impactCategoryIcons } from "./insightConst.js";
 
 export function ThreatScenario(props) {
   const { threatScenarios } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "Insights.ThreatScenario" });
 
   if (!threatScenarios || threatScenarios.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
-        No threat scenarios available.
+        {t("noScenarios")}
       </Typography>
     );
   }

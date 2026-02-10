@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CustomTabPanel } from "../../../components/CustomTabPanel.jsx";
 
@@ -25,6 +26,7 @@ import { impactCategoryIcons } from "./insightConst.js";
 
 export function RiskAnalysisView(props) {
   const { insight, serviceName, ecosystem, cveId, cvss } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "Insights.RiskAnalysisView" });
 
   const [tabValue, setTabValue] = useState(0);
 
@@ -50,17 +52,17 @@ export function RiskAnalysisView(props) {
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ fontSize: { xs: 30, md: 35 } }}>
-          Risk Analysis: {cveId}
+          {t("title", { cveId })}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
           <Typography variant="body1" color="text.secondary">
-            Service: {serviceName}
+            {t("service", { serviceName })}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Ecosystem: {ecosystem}
+            {t("ecosystem", { ecosystem })}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            CVSS: {cvss}
+            {t("cvss", { cvss })}
           </Typography>
         </Box>
       </Box>
@@ -75,7 +77,7 @@ export function RiskAnalysisView(props) {
                 <WarningAmberIcon sx={{ fontSize: 40, color: "error.main" }} />
               </Box>
               <Typography variant="h5" component="h2" gutterBottom>
-                Risk Summary
+                {t("riskSummary")}
               </Typography>
             </Box>
 
@@ -96,9 +98,9 @@ export function RiskAnalysisView(props) {
               <SmartToyOutlinedIcon sx={{ color: "primary.main" }} />
               <Typography variant="body2" color="text.secondary">
                 <Typography component="span" variant="body2" sx={{ fontWeight: "bold" }}>
-                  AI-Generated Summary:
+                  {t("aiGeneratedLabel")}
                 </Typography>
-                This content is AI-generated and should be verified independently.
+                {t("aiGeneratedDisclaimer")}
               </Typography>
             </Paper>
 
@@ -131,9 +133,9 @@ export function RiskAnalysisView(props) {
                 onChange={handleTabChange}
                 aria-label="detailed analysis tabs"
               >
-                <Tab label="Threat Scenarios" />
-                <Tab label="Affected Assets" />
-                <Tab label="Analysis Basis" />
+                <Tab label={t("tabThreatScenarios")} />
+                <Tab label={t("tabAffectedAssets")} />
+                <Tab label={t("tabAnalysisBasis")} />
               </Tabs>
             </Box>
             <CustomTabPanel value={tabValue} index={0}>
@@ -164,10 +166,10 @@ export function RiskAnalysisView(props) {
           }}
         >
           <Button variant="outlined" disabled>
-            Export Report (PDF)
+            {t("exportPdf")}
           </Button>
           <Button variant="contained" disabled>
-            Create Response Ticket
+            {t("createTicket")}
           </Button>
         </Box>
       </Paper>

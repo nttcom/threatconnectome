@@ -19,7 +19,7 @@
   "CodeBlock": {
     "install": "Install",
     "copy": "Copy",
-    "copied": "Copied!"
+    "copySuccess": "Copied!"
   },
   "VulnerabilityTable": {
     "VulnerabilityTable": {
@@ -34,7 +34,8 @@
       "noVulnerabilitiesFound": "No vulnerabilities found",
       "noResolvedVulnerabilities": "There are no resolved vulnerabilities for this package.",
       "noUnresolvedVulnerabilities": "There are no unresolved vulnerabilities for this package.",
-      "nowLoading": "Now loading..."
+      "nowLoading": "Now loading...",
+      "tablePagination": "Rows per page:"
     },
     "VulnerabilityTableRow": {
       "loading": "Loading...",

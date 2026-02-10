@@ -1,12 +1,12 @@
 {
   "VulnManagementPage": {
-    "loadingAuth": "認証トークン読込中...",
-    "loadingVulns": "脆弱性読込中...",
+    "loadingAuth": "認証トークンを読み込んでいます...",
+    "loadingVulns": "脆弱性を読み込んでいます...",
     "rows": "{{count}}行",
     "relatedVulns": "関連する脆弱性"
   },
   "VulnManagementCardList": {
-    "noKnownCve": "CVE番号なし",
+    "noKnownCve": "CVE不明",
     "noVulns": "脆弱性なし"
   },
   "VulnManagementTable": {
@@ -32,6 +32,6 @@
     "dateRange": "日付範囲",
     "since": "以降",
     "until": "以前",
-    "invalidCveFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)"
+    "invalidCveFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)。"
   }
 }

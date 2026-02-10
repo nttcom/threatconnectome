@@ -1,0 +1,136 @@
+{
+  "ToDoPage": {
+    "loadingUserInfo": "ユーザー情報を読み込んでいます..."
+  },
+  "CVESearchField": {
+    "placeholder": "CVE IDで検索",
+    "invalidFormat": "無効なCVE ID形式です。期待される形式: CVE-YYYY-NNNN... (YYYY: 4桁, NNNN...: 4桁以上)"
+  },
+  "SafetyImpactSelector": {
+    "changeSucceeded": "Safety Impactの変更が成功しました",
+    "operationFailed": "操作が失敗しました: {{error}}"
+  },
+  "SafetyImpactSelectorView": {
+    "dialogTitle": "Safety Impactの更新",
+    "reasonPrompt": "このSafety Impactの変更理由を入力してください",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "tooltipTitle": "デフォルトのSafety Impactから変更された理由",
+    "readMore": "続きを読む...",
+    "readMoreDialogTitle": "デフォルトのSafety Impactから変更された理由",
+    "close": "閉じる",
+    "reasonTooLong": "Safety Impactの理由が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です"
+  },
+  "TicketHandlingStatusSelector": {
+    "changeSucceeded": "チケットステータスの変更が成功しました",
+    "operationFailed": "操作が失敗しました: {{error}}"
+  },
+  "VulnerabilityView": {
+    "package": "パッケージ",
+    "update": "アップデート",
+    "noData": "データなし",
+    "cveId": "CVE ID",
+    "noKnownCve": "CVE不明",
+    "detail": "詳細"
+  },
+  "TicketDetailView": {
+    "tabTicket": "チケット",
+    "tabVuln": "脆弱性",
+    "tabInsights": "インサイト",
+    "ssvc": "SSVC",
+    "cveId": "CVE ID",
+    "noKnownCve": "CVE不明",
+    "team": "チーム",
+    "service": "サービス",
+    "package": "パッケージ",
+    "target": "ターゲット",
+    "dueDate": "期限",
+    "status": "ステータス",
+    "assignees": "担当者",
+    "loading": "読み込んでいます..."
+  },
+  "ToDoCardView": {
+    "ToDoCardView": {
+      "myTasks": "マイタスク",
+      "noTasksFound": "タスクが見つかりません。"
+    },
+    "VulnerabilityCard": {
+      "noKnownCve": "CVE不明",
+      "team": "チーム",
+      "package": "パッケージ",
+      "assignee": "担当者",
+      "service": "サービス",
+      "details": "詳細",
+      "ticketTitle": "チケット {{ticketId}}"
+    },
+    "DisplayOptionsController": {
+      "tooltip": "表示オプション",
+      "title": "表示オプション",
+      "sortBy": "並べ替え",
+      "ascending": "昇順",
+      "descending": "降順",
+      "cve": "CVE",
+      "team": "チーム",
+      "service": "サービス",
+      "package": "パッケージ",
+      "ssvc": "SSVC",
+      "rowsPerPage": "1ページあたりの表示件数"
+    }
+  },
+  "ToDoTableView": {
+    "ToDoTableView": {
+      "myTasks": "マイタスク"
+    },
+    "ToDoTable": {
+      "loadingTickets": "チケットを読み込んでいます...",
+      "cve": "CVE",
+      "team": "チーム",
+      "service": "サービス",
+      "package": "パッケージ",
+      "assignee": "担当者",
+      "ssvc": "SSVC",
+      "details": "詳細",
+      "sortedDescending": "降順でソート済み",
+      "sortedAscending": "昇順でソート済み",
+      "noTasksFound": "タスクが見つかりません。",
+      "tablePagination": "1ページあたりの表示件数:"
+    },
+    "ToDoTableRow": {
+      "noKnownCve": "CVE不明",
+      "details": "詳細",
+      "ticketTitle": "チケット {{ticketId}}"
+    }
+  },
+  "Insights": {
+    "RiskAnalysis": {
+      "noInsight": "インサイトがありません",
+      "loadingInsight": "インサイトを読み込んでいます..."
+    },
+    "RiskAnalysisView": {
+      "title": "リスク分析: {{cveId}}",
+      "service": "サービス: {{serviceName}}",
+      "ecosystem": "エコシステム: {{ecosystem}}",
+      "cvss": "CVSS: {{cvss}}",
+      "riskSummary": "リスク概要",
+      "aiGeneratedLabel": "AI生成の概要:",
+      "aiGeneratedDisclaimer": "このコンテンツはAIによって生成されています。重要な情報は確認するようにしてください。",
+      "tabThreatScenarios": "脅威シナリオ",
+      "tabAffectedAssets": "影響を受ける資産",
+      "tabAnalysisBasis": "分析の根拠",
+      "exportPdf": "レポートをエクスポート（PDF）",
+      "createTicket": "対応チケットを作成"
+    },
+    "ThreatScenario": {
+      "noScenarios": "脅威シナリオが利用できません。"
+    },
+    "AffectedObject": {
+      "title": "影響を受ける可能性のある資産",
+      "noAssets": "影響を受ける資産が利用できません。"
+    },
+    "InsightReference": {
+      "strategyTitle": "データ処理戦略",
+      "dataSourcesTitle": "データソース",
+      "noBasis": "分析の根拠が利用できません。"
+    }
+  }
+}
