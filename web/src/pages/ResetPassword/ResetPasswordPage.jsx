@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
 
