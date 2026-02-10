@@ -33,10 +33,10 @@
     "slackWebhook": "SlackのIncoming Webhook URL",
     "slackPlaceholder": "最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
     "create": "作成する",
-    "teamNameTooLong": "チーム名が長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
-    "contactInfoTooLong": "連絡先情報が長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
-    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大文字数：半角{{maxHalf}}文字または全角{{maxFull}}文字",
-    "createSucceeded": "チームの作成に成功しました",
+    "teamNameTooLong": "チーム名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
+    "contactInfoTooLong": "連絡先情報が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
+    "createSucceeded": "チームを作成しました。",
     "operationFailed": "操作に失敗しました：{{error}}"
   },
   "UserMenu": {
@@ -46,7 +46,7 @@
       "logout": "ログアウト"
     },
     "AccountSettings": {
-      "updateSucceeded": "ユーザー情報の更新に成功しました"
+      "updateSucceeded": "ユーザー情報を更新しました。"
     },
     "DeleteAccountDialog": {
       "deleteButton": "アカウントを削除",
