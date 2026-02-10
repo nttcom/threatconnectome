@@ -74,7 +74,7 @@
       "service": "サービス",
       "package": "パッケージ",
       "ssvc": "SSVC",
-      "rowsPerPage": "ページあたりの行数"
+      "rowsPerPage": "1ページあたりの表示件数"
     }
   },
   "ToDoTableView": {
@@ -93,7 +93,7 @@
       "sortedDescending": "降順でソート済み",
       "sortedAscending": "昇順でソート済み",
       "noTasksFound": "タスクが見つかりません。",
-      "tablePagination": "ページあたりの行数:"
+      "tablePagination": "1ページあたりの表示件数:"
     },
     "ToDoTableRow": {
       "noKnownCve": "CVE不明",
