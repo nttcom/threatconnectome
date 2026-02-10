@@ -2,11 +2,14 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { IconButton, Tooltip } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function CopiedIcon(props) {
   const { invitationLink } = props;
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  const { t } = useTranslation("pteam", { keyPrefix: "CopiedIcon" });
 
   const handleTooltipOpen = () => {
     setTooltipOpen(true);
@@ -28,7 +31,12 @@ export function CopiedIcon(props) {
           handleTooltipOpen();
         }}
       >
-        <Tooltip title="Copied " placement="top" open={tooltipOpen} onClose={handleClose}>
+        <Tooltip
+          title={t("tooltipCopied")}
+          placement="top"
+          open={tooltipOpen}
+          onClose={handleClose}
+        >
           <ContentCopyIcon />
         </Tooltip>
       </IconButton>

@@ -3,10 +3,12 @@ import { InputAdornment, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
 export function CVESearchField({ word, onApply, variant = "default" }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "CVESearchField" });
   const [newWord, setNewWord] = useState("");
   const { enqueueSnackbar } = useSnackbar();
 
@@ -18,12 +20,9 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
     const trimmedValue = value.trim();
     const success = isValidCVEFormat(trimmedValue);
     if (!success) {
-      enqueueSnackbar(
-        "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)",
-        {
-          variant: "error",
-        },
-      );
+      enqueueSnackbar(t("invalidFormat"), {
+        variant: "error",
+      });
       return;
     }
     onApply(trimmedValue);
@@ -42,7 +41,7 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
     <TextField
       size="small"
       type="search"
-      placeholder="Search CVE ID"
+      placeholder={t("placeholder")}
       hiddenLabel
       fullWidth
       value={newWord}

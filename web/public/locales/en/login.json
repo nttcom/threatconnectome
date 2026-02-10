@@ -1,0 +1,27 @@
+{
+    "LoginPage": {
+        "title": "Threatconnectome",
+        "emailLabel": "Email Address",
+        "passwordLabel": "Password",
+        "forgotPassword": "Forgot password?",
+        "loginWithEmail": "Log In with Email",
+        "loginWithSaml": "Log In with SAML",
+        "loginWithKeycloak": "Log In with Keycloak",
+        "noAccount": "No metemcyber account?",
+        "signUp": "Sign up",
+        "closedBetaNotice": "This service is in closed beta. LOGIN is only available for email addresses of authorized organizations.",
+        "loggingIn": "Logging in...",
+        "emailNotVerified": "Your email address is not verified. An email for verification was sent to your address.",
+        "somethingWentWrong": "Something went wrong."
+    },
+    "TwoFactorAuth": {
+        "title": "Two-factor authentication",
+        "subtitle": "Please enter the 6-digit code sent via SMS.",
+        "verificationCodeLabel": "Verification code",
+        "verificationCodePlaceholder": "123456",
+        "authenticate": "Authenticate",
+        "checkingCode": "Checking the code...",
+        "didYouReceive": "Did you receive the code?",
+        "codeResent": "The verification code has been resent."
+    }
+}
