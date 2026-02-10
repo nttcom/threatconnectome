@@ -55,7 +55,7 @@
   },
   "ServiceIDCopyButton": {
     "copyServiceId": "サービスIDをコピー",
-    "copied": "コピーしました！"
+    "copied!": "コピーしました！"
   },
   "PTeamServiceDetailsSettings": {
     "updateSucceeded": "更新しました。",

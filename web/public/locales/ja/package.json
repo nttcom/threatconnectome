@@ -19,7 +19,7 @@
   "CodeBlock": {
     "install": "インストール",
     "copy": "コピー",
-    "copied": "コピーしました！"
+    "copied!": "コピーしました！"
   },
   "VulnerabilityTable": {
     "VulnerabilityTable": {
