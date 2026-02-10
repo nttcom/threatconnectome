@@ -1,8 +1,5 @@
 {
   "auth": {
-    "AuthError": {
-      "default": "予期しないエラーが発生しました。"
-    },
     "FirebaseProvider": {
       "auth/email-already-in-use": "このメールアドレスは既に使用されています。",
       "auth/invalid-action-code": "無効なアクションコードです。",
