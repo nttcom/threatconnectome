@@ -1,0 +1,135 @@
+{
+  "ToDoPage": {
+    "loadingUserInfo": "Now loading UserInfo..."
+  },
+  "CVESearchField": {
+    "placeholder": "Search CVE ID",
+    "invalidFormat": "Invalid CVE ID format. Expected: CVE-YYYY-NNNN... (YYYY: 4 digits, NNNN...: 4 or more digits)"
+  },
+  "SafetyImpactSelector": {
+    "changeSucceeded": "Change safety impact succeeded",
+    "operationFailed": "Operation failed: {{error}}"
+  },
+  "SafetyImpactSelectorView": {
+    "dialogTitle": "Safety Impact update",
+    "reasonPrompt": "Provide the reason for this Safety Impact change",
+    "cancel": "Cancel",
+    "save": "Save",
+    "tooltipTitle": "Why was it changed from the default safety impact?",
+    "readMore": "Read more...",
+    "readMoreDialogTitle": "Why was it changed from the default safety impact?",
+    "close": "Close",
+    "reasonTooLong": "Too long reason for Safety Impact. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width"
+  },
+  "TicketHandlingStatusSelector": {
+    "changeSucceeded": "Change ticket status succeeded",
+    "operationFailed": "Operation failed: {{error}}"
+  },
+  "VulnerabilityView": {
+    "package": "Package",
+    "update": "Update",
+    "noData": "No data",
+    "cveId": "CVE ID",
+    "noKnownCve": "No Known CVE",
+    "detail": "Detail"
+  },
+  "TicketDetailView": {
+    "tabTicket": "Ticket",
+    "tabVuln": "Vuln",
+    "tabInsights": "Insights",
+    "ssvc": "SSVC",
+    "cveId": "CVE ID",
+    "noKnownCve": "No Known CVE",
+    "team": "Team",
+    "service": "Service",
+    "package": "Package",
+    "target": "Target",
+    "dueDate": "Due date",
+    "status": "Status",
+    "assignees": "Assignees",
+    "loading": "Loading..."
+  },
+  "ToDoCardView": {
+    "ToDoCardView": {
+      "myTasks": "My tasks",
+      "noTasksFound": "No tasks found."
+    },
+    "VulnerabilityCard": {
+      "noKnownCve": "No Known CVE",
+      "team": "Team",
+      "package": "Package",
+      "assignee": "Assignee",
+      "service": "Service",
+      "details": "Details",
+      "ticketTitle": "Ticket {{ticketId}}"
+    },
+    "DisplayOptionsController": {
+      "tooltip": "Display Options",
+      "title": "Display Options",
+      "sortBy": "Sort By",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "cve": "CVE",
+      "team": "Team",
+      "service": "Service",
+      "package": "Package",
+      "ssvc": "SSVC",
+      "rowsPerPage": "Rows per page"
+    }
+  },
+  "ToDoTableView": {
+    "ToDoTableView": {
+      "myTasks": "My tasks"
+    },
+    "ToDoTable": {
+      "loadingTickets": "Now loading Tickets...",
+      "cve": "CVE",
+      "team": "Team",
+      "service": "Service",
+      "package": "Package",
+      "assignee": "Assignee",
+      "ssvc": "SSVC",
+      "details": "Details",
+      "sortedDescending": "sorted descending",
+      "sortedAscending": "sorted ascending",
+      "noTasksFound": "No tasks found."
+    },
+    "ToDoTableRow": {
+      "noKnownCve": "No Known CVE",
+      "details": "Details",
+      "ticketTitle": "Ticket {{ticketId}}"
+    }
+  },
+  "Insights": {
+    "RiskAnalysis": {
+      "noInsight": "No insight",
+      "loadingInsight": "Now loading Insight..."
+    },
+    "RiskAnalysisView": {
+      "title": "Risk Analysis: {{cveId}}",
+      "service": "Service: {{serviceName}}",
+      "ecosystem": "Ecosystem: {{ecosystem}}",
+      "cvss": "CVSS: {{cvss}}",
+      "riskSummary": "Risk Summary",
+      "aiGeneratedLabel": "AI-Generated Summary:",
+      "aiGeneratedDisclaimer": "This content is AI-generated and should be verified independently.",
+      "tabThreatScenarios": "Threat Scenarios",
+      "tabAffectedAssets": "Affected Assets",
+      "tabAnalysisBasis": "Analysis Basis",
+      "exportPdf": "Export Report (PDF)",
+      "createTicket": "Create Response Ticket"
+    },
+    "ThreatScenario": {
+      "noScenarios": "No threat scenarios available."
+    },
+    "AffectedObject": {
+      "title": "Potentially Affected Assets",
+      "noAssets": "No affected assets available."
+    },
+    "InsightReference": {
+      "strategyTitle": "Data Processing Strategy",
+      "dataSourcesTitle": "Data Sources",
+      "noBasis": "No analysis basis available."
+    }
+  }
+}

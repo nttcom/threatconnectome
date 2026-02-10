@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
@@ -54,6 +55,7 @@ function DetailRow({ label, children }) {
 }
 
 export function TicketDetailView({ ticket }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "TicketDetailView" });
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -166,22 +168,22 @@ export function TicketDetailView({ ticket }) {
     <>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-          <Tab label="Ticket" />
-          <Tab label="Vuln" />
-          <Tab label="Insights" />
+          <Tab label={t("tabTicket")} />
+          <Tab label={t("tabVuln")} />
+          <Tab label={t("tabInsights")} />
         </Tabs>
       </Box>
       <CustomTabPanel value={tabValue} index={0}>
         <Stack divider={<Divider flexItem />}>
-          <DetailRow label="SSVC">
+          <DetailRow label={t("ssvc")}>
             <Chip
               label={ssvc || "-"}
               sx={{ bgcolor: ssvcPriority?.style?.bgcolor, color: "#fff" }}
             />
           </DetailRow>
-          <DetailRow label="CVE ID">
+          <DetailRow label={t("cveId")}>
             {vuln?.cve_id === null ? (
-              <Typography>No Known CVE</Typography>
+              <Typography>{t("noKnownCve")}</Typography>
             ) : (
               <Typography>{vuln?.cve_id || "-"}</Typography>
             )}
@@ -189,19 +191,19 @@ export function TicketDetailView({ ticket }) {
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>
           </DetailRow>
-          <DetailRow label="Team">
+          <DetailRow label={t("team")}>
             <Typography>{pteam?.pteam_name || "-"}</Typography>
             <IconButton size="small" onClick={handleTeamClick}>
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>
           </DetailRow>
-          <DetailRow label="Service">
+          <DetailRow label={t("service")}>
             <Typography>{service?.service_name || "-"}</Typography>
             <IconButton size="small" onClick={handleServiceClick}>
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>
           </DetailRow>
-          <DetailRow label="Package">
+          <DetailRow label={t("package")}>
             <Typography sx={{ overflowWrap: "break-word" }}>
               {dependency
                 ? `${dependency.package_name || "-"} : ${dependency.package_ecosystem || "-"}`
@@ -211,13 +213,13 @@ export function TicketDetailView({ ticket }) {
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>
           </DetailRow>
-          <DetailRow label="Target">
+          <DetailRow label={t("target")}>
             <Typography>{dependency?.target || "-"}</Typography>
           </DetailRow>
-          <DetailRow label="Due date">
+          <DetailRow label={t("dueDate")}>
             <Typography>{dueDate}</Typography>
           </DetailRow>
-          <DetailRow label="Status">
+          <DetailRow label={t("status")}>
             <FormControl sx={{ width: 130 }} size="small" variant="standard">
               <TicketHandlingStatusSelector
                 pteamId={ticket.pteam_id}
@@ -242,7 +244,7 @@ export function TicketDetailView({ ticket }) {
               />
             </FormControl>
           </DetailRow>
-          <DetailRow label="Assignees">
+          <DetailRow label={t("assignees")}>
             <FormControl sx={{ width: 200 }} size="small" variant="standard">
               <AssigneesSelector
                 ticketId={ticket.ticket_id}

@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetTicketsQuery } from "../../../services/tcApi";
@@ -29,6 +30,7 @@ export function ToDoTable({
   onPageChange,
   onItemsPerPageChange,
 }) {
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTable" });
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -59,18 +61,18 @@ export function ToDoTable({
   };
 
   const headCells = [
-    { id: "cve_id", label: "CVE", isSortable: true },
-    { id: "pteam_name", label: "Team", isSortable: true },
-    { id: "service_name", label: "Service", isSortable: true },
-    { id: "package_name", label: "Package", isSortable: true },
-    { id: "assignee", label: "Assignee", isSortable: false },
-    { id: "ssvc_deployer_priority", label: "SSVC", isSortable: true },
-    { id: "details", label: "", isSortable: false },
+    { id: "cve_id", label: t("cve"), isSortable: true },
+    { id: "pteam_name", label: t("team"), isSortable: true },
+    { id: "service_name", label: t("service"), isSortable: true },
+    { id: "package_name", label: t("package"), isSortable: true },
+    { id: "assignee", label: t("assignee"), isSortable: false },
+    { id: "ssvc_deployer_priority", label: t("ssvc"), isSortable: true },
+    { id: "details", label: t("details"), isSortable: false },
   ];
 
   if (skip) return <></>;
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
-  if (ticketsIsLoading) return <>Now loading Tickets...</>;
+  if (ticketsIsLoading) return <>{t("loadingTickets")}</>;
 
   return (
     <Paper sx={{ width: "100%" }} variant="outlined">
@@ -92,7 +94,7 @@ export function ToDoTable({
                       {headCell.label}
                       {sortKey === headCell.id ? (
                         <Box component="span" sx={visuallyHidden}>
-                          {sortDirection === "desc" ? "sorted descending" : "sorted ascending"}
+                          {sortDirection === "desc" ? t("sortedDescending") : t("sortedAscending")}
                         </Box>
                       ) : null}
                     </TableSortLabel>
@@ -121,7 +123,7 @@ export function ToDoTable({
               <TableRow>
                 <TableCell colSpan={headCells.length} align="center">
                   <Typography color="text.secondary" sx={{ py: 5 }}>
-                    No tasks found.
+                    {t("noTasksFound")}
                   </Typography>
                 </TableCell>
               </TableRow>
