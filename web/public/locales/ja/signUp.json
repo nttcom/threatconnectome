@@ -3,7 +3,6 @@
     "emailAddress": "メールアドレス",
     "password": "パスワード",
     "passwordRequirement": "パスワードは8文字以上である必要があります。",
-    "togglePasswordVisibility": "パスワードの表示を切り替え",
     "signUp": "サインアップ",
     "backToLogIn": "ログイン画面に戻る",
     "verificationEmailSent": "確認用メールをあなたのアドレスに送信しました。",

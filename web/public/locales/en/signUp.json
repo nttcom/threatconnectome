@@ -3,7 +3,6 @@
     "emailAddress": "Email Address",
     "password": "Password",
     "passwordRequirement": "Password should be at least 8 characters.",
-    "togglePasswordVisibility": "toggle password visibility",
     "signUp": "Sign up",
     "backToLogIn": "Back to log in",
     "verificationEmailSent": "An email for verification was sent to your address.",
