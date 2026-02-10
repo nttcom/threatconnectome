@@ -1,14 +1,33 @@
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import i18n from "i18next";
+import { I18nextProvider, initReactI18next } from "react-i18next";
 import { Provider, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import appEn from "../../../../../public/locales/en/app.json";
 import { useAuth, useSkipUntilAuthUserIsReady } from "../../../../hooks/auth";
 import { AuthProvider } from "../../../../providers/auth/AuthContext";
 import { tcApi, useGetUserMeQuery } from "../../../../services/tcApi";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../../../slices/auth";
 import store from "../../../../store";
 import { UserMenu } from "../UserMenu";
+
+// Initialize i18n before test execution
+i18n.use(initReactI18next).init({
+  lng: "en",
+  fallbackLng: "en",
+  ns: ["app"],
+  defaultNS: "app",
+  resources: {
+    en: {
+      app: appEn,
+    },
+  },
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal();
@@ -47,7 +66,9 @@ const renderUserMenu = () => {
   render(
     <Provider store={store}>
       <AuthProvider>
-        <UserMenu />
+        <I18nextProvider i18n={i18n}>
+          <UserMenu />
+        </I18nextProvider>
       </AuthProvider>
     </Provider>,
   );
