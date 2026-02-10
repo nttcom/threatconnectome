@@ -13,7 +13,7 @@ import { Layers as LayersIcon } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
 import {
-  formatDate,
+  getFormatDate,
   getDiffText,
   getProductCategorybyValue,
   getEolStatus,
@@ -74,7 +74,7 @@ export function EolTable({ filteredEolVersions }: { filteredEolVersions: EolVers
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{formatDate(eolVersion.eol_from) || "-"}</TableCell>
+                <TableCell>{getFormatDate(eolVersion.eol_from) || "-"}</TableCell>
               </TableRow>
             ))
           ) : (

@@ -36,7 +36,7 @@ import {
   maxSlackWebhookUrlLengthInHalf,
 } from "../utils/const";
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
-import { ssvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
+import { getSsvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
 
 import { CheckButton } from "./CheckButton";
 
@@ -213,7 +213,7 @@ export function PTeamNotificationSetting(props) {
         >
           {sortedSSVCPriorities.map((ssvcPriority) => (
             <MenuItem key={ssvcPriority} value={ssvcPriority}>
-              {ssvcPriorityProps[ssvcPriority].displayName}
+              {getSsvcPriorityProps()[ssvcPriority].displayName}
             </MenuItem>
           ))}
         </Select>

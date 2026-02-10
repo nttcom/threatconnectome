@@ -26,7 +26,7 @@ import {
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError.js";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
-import { ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
 import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
 
@@ -116,6 +116,7 @@ export function TicketDetailView({ ticket }) {
   const isLoading = pteamIsLoading || serviceIsLoading || vulnIsLoading || dependencyIsLoading;
 
   const ssvc = ticket.ssvc_deployer_priority;
+  const ssvcPriorityProps = getSsvcPriorityProps();
   const ssvcPriority = ssvcPriorityProps[ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
 
   const dueDate = useMemo(() => {

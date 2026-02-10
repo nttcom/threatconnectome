@@ -8,7 +8,7 @@ import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { experienceColors, noPTeamMessage } from "../../utils/const";
+import { experienceColors, getNoPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func";
 
 import { PTeamMember } from "./PTeamMember.jsx";
@@ -28,7 +28,7 @@ export function PTeam() {
     isLoading: membersIsLoading,
   } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId } }, { skip });
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skip) return <></>;
 
   if (membersError)

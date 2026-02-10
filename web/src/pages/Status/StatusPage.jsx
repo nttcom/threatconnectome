@@ -38,9 +38,9 @@ import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { noPTeamMessage } from "../../utils/const";
+import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
@@ -213,7 +213,7 @@ export function Status() {
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation("status", { keyPrefix: "StatusPage" });
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skipByAuth || !pteamId) return <></>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
@@ -264,6 +264,7 @@ export function Status() {
     }
   }
 
+  const ssvcPriorityProps = getSsvcPriorityProps();
   let priorityFilters = params.getAll("priorityFilter").filter((filter) =>
     Object.values(ssvcPriorityProps)
       .map((prop) => prop.displayName)

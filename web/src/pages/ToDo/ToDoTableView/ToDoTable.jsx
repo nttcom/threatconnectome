@@ -19,7 +19,7 @@ import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
-import { ssvcPriorityProps } from "../../../utils/ssvcUtils";
+import { getSsvcPriorityProps } from "../../../utils/ssvcUtils";
 
 import { ToDoTableRow } from "./ToDoTableRow";
 
@@ -73,6 +73,8 @@ export function ToDoTable({
   if (skip) return <></>;
   if (ticketsError) throw new APIError(errorToString(ticketsError), { api: "getTickets" });
   if (ticketsIsLoading) return <>{t("loadingTickets")}</>;
+
+  const ssvcPriorityProps = getSsvcPriorityProps();
 
   return (
     <Paper sx={{ width: "100%" }} variant="outlined">

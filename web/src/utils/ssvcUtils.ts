@@ -4,78 +4,77 @@ import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import WarningIcon from "@mui/icons-material/Warning";
 import { amber, green, grey, orange, red } from "@mui/material/colors";
+import i18n from "i18next";
 
 import { TicketResponse } from "../../types/types.gen";
 
 export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
 
-const prop_immediate = {
-  displayName: "Immediate",
-  icon: RunningWithErrorsIcon,
-  statusLabel:
-    "Immediate: Act immediately; focus all resources on applying the fix as quickly as possible, including, if necessary, pausing regular organization operations.",
-  style: {
-    bgcolor: red[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_out_of_cycle = {
-  displayName: "Out-of-cycle",
-  icon: WarningIcon,
-  statusLabel:
-    "Out-of-cycle: Act more quickly than usual to apply the mitigation or remediation out-of-cycle, during the next available opportunity, working overtime if necessary.",
-  style: {
-    bgcolor: orange[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_scheduled = {
-  displayName: "Scheduled",
-  icon: PriorityHighIcon,
-  statusLabel: "Scheduled: Act during regularly scheduled maintenance time.",
-  style: {
-    bgcolor: amber[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_defer = {
-  displayName: "Defer",
-  icon: CheckIcon,
-  statusLabel: "Defer: Do not act at present.",
-  style: {
-    bgcolor: grey[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-const prop_safe = {
-  chipLabel: "Safe",
-  icon: HealthAndSafetyIcon,
-  statusLabel: "All vulnerabilities have been resolved",
-  style: {
-    bgcolor: green[600],
-    color: "white",
-    textTransform: "none",
-  },
-};
-// sorted priorities -- should match with strings which api returns.
-
-export const ssvcPriorityProps = {
-  immediate: prop_immediate,
-  Immediate: prop_immediate,
-  out_of_cycle: prop_out_of_cycle,
-  "Out-of-cycle": prop_out_of_cycle,
-  scheduled: prop_scheduled,
-  Scheduled: prop_scheduled,
-  defer: prop_defer,
-  Defer: prop_defer,
-  safe: prop_safe,
-  Safe: prop_safe,
-  empty: prop_defer,
-  Empty: prop_defer,
+export const getSsvcPriorityProps = () => {
+  const prop_immediate = {
+    displayName: i18n.t("ssvcUtils.priority.immediate.displayName", { ns: "utils" }),
+    icon: RunningWithErrorsIcon,
+    statusLabel: i18n.t("ssvcUtils.priority.immediate.statusLabel", { ns: "utils" }),
+    style: {
+      bgcolor: red[600],
+      color: "white",
+      textTransform: "none",
+    },
+  };
+  const prop_out_of_cycle = {
+    displayName: i18n.t("ssvcUtils.priority.out_of_cycle.displayName", { ns: "utils" }),
+    icon: WarningIcon,
+    statusLabel: i18n.t("ssvcUtils.priority.out_of_cycle.statusLabel", { ns: "utils" }),
+    style: {
+      bgcolor: orange[600],
+      color: "white",
+      textTransform: "none",
+    },
+  };
+  const prop_scheduled = {
+    displayName: i18n.t("ssvcUtils.priority.scheduled.displayName", { ns: "utils" }),
+    icon: PriorityHighIcon,
+    statusLabel: i18n.t("ssvcUtils.priority.scheduled.statusLabel", { ns: "utils" }),
+    style: {
+      bgcolor: amber[600],
+      color: "white",
+      textTransform: "none",
+    },
+  };
+  const prop_defer = {
+    displayName: i18n.t("ssvcUtils.priority.defer.displayName", { ns: "utils" }),
+    icon: CheckIcon,
+    statusLabel: i18n.t("ssvcUtils.priority.defer.statusLabel", { ns: "utils" }),
+    style: {
+      bgcolor: grey[600],
+      color: "white",
+      textTransform: "none",
+    },
+  };
+  const prop_safe = {
+    chipLabel: i18n.t("ssvcUtils.priority.safe.chipLabel", { ns: "utils" }),
+    icon: HealthAndSafetyIcon,
+    statusLabel: i18n.t("ssvcUtils.priority.safe.statusLabel", { ns: "utils" }),
+    style: {
+      bgcolor: green[600],
+      color: "white",
+      textTransform: "none",
+    },
+  };
+  return {
+    immediate: prop_immediate,
+    Immediate: prop_immediate,
+    out_of_cycle: prop_out_of_cycle,
+    "Out-of-cycle": prop_out_of_cycle,
+    scheduled: prop_scheduled,
+    Scheduled: prop_scheduled,
+    defer: prop_defer,
+    Defer: prop_defer,
+    safe: prop_safe,
+    Safe: prop_safe,
+    empty: prop_defer,
+    Empty: prop_defer,
+  };
 };
 
 type SSVCPriority =
