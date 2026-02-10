@@ -1,7 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 import { systemExposure, missionImpact } from "../../utils/const";
 import { ssvcPriorityProps } from "../../utils/ssvcUtils";
-import { useTranslation } from "react-i18next";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
