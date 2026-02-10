@@ -2,6 +2,7 @@ import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrow
 import { Box, Button, TableCell, TableRow, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { ResponsiveDrawer } from "../../../components/ResponsiveDrawer";
@@ -11,6 +12,7 @@ import { TicketDetailView } from "../TicketDetailView";
 
 export function ToDoTableRow(props) {
   const { ticket, ssvcPriority } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTableRow" });
   const Icon = ssvcPriority.icon;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ export function ToDoTableRow(props) {
     displayAssignee,
   } = useTodoItemState(ticket);
 
-  const cveId = vuln?.cve_id || "No Known CVE";
+  const cveId = vuln?.cve_id || t("noKnownCve");
   const pteamName = pteam?.pteam_name || "-";
   const serviceName = service?.service_name || "-";
   const packageName = serviceDependency?.package_name || "-";
@@ -82,7 +84,7 @@ export function ToDoTableRow(props) {
               setOpen(true);
             }}
           >
-            Details
+            {t("details")}
           </Button>
         </TableCell>
       </TableRow>
@@ -90,7 +92,7 @@ export function ToDoTableRow(props) {
       <ResponsiveDrawer
         open={open}
         onClose={() => setOpen(false)}
-        title={`Ticket #${ticket.ticket_id || ""}`}
+        title={t("ticketTitle", { ticketId: ticket.ticket_id || "" })}
       >
         <TicketDetailView ticket={ticket} />
       </ResponsiveDrawer>

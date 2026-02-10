@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -9,6 +10,9 @@ import { commonButtonStyle } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 export function AcceptPTeamInvitation() {
+  const { t } = useTranslation("acceptPTeamInvitation", {
+    keyPrefix: "AcceptPTeamInvitationPage",
+  });
   const { enqueueSnackbar } = useSnackbar();
 
   const [applyPTeamInvitation] = useApplyPTeamInvitationMutation();
@@ -27,21 +31,21 @@ export function AcceptPTeamInvitation() {
 
   if (skip) return <></>;
   if (detailError)
-    throw new APIError("This invitation is invalid or already expired.", {
+    throw new APIError(t("invalidInvitation"), {
       api: "getPTeamInvitation",
     });
-  if (detailIsLoading) return <>Now loading user info...</>;
+  if (detailIsLoading) return <>{t("loadingUserInfo")}</>;
 
   const handleAccept = async (event) => {
     event.preventDefault();
     async function onSuccess(success) {
-      enqueueSnackbar(`Now you are a member of '${detail.pteam_name}'`, { variant: "info" });
+      enqueueSnackbar(t("nowMember", { pteamName: detail.pteam_name }), { variant: "info" });
       params.delete("token");
       params.set("pteamId", detail.pteam_id);
       navigate("/pteam?" + params.toString());
     }
     function onError(error) {
-      enqueueSnackbar(`Accepting invitation failed: ${errorToString(error)}`, { variant: "error" });
+      enqueueSnackbar(t("acceptFailed", { error: errorToString(error) }), { variant: "error" });
     }
     await applyPTeamInvitation({ body: { invitation_id: tokenId } })
       .unwrap()
@@ -51,15 +55,19 @@ export function AcceptPTeamInvitation() {
 
   return (
     <>
-      <Typography variant="h6">Do you accept the invitation to the team below?</Typography>
-      <Typography>Team Name: {detail.pteam_name}</Typography>
-      <Typography>Team ID: {detail.pteam_id}</Typography>
+      <Typography variant="h6">{t("title")}</Typography>
       <Typography>
-        Invitation created by {detail.email} ({detail.user_id})
+        {t("teamName")}: {detail.pteam_name}
+      </Typography>
+      <Typography>
+        {t("teamId")}: {detail.pteam_id}
+      </Typography>
+      <Typography>
+        {t("invitationCreatedBy")}: {detail.email} ({detail.user_id})
       </Typography>
       <Box display="flex" flexDirection="row">
         <Button onClick={handleAccept} disabled={!detail.pteam_id} sx={commonButtonStyle}>
-          Accept
+          {t("accept")}
         </Button>
       </Box>
     </>
