@@ -14,9 +14,6 @@
     "eol": "EOL",
     "todo": "ToDo"
   },
-  "LanguageSwitcher": {
-    "language": "言語:"
-  },
   "OutletWithCheckedParams": {
     "loading": "ユーザー情報を読み込んでいます..."
   },
