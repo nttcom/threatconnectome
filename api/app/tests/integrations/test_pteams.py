@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import models
 from app.constants import SYSTEM_EMAIL
 from app.main import app
-from app.notification.alert import (
+from app.notification.mail import (
     create_mail_to_notify_sbom_upload_failed,
     create_mail_to_notify_sbom_upload_succeeded,
 )
@@ -25,6 +25,7 @@ from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.common import ticket_utils
 from app.tests.medium.constants import (
     PTEAM1,
+    PTEAM2,
     SAMPLE_SLACK_WEBHOOK_URL,
     USER1,
     VULN1,
@@ -68,7 +69,7 @@ class TestGetVulnIdsTiedToServicePackage:
             json_data,
         )
 
-        # Create 2st ticket
+        # Create 2nd ticket
         service_name2 = "test_service2"
         upload_file_name = "test_trivy_cyclonedx_asynckit.json"
         sbom_file = (
@@ -384,7 +385,7 @@ class TestGetTicketCountsTiedToServicePackage:
             json_data,
         )
 
-        # Create 2st ticket
+        # Create 2nd ticket
         service_name2 = "test_service2"
         upload_file_name = "test_trivy_cyclonedx_asynckit.json"
         sbom_file = (
@@ -1253,6 +1254,47 @@ class TestPostUploadSBOMFileCycloneDX:
                     < now
                 )
 
+        def test_it_should_create_eol_dependency_when_ecosystem_matched(self, testdb):
+            # Given
+            update_request = {
+                "name": "ubuntu",
+                "product_category": models.ProductCategoryEnum.OS,
+                "description": "test_description",
+                "is_ecosystem": True,
+                "matching_name": "test_matching_name",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2020-04-23",
+                        "eol_from": "2025-05-31",
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+            client.put(f"/eols/{uuid4()}", headers=headers_with_api_key(USER1), json=update_request)
+
+            service_name1 = "test_service1"
+            upload_file_name = "trivy-ubuntu2004.cdx.json"
+            sbom_file = (
+                Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name
+            )
+            with open(sbom_file, "r") as sbom:
+                sbom_json = sbom.read()
+
+            # When
+            bg_create_tags_from_sbom_json(
+                sbom_json, self.pteam1.pteam_id, service_name1, upload_file_name
+            )
+
+            # Then
+            ecosystem_eol_dependency_1 = testdb.scalars(select(models.EcosystemEoLDependency)).one()
+
+            assert ecosystem_eol_dependency_1.service.service_name == service_name1
+            assert ecosystem_eol_dependency_1.eol_version.version == "20.04"
+            assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
+            assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
+            assert ecosystem_eol_dependency_1.eol_notification_sent is False
+
         @pytest.mark.parametrize(
             "enable_slack, expected_notify",
             [
@@ -1641,3 +1683,185 @@ class TestDeleteService:
             select(models.Package).where(models.Package.package_id == str(package_id))
         ).one_or_none()
         assert package is None
+
+
+class TestGetEolProductsWithPteamId:
+    @pytest.fixture(scope="function", autouse=True)
+    def common_setup(self):
+        create_user(USER1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
+
+        # Create EoL products
+        self.eol_product_id_1 = uuid4()
+        self.eol_product_1_request = {
+            "name": "product_1",
+            "product_category": models.ProductCategoryEnum.PACKAGE,
+            "description": "product 1 description",
+            "is_ecosystem": False,
+            "matching_name": "axios",
+            "eol_versions": [
+                {
+                    "version": "1.6.7",
+                    "release_date": "2020-01-01",
+                    "eol_from": "2025-01-01",
+                    "matching_version": "1.6.7",
+                },
+                {
+                    "version": "2.0.0",
+                    "release_date": "2022-01-01",
+                    "eol_from": "2030-01-01",
+                    "matching_version": "2.0.0",
+                },
+            ],
+        }
+
+        self.current_time = datetime.now(timezone.utc)
+        client.put(
+            f"/eols/{self.eol_product_id_1}",
+            headers=headers_with_api_key(USER1),
+            json=self.eol_product_1_request,
+        )
+
+        # Add package data to match with self.eol_product_1_request
+        self.service_name1 = "test_service1"
+        upload_file_name1 = "test_trivy_cyclonedx_axios.json"
+        sbom_file1 = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name1
+        )
+        with open(sbom_file1, "r") as sbom:
+            sbom_json1 = sbom.read()
+
+        bg_create_tags_from_sbom_json(
+            sbom_json1, self.pteam1.pteam_id, self.service_name1, upload_file_name1
+        )
+
+    def test_no_duplicate(self):
+        """
+        Verify that duplicate data retrieved via outer join in
+        `command.get_eol_products_associated_with_pteam_id` has been successfully removed.
+        """
+        # Given
+        service_name2 = "test_service2"
+        upload_file_name2 = "test_trivy_cyclonedx_axios.json"
+        sbom_file1 = (
+            Path(__file__).resolve().parent.parent / "common" / "upload_test" / upload_file_name2
+        )
+        with open(sbom_file1, "r") as sbom:
+            sbom_json2 = sbom.read()
+
+        bg_create_tags_from_sbom_json(
+            sbom_json2, self.pteam1.pteam_id, service_name2, upload_file_name2
+        )
+
+        # When
+        response = client.get(f"/pteams/{self.pteam1.pteam_id}/eols", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()["products"][0]
+        assert data["eol_product_id"] == str(self.eol_product_id_1)
+        assert data["name"] == self.eol_product_1_request["name"]
+        assert data["product_category"] == self.eol_product_1_request["product_category"]
+        assert data["description"] == self.eol_product_1_request["description"]
+        assert data["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
+        assert data["matching_name"] == self.eol_product_1_request["matching_name"]
+        assert (
+            data["eol_versions"][0]["version"]
+            == self.eol_product_1_request["eol_versions"][0]["version"]
+        )
+        assert (
+            data["eol_versions"][0]["release_date"]
+            == self.eol_product_1_request["eol_versions"][0]["release_date"]
+        )
+        assert (
+            data["eol_versions"][0]["eol_from"]
+            == self.eol_product_1_request["eol_versions"][0]["eol_from"]
+        )
+        assert (
+            data["eol_versions"][0]["matching_version"]
+            == self.eol_product_1_request["eol_versions"][0]["matching_version"]
+        )
+        assert (
+            self.current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(data["eol_versions"][0]["created_at"].replace("Z", "+00:00"))
+            <= self.current_time + timedelta(seconds=10)
+        )
+        assert (
+            self.current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(data["eol_versions"][0]["updated_at"].replace("Z", "+00:00"))
+            <= self.current_time + timedelta(seconds=10)
+        )
+        assert data["eol_versions"][0]["services"][0]["service_name"] in [
+            self.service_name1,
+            service_name2,
+        ]
+        assert data["eol_versions"][0]["services"][1]["service_name"] in [
+            self.service_name1,
+            service_name2,
+        ]
+
+    def test_do_not_get_eol_products_not_associated_with_pteam_id(self):
+        # Given
+        pteam2 = create_pteam(USER1, PTEAM2)
+
+        # When
+        response = client.get(f"/pteams/{pteam2.pteam_id}/eols", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        assert response.json()["total"] == 0
+        assert response.json()["products"] == []
+
+    def test_both_eol_product_and_eol_version_are_linked_to_pteam_id(self):
+        """
+        The “version”: “2.0.0” included in eol_product_1_request
+        is not included in the GET API response.
+        """
+        # When
+        response = client.get(f"/pteams/{self.pteam1.pteam_id}/eols", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["products"][0]["eol_product_id"] == str(self.eol_product_id_1)
+        assert data["products"][0]["name"] == self.eol_product_1_request["name"]
+        assert (
+            data["products"][0]["product_category"]
+            == self.eol_product_1_request["product_category"]
+        )
+        assert data["products"][0]["description"] == self.eol_product_1_request["description"]
+        assert data["products"][0]["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
+        assert data["products"][0]["matching_name"] == self.eol_product_1_request["matching_name"]
+
+        assert len(data["products"][0]["eol_versions"]) == 1
+        assert (
+            data["products"][0]["eol_versions"][0]["version"]
+            == self.eol_product_1_request["eol_versions"][0]["version"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["release_date"]
+            == self.eol_product_1_request["eol_versions"][0]["release_date"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["eol_from"]
+            == self.eol_product_1_request["eol_versions"][0]["eol_from"]
+        )
+        assert (
+            data["products"][0]["eol_versions"][0]["matching_version"]
+            == self.eol_product_1_request["eol_versions"][0]["matching_version"]
+        )
+        assert (
+            self.current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["created_at"].replace("Z", "+00:00")
+            )
+            <= self.current_time + timedelta(seconds=10)
+        )
+        assert (
+            self.current_time - timedelta(seconds=10)
+            <= datetime.fromisoformat(
+                data["products"][0]["eol_versions"][0]["updated_at"].replace("Z", "+00:00")
+            )
+            <= self.current_time + timedelta(seconds=10)
+        )

@@ -1,16 +1,19 @@
-import os
-from urllib.parse import urlencode, urljoin
-from uuid import UUID
-
 from email_validator import validate_email
 
 from app import models
 from app.constants import SYSTEM_EMAIL
+from app.notification.mail import (
+    create_mail_alert_for_new_vuln,
+    create_mail_to_notify_eol,
+    create_mail_to_notify_sbom_upload_failed,
+    create_mail_to_notify_sbom_upload_succeeded,
+)
 from app.notification.sendgrid import (
     ready_to_send_email,
     send_email,
 )
 from app.notification.slack import (
+    create_slack_blocks_to_notify_eol,
     create_slack_blocks_to_notify_sbom_upload_failed,
     create_slack_blocks_to_notify_sbom_upload_succeeded,
     create_slack_pteam_alert_blocks_for_new_vuln,
@@ -29,64 +32,6 @@ def _ready_alert_by_email() -> bool:
         return False
 
     return True
-
-
-def _package_page_link(pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str) -> str:
-    return urljoin(
-        os.getenv("WEBUI_URL", "http://localhost"),
-        f"/packages/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
-    )
-
-
-def _pteam_service_tab_link(pteam_id: UUID | str, service_id: UUID | str) -> str:
-    baseurl = os.getenv("WEBUI_URL", "http://localhost")
-    baseurl += "" if baseurl.endswith("/") else "/"
-    params = {"pteamId": str(pteam_id), "serviceId": str(service_id)}
-    encoded_params = urlencode(params)
-    return urljoin(baseurl, f"?{encoded_params}")
-
-
-def create_mail_alert_for_new_vuln(
-    vuln_title: str,
-    ssvc_priority: models.SSVCDeployerPriorityEnum,
-    pteam_name: str,
-    pteam_id: UUID | str,
-    package_name: str,
-    ecosystem: str,
-    package_manager: str,
-    package_id: UUID | str,
-    service_id: UUID | str,
-    services: list[str],
-) -> tuple[str, str]:  # subject, body
-    # TODO
-    # this mail-spacific-method should be divided away from this file, but to where?
-    ssvc_priority_label = {
-        models.SSVCDeployerPriorityEnum.IMMEDIATE: "Immediate",
-        models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: "Out-of-cycle",
-        models.SSVCDeployerPriorityEnum.SCHEDULED: "Scheduled",
-        models.SSVCDeployerPriorityEnum.DEFER: "Defer",
-    }.get(ssvc_priority) or "Defer"
-    subject = f"[Tc Alert] {ssvc_priority_label}: {vuln_title}"
-    body = "<br>".join(
-        [
-            "A new vuln created.",
-            "",
-            f"Title: {vuln_title}",
-            f"SSVC Priority: {ssvc_priority_label}",
-            "",
-            f"Team: {pteam_name}",
-            f"Services: {', '.join(services)}",
-            f"Package: {package_name}",
-            f"Ecosystem: {ecosystem}",
-            f"Package Manager: {package_manager}",
-            "",
-            (
-                f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
-                " Package page</a>"
-            ),
-        ]
-    )
-    return subject, body
 
 
 def send_alert_to_pteam(alert: models.Alert) -> None:
@@ -140,49 +85,6 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
             pass
 
 
-def create_mail_to_notify_sbom_upload_succeeded(
-    pteam_id: UUID | str,
-    pteam_name: str,
-    service_id: UUID | str,
-    service_name: str,
-    filename: str | None,
-) -> tuple[str, str]:  # subject, body
-    # TODO
-    # this mail-spacific-method should be divided away from this file, but to where?
-    subject = f"[Tc Info] SBOM uploaded as a service: {service_name}"
-    body = "<br>".join(
-        [
-            "SBOM upload successfully ended.",
-            "",
-            f"PTeamName: {pteam_name}",
-            f"ServiceName: {service_name}",
-            "",
-            f"<a href={_pteam_service_tab_link(pteam_id, service_id)}>Link to the service tab</a>",
-            "",
-            f"UploadedFilename: {filename or '(unknown)'}",
-        ]
-    )
-    return subject, body
-
-
-def create_mail_to_notify_sbom_upload_failed(
-    service_name: str,
-    filename: str | None,
-) -> tuple[str, str]:  # subject, body
-    # TODO
-    # this mail-spacific-method should be divided away from this file, but to where?
-    subject = f"[Tc Error] SBOM upload failed as a service: {service_name}"
-    body = "<br>".join(
-        [
-            "SBOM upload failed.",
-            "",
-            f"ServiceName: {service_name}",
-            f"UploadedFilename: {filename or '(unknown)'}",
-        ]
-    )
-    return subject, body
-
-
 def notify_sbom_upload_ended(
     service: models.Service,
     filename: str | None,
@@ -231,3 +133,96 @@ def notify_sbom_upload_ended(
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
         except Exception:
             pass
+
+
+def _send_eol_notifications(
+    pteam: models.PTeam,
+    notification_sent: bool,
+    service_name: str,
+    product_name: str,
+    version: str,
+    eol_from: str,
+) -> bool:
+    # check alert settings
+    send_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
+    send_by_mail = _ready_alert_by_email() and pteam.alert_mail.enable and pteam.alert_mail.address
+
+    if not send_by_slack and not send_by_mail:
+        return False
+
+    if notification_sent:
+        return False
+
+    success = False
+    last_exc: Exception | None = None
+    if send_by_slack:
+        try:
+            slack_message_blocks = create_slack_blocks_to_notify_eol(
+                pteam.pteam_id,
+                pteam.pteam_name,
+                service_name,
+                product_name,
+                version,
+                eol_from,
+            )
+            send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
+            success = True
+        except Exception as e:
+            last_exc = e
+
+    if send_by_mail:
+        try:
+            mail_subject, mail_body = create_mail_to_notify_eol(
+                pteam.pteam_id,
+                pteam.pteam_name,
+                service_name,
+                product_name,
+                version,
+                eol_from,
+            )
+            send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
+            success = True
+        except Exception as e:
+            last_exc = e
+
+    if success:
+        return True
+
+    if last_exc:
+        raise last_exc
+
+    return False
+
+
+def notify_eol_ecosystem(
+    ecosystem_eol_dependency: models.EcosystemEoLDependency,
+) -> bool:
+    service = ecosystem_eol_dependency.service
+    pteam = service.pteam
+    eol_version = ecosystem_eol_dependency.eol_version
+
+    return _send_eol_notifications(
+        pteam=pteam,
+        notification_sent=ecosystem_eol_dependency.eol_notification_sent,
+        service_name=service.service_name,
+        product_name=eol_version.eol_product.name,
+        version=eol_version.version,
+        eol_from=eol_version.eol_from.isoformat(),
+    )
+
+
+def notify_eol_package(
+    package_eol_dependency: models.PackageEoLDependency,
+) -> bool:
+    service = package_eol_dependency.dependency.service
+    pteam = service.pteam
+    eol_version = package_eol_dependency.eol_version
+
+    return _send_eol_notifications(
+        pteam=pteam,
+        notification_sent=package_eol_dependency.eol_notification_sent,
+        service_name=service.service_name,
+        product_name=eol_version.eol_product.name,
+        version=eol_version.version,
+        eol_from=eol_version.eol_from.isoformat(),
+    )

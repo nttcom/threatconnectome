@@ -15,11 +15,13 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
 
 export function SignUp() {
+  const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
   const [message, setMessage] = useState("");
   const [values, setValues] = useState({
     edited: new Set(),
@@ -53,9 +55,9 @@ export function SignUp() {
         // TODO: should care about supabase + ENABLE_EMAIL_AUTO_CONFIRM=false?
       ) {
         await sendEmailVerification({ actionCodeSettings: null });
-        setMessage("An email for verification was sent to your address.");
+        setMessage(t("verificationEmailSent"));
       } else {
-        setMessage("Signed up successfully.");
+        setMessage(t("signUpSuccess"));
       }
       setDisabled(true);
     } catch (error) {
@@ -95,7 +97,7 @@ export function SignUp() {
             autoComplete="email"
             error={values.edited.has("email") && !values.email.match(/^.+@.+$/)}
             fullWidth
-            label="Email Address"
+            label={t("emailAddress")}
             margin="normal"
             onChange={handleChange("email")}
             required
@@ -103,12 +105,12 @@ export function SignUp() {
             inputProps={{ pattern: "^.+@.+$" }}
           />
 
-          <Tooltip arrow placement="bottom-end" title="Password should be at least 8 characters.">
+          <Tooltip arrow placement="bottom-end" title={t("passwordRequirement")}>
             <TextField
               autoComplete="new-password"
               error={values.edited.has("password") && values.password.length < 8}
               fullWidth
-              label="Password"
+              label={t("password")}
               margin="normal"
               onChange={handleChange("password")}
               required
@@ -134,20 +136,19 @@ export function SignUp() {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign up
+            {t("signUp")}
           </Button>
         </Box>
         <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
           <Link component="button" onClick={handleLogIn} variant="body1">
-            Back to log in
+            {t("backToLogIn")}
           </Link>
         </Box>
         <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
           <Typography>{message}</Typography>
         </Box>
         <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
-          This service is in closed beta. SIGNUP is only available for email addresses of authorized
-          organizations.
+          {t("betaNotice")}
         </Typography>
       </Container>
     </>

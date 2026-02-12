@@ -1,4 +1,9 @@
-import { Groups as GroupsIcon, Home as HomeIcon, Topic as TopicIcon } from "@mui/icons-material";
+import {
+  Event as EventIcon,
+  Groups as GroupsIcon,
+  Home as HomeIcon,
+  Topic as TopicIcon,
+} from "@mui/icons-material";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import {
   Drawer as MuiDrawer,
@@ -13,6 +18,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -30,6 +36,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 export function Drawer() {
+  const { t } = useTranslation("app", { keyPrefix: "Drawer" });
   const location = useLocation();
   const locationReader = new LocationReader(location);
   const navigate = useNavigate();
@@ -84,8 +91,6 @@ export function Drawer() {
     };
   }, [isLgUp, isSmDown, dispatch]);
 
-  const drawerTitle = "Threatconnectome";
-
   return (
     <MuiDrawer
       anchor="left"
@@ -108,7 +113,7 @@ export function Drawer() {
     >
       <DrawerHeader>
         <Typography onClick={handleNavigateTop} variant="h7" sx={{ fontWeight: 700 }}>
-          {drawerTitle}
+          {t("title")}
         </Typography>
       </DrawerHeader>
       <Box
@@ -126,7 +131,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <HomeIcon />
             </StyledListItemIcon>
-            <ListItemText>Status</ListItemText>
+            <ListItemText>{t("status")}</ListItemText>
           </StyledListItemButton>
           <StyledListItemButton
             onClick={() => navigate("/pteam?" + cleanedQueryParams)}
@@ -135,7 +140,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <GroupsIcon />
             </StyledListItemIcon>
-            <ListItemText>Team</ListItemText>
+            <ListItemText>{t("team")}</ListItemText>
           </StyledListItemButton>
           {/* Vulns */}
           <StyledListItemButton
@@ -145,9 +150,18 @@ export function Drawer() {
             <StyledListItemIcon>
               <TopicIcon />
             </StyledListItemIcon>
-            <ListItemText>Vulns</ListItemText>
+            <ListItemText>{t("vulns")}</ListItemText>
           </StyledListItemButton>
-          {/* Vulnerabilities -- not listed on drawer, currently */}
+          {/* EoL */}
+          <StyledListItemButton
+            onClick={() => navigate("/eol?" + cleanedQueryParams)}
+            selected={locationReader.isEoLPage()}
+          >
+            <StyledListItemIcon>
+              <EventIcon />
+            </StyledListItemIcon>
+            <ListItemText>{t("eol")}</ListItemText>
+          </StyledListItemButton>
           {/* ToDo */}
           <StyledListItemButton
             onClick={() => navigate("/todo?" + cleanedQueryParams)}
@@ -156,7 +170,7 @@ export function Drawer() {
             <StyledListItemIcon>
               <FormatListBulletedIcon />
             </StyledListItemIcon>
-            <ListItemText>ToDo</ListItemText>
+            <ListItemText>{t("todo")}</ListItemText>
           </StyledListItemButton>
         </List>
       </Box>

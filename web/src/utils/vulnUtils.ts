@@ -1,4 +1,5 @@
-import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen.ts";
+import { VulnResponse, VulnerablePackageResponse } from "../../types/types.gen";
+import i18n from "i18next";
 
 interface currentPackage {
   package_name: string;
@@ -16,11 +17,24 @@ export const createUpdateAction = (
   packageName: string,
 ) => {
   if (fixedVersions && fixedVersions.length > 0) {
-    if (affectedVersions && affectedVersions.length > 0) {
-      return `Update ${packageName} from [${affectedVersions.join(", ")}] to [${fixedVersions.join(", ")}]`;
-    } else {
-      return `Update ${packageName} to version [${fixedVersions.join(", ")}]`;
+    const fromBracketed =
+      affectedVersions && affectedVersions.length > 0 ? `[${affectedVersions.join(", ")}]` : null;
+    const toBracketed = `[${fixedVersions.join(", ")}]`;
+
+    if (fromBracketed) {
+      return i18n.t("vulnUtils.updateFromTo", {
+        ns: "utils",
+        package: packageName,
+        from: fromBracketed,
+        to: toBracketed,
+      });
     }
+
+    return i18n.t("vulnUtils.updateToVersion", {
+      ns: "utils",
+      package: packageName,
+      to: toBracketed,
+    });
   }
 
   return null;

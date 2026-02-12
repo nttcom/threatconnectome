@@ -8,6 +8,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import storybook from "eslint-plugin-storybook";
 import unusedImports from "eslint-plugin-unused-imports";
+import cspellPlugin from "@cspell/eslint-plugin";
 import globals from "globals";
 import parser from "@typescript-eslint/parser";
 import typescriptPlugin from "@typescript-eslint/eslint-plugin";
@@ -49,6 +50,7 @@ export default [
       "react-refresh": reactRefresh,
       vitest,
       "unused-imports": unusedImports,
+      "@cspell": cspellPlugin,
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -62,6 +64,7 @@ export default [
       "react/no-unused-prop-types": ["error"],
       "unused-imports/no-unused-imports": "error",
       "no-unused-vars": "off",
+      "@cspell/spellchecker": ["warn"],
       "import/order": [
         "error",
         {
@@ -116,11 +119,13 @@ export default [
       vitest,
       "unused-imports": unusedImports,
       "@typescript-eslint": typescriptPlugin,
+      "@cspell": cspellPlugin,
     },
     rules: {
       ...typescriptPlugin.configs.recommended.rules,
       "unused-imports/no-unused-imports": "error",
       "no-unused-vars": "off",
+      "@cspell/spellchecker": ["warn"],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

@@ -1,10 +1,4 @@
-import CheckIcon from "@mui/icons-material/Check";
-import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
-import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
-import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
-import WarningIcon from "@mui/icons-material/Warning";
 import {
-  amber,
   blueGrey,
   brown,
   green,
@@ -15,6 +9,7 @@ import {
   teal,
   yellow,
 } from "@mui/material/colors";
+import i18n from "i18next";
 
 export const drawerWidth = 200;
 
@@ -40,66 +35,6 @@ export const experienceColors = {
   7: red[500],
 };
 
-export const threatImpactNames = {
-  1: "immediate",
-  2: "offcycle",
-  3: "acceptable",
-  4: "none",
-};
-
-export const threatImpactProps = {
-  immediate: {
-    chipLabel: "Immediate",
-    icon: RunningWithErrorsIcon,
-    statusLabel: "Your pteam has a immediate",
-    style: {
-      bgcolor: red[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  offcycle: {
-    chipLabel: "Off-cycle",
-    icon: WarningIcon,
-    statusLabel: "Your pteam has a off-cycle",
-    style: {
-      bgcolor: orange[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  acceptable: {
-    chipLabel: "Acceptable",
-    icon: PriorityHighIcon,
-    statusLabel: "Your pteam has a acceptable",
-    style: {
-      bgcolor: amber[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  none: {
-    chipLabel: "None",
-    icon: CheckIcon,
-    statusLabel: "Your pteam has none",
-    style: {
-      bgcolor: grey[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-  safe: {
-    chipLabel: "Safe",
-    icon: HealthAndSafetyIcon,
-    statusLabel: "Your pteam has safe",
-    style: {
-      bgcolor: green[600],
-      color: "white",
-      textTransform: "none",
-    },
-  },
-};
-
 export const sortedSystemExposure = ["open", "controlled", "small"];
 export const systemExposure = {
   open: "Open",
@@ -107,7 +42,7 @@ export const systemExposure = {
   small: "Small",
 };
 
-export const sortedMissionImpat = [
+export const sortedMissionImpact = [
   "mission_failure",
   "mef_failure",
   "mef_support_crippled",
@@ -128,6 +63,7 @@ export const sortedSafetyImpacts = [
   "marginal",
   "negligible",
 ];
+
 const propSafetyImpactCatastrophic = {
   displayName: "Catastrophic",
 };
@@ -247,7 +183,7 @@ export const sxModal = {
   p: 4,
 };
 
-export const noPTeamMessage = "You do not belong to any pteam. Please create a pteam.";
+export const getNoPTeamMessage = () => i18n.t("const.noPTeamMessage", { ns: "utils" });
 
 export const drawerParams = {
   mainColor: brown[900],

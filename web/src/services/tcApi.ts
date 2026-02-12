@@ -4,13 +4,15 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import Firebase from "../utils/Firebase.js";
 // @ts-expect-error TS7016
 import Supabase from "../utils/Supabase.js";
-// @ts-expect-error TS7016
-import { blobToDataURL } from "../utils/func.js";
+import { blobToDataURL } from "../utils/func";
 
 import type {
   CreateLogActionlogsPostData,
   ActionLogResponse,
   DependencyResponse,
+  EoLProductListResponse,
+  PTeamEoLProductListResponse,
+  GetEolProductsWithPteamIdPteamsPteamIdEolsGetData,
   PTeamInfo,
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
@@ -60,11 +62,12 @@ import type {
   PteamMemberGetResponse,
   VulnResponse,
   GetVulnVulnsVulnIdGetData,
-} from "../../types/types.gen.ts";
+} from "../../types/types.gen";
 
 const TAG_TYPES_LIST = [
   "Service",
   "Dependency",
+  "EoLDependency",
   "Threat",
   "Ticket",
   "TicketStatus",
@@ -77,6 +80,11 @@ const TAG_TYPES_LIST = [
 ] as const;
 
 type AllowedTagTypes = (typeof TAG_TYPES_LIST)[number];
+
+type GetPTeamEoLsRequestQuery = Pick<
+  GetEolProductsWithPteamIdPteamsPteamIdEolsGetData,
+  "path"
+>["path"];
 
 const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
@@ -146,6 +154,13 @@ export const tcApi = createApi({
       ],
     }),
 
+    /* EoL */
+    getEoLs: builder.query<EoLProductListResponse, void>({
+      query: () => ({
+        url: "eols",
+      }),
+    }),
+
     /* Insight  */
     getInsight: builder.query<InsightResponse, GetInsightTicketsTicketIdInsightGetData>({
       query: (arg) => `tickets/${arg.path.ticket_id}/insight`,
@@ -184,6 +199,14 @@ export const tcApi = createApi({
         { type: "PTeam", id: _arg.path.pteam_id },
         { type: "PTeam", id: "ALL" },
       ],
+    }),
+
+    /* PTeam EoL */
+    getPTeamEoLs: builder.query<PTeamEoLProductListResponse, GetPTeamEoLsRequestQuery>({
+      query: (arg) => ({
+        url: `pteams/${arg.pteam_id}/eols`,
+      }),
+      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
     }),
 
     /* PTeam Invitation */
@@ -432,7 +455,10 @@ export const tcApi = createApi({
           /* Note: Content-Type is fixed to multipart/form-data automatically. */
         };
       },
-      invalidatesTags: (_result, _error, _arg) => [{ type: "Service", id: "ALL" }],
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "EoLDependency", id: "ALL" },
+      ],
     }),
 
     /* Ticket */
@@ -589,9 +615,11 @@ export const {
   useGetDependenciesQuery,
   useGetDependencyQuery,
   useGetInsightQuery,
+  useGetEoLsQuery,
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
+  useGetPTeamEoLsQuery,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
   useApplyPTeamInvitationMutation,

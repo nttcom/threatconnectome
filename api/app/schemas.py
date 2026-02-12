@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from uuid import UUID
 
@@ -12,6 +12,7 @@ from app.models import (
     ImpactCategoryEnum,
     MissionImpactEnum,
     ObjectCategoryEnum,
+    ProductCategoryEnum,
     SafetyImpactEnum,
     SSVCDeployerPriorityEnum,
     SystemExposureEnum,
@@ -415,3 +416,71 @@ class DependencyResponse(ORMModel):
     package_version: str
     package_ecosystem: str
     vuln_matching_ecosystem: str
+
+
+class EoLVersionRequest(ORMModel):
+    version: str
+    release_date: date
+    eol_from: date
+    matching_version: str
+
+
+class EoLProductRequest(ORMModel):
+    name: str | None = None
+    product_category: ProductCategoryEnum | None = None
+    description: str | None = None
+    is_ecosystem: bool | None = None
+    matching_name: str | None = None
+    eol_versions: list[EoLVersionRequest] = []
+
+
+class ServiceEntry(ORMModel):
+    service_id: UUID
+    service_name: str
+
+
+class EoLVersionResponseBase(ORMModel):
+    eol_version_id: UUID
+    version: str
+    release_date: date | None
+    eol_from: date
+    matching_version: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class EoLVersionResponse(EoLVersionResponseBase):
+    pass
+
+
+class PTeamEoLVersionResponse(EoLVersionResponseBase):
+    services: list[ServiceEntry]
+
+
+class EoLProductResponseBase(ORMModel):
+    eol_product_id: UUID
+    name: str
+    product_category: ProductCategoryEnum
+    description: str | None
+    is_ecosystem: bool
+    matching_name: str
+
+
+class EoLProductResponse(EoLProductResponseBase):
+    eol_versions: list[EoLVersionResponse] = []
+
+
+class PTeamEoLProductResponse(EoLProductResponseBase):
+    eol_versions: list[PTeamEoLVersionResponse] = []
+
+
+class EoLProductListResponseBase(BaseModel):
+    total: int
+
+
+class EoLProductListResponse(EoLProductListResponseBase):
+    products: list[EoLProductResponse]
+
+
+class PTeamEoLProductListResponse(EoLProductListResponseBase):
+    products: list[PTeamEoLProductResponse]

@@ -20,7 +20,7 @@ services:
       SUPABASE_URL: http://kong:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
-      VULN_API_KEY: ${VULN_API_KEY}
+      SYSTEM_API_KEY: ${SYSTEM_API_KEY}
     labels:
       - traefik.http.routers.api.entrypoints=http
       - traefik.http.routers.api.priority=10

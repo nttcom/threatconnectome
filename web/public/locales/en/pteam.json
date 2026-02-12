@@ -1,0 +1,57 @@
+{
+  "PTeamPage": {
+    "nowLoadingMembers": "Now loading Members...",
+    "experience_years_one": "{{count}}+ year experience",
+    "experience_years_other": "{{count}}+ years experience",
+    "tabMembers": "Members"
+  },
+  "PTeamInviteModal": {
+    "createNewInvitationLink": "Create New Invitation Link",
+    "pleaseShareLink": "Please share the invitation link below:",
+    "linkAvailableUntil": "This link is available until {{date}}",
+    "close": "Close",
+    "expirationDate": "Expiration Date (future date)",
+    "maxUses": "Max uses: {{count}}",
+    "unlimited": "unlimited",
+    "create": "Create",
+    "createInvitationFailed": "Creating invitation failed: {{error}}",
+    "createInvitationSucceeded": "Create new invitation succeeded"
+  },
+  "PTeamMemberRemoveModal": {
+    "confirm": "Confirm",
+    "confirmRemove": "Are you sure you want to remove {{userName}} from the pteam {{pteamName}}?",
+    "remove": "Remove",
+    "removeMemberSucceeded": "Remove member succeeded",
+    "removeMemberFailed": "Remove member failed: {{error}}"
+  },
+  "PTeamMember": {
+    "addMember": "Add member",
+    "userEmail": "USER(EMAIL)",
+    "experienceInSecOps": "EXPERIENCE in SecOps",
+    "actions": "ACTIONS",
+    "experienceLabel": "Experience in SecOps:",
+    "yearsPlus": "{{years}}+"
+  },
+  "PTeamMemberMenu": {
+    "nowLoadingUserInfo": "Now loading UserInfo...",
+    "nowLoadingTeam": "Now loading Team...",
+    "authorities": "Authorities",
+    "removeFromTeam": "Remove from Team"
+  },
+  "PTeamAuthEditor": {
+    "authorityTitle": "Authority: {{userEmail}}",
+    "user": "User",
+    "authority": "Authority",
+    "description": "Description",
+    "administrator": "Administrator",
+    "adminDescription": "To administrate the pteam.",
+    "updateSucceeded": "Update pteam authority succeeded",
+    "updateFailed": "Update pteam authority failed: {{error}}"
+  },
+  "UpdateAuthButton": {
+    "update": "Update"
+  },
+  "CopiedIcon": {
+    "tooltipCopied": "Copied!"
+  }
+}

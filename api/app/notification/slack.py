@@ -12,6 +12,7 @@ WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
 PACKAGE_URL = urljoin(WEBUI_URL, "packages/")
+EOL_URL = urljoin(WEBUI_URL, "eol/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
@@ -141,4 +142,39 @@ def create_slack_blocks_to_notify_sbom_upload_failed(
                 },
             ]
         )
+    return blocks
+
+
+def create_slack_blocks_to_notify_eol(
+    pteam_id: str,
+    pteam_name: str,
+    service_name: str,
+    product_name: str,
+    version: str,
+    eol_from: str,
+):
+    blocks: list[dict[str, str | dict | list]] = _block_header(
+        text=":warning: Action Required: migrate/upgrade to a supported version"
+    )
+
+    url = urljoin(EOL_URL, f"?pteamId={pteam_id}")
+    blocks.extend(
+        [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"EOL (End of Life) reached on *<{eol_from}>* (no more security fixes)\n\n"
+                        f"• *Service:* {service_name}\n"
+                        f"• *Team:* {pteam_name}\n"
+                        f"• *Product:* {product_name}\n"
+                        f"• *Current Version:* {version}\n"
+                        f"• *EOL Date:* {eol_from}\n"
+                        f"• *Reference:* {url}"
+                    ),
+                },
+            },
+        ]
+    )
     return blocks

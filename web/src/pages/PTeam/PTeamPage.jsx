@@ -1,5 +1,6 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
 import { PTeamLabel } from "../../components/PTeamLabel";
@@ -7,12 +8,13 @@ import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { experienceColors, noPTeamMessage } from "../../utils/const";
-import { a11yProps, errorToString } from "../../utils/func.js";
+import { experienceColors, getNoPTeamMessage } from "../../utils/const";
+import { a11yProps, errorToString } from "../../utils/func";
 
 import { PTeamMember } from "./PTeamMember.jsx";
 
 export function PTeam() {
+  const { t } = useTranslation("pteam", { keyPrefix: "PTeamPage" });
   const [tabValue, setTabValue] = useState(0);
 
   const location = useLocation();
@@ -26,7 +28,7 @@ export function PTeam() {
     isLoading: membersIsLoading,
   } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId } }, { skip });
 
-  if (!pteamId) return <>{noPTeamMessage}</>;
+  if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skip) return <></>;
 
   if (membersError)
@@ -34,7 +36,7 @@ export function PTeam() {
       api: "getPTeamMembers",
     });
 
-  if (membersIsLoading) return <>Now loading Members...</>;
+  if (membersIsLoading) return <>{t("nowLoadingMembers")}</>;
 
   const tabHandleChange = (event, newValue) => {
     setTabValue(newValue);
@@ -53,7 +55,7 @@ export function PTeam() {
                   <Tooltip
                     arrow
                     placement="bottom-start"
-                    title={`${maxYears}+ year${maxYears ? "s" : ""} experience`}
+                    title={t("experience_years", { count: maxYears })}
                   >
                     <Avatar
                       variant="rounded"
@@ -74,7 +76,7 @@ export function PTeam() {
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={tabValue} onChange={tabHandleChange} aria-label="pteam tabs">
-            <Tab label="Members" {...a11yProps(0)} />
+            <Tab label={t("tabMembers")} {...a11yProps(0)} />
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>

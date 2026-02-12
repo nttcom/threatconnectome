@@ -13,10 +13,12 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
 
 export default function ResetPasswordForm(props) {
+  const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState(null);
@@ -29,7 +31,7 @@ export default function ResetPasswordForm(props) {
     setDisabled(true);
     await verifyPasswordResetCode({ actionCode: oobCode })
       .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: password }))
-      .then(() => setMessage("update password success"))
+      .then(() => setMessage(t("success")))
       .catch((error) => {
         console.error(error);
         setMessage(error.message);
@@ -37,22 +39,22 @@ export default function ResetPasswordForm(props) {
   }
 
   if (import.meta.env.VITE_AUTH_SERVICE === "supabase") {
-    return <>Sorry. Resetting password is not supported for supabase, currently.</>;
+    return <>{t("notSupported")}</>;
   }
   if (!oobCode) {
-    return <>Missing oobCode</>;
+    return <>{t("missingCode")}</>;
   }
 
   return (
     <Box alignItems="center" display="flex" flexDirection="column">
       <Typography variant="h5" my={2}>
-        Reset Password
+        {t("title")}
       </Typography>
-      <Tooltip arrow placement="bottom-end" title="Password should be at least 8 characters.">
+      <Tooltip arrow placement="bottom-end" title={t("passwordHint")}>
         <TextField
           autoComplete="new-password"
           error={password.length < 8}
-          label="New Password"
+          label={t("newPassword")}
           margin="normal"
           onChange={(event) => setPassword(event.target.value)}
           required
@@ -79,7 +81,7 @@ export default function ResetPasswordForm(props) {
         variant="contained"
         sx={{ my: 2 }}
       >
-        Submit
+        {t("submit")}
       </Button>
       <Box mt={3}>
         <Typography>{message}</Typography>

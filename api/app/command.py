@@ -515,6 +515,19 @@ TICKETS_SORT_KEYS = {
 }
 
 
+def get_related_package_versions_by_eol_version_for_ecosystem(
+    db: Session,
+    eol_version: models.EoLVersion,
+) -> Sequence[models.PackageVersion]:
+    select_stmt = (
+        select(models.PackageVersion)
+        .join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
+        .where(models.Package.vuln_matching_ecosystem == str(eol_version.matching_version))
+    )
+
+    return db.scalars(select_stmt).all()
+
+
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],
@@ -624,3 +637,96 @@ def get_sorted_paginated_tickets_for_pteams(
     total_count = db.scalar(count_stmt) or 0
 
     return total_count, tickets
+
+
+def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str) -> dict:
+    """
+    Get the EoLProducts associated with pteam_id
+    """
+    # Need to join all tables involved in the OR condition
+    # Path 1: EoLVersion -> PackageEoLDependency -> Dependency -> Service
+    # Path 2: EoLVersion -> EcosystemEoLDependency -> Service
+
+    # --- Step 1: Aggregate the service list by eol_version (CTE) ---
+    subquery = (
+        select(
+            models.EoLVersion.eol_version_id,
+            models.EoLVersion.eol_product_id,
+            models.EoLVersion.version,
+            models.EoLVersion.release_date,
+            models.EoLVersion.eol_from,
+            models.EoLVersion.matching_version,
+            models.EoLVersion.created_at,
+            models.EoLVersion.updated_at,
+            func.jsonb_agg(
+                func.jsonb_build_object(
+                    "service_id",
+                    models.Service.service_id,
+                    "service_name",
+                    models.Service.service_name,
+                ).distinct()
+            ).label("services_json"),
+        )
+        .outerjoin(
+            models.PackageEoLDependency,
+            models.PackageEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+        )
+        .outerjoin(
+            models.Dependency,
+            models.Dependency.dependency_id == models.PackageEoLDependency.dependency_id,
+        )
+        .outerjoin(
+            models.EcosystemEoLDependency,
+            models.EcosystemEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+        )
+        .join(
+            models.Service,
+            or_(
+                models.Service.service_id == models.Dependency.service_id,
+                models.Service.service_id == models.EcosystemEoLDependency.service_id,
+            ),
+        )
+        .where(models.Service.pteam_id == str(pteam_id))
+        .group_by(models.EoLVersion.eol_version_id)
+    ).cte("version_services")
+
+    # --- Step 2: Aggregate eol_versions per eol_product ---
+    stmt = (
+        select(
+            models.EoLProduct.eol_product_id,
+            models.EoLProduct.name,
+            models.EoLProduct.product_category,
+            models.EoLProduct.description,
+            models.EoLProduct.is_ecosystem,
+            models.EoLProduct.matching_name,
+            func.jsonb_agg(
+                func.jsonb_build_object(
+                    "eol_version_id",
+                    subquery.c.eol_version_id,
+                    "version",
+                    subquery.c.version,
+                    "release_date",
+                    func.to_jsonb(subquery.c.release_date),
+                    "eol_from",
+                    func.to_jsonb(subquery.c.eol_from),
+                    "matching_version",
+                    subquery.c.matching_version,
+                    "created_at",
+                    func.to_jsonb(subquery.c.created_at),
+                    "updated_at",
+                    func.to_jsonb(subquery.c.updated_at),
+                    "services",
+                    subquery.c.services_json,
+                )
+            ).label("eol_versions"),
+        )
+        .join(subquery, subquery.c.eol_product_id == models.EoLProduct.eol_product_id)
+        .group_by(models.EoLProduct.eol_product_id)
+    )
+
+    results = db.execute(stmt).all()
+
+    return {
+        "total": len(results),
+        "products": results,
+    }

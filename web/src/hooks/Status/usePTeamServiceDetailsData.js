@@ -1,6 +1,6 @@
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 import { systemExposure, missionImpact } from "../../utils/const";
-import { ssvcPriorityProps } from "../../utils/ssvcUtils";
+import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
 
@@ -19,7 +19,7 @@ export function usePTeamServiceDetailsData(pteamId, service, highestSsvcPriority
   const statusItems = [
     {
       label: "Highest SSVC Priority",
-      value: ssvcPriorityProps[highestSsvcPriority]?.displayName || highestSsvcPriority,
+      value: getSsvcPriorityProps()[highestSsvcPriority]?.displayName || highestSsvcPriority,
     },
     {
       label: "System Exposure",

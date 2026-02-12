@@ -1,0 +1,10 @@
+{
+  "Package": {
+    "useApiForVulnerabilityTable": {
+      "defaultSafetyImpactNotSet": "Not Set"
+    }
+  },
+  "Auth": {
+    "authContextUnavailable": "Implementation error: cannot use AuthContext"
+  }
+}

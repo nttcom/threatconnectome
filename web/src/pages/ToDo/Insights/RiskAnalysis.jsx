@@ -1,14 +1,16 @@
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth.js";
 import { useGetInsightQuery } from "../../../services/tcApi.js";
 import { APIError } from "../../../utils/APIError.js";
-import { errorToString } from "../../../utils/func.js";
+import { errorToString } from "../../../utils/func";
 
 import { RiskAnalysisView } from "./RiskAnalysisView.jsx";
 
 export function RiskAnalysis(props) {
   const { ticketId, serviceName, ecosystem, cveId, cvss } = props;
+  const { t } = useTranslation("toDo", { keyPrefix: "Insights.RiskAnalysis" });
 
   const skip = useSkipUntilAuthUserIsReady();
   const {
@@ -27,13 +29,13 @@ export function RiskAnalysis(props) {
   if (skip) return <></>;
   if (insightError) {
     if (insightError.status === 404) {
-      return <>No insight</>;
+      return <>{t("noInsight")}</>;
     }
     throw new APIError(errorToString(insightError), {
       api: "getInsight",
     });
   }
-  if (insightIsLoading) return <>Now loading Insight...</>;
+  if (insightIsLoading) return <>{t("loadingInsight")}</>;
 
   return (
     <RiskAnalysisView

@@ -35,7 +35,7 @@ env:
   FIREBASE_CRED: ../key/firebase_credentials.json
   FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
   SENDGRID_API_KEY: fake_api_key_for_sendgrid_test
-  VULN_API_KEY: your_secret_api_key
+  SYSTEM_API_KEY: your_secret_api_key
   SYSTEM_EMAIL: ic-metemcyber@example.com
   AUTH_SERVICE: FIREBASE
 
@@ -111,6 +111,7 @@ jobs:
           pipenv run black --check --diff ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run ruff check ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary
+          pipenv run codespell ${{ env.PYTHON_ROOT_DIRS }}
       - name: Extract service account credentials
         run: |
           envsubst < ../key/.subst > ../key/firebase_credentials.json

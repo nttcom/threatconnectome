@@ -1,0 +1,47 @@
+{
+  "VulnDetailPage": {
+    "loadingVuln": "脆弱性情報を読み込んでいます..."
+  },
+  "VulnDetailView": {
+    "package": "パッケージ",
+    "hide": "閉じる",
+    "more": "もっと見る",
+    "cveId": "CVE ID",
+    "noKnownCve": "CVE不明",
+    "update": "更新",
+    "noData": "データなし",
+    "creator": "作成者",
+    "lastUpdated": "最終更新",
+    "vulnId": "脆弱性ID"
+  },
+  "VulnSSVCCards": {
+    "automatable": {
+      "title": "Automatable",
+      "titleDescription": "攻撃者がこの脆弱性を利用した攻撃を自動化できるか？",
+      "no": {
+        "name": "No",
+        "valueDescription": "No: 攻撃者はこの脆弱性のキルチェーンのステップ1～4を確実に自動化できません。これらのステップは、(1)偵察、(2)武器化、(3)配送、(4)悪用です。"
+      },
+      "yes": {
+        "name": "Yes",
+        "valueDescription": "Yes: 攻撃者はキルチェーンのステップ1～4を確実に自動化できます。"
+      }
+    },
+    "exploitation": {
+      "title": "Exploitation",
+      "titleDescription": "脆弱性の悪用状況",
+      "none": {
+        "name": "None",
+        "valueDescription": "None: 実際に悪用されている証拠がなく、脆弱性を悪用する方法に関する公開された実証コード（PoC）もありません。"
+      },
+      "public_poc": {
+        "name": "Public PoC",
+        "valueDescription": "Public PoC: 次のいずれかが当てはまります: (1) 典型的な公開済みのPoCがMetasploitなどのソースやExploitDBのようなウェブサイトに存在する。 または (2) 脆弱性に対して広く知られた悪用手法が存在する。"
+      },
+      "active": {
+        "name": "Active",
+        "valueDescription": "Active: 実在する攻撃者による実環境での悪用が、共有可能かつ観察可能で信頼性の高い証拠によって確認されています。信頼できる公開報告が存在します。"
+      }
+    }
+  }
+}

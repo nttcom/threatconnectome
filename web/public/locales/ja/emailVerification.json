@@ -1,0 +1,21 @@
+{
+    "EmailVerificationPage": {
+        "invalidRequest": "無効なリクエスト"
+    },
+    "VerifyEmail": {
+        "title": "メール認証",
+        "verifyButton": "メールを認証",
+        "success": "メール認証に成功しました",
+        "error": "エラー: {{error}}"
+    },
+    "ResetPasswordForm": {
+        "title": "パスワードをリセット",
+        "newPassword": "新しいパスワード",
+        "passwordHint": "パスワードは8文字以上である必要があります。",
+        "submit": "送信",
+        "success": "パスワードの更新に成功しました",
+        "notSupported": "申し訳ございません。Supabaseでは現在パスワードのリセットをサポートしていません。",
+        "missingCode": "oobCodeがありません",
+        "error": "エラー: {{error}}"
+    }
+}

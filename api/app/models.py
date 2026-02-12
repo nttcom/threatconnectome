@@ -1,9 +1,10 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import (
     JSON,
+    Date,
     DateTime,
     ForeignKey,
     LargeBinary,
@@ -25,7 +26,7 @@ from typing_extensions import Annotated
 class ComparableStringEnum(str, enum.Enum):
     @property
     # Note: this method can be a classmethod in python3.10, but chaining classmethod descriptors
-    #       is depricated in python3.11.
+    #       is deprecated in python3.11.
     def _orders_map(self):
         # Note: list(Enum) returns enums in definition order.
         #       see enum.EnumMeta.__iter__()
@@ -155,6 +156,13 @@ class ObjectCategoryEnum(str, enum.Enum):
     PHYSICAL_MEDIA = "physical_media"
     FACILITY = "facility"
     PERSON = "person"
+
+
+class ProductCategoryEnum(str, enum.Enum):
+    OS = "os"
+    RUNTIME = "runtime"
+    MIDDLEWARE = "middleware"
+    PACKAGE = "package"
 
 
 # Base class
@@ -414,6 +422,9 @@ class Dependency(Base):
         "PackageVersion", uselist=False, back_populates="dependencies", lazy="joined"
     )
     tickets = relationship("Ticket", back_populates="dependency", cascade="all, delete-orphan")
+    package_eol_dependencies = relationship(
+        "PackageEoLDependency", back_populates="dependency", cascade="all, delete-orphan"
+    )
 
 
 class Service(Base):
@@ -456,6 +467,9 @@ class Service(Base):
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
     thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
+    ecosystem_eol_dependencies = relationship(
+        "EcosystemEoLDependency", back_populates="service", cascade="all, delete-orphan"
+    )
 
 
 class ServiceThumbnail(Base):
@@ -851,3 +865,111 @@ class InsightReference(Base):
     url: Mapped[Str255 | None]
 
     insight = relationship("Insight", back_populates="insight_references")
+
+
+class EoLProduct(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.eol_product_id:
+            self.eol_product_id = str(uuid.uuid4())
+
+    __tablename__ = "eolproduct"
+
+    eol_product_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    name: Mapped[Str255]
+    product_category: Mapped[ProductCategoryEnum]
+    description: Mapped[str | None]
+    is_ecosystem: Mapped[bool] = mapped_column(default=False)
+    matching_name: Mapped[Str255]
+
+    eol_versions = relationship(
+        "EoLVersion", back_populates="eol_product", cascade="all, delete-orphan"
+    )
+
+
+class EoLVersion(Base):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.eol_version_id:
+            self.eol_version_id = str(uuid.uuid4())
+
+    __tablename__ = "eolversion"
+
+    eol_version_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    eol_product_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("eolproduct.eol_product_id", ondelete="CASCADE"), index=True
+    )
+    version: Mapped[Str255]
+    release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    eol_from: Mapped[date] = mapped_column(Date, nullable=False)
+    matching_version: Mapped[Str255]
+
+    eol_product = relationship("EoLProduct", back_populates="eol_versions")
+    package_eol_dependencies = relationship(
+        "PackageEoLDependency", back_populates="eol_version", cascade="all, delete-orphan"
+    )
+    ecosystem_eol_dependencies = relationship(
+        "EcosystemEoLDependency", back_populates="eol_version", cascade="all, delete-orphan"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+
+
+class PackageEoLDependency(Base):
+    __tablename__ = "packageeoldependency"
+    __table_args__ = (
+        UniqueConstraint(
+            "dependency_id",
+            "eol_version_id",
+            name="packageeoldependency_dependency_id_eol_version_id_key",
+        ),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.package_eol_dependency_id:
+            self.package_eol_dependency_id = str(uuid.uuid4())
+
+    package_eol_dependency_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    dependency_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("dependency.dependency_id", ondelete="CASCADE"), index=True
+    )
+    eol_version_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("eolversion.eol_version_id", ondelete="CASCADE"), index=True
+    )
+    eol_notification_sent: Mapped[bool] = mapped_column(default=False)
+
+    dependency = relationship("Dependency", back_populates="package_eol_dependencies")
+    eol_version = relationship("EoLVersion", back_populates="package_eol_dependencies")
+
+
+class EcosystemEoLDependency(Base):
+    __tablename__ = "ecosystemeoldependency"
+    __table_args__ = (
+        UniqueConstraint(
+            "service_id",
+            "eol_version_id",
+            name="ecosystemeoldependency_service_id_eol_version_id_key",
+        ),
+    )
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.ecosystem_eol_dependency_id:
+            self.ecosystem_eol_dependency_id = str(uuid.uuid4())
+
+    ecosystem_eol_dependency_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
+    )
+    eol_version_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("eolversion.eol_version_id", ondelete="CASCADE"), index=True
+    )
+    eol_notification_sent: Mapped[bool] = mapped_column(default=False)
+
+    service = relationship("Service", back_populates="ecosystem_eol_dependencies")
+    eol_version = relationship("EoLVersion", back_populates="ecosystem_eol_dependencies")

@@ -1,0 +1,354 @@
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Box,
+  CircularProgress,
+  Divider,
+  IconButton,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { useGetMembers } from "../../hooks/Package/useApiForVulnerabilityTable.js";
+import { usePageParams } from "../../hooks/usePageParams.js";
+import { useUpdateTicketMutation } from "../../services/tcApi.js";
+import { errorToString, setEquals } from "../../utils/func.js";
+
+export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
+  const { t } = useTranslation("components", { keyPrefix: "Ticket.AssigneesSelector" });
+  const { pteamId } = usePageParams();
+  const {
+    data: members,
+    error: membersError,
+    isLoading: membersIsLoading,
+  } = useGetMembers(pteamId);
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [search, setSearch] = useState("");
+  const [updatingUserId, setUpdatingUserId] = useState(null);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const [updateTicket] = useUpdateTicketMutation();
+
+  const updateAssignees = async (newAssigneeIds) => {
+    if (!members || !pteamId || !ticketId) return;
+    if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds || []))) return;
+
+    await updateTicket({
+      path: { pteam_id: pteamId, ticket_id: ticketId },
+      body: { ticket_status: { assignees: newAssigneeIds } },
+    })
+      .unwrap()
+      .then(() => {
+        enqueueSnackbar(t("changeAssigneesSucceeded"), { variant: "success" });
+      })
+      .catch((error) =>
+        enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
+          variant: "error",
+        }),
+      );
+  };
+
+  const handleRemoveMember = async (userId) => {
+    if (updatingUserId) return;
+    setUpdatingUserId(userId);
+    const newIds = (currentAssigneeIds || []).filter((id) => id !== userId);
+    await updateAssignees(newIds);
+    setUpdatingUserId(null);
+  };
+
+  const handleAddMember = async (userId) => {
+    if (updatingUserId) return;
+    if (!(currentAssigneeIds || []).includes(userId)) {
+      setUpdatingUserId(userId);
+      const newIds = [...(currentAssigneeIds || []), userId].sort();
+      await updateAssignees(newIds);
+      setUpdatingUserId(null);
+    }
+    setSearch("");
+    setIsFocused(false);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+  };
+
+  if (!pteamId || !ticketId) return <></>;
+
+  // Show loading state
+  if (membersIsLoading) {
+    return (
+      <Box sx={{ width: "100%", p: 0 }}>
+        <Stack
+          direction="row"
+          sx={{ justifyContent: "space-between", alignItems: "center", mb: 1 }}
+        >
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
+          >
+            {t("assignees")}
+          </Typography>
+        </Stack>
+        <Paper
+          elevation={0}
+          variant="outlined"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 200,
+          }}
+        >
+          <CircularProgress size={32} />
+        </Paper>
+      </Box>
+    );
+  }
+
+  // Show error state
+  if (membersError) {
+    return (
+      <Box sx={{ width: "100%", p: 0 }}>
+        <Stack
+          direction="row"
+          sx={{ justifyContent: "space-between", alignItems: "center", mb: 1 }}
+        >
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
+          >
+            {t("assignees")}
+          </Typography>
+        </Stack>
+        <Paper
+          elevation={0}
+          variant="outlined"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 200,
+            p: 2,
+          }}
+        >
+          <Typography variant="body2" color="error" sx={{ textAlign: "center" }}>
+            {t("failedToLoadMembers")}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
+  if (!members) return <></>;
+
+  const filteredMembers = Object.values(members).filter((member) => {
+    const isNotSelected = !(currentAssigneeIds || []).includes(member.user_id);
+    const matchesSearch = member.email.toLowerCase().includes(search.toLowerCase());
+    return isNotSelected && matchesSearch;
+  });
+
+  const selectedMembers = Object.values(members).filter((member) =>
+    (currentAssigneeIds || []).includes(member.user_id),
+  );
+
+  return (
+    <Box sx={{ width: "100%", p: 0 }}>
+      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+        <Typography
+          variant="caption"
+          sx={{ fontWeight: "bold", color: "text.secondary", textTransform: "uppercase" }}
+        >
+          {t("assigneesCount", { count: selectedMembers.length })}
+        </Typography>
+      </Stack>
+      <Paper
+        elevation={0}
+        variant="outlined"
+        sx={{
+          position: "relative",
+          borderColor: isFocused ? "primary.main" : "divider",
+          transition: "border-color 0.2s",
+          flexDirection: "column",
+        }}
+      >
+        <Box sx={{ p: 1, bgcolor: "background.paper", flexShrink: 0 }}>
+          <TextField
+            fullWidth
+            variant="standard"
+            placeholder={t("searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={handleBlur}
+            disabled={
+              Object.keys(members || {}).length === (currentAssigneeIds || []).length ||
+              !!updatingUserId ||
+              membersIsLoading
+            }
+            slotProps={{
+              input: {
+                "aria-label": t("searchPlaceholder"),
+                disableUnderline: true,
+                startAdornment: (
+                  <InputAdornment>
+                    <SearchIcon
+                      color={Object.keys(members || {}).length === 0 ? "disabled" : "action"}
+                      fontSize="small"
+                    />
+                  </InputAdornment>
+                ),
+                sx: { fontSize: "0.875rem" },
+              },
+            }}
+          />
+        </Box>
+        <Divider />
+        <Box
+          sx={{
+            bgcolor: "action.hover",
+            minHeight: 40,
+            flexGrow: 1,
+            overflowY: "auto",
+            maxHeight: 200,
+          }}
+        >
+          {selectedMembers.length === 0 ? (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ p: 2, fontStyle: "italic", fontSize: "0.75rem" }}
+            >
+              {t("noSelection")}
+            </Typography>
+          ) : (
+            <List dense disablePadding>
+              {selectedMembers.map((member) => (
+                <ListItem
+                  key={member.user_id}
+                  secondaryAction={
+                    updatingUserId === member.user_id ? (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <CircularProgress size={20} />
+                      </Box>
+                    ) : (
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        size="small"
+                        onClick={() => handleRemoveMember(member.user_id)}
+                        disabled={!!updatingUserId}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    )
+                  }
+                  sx={{
+                    pl: 2,
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                    "&:last-child": { borderBottom: "none" },
+                    opacity: updatingUserId ? 0.6 : 1,
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{ alignItems: "center", width: "100%" }}
+                      >
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          sx={{
+                            fontWeight: 500,
+                            flex: 1,
+                            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                          }}
+                        >
+                          {member.email}
+                        </Typography>
+                        <CheckIcon color="primary" sx={{ fontSize: 16, flexShrink: 0 }} />
+                      </Stack>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Box>
+        {isFocused && filteredMembers.length > 0 && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "100%",
+              left: -1,
+              right: -1,
+              zIndex: 10,
+              maxHeight: 200,
+              overflowY: "auto",
+              bgcolor: "background.paper",
+              boxShadow: 3,
+              border: 1,
+              borderColor: "divider",
+              borderRadius: "0 0 4px 4px",
+              mt: "1px",
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <List dense disablePadding>
+              {filteredMembers.map((member) => (
+                <ListItemButton
+                  key={member.user_id}
+                  onClick={() => handleAddMember(member.user_id)}
+                  disabled={!!updatingUserId}
+                  sx={{
+                    opacity: updatingUserId === member.user_id ? 0.6 : 1,
+                  }}
+                >
+                  <ListItemText
+                    primary={member.email}
+                    slotProps={{
+                      primary: {
+                        variant: "body2",
+                        noWrap: true,
+                        sx: { fontSize: { xs: "0.75rem", sm: "0.875rem" } },
+                      },
+                    }}
+                  />
+                  {updatingUserId === member.user_id && (
+                    <CircularProgress size={16} sx={{ ml: 1 }} />
+                  )}
+                </ListItemButton>
+              ))}
+            </List>
+          </Box>
+        )}
+      </Paper>
+    </Box>
+  );
+}
+
+AssigneesSelector.propTypes = {
+  ticketId: PropTypes.string.isRequired,
+  currentAssigneeIds: PropTypes.array.isRequired,
+};

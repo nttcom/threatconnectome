@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
 from app.business import dependency_business, package_business, threat_business, ticket_business
+from app.business.eol import eol_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
     get_ticket_counts_summary_by_service_and_package_id,
@@ -841,18 +842,18 @@ def check_ticket_status_update_request(
             ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, specify schduled_at",
+                    detail="If status is scheduled, specify scheduled_at",
                 )
         else:
             if data.scheduled_at is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, unable to reset schduled_at",
+                    detail="If status is scheduled, unable to reset scheduled_at",
                 )
             elif data.scheduled_at < now:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is scheduled, schduled_at must be a future time",
+                    detail="If status is scheduled, scheduled_at must be a future time",
                 )
     else:
         if "scheduled_at" not in update_data.keys():
@@ -863,15 +864,15 @@ def check_ticket_status_update_request(
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=(
-                        "If current status is not scheduled and previous status is schduled, "
-                        "need to reset schduled_at"
+                        "If current status is not scheduled and previous status is scheduled, "
+                        "need to reset scheduled_at"
                     ),
                 )
         else:
             if data.scheduled_at is not None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="If status is not scheduled, do not specify schduled_at",
+                    detail="If status is not scheduled, do not specify scheduled_at",
                 )
 
     for logging_id_ in data.logging_ids or []:
@@ -1106,14 +1107,14 @@ def create_pteam(
     return pteam
 
 
-def _check_file_extention(file: UploadFile, extention: str):
+def _check_file_extension(file: UploadFile, extension: str):
     """
-    Error when file don't have a specified extention
+    Error when file don't have a specified extension
     """
-    if file.filename is None or not file.filename.endswith(extention):
+    if file.filename is None or not file.filename.endswith(extension):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Please upload a file with {extention} as extension",
+            detail=f"Please upload a file with {extension} as extension",
         )
 
 
@@ -1203,7 +1204,7 @@ async def upload_pteam_sbom_file(
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
-    _check_file_extention(file, ".json")
+    _check_file_extension(file, ".json")
     _check_empty_file(file)
 
     sbom_sha256 = sha256()
@@ -1250,7 +1251,7 @@ def upload_pteam_packages_file(
         raise NOT_A_PTEAM_MEMBER
     if not service:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
-    _check_file_extention(file, ".jsonl")
+    _check_file_extension(file, ".jsonl")
     _check_empty_file(file)
 
     # Read from file
@@ -1331,7 +1332,7 @@ def apply_service_packages(
                     (_package_version.package_version_id, ref.get("target", ""), package_manager)
                 )
 
-    # separate dependencis to keep, delete or create
+    # separate dependencies to keep, delete or create
     obsoleted_dependencies = []
     for dependency in service.dependencies:
         if (
@@ -1367,6 +1368,9 @@ def apply_service_packages(
         service.dependencies.remove(obsoleted)
         db.flush()
         package_business.fix_package(db, package)
+
+    db.refresh(service)
+    eol_business.fix_eol_dependency_by_service(db, service)
 
 
 @router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -1734,3 +1738,25 @@ def delete_pteam(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/{pteam_id}/eols", response_model=schemas.PTeamEoLProductListResponse)
+def get_eol_products_with_pteam_id(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get EoL products and their versions associated with pteam_id
+    """
+    # Check if pteam exists
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+
+    # Check
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    result = command.get_eol_products_associated_with_pteam_id(db, pteam_id)
+
+    return result

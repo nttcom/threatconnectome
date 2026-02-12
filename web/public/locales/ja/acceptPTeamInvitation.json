@@ -1,0 +1,13 @@
+{
+    "AcceptPTeamInvitationPage": {
+        "title": "以下のチームへの招待を承認しますか？",
+        "teamName": "チーム名",
+        "teamId": "チームID",
+        "invitationCreatedBy": "招待作成者",
+        "accept": "承認",
+        "nowMember": "あなたは '{{pteamName}}' のメンバーになりました",
+        "acceptFailed": "招待の承認に失敗しました: {{error}}",
+        "invalidInvitation": "この招待は無効または期限切れです。",
+        "loadingUserInfo": "ユーザー情報を読み込んでいます..."
+    }
+}

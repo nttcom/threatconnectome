@@ -1,6 +1,7 @@
 import { Box, Switch, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../../../hooks/auth";
 
@@ -8,6 +9,9 @@ import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
 
 export function TwoFactorAuthSection({ onShowSnackbar }) {
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.TwoFactorAuthSection",
+  });
   const { deletePhoneNumber, isSmsAuthenticationEnabled } = useAuth();
 
   const [isEnabled, setIsEnabled] = useState(isSmsAuthenticationEnabled());
@@ -24,7 +28,7 @@ export function TwoFactorAuthSection({ onShowSnackbar }) {
 
   const handleSuccess = () => {
     setIsEnabled(true);
-    onShowSnackbar("SMS authentication enabled successfully!", "success");
+    onShowSnackbar(t("enabledSuccess"), "success");
   };
 
   const handleDisableConfirm = () => {
@@ -32,7 +36,7 @@ export function TwoFactorAuthSection({ onShowSnackbar }) {
       .then(() => {
         setIsEnabled(false);
         setDisableConfirmOpen(false);
-        onShowSnackbar("SMS authentication disabled.", "info");
+        onShowSnackbar(t("disabledInfo"), "info");
       })
       .catch((error) => {
         onShowSnackbar(error.message, "error");
@@ -42,16 +46,14 @@ export function TwoFactorAuthSection({ onShowSnackbar }) {
   return (
     <Box>
       <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-        Two-factor Authentication
+        {t("title")}
       </Typography>
 
       <Box sx={{ mt: 1, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Box>
-          <Typography variant="body1">SMS Authentication</Typography>
+          <Typography variant="body1">{t("smsAuth")}</Typography>
           <Typography variant="caption" color="text.secondary" display="block">
-            {isEnabled
-              ? "Enabled. Code required at login."
-              : "Protect your account with SMS verification."}
+            {isEnabled ? t("enabled") : t("disabled")}
           </Typography>
         </Box>
         <Switch checked={isEnabled} onChange={handleToggleTwoFactor} color="primary" edge="end" />

@@ -15,13 +15,15 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamStatusSSVCCards } from "../PTeamStatusSSVCCards";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 function ServiceIDCopyButton({ ServiceId }) {
-  const defaultMessage = "Copy the Service ID";
+  const { t } = useTranslation("status", { keyPrefix: "ServiceIDCopyButton" });
+  const defaultMessage = t("copyServiceId");
   const defaultPosition = "bottom";
 
   const [tooltipText, setTooltipText] = useState(defaultMessage);
@@ -29,13 +31,13 @@ function ServiceIDCopyButton({ ServiceId }) {
 
   // change the message when clicked
   const handleClick = () => {
-    setTooltipText("Copied");
+    setTooltipText(t("copySuccess"));
     setTooltipPlacement("top");
   };
 
   // reset the tooltip state when completed
   const handleClose = () => {
-    if (tooltipText === "Copied") {
+    if (tooltipText === t("copySuccess")) {
       setTooltipText(defaultMessage);
       setTooltipPlacement(defaultPosition);
     }

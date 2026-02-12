@@ -1,5 +1,6 @@
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useUpdateUserMutation } from "../../../services/tcApi";
@@ -9,6 +10,7 @@ import { AccountSettingsDialog } from "./AccountSettingsDialog/AccountSettingsDi
 
 export function AccountSettings(props) {
   const { accountSettingOpen, setAccountSettingOpen, userMe } = props;
+  const { t } = useTranslation("app", { keyPrefix: "UserMenu.AccountSettings" });
 
   const { enqueueSnackbar } = useSnackbar();
   const [updateUser] = useUpdateUserMutation();
@@ -21,7 +23,7 @@ export function AccountSettings(props) {
     })
       .unwrap()
       .then((succeeded) => {
-        enqueueSnackbar("Update user info succeeded", { variant: "success" });
+        enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
       })
       .catch((error) => enqueueSnackbar(errorToString(error), { variant: "error" }));
   };

@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 
 import { SmsResendButton } from "../../../../../components/SmsResendButton";
 import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshootingTips";
@@ -33,6 +34,9 @@ const COUNTRY_CODES = [
 ];
 
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog",
+  });
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
   const [loading, setLoading] = useState(false);
@@ -144,7 +148,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         setLoading(false);
         setNotification({
           open: true,
-          message: "The verification code has been resent.",
+          message: t("codeResent"),
           type: "info",
         });
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
@@ -171,15 +175,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
       fullWidth
       slotProps={{ transition: { onExited: resetState } }}
     >
-      <DialogTitle>
-        {step === 0 ? "Setup SMS Authentication" : "Enter Verification Code"}
-      </DialogTitle>
+      <DialogTitle>{step === 0 ? t("titleSetup") : t("titleVerify")}</DialogTitle>
       <DialogContent>
         {step === 0 ? (
           <>
-            <DialogContentText sx={{ mb: 2 }}>
-              Please enter your mobile phone number to enable 2FA
-            </DialogContentText>
+            <DialogContentText sx={{ mb: 2 }}>{t("enterPhoneNumber")}</DialogContentText>
 
             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
               <Select
@@ -197,7 +197,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 ))}
               </Select>
               <TextField
-                label="Phone Number"
+                label={t("phoneNumber")}
                 type="tel"
                 fullWidth
                 variant="outlined"
@@ -213,13 +213,18 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         ) : (
           <>
             <DialogContentText sx={{ mb: 2 }}>
-              We sent a 6-digit verification code to{" "}
-              <b>
-                {countryCode} {phoneNumber}
-              </b>
+              <Trans
+                ns="app"
+                i18nKey="UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog.codeSentTo"
+                values={{ countryCode, phoneNumber }}
+                components={[
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="cc" />,
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="pn" />,
+                ]}
+              />
             </DialogContentText>
             <TextField
-              label="Verification Code"
+              label={t("verificationCode")}
               fullWidth
               variant="outlined"
               value={verificationCode}
@@ -227,7 +232,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               disabled={loading}
               error={!!error}
               helperText={error}
-              placeholder="123456"
+              placeholder={t("codePlaceholder")}
               slotProps={{
                 htmlInput: {
                   maxLength: 6,
@@ -241,7 +246,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
             <Stack spacing={2} sx={{ mt: 2, alignItems: "flex-start", width: "100%" }}>
               <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
                 <Typography variant="body2" color="text.secondary">
-                  Did you receive the code?
+                  {t("didYouReceive")}
                 </Typography>
                 <Stack
                   direction="row"
@@ -270,7 +275,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                     }}
                     disabled={loading}
                   >
-                    Change Phone Number
+                    {t("changePhoneNumber")}
                   </Button>
                   <SmsTroubleshootingToggleButton
                     expanded={isHelpExpanded}
@@ -291,7 +296,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={loading}>
-          Cancel
+          {t("cancel")}
         </Button>
         {step === 0 && (
           <>
@@ -308,7 +313,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 variant="contained"
                 disabled={loading || !phoneNumber}
               >
-                {loading ? "Processing..." : "Send Code"}
+                {loading ? t("processing") : t("sendCode")}
               </Button>
             )}
           </>
@@ -319,7 +324,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
             variant="contained"
             disabled={loading || !(verificationCode.length === 6)}
           >
-            {loading ? "Processing..." : "Verify & Enable"}
+            {loading ? t("processing") : t("verifyEnable")}
           </Button>
         )}
       </DialogActions>

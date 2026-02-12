@@ -18,33 +18,19 @@ import {
   getMultiFactorResolver,
 } from "firebase/auth";
 
+import i18n from "../../i18n/config";
 import Firebase from "../../utils/Firebase";
 import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
 function _errorToMessage(error) {
-  // TODO: should fill missing codes
-  // https://firebase.google.com/docs/reference/js/auth?hl=ja#autherrorcodes
-  return (
-    {
-      "auth/email-already-in-use": "Email already in use",
-      "auth/invalid-action-code": "Invalid action code",
-      "auth/invalid-email": "Invalid email format.",
-      "auth/too-many-requests": "Too many requests.",
-      "auth/user-disabled": "Disabled user.",
-      "auth/user-not-found": "User not found.",
-      "auth/wrong-password": "Wrong password.",
-      "auth/invalid-verification-code": "The code is incorrect. Please try again.",
-      "auth/code-expired": "Session is invalid or has expired. Please try again.",
-      "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
-      "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
-      "auth/requires-recent-login": "Please log out and sign in again before trying.",
-    }[error.code || error] ||
-    error.message ||
-    error.code ||
-    `Something went wrong (${error}).`
-  );
+  const code = error.code || error;
+  const key = `auth.FirebaseProvider.${code}`;
+  if (i18n.exists(key, { ns: "providers" })) {
+    return i18n.t(key, { ns: "providers" });
+  }
+  return error.message || code || `Something went wrong (${error}).`;
 }
 
 class FirebaseAuthError extends AuthError {
@@ -129,7 +115,10 @@ export class FirebaseProvider extends AuthProvider {
   async signInWithSamlPopup() {
     const samlProvider = Firebase.getSamlProvider();
     if (!samlProvider) {
-      throw new Error("SAML not supported");
+      throw new FirebaseAuthError({
+        code: "samlNotSupported",
+        message: i18n.t("auth.FirebaseProvider.samlNotSupported", { ns: "providers" }),
+      });
     }
     return await signInWithPopup(Firebase.getAuth(), samlProvider)
       .then((result) => {
@@ -202,9 +191,10 @@ export class FirebaseProvider extends AuthProvider {
 
   async registerPhoneNumber(phoneNumber, recaptchaId) {
     if (!isE164Format(phoneNumber)) {
-      throw new Error(
-        "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
-      );
+      throw new FirebaseAuthError({
+        code: "auth/invalid-phone-number",
+        message: i18n.t("auth.FirebaseProvider.invalidPhoneE164Example", { ns: "providers" }),
+      });
     }
 
     const auth = Firebase.getAuth();

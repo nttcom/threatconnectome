@@ -1,4 +1,8 @@
+import copy
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,10 +13,14 @@ from app.constants import (
     SYSTEM_EMAIL,
 )
 from app.main import app
-from app.notification.alert import (
+from app.notification.eol_notification_utils import EOL_WARNING_THRESHOLD_DAYS
+from app.notification.mail import (
     create_mail_alert_for_new_vuln,
+)
+from app.notification.slack import (
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
+from app.routers.eols import _bg_check_eol_notification
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.medium.constants import (
     PTEAM1,
@@ -26,6 +34,7 @@ from app.tests.medium.utils import (
     create_user,
     create_vuln,
     headers,
+    headers_with_api_key,
     set_ticket_status,
 )
 
@@ -328,3 +337,327 @@ class TestAlert:
 
             # Then
             send_slack.assert_not_called()
+
+    class TestAlertByPutEoLNotifications:
+        @pytest.fixture(scope="function", autouse=True)
+        def common_setup(self, testdb):
+            create_user(USER1)
+            pteam_test_data = copy.deepcopy(PTEAM1)
+            pteam_test_data["alert_slack"]["webhook_url"] = SAMPLE_SLACK_WEBHOOK_URL + "0"
+            pteam_test_data["alert_mail"]["enable"] = True
+            pteam_test_data["alert_mail"]["address"] = "account0@example.com"
+            self.pteam = create_pteam(USER1, pteam_test_data)
+
+            # register ubuntu-20.04
+            self.service_name1 = "test_service1"
+            upload_file_name1 = "trivy-ubuntu2004.cdx.json"
+            sbom_file1 = (
+                Path(__file__).resolve().parent.parent
+                / "common"
+                / "upload_test"
+                / upload_file_name1
+            )
+            with open(sbom_file1, "r") as sbom:
+                sbom_json1 = sbom.read()
+
+            bg_create_tags_from_sbom_json(
+                sbom_json1, self.pteam.pteam_id, self.service_name1, upload_file_name1
+            )
+
+            # register axios 1.6.7
+            service_name2 = "test_service2"
+            upload_file_name2 = "test_trivy_cyclonedx_axios.json"
+            sbom_file2 = (
+                Path(__file__).resolve().parent.parent
+                / "common"
+                / "upload_test"
+                / upload_file_name2
+            )
+            with open(sbom_file2, "r") as sbom:
+                sbom_json2 = sbom.read()
+
+            bg_create_tags_from_sbom_json(
+                sbom_json2, self.pteam.pteam_id, service_name2, upload_file_name2
+            )
+
+        def test_it_should_alert_when_eol_from_within_six_months(self, testdb, mocker):
+            # Given
+
+            # Create EcosystemEoLDependency
+            eol_product_id_1 = str(uuid4())
+            eol_from_date1 = (
+                datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
+            ).strftime("%Y-%m-%d")
+            eol_product_1_request: dict[str, Any] = {
+                "name": "product_1",
+                "product_category": models.ProductCategoryEnum.RUNTIME,
+                "description": "product 1 description",
+                "is_ecosystem": True,
+                "matching_name": "product_1",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2021-01-01",
+                        "eol_from": eol_from_date1,
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_1}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_1_request,
+            )
+
+            ecosystem_eol_dependency = testdb.scalars(
+                select(models.EcosystemEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.EcosystemEoLDependency.eol_version_id
+                    == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_1)
+            ).one()
+
+            ecosystem_eol_dependency.eol_notification_sent = False
+            testdb.commit()
+
+            # Create PackageEoLDependency
+            eol_product_id_2 = str(uuid4())
+            eol_from_date2 = (datetime.now(timezone.utc) + timedelta(days=180)).strftime("%Y-%m-%d")
+            eol_product_2_request: dict[str, Any] = {
+                "name": "product_2",
+                "product_category": models.ProductCategoryEnum.PACKAGE,
+                "description": "product 2 description",
+                "is_ecosystem": False,
+                "matching_name": "axios",
+                "eol_versions": [
+                    {
+                        "version": "1.6.7",
+                        "release_date": "2019-01-01",
+                        "eol_from": eol_from_date2,
+                        "matching_version": "1.6.7",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_2}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_2_request,
+            )
+
+            package_eol_dependency = testdb.scalars(
+                select(models.PackageEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.PackageEoLDependency.eol_version_id == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_2)
+            ).one()
+
+            package_eol_dependency.eol_notification_sent = False
+            testdb.commit()
+
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
+
+            # When
+            _bg_check_eol_notification()
+
+            # Then
+            assert send_slack.call_count == 2
+            assert send_mail.call_count == 2
+            assert ecosystem_eol_dependency.eol_notification_sent is True
+            assert package_eol_dependency.eol_notification_sent is True
+
+        def test_it_should_not_alert_when_eol_notification_already_sent(self, testdb, mocker):
+            # Given
+            eol_product_id_1 = str(uuid4())
+            eol_from_date1 = (
+                datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
+            ).strftime("%Y-%m-%d")
+            eol_product_1_request: dict[str, Any] = {
+                "name": "product_1",
+                "product_category": models.ProductCategoryEnum.RUNTIME,
+                "description": "product 1 description",
+                "is_ecosystem": True,
+                "matching_name": "product_1",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2021-01-01",
+                        "eol_from": eol_from_date1,
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_1}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_1_request,
+            )
+
+            # TODO: Delete after implementing the notification feature for EOL data registration.
+            ecosystem_eol_dependency = testdb.scalars(
+                select(models.EcosystemEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.EcosystemEoLDependency.eol_version_id
+                    == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_1)
+            ).one()
+            ecosystem_eol_dependency.eol_notification_sent = True
+            testdb.commit()
+
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
+
+            # When
+            _bg_check_eol_notification()
+
+            # Then
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
+
+        def test_it_should_not_alert_when_eol_from_more_than_six_months(self, testdb, mocker):
+            # Given
+            eol_product_id_1 = str(uuid4())
+            EOL_NOT_WARNING_THRESHOLD_DAYS = 181
+            eol_from_date1 = (
+                datetime.now(timezone.utc) + timedelta(days=EOL_NOT_WARNING_THRESHOLD_DAYS)
+            ).strftime("%Y-%m-%d")
+            eol_product_1_request: dict[str, Any] = {
+                "name": "product_1",
+                "product_category": models.ProductCategoryEnum.RUNTIME,
+                "description": "product 1 description",
+                "is_ecosystem": True,
+                "matching_name": "product_1",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2021-01-01",
+                        "eol_from": eol_from_date1,
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_1}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_1_request,
+            )
+
+            ecosystem_eol_dependency = testdb.scalars(
+                select(models.EcosystemEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.EcosystemEoLDependency.eol_version_id
+                    == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_1)
+            ).one()
+
+            ecosystem_eol_dependency.eol_notification_sent = False
+            testdb.commit()
+
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
+
+            # When
+            _bg_check_eol_notification()
+
+            # Then
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
+
+        def test_it_should_not_alert_when_alert_slack_and_alert_email_are_False(
+            self, testdb, mocker
+        ):
+            # Given
+            pteam_request = {
+                "alert_slack": {
+                    "enable": False,
+                    "webhook_url": "",
+                },
+                "alert_mail": {
+                    "enable": False,
+                    "address": "",
+                },
+            }
+            client.put(f"/pteams/{self.pteam.pteam_id}", headers=headers(USER1), json=pteam_request)
+
+            # Create EcosystemEoLDependency
+            eol_product_id_1 = str(uuid4())
+            eol_from_date1 = (
+                datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
+            ).strftime("%Y-%m-%d")
+            eol_product_1_request: dict[str, Any] = {
+                "name": "product_1",
+                "product_category": models.ProductCategoryEnum.RUNTIME,
+                "description": "product 1 description",
+                "is_ecosystem": True,
+                "matching_name": "product_1",
+                "eol_versions": [
+                    {
+                        "version": "20.04",
+                        "release_date": "2021-01-01",
+                        "eol_from": eol_from_date1,
+                        "matching_version": "ubuntu-20.04",
+                    }
+                ],
+            }
+
+            client.put(
+                f"/eols/{eol_product_id_1}",
+                headers=headers_with_api_key(USER1),
+                json=eol_product_1_request,
+            )
+
+            ecosystem_eol_dependency = testdb.scalars(
+                select(models.EcosystemEoLDependency)
+                .join(
+                    models.EoLVersion,
+                    models.EcosystemEoLDependency.eol_version_id
+                    == models.EoLVersion.eol_version_id,
+                )
+                .join(
+                    models.EoLProduct,
+                    models.EoLProduct.eol_product_id == models.EoLVersion.eol_product_id,
+                )
+                .where(models.EoLProduct.eol_product_id == eol_product_id_1)
+            ).one()
+
+            ecosystem_eol_dependency.eol_notification_sent = False
+            testdb.commit()
+
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            send_mail = mocker.patch("app.notification.alert.send_email")
+
+            # When
+            _bg_check_eol_notification()
+
+            # Then
+            send_slack.assert_not_called()
+            send_mail.assert_not_called()
+            assert ecosystem_eol_dependency.eol_notification_sent is False
