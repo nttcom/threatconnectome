@@ -55,7 +55,9 @@
         "toggleDetails": "Toggle Details",
         "collapseDetails": "Collapse Details",
         "back": "Back",
-        "details": "Details"
+          "details": "Details",
+          "fixedLabel": "Fixed: v{{version}}",
+          "noFixYet": "No fix yet"
       },
       "VulnInfoContent": {
         "vulnerabilityDescription": "Vulnerability Details",
@@ -73,6 +75,11 @@
         },
         "TicketListSection": {
           "failedToLoadTickets": "Failed to load tickets"
+        },
+        "TicketListItem": {
+          "loading": "Loading...",
+          "errorLoadingTarget": "Error loading target",
+          "unknownTarget": "Unknown Target"
         }
       },
       "TicketDetailPanel": {
