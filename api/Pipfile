@@ -23,6 +23,7 @@ supabase = "*"
 deprecation = "*"
 cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 sendgrid = "*"
+cryptography = ">=46.0.5"
 
 [dev-packages]
 mypy = "*"
@@ -32,7 +33,7 @@ pytest-cov = "*"
 types-requests = "*"
 httpx = "*"
 ruff = "*"
-black = "*"
+black = "==25.11.0"
 httpretty = "*"
 pytest-mock = "*"
 codespell = "*"
