@@ -23,6 +23,7 @@ supabase = "*"
 deprecation = "*"
 cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 sendgrid = "*"
+cryptography = "*"
 
 [dev-packages]
 mypy = "*"
