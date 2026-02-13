@@ -9,7 +9,7 @@ import {
   teal,
   yellow,
 } from "@mui/material/colors";
-import i18n from "i18next";
+import { t } from "i18next";
 
 export const drawerWidth = 200;
 
@@ -183,7 +183,7 @@ export const sxModal = {
   p: 4,
 };
 
-export const getNoPTeamMessage = () => i18n.t("const.noPTeamMessage", { ns: "utils" });
+export const getNoPTeamMessage = () => t("const.noPTeamMessage", { ns: "utils" });
 
 export const drawerParams = {
   mainColor: brown[900],
