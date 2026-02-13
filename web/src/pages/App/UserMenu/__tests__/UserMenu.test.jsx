@@ -14,7 +14,7 @@ import store from "../../../../store";
 import { UserMenu } from "../UserMenu";
 
 // Initialize i18n before test execution
-// Specify the file name as the namespace only when used outside React components.
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   lng: "en",
   fallbackLng: "en",
