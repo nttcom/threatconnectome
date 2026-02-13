@@ -133,7 +133,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setPhoneNumber(sanitized);
     if (!isE164Format(countryCode + sanitized)) {
       setError(t("invalidPhoneE164Example"));
-    } else {
+    } else if (error) {
       setError("");
     }
   };
