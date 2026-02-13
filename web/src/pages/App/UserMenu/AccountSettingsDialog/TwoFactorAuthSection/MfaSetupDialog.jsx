@@ -24,6 +24,7 @@ import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTro
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
+import { isE164Format } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
   { code: "+81", label: "JP (+81)" },
@@ -130,7 +131,9 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "");
     setPhoneNumber(sanitized);
-    if (error) {
+    if (!isE164Format(countryCode + sanitized)) {
+      setError(t("invalidPhoneE164Example"));
+    } else {
       setError("");
     }
   };
@@ -181,7 +184,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           <>
             <DialogContentText sx={{ mb: 2 }}>{t("enterPhoneNumber")}</DialogContentText>
 
-            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="flex-start">
               <Select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
@@ -311,7 +314,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber}
+                disabled={loading || !phoneNumber || !!error}
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>
