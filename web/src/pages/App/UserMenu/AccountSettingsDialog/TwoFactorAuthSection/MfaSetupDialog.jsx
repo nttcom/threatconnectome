@@ -297,17 +297,34 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           </>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+      <DialogActions
+        sx={{
+          flexDirection: { xs: "column-reverse", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 1,
+          px: 3,
+          pb: 2,
+        }}
+      >
+        <Button onClick={handleClose} disabled={loading} sx={{ width: { xs: "100%", sm: "auto" } }}>
           {t("cancel")}
         </Button>
         {step === 0 && (
-          <>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              gap: 1,
+              width: { xs: "100%", sm: "auto" },
+            }}
+          >
             <Box
               id={recaptchaIdForRegisterPhoneNumber}
               sx={{
                 display: "flex",
                 justifyContent: "center",
+                width: { xs: "100%", sm: "auto" },
               }}
             />
             {!isRecaptchaVisible && (
@@ -315,17 +332,19 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 onClick={handleSendCode}
                 variant="contained"
                 disabled={loading || !phoneNumber || !!error}
+                sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>
             )}
-          </>
+          </Box>
         )}
         {step === 1 && (
           <Button
             onClick={handleVerifyCode}
             variant="contained"
             disabled={loading || !(verificationCode.length === 6)}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
           >
             {loading ? t("processing") : t("verifyEnable")}
           </Button>
