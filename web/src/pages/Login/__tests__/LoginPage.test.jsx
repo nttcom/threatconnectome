@@ -14,6 +14,7 @@ import store from "../../../store";
 import { Login } from "../LoginPage";
 
 // Initialize i18n before test execution
+// Specify the file name as the namespace only when used outside React components.
 i18n.use(initReactI18next).init({
   lng: "en",
   fallbackLng: "en",
