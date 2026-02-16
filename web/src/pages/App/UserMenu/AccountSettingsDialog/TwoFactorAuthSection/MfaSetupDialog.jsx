@@ -324,7 +324,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber || !!error}
+                disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>
