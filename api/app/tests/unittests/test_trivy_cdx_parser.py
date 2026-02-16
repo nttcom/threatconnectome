@@ -2,6 +2,7 @@ from cyclonedx.model.bom import Bom
 
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 class TestTrivyCDXParser:
@@ -51,7 +52,8 @@ class TestTrivyCDXParser:
             tool_version="0.52.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -98,7 +100,8 @@ class TestTrivyCDXParser:
             tool_version="0.52.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
@@ -161,7 +164,8 @@ class TestTrivyCDXParser:
             tool_version="0.52.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "libcrypt1"
@@ -248,7 +252,8 @@ class TestTrivyCDXParser:
             tool_version="0.52.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 2
 
         artifact3 = artifacts[0]
@@ -349,7 +354,8 @@ class TestTrivyCDXParser:
             tool_version="0.63.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.ecosystem == "wolfi"
@@ -426,7 +432,8 @@ class TestTrivyCDXParser:
             tool_version="0.52.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 3
 
         artifact0 = artifacts[0]

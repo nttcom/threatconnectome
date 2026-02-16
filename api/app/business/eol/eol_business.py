@@ -25,7 +25,7 @@ def fix_eol_dependency_by_service(
 
     eol_products = persistence.get_all_eol_products(db)
     # This process accounts for 5% of the total progress.
-    step_progress = 5 / len(service.dependencies)
+    step_progress = 5 / len(service.dependencies) if len(service.dependencies) > 0 else 0.0
     for dependency in service.dependencies:
         progress.add_progress(step_progress)
 

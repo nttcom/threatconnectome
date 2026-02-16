@@ -230,7 +230,7 @@ class TrivyCDXParser(SBOMParser):
         progress: TimeBasedProgressLogger,
     ) -> dict[str, set[str]]:
         # This process accounts for 20% of the total progress.
-        step_progress = 20 / len(sbom_bom.dependencies)
+        step_progress = 20 / len(sbom_bom.dependencies) if len(sbom_bom.dependencies) > 0 else 0.0
         all_source_ref_dict: dict[str, set[str]] = {}
         for dependency1 in sbom_bom.dependencies:
             progress.add_progress(step_progress)

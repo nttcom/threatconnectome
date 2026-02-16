@@ -208,7 +208,7 @@ class SyftCDXParser(SBOMParser):
             all_components.extend(raw_components)
 
         # This process accounts for 20% of the total progress.
-        step_progress = 20 / len(all_components)
+        step_progress = 20 / len(all_components) if len(all_components) > 0 else 0.0
         for component in all_components:
             progress.add_progress(step_progress)
 

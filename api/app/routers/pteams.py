@@ -1366,7 +1366,9 @@ def apply_service_packages(
         changed_package_version_ids.add(package_version_id)
 
     # This process accounts for 65% of the total progress.
-    step_progress = 65 / len(changed_package_version_ids)
+    step_progress = (
+        65 / len(changed_package_version_ids) if len(changed_package_version_ids) > 0 else 0.0
+    )
     for changed_package_version_id in changed_package_version_ids:
         progress.add_progress(step_progress)
 
