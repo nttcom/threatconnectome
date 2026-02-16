@@ -94,7 +94,8 @@
           "sendCode": "Send Code",
           "processing": "Processing...",
           "verifyEnable": "Verify & Enable",
-          "codeResent": "The verification code has been resent."
+          "codeResent": "The verification code has been resent.",
+          "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678)."
         },
         "DisabledMfaConfirmDialog": {
           "title": "Disable SMS Authentication for phone number {{phoneNumber}}?",
