@@ -127,15 +127,25 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     }
   };
 
-  const handlePhoneNumberChange = (e) => {
-    const normalized = normalizeFullwidthDigits(e.target.value);
-    const sanitized = normalized.replace(/\D/g, "");
-    setPhoneNumber(sanitized);
-    if (!isE164Format(countryCode + sanitized)) {
+  const validatePhoneNumber = (newCountryCode, newPhoneNumber) => {
+    if (!isE164Format(newCountryCode + newPhoneNumber)) {
       setError(t("invalidPhoneE164Example"));
     } else if (error) {
       setError("");
     }
+  };
+
+  const handlePhoneNumberChange = (e) => {
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "");
+    setPhoneNumber(sanitized);
+    validatePhoneNumber(countryCode, sanitized);
+  };
+
+  const handleCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    validatePhoneNumber(newCode, phoneNumber);
   };
 
   const handleResend = () => {
@@ -187,7 +197,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
             <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="flex-start">
               <Select
                 value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
+                onChange={handleCountryCodeChange}
                 disabled={loading}
                 variant="outlined"
                 sx={{ width: 130 }}
@@ -331,8 +341,9 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber || !!error}
+                disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
+                
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>

@@ -50,7 +50,7 @@ export function PTeam() {
           <Box alignItems="center" display="flex" flexDirection="row">
             {members &&
               (() => {
-                const maxYears = Math.max(members.map((member) => member.years));
+                const maxYears = Math.max(...members.map((member) => member.years));
                 return (
                   <Tooltip
                     arrow
