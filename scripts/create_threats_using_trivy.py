@@ -1,5 +1,3 @@
-# !/usr/bin/env python3.10
-
 import argparse
 import http.client as http_client
 import json
