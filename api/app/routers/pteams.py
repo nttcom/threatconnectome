@@ -1171,6 +1171,7 @@ def bg_create_tags_from_sbom_json(
         except ValueError as value_error:
             notify_sbom_upload_ended(service, filename, False)
             log.error(f"Failed uploading SBOM as a service: {service_name} detail: {value_error}")
+            progress.stop()
             return
 
         now = datetime.now(timezone.utc)
@@ -1277,6 +1278,7 @@ def upload_pteam_packages_file(
     try:
         apply_service_packages(db, service_model, json_lines, progress)
     except ValueError as err:
+        progress.stop()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
     now = datetime.now(timezone.utc)
