@@ -37,6 +37,7 @@ from app.routers.validators.account_validator import (
 from app.routers.validators.field_validator import strip_and_validate_field_length
 from app.sbom.sbom_analyzer import sbom_json_to_artifact_json_lines
 from app.utility import timezone_tool, unicode_tool
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 # Local constants for pteam-specific fields
 MAX_PTEAM_NAME_LENGTH_IN_HALF = 50
@@ -1151,6 +1152,7 @@ def bg_create_tags_from_sbom_json(
 
     log = logging.getLogger(__name__)
     log.info(f"Start SBOM upload as a service: {service_name}")
+    progress = TimeBasedProgressLogger(title=f"service: {service_name}", logger=log)
 
     with open_db_session() as db:
         if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
@@ -1164,8 +1166,8 @@ def bg_create_tags_from_sbom_json(
             db.flush()
 
         try:
-            json_lines = sbom_json_to_artifact_json_lines(sbom_json)
-            apply_service_packages(db, service, json_lines)
+            json_lines = sbom_json_to_artifact_json_lines(sbom_json, progress)
+            apply_service_packages(db, service, json_lines, progress)
         except ValueError as value_error:
             notify_sbom_upload_ended(service, filename, False)
             log.error(f"Failed uploading SBOM as a service: {service_name} detail: {value_error}")
@@ -1175,6 +1177,7 @@ def bg_create_tags_from_sbom_json(
         service.sbom_uploaded_at = now
 
         db.commit()
+        progress.stop()
 
         notify_sbom_upload_ended(service, filename, True)
         log.info(f"SBOM uploaded as a service: {service_name}")
@@ -1266,8 +1269,13 @@ def upload_pteam_packages_file(
         pteam.services.append(service_model)
         db.flush()
 
+    log = logging.getLogger(__name__)
+    progress = TimeBasedProgressLogger(title=f"service: {service}", logger=log)
+    # Adjust the progress before calling the common function to align
+    # with the upload_sbom_file API's progress handling.
+    progress.add_progress(30.0)
     try:
-        apply_service_packages(db, service_model, json_lines)
+        apply_service_packages(db, service_model, json_lines, progress)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
@@ -1275,6 +1283,7 @@ def upload_pteam_packages_file(
     service_model.sbom_uploaded_at = now
 
     db.commit()
+    progress.stop()
 
     return package_business.get_pteam_ext_packages(pteam)
 
@@ -1283,6 +1292,7 @@ def apply_service_packages(
     db: Session,
     service: models.Service,
     json_lines: list[dict],
+    progress: TimeBasedProgressLogger,
 ) -> None:
     new_dependencies_set: set[tuple[str, str, str]] = (
         set()
@@ -1355,7 +1365,11 @@ def apply_service_packages(
         db.flush()
         changed_package_version_ids.add(package_version_id)
 
+    # This process accounts for 65% of the total progress.
+    step_progress = 65 / len(changed_package_version_ids)
     for changed_package_version_id in changed_package_version_ids:
+        progress.add_progress(step_progress)
+
         threats: list[models.Threat] = threat_business.fix_threat_by_package_version_id(
             db, changed_package_version_id
         )
@@ -1370,7 +1384,7 @@ def apply_service_packages(
         package_business.fix_package(db, package)
 
     db.refresh(service)
-    eol_business.fix_eol_dependency_by_service(db, service)
+    eol_business.fix_eol_dependency_by_service(db, service, progress)
 
 
 @router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -12,6 +12,7 @@ from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
     SBOMParser,
 )
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 """
 We officially support only OS package types for Alpine Linux, Ubuntu, and Rocky Linux.
@@ -224,9 +225,16 @@ class TrivyCDXParser(SBOMParser):
         return refs
 
     @staticmethod
-    def _get_all_source_ref_dict(sbom_bom: Bom) -> dict[str, set[str]]:
+    def _get_all_source_ref_dict(
+        sbom_bom: Bom,
+        progress: TimeBasedProgressLogger,
+    ) -> dict[str, set[str]]:
+        # This process accounts for 20% of the total progress.
+        step_progress = 20 / len(sbom_bom.dependencies)
         all_source_ref_dict: dict[str, set[str]] = {}
         for dependency1 in sbom_bom.dependencies:
+            progress.add_progress(step_progress)
+
             for dependency2 in dependency1.dependencies:
                 if dependency2.ref.value in all_source_ref_dict.keys():
                     continue
@@ -263,7 +271,12 @@ class TrivyCDXParser(SBOMParser):
         return target_components
 
     @classmethod
-    def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
+    def parse_sbom(
+        cls,
+        sbom_bom: Bom,
+        sbom_info: SBOMInfo,
+        progress: TimeBasedProgressLogger,
+    ) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.5", "1.6"}
@@ -276,10 +289,14 @@ class TrivyCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(sbom_bom)
+        return actual_parse_func(sbom_bom, progress)
 
     @classmethod
-    def parse_func_1_5(cls, sbom_bom: Bom) -> list[Artifact]:
+    def parse_func_1_5(
+        cls,
+        sbom_bom: Bom,
+        progress: TimeBasedProgressLogger,
+    ) -> list[Artifact]:
         all_components_dict = {}
         if sbom_bom.metadata is not None and sbom_bom.metadata.component is not None:
             meta_component = sbom_bom.metadata.component
@@ -297,7 +314,9 @@ class TrivyCDXParser(SBOMParser):
             ):
                 raise ValueError(f"Missing dependency: {dependency.ref.value}")
 
-        all_source_ref_dict: dict[str, set[str]] = TrivyCDXParser._get_all_source_ref_dict(sbom_bom)
+        all_source_ref_dict: dict[str, set[str]] = TrivyCDXParser._get_all_source_ref_dict(
+            sbom_bom, progress
+        )
 
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
