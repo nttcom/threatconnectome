@@ -39,6 +39,20 @@ class EOLProductItem(TypedDict):
 
 eol_product_list: list[EOLProductItem] = [
     {
+        "product": "almalinux",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.OS,
+            "description": "AlmaLinux OS is an open source, community-owned and governed, "
+            "forever-free enterprise Linux distribution. It is focused on long-term stability, "
+            "providing a robust production-grade platform. AlmaLinux OS is binary-compatible "
+            "with RHEL. It is owned and controlled by the non-profit AlmaLinux OS Foundation, "
+            "and managed by a community-elected board of directors and the self-managed "
+            "AlmaLinux Engineering Steering Committee.",
+            "is_ecosystem": True,
+            "matching_name": "alma",
+        },
+    },
+    {
         "product": "alpine-linux",
         "threatconnectome": {
             "product_category": ProductCategoryEnum.OS,
@@ -209,7 +223,28 @@ class EoLParamCreator:
         return self.product
 
     def _get_matching_version(self, eol_version_info) -> str:
-        return eol_version_info.get("release")
+        release = eol_version_info.get("release")
+        # prefix付きで返す対象
+        prefix_map = {
+            "python": "python",
+            "nodejs": "nodejs",
+            "php": "php",
+            "ruby": "ruby",
+            "django": "django",
+            "numpy": "numpy",
+            "redis": "redis",
+            "postgresql": "postgresql",
+            "sqlite": "sqlite",
+            "react": "react",
+            "firefox": "firefox",
+        }
+        if self.product in prefix_map and release:
+            # python等はmajor.minorまで
+            version = release.split(".")
+            if len(version) >= 2:
+                return f"{prefix_map[self.product]}-{version[0]}.{version[1]}"
+            return f"{prefix_map[self.product]}-{release}"
+        return release
 
     def create_eol_parameters(self) -> dict:
         eol_versions = []
@@ -231,6 +266,15 @@ class EoLParamCreator:
             "matching_name": self._get_matching_name(),
             "eol_versions": eol_versions,
         }
+
+
+class AlmaLinuxEoLParamCreator(EoLParamCreator):
+    def _get_matching_version(self, eol_version_info) -> str:
+        release = eol_version_info.get("release")
+        if release:
+            major = release.split(".")[0]
+            return f"alma-{major}"
+        return ""
 
 
 class AlpineLinuxEoLParamCreator(EoLParamCreator):
@@ -261,6 +305,8 @@ def create_eol_param_creator(
             return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
         case "ubuntu":
             return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
+        case "almalinux":
+            return AlmaLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
         case _:
             return EoLParamCreator(product, eol_product_item, product_eol_info)
 
