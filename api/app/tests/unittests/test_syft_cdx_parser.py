@@ -2,6 +2,7 @@ from cyclonedx.model.bom import Bom
 
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.syft_cdx_parser import SyftCDXParser
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 class TestSyftCDXParser:
@@ -51,7 +52,8 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -98,7 +100,8 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
@@ -159,7 +162,8 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
         assert len(artifacts) == 1
@@ -221,7 +225,8 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
         assert len(artifacts) == 1
@@ -284,7 +289,8 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
         assert len(artifacts) == 1
@@ -354,7 +360,8 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
         assert len(artifacts) == 1
@@ -375,7 +382,8 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info)
+        progress = TimeBasedProgressLogger(title="test")
+        artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "pyjwt"
