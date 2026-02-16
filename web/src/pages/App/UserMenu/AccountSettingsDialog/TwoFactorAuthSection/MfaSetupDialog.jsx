@@ -343,7 +343,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 variant="contained"
                 disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
-                
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>
