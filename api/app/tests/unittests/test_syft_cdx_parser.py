@@ -61,7 +61,7 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -111,7 +111,7 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -175,7 +175,7 @@ class TestSyftCDXParser:
         )
 
         # When
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -240,7 +240,7 @@ class TestSyftCDXParser:
         )
 
         # When
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -306,7 +306,7 @@ class TestSyftCDXParser:
         )
 
         # When
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -379,7 +379,7 @@ class TestSyftCDXParser:
         )
 
         # When
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -403,7 +403,7 @@ class TestSyftCDXParser:
             tool_name="syft",
             tool_version="1.0.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]

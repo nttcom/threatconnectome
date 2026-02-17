@@ -62,7 +62,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -112,7 +112,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -178,7 +178,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -268,7 +268,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 2
 
@@ -372,7 +372,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.63.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -452,7 +452,7 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
         artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 3
 
