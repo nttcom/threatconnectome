@@ -194,10 +194,11 @@ eol_product_list: list[EOLProductItem] = [
         "threatconnectome": {
             "product_category": ProductCategoryEnum.RUNTIME,
             "description": (
-                "Amazon Corretto is a GPLv2 with CPE licensed build of the Open Java Development Kit "
-                "(OpenJDK) with long-term support and patches from Amazon. "
-                "Corretto is certified using the Java Technical Compatibility Kit (TCK) to ensure it "
-                "meets the Java SE standard. It is available on Linux, Windows, macOS and Docker."
+                "Amazon Corretto is a GPLv2 with CPE licensed build of the Open Java "
+                "Development Kit (OpenJDK) with long-term support and patches from Amazon. "
+                "Corretto is certified using the Java Technical Compatibility Kit (TCK) to "
+                "ensure it meets the Java SE standard. It is available on Linux, Windows, "
+                "macOS and Docker."
             ),
             "is_ecosystem": False,
             "matching_name": "amazon-corretto",
