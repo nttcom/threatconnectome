@@ -1372,10 +1372,13 @@ def apply_service_packages(
         db.flush()
         changed_package_version_ids.add(package_version_id)
 
-    # This process accounts for 65% of the total progress.
-    step_progress = (
-        65 / len(changed_package_version_ids) if len(changed_package_version_ids) > 0 else 0.0
-    )
+    PROGRESS_ALLOCATION = 65
+    if len(changed_package_version_ids) > 0:
+        step_progress = PROGRESS_ALLOCATION / len(changed_package_version_ids)
+    else:
+        step_progress = PROGRESS_ALLOCATION
+        progress.add_progress(step_progress)
+
     for changed_package_version_id in changed_package_version_ids:
         progress.add_progress(step_progress)
 
