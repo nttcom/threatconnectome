@@ -2,7 +2,7 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { SerializedError } from "@reduxjs/toolkit";
 
 import { UserResponse } from "../../types/types.gen";
-import i18n from "i18next";
+import { t } from "i18next";
 
 export const a11yProps = (index: number) => ({
   id: `tab-${index}`,
@@ -15,11 +15,11 @@ export const calcTimestampDiff = (timestamp: string) => {
   const daysAgo = Math.floor((new Date().getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
   switch (daysAgo) {
     case 0:
-      return i18n.t("func.today", { ns: "utils" });
+      return t("func.today", { ns: "utils" });
     case 1:
-      return i18n.t("func.yesterday", { ns: "utils" });
+      return t("func.yesterday", { ns: "utils" });
     default:
-      return i18n.t("func.daysAgo", { ns: "utils", days: daysAgo });
+      return t("func.daysAgo", { ns: "utils", days: daysAgo });
   }
 };
 

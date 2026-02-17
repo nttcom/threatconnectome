@@ -94,7 +94,8 @@
           "sendCode": "認証コードを送信",
           "processing": "処理中...",
           "verifyEnable": "確認して有効化",
-          "codeResent": "認証コードが再送信されました。"
+          "codeResent": "認証コードが再送信されました。",
+          "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください。（例: +818012345678）"
         },
         "DisabledMfaConfirmDialog": {
           "title": "電話番号{{phoneNumber}}のSMS認証を無効にしますか？",
