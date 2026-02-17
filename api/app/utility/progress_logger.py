@@ -1,6 +1,5 @@
 import logging
 import threading
-import time
 
 
 class TimeBasedProgressLogger:
@@ -20,8 +19,9 @@ class TimeBasedProgressLogger:
         self._thread.start()
 
     def _run(self):
-        while not self._stop_event.is_set():
-            time.sleep(self.interval_seconds)
+        while True:
+            if self._stop_event.wait(self.interval_seconds):
+                break
             percent = min(self.current_percent, 100.0)
             self.logger.info(f"[{self.title}] Progress: {percent:.1f}%")
 
