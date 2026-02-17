@@ -1,5 +1,6 @@
 from app import models
 
+from .AmazonCorrettoProduct import AmazonCorrettoProduct
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
 from .NumpyProduct import NumpyProduct
@@ -32,5 +33,7 @@ def gen_product_instance_for_eol(
             return PythonProduct(ecosystem)
         case "ruby":
             return RubyProduct(ecosystem)
+        case "amazon-corretto":
+            return AmazonCorrettoProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.matching_name)

@@ -34,6 +34,8 @@ def gen_version_instance_for_eol(
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "ruby":
                 return MajorAndMinorVersion(version_string, ecosystem)
+            case "amazon-corretto":
+                return MajorOnlyVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:

@@ -189,6 +189,15 @@ eol_product_list: list[EOLProductItem] = [
             "matching_name": "sqlite",
         },
     },
+    {
+        "product": "amazon-corretto",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.RUNTIME,
+            "description": "Amazon Corretto is a GPLv2 with CPE licensed build of the Open Java Development Kit (OpenJDK) with long-term support and patches from Amazon.",
+            "is_ecosystem": False,
+            "matching_name": "amazon-corretto",
+        },
+    },
 ]
 
 
@@ -249,6 +258,13 @@ class UbuntuEoLParamCreator(EoLParamCreator):
         return f"ubuntu-{release}"
 
 
+class AmazonCorrettoEoLParamCreator(EoLParamCreator):
+    def _get_matching_version(self, eol_version_info) -> str:
+        # Use the major release number so it matches MajorOnlyVersion parsing
+        release = eol_version_info.get("release")
+        return f"{release}"
+
+
 def create_eol_param_creator(
     product: str, eol_product_item: EOLProductItem, product_eol_info: list[ProductEoLInfo]
 ) -> EoLParamCreator:
@@ -259,6 +275,8 @@ def create_eol_param_creator(
             return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
         case "ubuntu":
             return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
+        case "amazon-corretto":
+            return AmazonCorrettoEoLParamCreator(product, eol_product_item, product_eol_info)
         case _:
             return EoLParamCreator(product, eol_product_item, product_eol_info)
 
