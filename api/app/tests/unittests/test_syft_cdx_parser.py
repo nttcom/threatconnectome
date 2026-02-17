@@ -1,3 +1,4 @@
+import pytest
 from cyclonedx.model.bom import Bom
 
 from app.sbom.parser.sbom_info import SBOMInfo
@@ -5,8 +6,17 @@ from app.sbom.parser.syft_cdx_parser import SyftCDXParser
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
+@pytest.fixture(scope="function")
+def progress():
+    progress = TimeBasedProgressLogger(title="test")
+    yield progress
+    progress.stop()
+
+
 class TestSyftCDXParser:
-    def test_it_should_unescape_purl_and_extract_correct_package_name_and_ecosystem(self):
+    def test_it_should_unescape_purl_and_extract_correct_package_name_and_ecosystem(
+        self, progress: TimeBasedProgressLogger
+    ):
         sbom = {
             "metadata": {
                 "component": {
@@ -52,7 +62,6 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -91,7 +100,10 @@ class TestSyftCDXParser:
             ],
         }
 
-    def test_it_should_lowercase_package_name_and_ecosystem_from_sbom_pyjwt(self):
+    def test_it_should_lowercase_package_name_and_ecosystem_from_sbom_pyjwt(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
             spec_name="CycloneDX",
@@ -100,7 +112,6 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
@@ -108,7 +119,10 @@ class TestSyftCDXParser:
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
 
-    def test_it_should_contain_source_name(self):
+    def test_it_should_contain_source_name(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         # Given
         sbom = {
             "metadata": {
@@ -162,7 +176,6 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -172,7 +185,10 @@ class TestSyftCDXParser:
         assert artifact.source_name == "util-linux"
         assert artifact.ecosystem == "ubuntu-20.04"
 
-    def test_it_should_contain_upstream_without_source_name(self):
+    def test_it_should_contain_upstream_without_source_name(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         # Given
         sbom = {
             "metadata": {
@@ -225,7 +241,6 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -235,7 +250,10 @@ class TestSyftCDXParser:
         assert artifact.source_name == "openssl"
         assert artifact.ecosystem == "alpine-3.22.0"
 
-    def test_it_should_contain_sourceRpm(self):
+    def test_it_should_contain_sourceRpm(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         # Given
         sbom = {
             "metadata": {
@@ -289,7 +307,6 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -299,7 +316,10 @@ class TestSyftCDXParser:
         assert artifact.source_name == "audit"
         assert artifact.ecosystem == "rocky-9.3"
 
-    def test_it_should_create_ecosystem_when_wolfi(self):
+    def test_it_should_create_ecosystem_when_wolfi(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         # Given
         sbom = {
             "metadata": {
@@ -360,7 +380,6 @@ class TestSyftCDXParser:
 
         # When
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
 
         # Then
@@ -373,7 +392,10 @@ class TestSyftCDXParser:
         assert len(artifact.targets) == 1
         assert list(artifact.targets)[0] == ("/usr/lib/apk/db/installed", "15.2.0-r2")
 
-    def test_it_should_parse_sbom_with_spec_version_1_6(self):
+    def test_it_should_parse_sbom_with_spec_version_1_6(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
             spec_name="CycloneDX",
@@ -382,7 +404,6 @@ class TestSyftCDXParser:
             tool_version="1.0.0",
         )
         sbom_bom = Bom.from_json(sbom)
-        progress = TimeBasedProgressLogger(title="test")
         artifacts = SyftCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]

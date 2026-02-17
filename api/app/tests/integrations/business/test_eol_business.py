@@ -21,6 +21,13 @@ from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 @pytest.fixture(scope="function")
+def progress():
+    progress = TimeBasedProgressLogger(title="test")
+    yield progress
+    progress.stop()
+
+
+@pytest.fixture(scope="function")
 def service1(testdb: Session) -> models.Service:
     create_user(USER1)
     pteam1 = create_pteam(USER1, PTEAM1)
@@ -234,13 +241,11 @@ class TestFixEoLDependencyByService:
     def test_it_should_create_eol_dependency_when_ecosystem_matched(
         self,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service1: models.Service,
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
     ):
-        # Given
-        progress = TimeBasedProgressLogger(title="test")
-
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
 
@@ -262,12 +267,12 @@ class TestFixEoLDependencyByService:
     def test_it_should_delete_eol_dependency_when_ecosystem_unmatched(
         self,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service1: models.Service,
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
     ):
         # Given
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
         eol_version1.matching_version = "unmatched_version"
         testdb.commit()
@@ -287,13 +292,11 @@ class TestFixEoLDependencyByService:
     def test_it_should_create_eol_dependency_when_product_name_matched(
         self,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
-        # Given
-        progress = TimeBasedProgressLogger(title="test")
-
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
 
@@ -315,12 +318,12 @@ class TestFixEoLDependencyByService:
     def test_it_should_delete_eol_dependency_when_package_name_unmatched(
         self,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
     ):
         # Given
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
         eol_version2.matching_version = "unmatched_version"
         testdb.commit()
@@ -466,6 +469,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service1: models.Service,
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
@@ -487,8 +491,6 @@ class TestEoLNotifications:
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
 
-        progress = TimeBasedProgressLogger(title="test")
-
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
 
@@ -506,6 +508,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
@@ -526,8 +529,6 @@ class TestEoLNotifications:
         mocker.patch("app.notification.alert.ready_to_send_email", return_value=True)
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
-
-        progress = TimeBasedProgressLogger(title="test")
 
         # When
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
@@ -584,6 +585,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service1: models.Service,
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
@@ -604,7 +606,6 @@ class TestEoLNotifications:
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
 
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
 
         assert send_slack.called
@@ -622,6 +623,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service1: models.Service,
         eol_product1: models.EoLProduct,
         eol_version1: models.EoLVersion,
@@ -646,7 +648,6 @@ class TestEoLNotifications:
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
 
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
 
         assert not send_slack.called
@@ -664,6 +665,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
@@ -684,7 +686,6 @@ class TestEoLNotifications:
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
 
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
 
         assert send_slack.called
@@ -701,6 +702,7 @@ class TestEoLNotifications:
         self,
         mocker,
         testdb: Session,
+        progress: TimeBasedProgressLogger,
         service2: models.Service,
         eol_product2: models.EoLProduct,
         eol_version2: models.EoLVersion,
@@ -725,7 +727,6 @@ class TestEoLNotifications:
         send_slack = mocker.patch("app.notification.alert.send_slack")
         send_email = mocker.patch("app.notification.alert.send_email")
 
-        progress = TimeBasedProgressLogger(title="test")
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
 
         assert not send_slack.called

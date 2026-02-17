@@ -1153,35 +1153,39 @@ def bg_create_tags_from_sbom_json(
     log = logging.getLogger(__name__)
     log.info(f"Start SBOM upload as a service: {service_name}")
     progress = TimeBasedProgressLogger(title=f"service: {service_name}", logger=log)
+    try:
+        with open_db_session() as db:
+            if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+                # TODO: cannot notify error without pteam
+                raise ValueError(f"Invalid pteam_id: {pteam_id}")
+            if not (
+                service := next(
+                    filter(lambda x: x.service_name == service_name, pteam.services), None
+                )
+            ):
+                service = models.Service(pteam_id=str(pteam_id), service_name=service_name)
+                pteam.services.append(service)
+                db.flush()
 
-    with open_db_session() as db:
-        if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
-            # TODO: cannot notify error without pteam
-            raise ValueError(f"Invalid pteam_id: {pteam_id}")
-        if not (
-            service := next(filter(lambda x: x.service_name == service_name, pteam.services), None)
-        ):
-            service = models.Service(pteam_id=str(pteam_id), service_name=service_name)
-            pteam.services.append(service)
-            db.flush()
+            try:
+                json_lines = sbom_json_to_artifact_json_lines(sbom_json, progress)
+                apply_service_packages(db, service, json_lines, progress)
+            except ValueError as value_error:
+                notify_sbom_upload_ended(service, filename, False)
+                log.error(
+                    f"Failed uploading SBOM as a service: {service_name} detail: {value_error}"
+                )
+                return
 
-        try:
-            json_lines = sbom_json_to_artifact_json_lines(sbom_json, progress)
-            apply_service_packages(db, service, json_lines, progress)
-        except ValueError as value_error:
-            notify_sbom_upload_ended(service, filename, False)
-            log.error(f"Failed uploading SBOM as a service: {service_name} detail: {value_error}")
-            progress.stop()
-            return
+            now = datetime.now(timezone.utc)
+            service.sbom_uploaded_at = now
 
-        now = datetime.now(timezone.utc)
-        service.sbom_uploaded_at = now
+            db.commit()
 
-        db.commit()
+            notify_sbom_upload_ended(service, filename, True)
+            log.info(f"SBOM uploaded as a service: {service_name}")
+    finally:
         progress.stop()
-
-        notify_sbom_upload_ended(service, filename, True)
-        log.info(f"SBOM uploaded as a service: {service_name}")
 
 
 @router.post("/{pteam_id}/upload_sbom_file")
@@ -1272,20 +1276,21 @@ def upload_pteam_packages_file(
 
     log = logging.getLogger(__name__)
     progress = TimeBasedProgressLogger(title=f"service: {service}", logger=log)
-    # Adjust the progress before calling the common function to align
-    # with the upload_sbom_file API's progress handling.
-    progress.add_progress(30.0)
     try:
-        apply_service_packages(db, service_model, json_lines, progress)
-    except ValueError as err:
+        # Adjust the progress before calling the common function to align
+        # with the upload_sbom_file API's progress handling.
+        progress.add_progress(30.0)
+        try:
+            apply_service_packages(db, service_model, json_lines, progress)
+        except ValueError as err:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+        now = datetime.now(timezone.utc)
+        service_model.sbom_uploaded_at = now
+
+        db.commit()
+    finally:
         progress.stop()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
-
-    now = datetime.now(timezone.utc)
-    service_model.sbom_uploaded_at = now
-
-    db.commit()
-    progress.stop()
 
     return package_business.get_pteam_ext_packages(pteam)
 
