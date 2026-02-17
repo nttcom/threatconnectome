@@ -1499,6 +1499,7 @@ class TestPostUploadSBOMFileCycloneDX:
             )
             assert [
                 ("app.routers.pteams", INFO, f"Start SBOM upload as a service: {service_name}"),
+                ("app.routers.pteams", INFO, f"[service: {service_name}] Progress: 0.0%"),
                 ("app.routers.pteams", INFO, f"SBOM uploaded as a service: {service_name}"),
             ] == caplog.record_tuples
 
@@ -1521,7 +1522,7 @@ class TestPostUploadSBOMFileCycloneDX:
             ) == caplog.record_tuples[0]
             assert (
                 f"app.routers.pteams {ERROR} Failed uploading SBOM as a service: {service_name}"
-                in " ".join(str(_record_tuple) for _record_tuple in caplog.record_tuples[1])
+                in " ".join(str(_record_tuple) for _record_tuple in caplog.record_tuples[2])
             )
 
     class TestCycloneDX16WithTrivy(TestCycloneDX15WithTrivy):
