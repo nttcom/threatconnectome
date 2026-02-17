@@ -21,9 +21,9 @@ class TimeBasedProgressLogger:
 
     def _run(self):
         while not self._stop_event.is_set():
+            time.sleep(self.interval_seconds)
             percent = min(self.current_percent, 100.0)
             self.logger.info(f"[{self.title}] Progress: {percent:.1f}%")
-            time.sleep(self.interval_seconds)
 
     def add_progress(self, percent: float):
         self.current_percent += percent
