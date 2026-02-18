@@ -221,28 +221,7 @@ class EoLParamCreator:
         return self.product
 
     def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        # prefix付きで返す対象
-        prefix_map = {
-            "python": "python",
-            "nodejs": "nodejs",
-            "php": "php",
-            "ruby": "ruby",
-            "django": "django",
-            "numpy": "numpy",
-            "redis": "redis",
-            "postgresql": "postgresql",
-            "sqlite": "sqlite",
-            "react": "react",
-            "firefox": "firefox",
-        }
-        if self.product in prefix_map and release:
-            # python等はmajor.minorまで
-            version = release.split(".")
-            if len(version) >= 2:
-                return f"{prefix_map[self.product]}-{version[0]}.{version[1]}"
-            return f"{prefix_map[self.product]}-{release}"
-        return release
+        return eol_version_info.get("release")
 
     def create_eol_parameters(self) -> dict:
         eol_versions = []
