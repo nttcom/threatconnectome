@@ -4,6 +4,7 @@ from app import models, persistence
 from app.business.eol import ecosystem_eol_business, package_eol_business
 from app.notification import alert
 from app.notification.eol_notification_utils import is_within_eol_warning
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduct) -> None:
@@ -13,13 +14,26 @@ def fix_eol_dependency_by_eol_product(db: Session, eol_product: models.EoLProduc
         package_eol_business.fix_package_eol_dependency_by_eol_product(db, eol_product)
 
 
-def fix_eol_dependency_by_service(db: Session, service: models.Service) -> None:
+def fix_eol_dependency_by_service(
+    db: Session,
+    service: models.Service,
+    progress: TimeBasedProgressLogger,
+) -> None:
     _delete_eol_dependency_by_service(db, service)
 
     related_eol_version_id = set()
 
     eol_products = persistence.get_all_eol_products(db)
+    PROGRESS_ALLOCATION = 5
+    if len(service.dependencies) > 0:
+        step_progress = PROGRESS_ALLOCATION / len(service.dependencies)
+    else:
+        step_progress = PROGRESS_ALLOCATION
+        progress.add_progress(step_progress)
+
     for dependency in service.dependencies:
+        progress.add_progress(step_progress)
+
         package_version = dependency.package_version
         for eol_product in eol_products:
             if eol_product.is_ecosystem:
