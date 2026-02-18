@@ -310,13 +310,6 @@ class Package(Base):
                 version = parts[1].split(".")
                 if len(version) >= 1:
                     return f"alma-{version[0]}"
-        # python系（例: python-3.11.7）は "python-3.11" で返す
-        if self.ecosystem.startswith("python-"):
-            parts = self.ecosystem.split("-")
-            if len(parts) == 2:
-                version = parts[1].split(".")
-                if len(version) >= 2:
-                    return f"python-{version[0]}.{version[1]}"
         return self.ecosystem
 
     @vuln_matching_ecosystem.inplace.expression
