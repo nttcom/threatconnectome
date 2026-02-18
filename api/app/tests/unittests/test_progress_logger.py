@@ -7,16 +7,19 @@ from app.utility.progress_logger import TimeBasedProgressLogger
 class TestTimeBasedProgressLogger:
     def test_it_should_output_log_when_add_progress(self, caplog):
         # Given
-        caplog.set_level(INFO)
+        caplog.set_level(INFO, logger="app.utility.progress_logger")
 
         # When
         logger = TimeBasedProgressLogger(title="Test Task", interval_seconds=0.5)
+        print("LOGGER NAME:", logger.logger.name)
+
         try:
             for i in range(5):
                 logger.add_progress(20.0)
                 time.sleep(1.0)
         finally:
             logger.stop()
+        print("CAPLOG:", caplog.record_tuples)
 
         # Then
         assert (
