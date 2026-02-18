@@ -269,10 +269,7 @@ class EoLParamCreator:
 class AlmaLinuxEoLParamCreator(EoLParamCreator):
     def _get_matching_version(self, eol_version_info) -> str:
         release = eol_version_info.get("release")
-        if release:
-            major = release.split(".")[0]
-            return f"alma-{major}"
-        return ""
+        return f"alma-{release}"
 
 
 class AlpineLinuxEoLParamCreator(EoLParamCreator):
