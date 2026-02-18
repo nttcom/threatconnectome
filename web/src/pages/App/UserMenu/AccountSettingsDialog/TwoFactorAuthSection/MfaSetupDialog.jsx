@@ -24,6 +24,7 @@ import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTro
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
+import { isE164Format } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
   { code: "+81", label: "JP (+81)" },
@@ -126,13 +127,25 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     }
   };
 
+  const validatePhoneNumber = (newCountryCode, newPhoneNumber) => {
+    if (!isE164Format(newCountryCode + newPhoneNumber)) {
+      setError(t("invalidPhoneE164Example"));
+    } else if (error) {
+      setError("");
+    }
+  };
+
   const handlePhoneNumberChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "");
     setPhoneNumber(sanitized);
-    if (error) {
-      setError("");
-    }
+    validatePhoneNumber(countryCode, sanitized);
+  };
+
+  const handleCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    validatePhoneNumber(newCode, phoneNumber);
   };
 
   const handleResend = () => {
@@ -181,10 +194,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           <>
             <DialogContentText sx={{ mb: 2 }}>{t("enterPhoneNumber")}</DialogContentText>
 
-            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="flex-start">
               <Select
                 value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
+                onChange={handleCountryCodeChange}
                 disabled={loading}
                 variant="outlined"
                 sx={{ width: 130 }}
@@ -294,35 +307,54 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
           </>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+      <DialogActions
+        sx={{
+          flexDirection: { xs: "column-reverse", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 1,
+          px: 3,
+          pb: 2,
+        }}
+      >
+        <Button onClick={handleClose} disabled={loading} sx={{ width: { xs: "100%", sm: "auto" } }}>
           {t("cancel")}
         </Button>
         {step === 0 && (
-          <>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              gap: 1,
+              width: { xs: "100%", sm: "auto" },
+            }}
+          >
             <Box
               id={recaptchaIdForRegisterPhoneNumber}
               sx={{
                 display: "flex",
                 justifyContent: "center",
+                width: { xs: "100%", sm: "auto" },
               }}
             />
             {!isRecaptchaVisible && (
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber}
+                disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
+                sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}
               </Button>
             )}
-          </>
+          </Box>
         )}
         {step === 1 && (
           <Button
             onClick={handleVerifyCode}
             variant="contained"
             disabled={loading || !(verificationCode.length === 6)}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
           >
             {loading ? t("processing") : t("verifyEnable")}
           </Button>

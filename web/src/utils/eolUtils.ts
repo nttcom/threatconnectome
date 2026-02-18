@@ -1,23 +1,23 @@
 import type { ProductCategoryEnum } from "../../types/types.gen";
-import i18n from "i18next";
+import { t } from "i18next";
 
 export const WARNING_THRESHOLD_DAYS = 180;
 
 export const getEoLProductCategoryList = (): { value: ProductCategoryEnum; label: string }[] => [
-  { value: "os", label: i18n.t("eolUtils.productCategory.os", { ns: "utils" }) },
-  { value: "runtime", label: i18n.t("eolUtils.productCategory.runtime", { ns: "utils" }) },
-  { value: "middleware", label: i18n.t("eolUtils.productCategory.middleware", { ns: "utils" }) },
-  { value: "package", label: i18n.t("eolUtils.productCategory.package", { ns: "utils" }) },
+  { value: "os", label: t("eolUtils.productCategory.os", { ns: "utils" }) },
+  { value: "runtime", label: t("eolUtils.productCategory.runtime", { ns: "utils" }) },
+  { value: "middleware", label: t("eolUtils.productCategory.middleware", { ns: "utils" }) },
+  { value: "package", label: t("eolUtils.productCategory.package", { ns: "utils" }) },
 ];
 
 export const getProductCategorybyValue = (value: string | null | undefined) => {
   const list = getEoLProductCategoryList();
   const item = list.find((item) => item.value === value);
-  return item ? item.label : i18n.t("eolUtils.productCategory.na", { ns: "utils" });
+  return item ? item.label : t("eolUtils.productCategory.na", { ns: "utils" });
 };
 
 export const getFormatDate = (dateStr: string | null | undefined) => {
-  if (!dateStr) return i18n.t("eolUtils.formatDate.undecided", { ns: "utils" });
+  if (!dateStr) return t("eolUtils.formatDate.undecided", { ns: "utils" });
   return new Date(dateStr).toLocaleDateString();
 };
 
@@ -53,13 +53,13 @@ export type Status = "expired" | "warning" | "active" | "unknown";
 export const getStatusLabel = (status: Status) => {
   switch (status) {
     case "expired":
-      return i18n.t("eolUtils.status.expired", { ns: "utils" });
+      return t("eolUtils.status.expired", { ns: "utils" });
     case "warning":
-      return i18n.t("eolUtils.status.warning", { ns: "utils" });
+      return t("eolUtils.status.warning", { ns: "utils" });
     case "active":
-      return i18n.t("eolUtils.status.active", { ns: "utils" });
+      return t("eolUtils.status.active", { ns: "utils" });
     case "unknown":
-      return i18n.t("eolUtils.status.unknown", { ns: "utils" });
+      return t("eolUtils.status.unknown", { ns: "utils" });
   }
 };
 
@@ -76,7 +76,7 @@ export const getDiffText = (eolDateStr: string) => {
 
   if (diffDays === null || diffDays === undefined) return "-";
   if (diffDays < 0)
-    return i18n.t("eolUtils.diffText.daysOver", { ns: "utils", days: Math.abs(diffDays) });
-  if (diffDays === 0) return i18n.t("eolUtils.diffText.expiresToday", { ns: "utils" });
-  return i18n.t("eolUtils.diffText.daysLeft", { ns: "utils", days: diffDays });
+    return t("eolUtils.diffText.daysOver", { ns: "utils", days: Math.abs(diffDays) });
+  if (diffDays === 0) return t("eolUtils.diffText.expiresToday", { ns: "utils" });
+  return t("eolUtils.diffText.daysLeft", { ns: "utils", days: diffDays });
 };

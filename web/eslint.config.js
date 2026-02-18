@@ -17,6 +17,7 @@ export default [
   { ignores: ["dist", "build"] },
 
   importPlugin.flatConfigs.recommended,
+  importPlugin.configs.typescript,
   jsxA11y.flatConfigs.recommended,
 
   {

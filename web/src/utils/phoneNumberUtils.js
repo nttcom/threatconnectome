@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-named-as-default
 import parsePhoneNumber from "libphonenumber-js";
 
 export const maskPhoneNumber = (inputPhoneNumber) => {

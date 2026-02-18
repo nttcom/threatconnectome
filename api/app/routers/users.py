@@ -189,6 +189,8 @@ def delete_user(
         log.user_id = None
         log.email = ""
 
+    db.flush()
+
     # Current_user.user_id should be removed from the assignees of the ticket status.
 
     def having_only_one_admin(pteam: models.PTeam):

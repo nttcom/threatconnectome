@@ -258,10 +258,7 @@ export const tcApi = createApi({
         { type: "PTeam", id: "ALL" },
         { type: "PTeamAccountRole", id: "ALL" },
         ...(_result
-          ? Object.keys(_result).reduce<Array<{ type: AllowedTagTypes; id: string }>>(
-              (ret, userId) => [...ret, { type: "Account", id: userId }],
-              [],
-            )
+          ? _result.map((member) => ({ type: "Account" as const, id: member.user_id }))
           : []),
       ],
     }),
