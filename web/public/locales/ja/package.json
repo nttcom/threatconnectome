@@ -55,9 +55,7 @@
         "toggleDetails": "詳細に切り替る",
         "collapseDetails": "詳細を折りたたむ",
         "back": "戻る",
-          "details": "詳細",
-          "fixedLabel": "修正済み: v{{version}}",
-          "noFixYet": "修正はまだありません"
+        "details": "詳細"
       },
       "VulnInfoContent": {
         "vulnerabilityDescription": "脆弱性の詳細",

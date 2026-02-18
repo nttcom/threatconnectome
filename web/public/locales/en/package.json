@@ -55,9 +55,7 @@
         "toggleDetails": "Toggle Details",
         "collapseDetails": "Collapse Details",
         "back": "Back",
-          "details": "Details",
-          "fixedLabel": "Fixed: v{{version}}",
-          "noFixYet": "No fix yet"
+        "details": "Details"
       },
       "VulnInfoContent": {
         "vulnerabilityDescription": "Vulnerability Details",
