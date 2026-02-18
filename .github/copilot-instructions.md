@@ -7,7 +7,7 @@ If the terminology is consistent with the standard terminology, explicitly state
 
 ### Pytest Code Review Instructions
 
-When reviewing Python test files, encourage the use of the AAA (Arrange, Act, Assert) pattern with the following guidelines:
+When reviewing Python test files, encourage the use of the **Given-When-Then** structure with the following guidelines:
 
 1. **Preferred Structure (Given/When/Then)**:
    - Ideally, test functions should be divided into three sections using comments: `# Given`, `# When`, and `# Then`.
