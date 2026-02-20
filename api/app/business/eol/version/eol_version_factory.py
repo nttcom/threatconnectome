@@ -20,6 +20,8 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "postgresql":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "ansible":
+                return MajorOnlyVersion(version_string, ecosystem)
             case "nodejs":
                 return MajorOnlyVersion(version_string, ecosystem)
             case "redis":

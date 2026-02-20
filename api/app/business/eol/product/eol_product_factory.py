@@ -1,5 +1,6 @@
 from app import models
 
+from .AnsibleProduct import AnsibleProduct
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
 from .NumpyProduct import NumpyProduct
@@ -18,6 +19,8 @@ def gen_product_instance_for_eol(
     match eol_product.name:
         case "sqlite":
             return SqliteProduct(ecosystem)
+        case "ansible":
+            return AnsibleProduct(ecosystem)
         case "postgresql":
             return PostgresqlProduct(ecosystem)
         case "numpy":

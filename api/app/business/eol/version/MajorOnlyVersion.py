@@ -21,6 +21,8 @@ class MajorOnlyVersion(EoLBaseVersion):
                     self.version = RpmVersion.from_string(version).version.split(".")[0]
                 case PackageFamily.ALPINE:
                     self.version = str(SemverVersion(version).major)
+                case PackageFamily.PYPI:
+                    self.version = str(SemverVersion(version).major)
                 case PackageFamily.NPM:
                     self.version = str(SemverVersion(version).major)
                 case _:
