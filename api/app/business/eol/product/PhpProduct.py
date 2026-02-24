@@ -11,7 +11,7 @@ class PhpProduct(EoLBaseProduct):
     def match_package(self, package_name: str, package_version: str) -> bool:
         major_and_minor_version = MajorAndMinorVersion(
             package_version, self.ecosystem
-        ).get_version()
+        ).get_versions()[0]
         major_and_minor_version_without_period = major_and_minor_version.replace(".", "")
         package_family = PackageFamily.from_registry(self.ecosystem)
 

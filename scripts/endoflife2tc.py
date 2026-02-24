@@ -189,6 +189,23 @@ eol_product_list: list[EOLProductItem] = [
             "matching_name": "sqlite",
         },
     },
+    {
+        "product": "ansible",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": (
+                "Ansible is an open-source software provisioning, configuration management and "
+                "application-deployment tool enabling infrastructure as code. ansible extends "
+                "the basic ansible-core with additional modules by delivering several "
+                "collections in an easy-to-consume PyPI package. The ansible community "
+                "package typically gets 2 major releases every year. A new minor version is "
+                "released every 4 weeks. Maintenance fixes are guaranteed for only the latest "
+                "major release.\nSee the Ansible Roadmap for upcoming release details."
+            ),
+            "is_ecosystem": False,
+            "matching_name": "ansible",
+        },
+    },
 ]
 
 
