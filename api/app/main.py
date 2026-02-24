@@ -19,6 +19,7 @@ from app.routers import (
     vulns,
 )
 from app.ssvc import deployer_data
+from app.utility.custom_middleware import CustomMiddleware
 
 
 def create_app():
@@ -34,6 +35,7 @@ def create_app():
         "https://threatconnectome.web.app",  # prod-alias
     ]
 
+    app.add_middleware(CustomMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_credentials=True,
