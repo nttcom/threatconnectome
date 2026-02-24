@@ -3,6 +3,7 @@ from univers.versions import InvalidVersion
 from .EoLBaseVersion import EoLBaseVersion
 from .MajorAndMinorVersion import MajorAndMinorVersion
 from .MajorOnlyVersion import MajorOnlyVersion
+from .MajorOrMajorAndMinorVersion import MajorOrMajorAndMinorVersion
 
 
 def gen_version_instance_for_eol(
@@ -20,8 +21,6 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "postgresql":
                 return MajorOnlyVersion(version_string, ecosystem)
-            case "ansible":
-                return MajorOnlyVersion(version_string, ecosystem)
             case "nodejs":
                 return MajorOnlyVersion(version_string, ecosystem)
             case "redis":
@@ -36,6 +35,8 @@ def gen_version_instance_for_eol(
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "ruby":
                 return MajorAndMinorVersion(version_string, ecosystem)
+            case "ansible":
+                return MajorOrMajorAndMinorVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:
