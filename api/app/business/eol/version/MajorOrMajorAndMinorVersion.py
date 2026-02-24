@@ -24,9 +24,6 @@ class MajorOrMajorAndMinorVersion(EoLBaseVersion):
             self._major = version
             self._major_minor = version
 
-    def get_version(self) -> str:
-        return self._major_minor or self._major
-
     def get_versions(self) -> list[str]:
         versions = [self._major]
         if self._major_minor and self._major_minor != self._major:
