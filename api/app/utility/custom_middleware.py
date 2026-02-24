@@ -17,7 +17,7 @@ class CustomMiddleware(BaseHTTPMiddleware):
                 body_bytes = await request.body()
                 body = json.loads(body_bytes) if body_bytes else None
             except Exception:
-                body = "Binary or Unparseable Body"
+                body = "Binary or Unparsable Body"
 
         response = await call_next(request)
         route = request.scope.get("route")
