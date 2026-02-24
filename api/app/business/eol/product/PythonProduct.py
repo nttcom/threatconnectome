@@ -10,10 +10,10 @@ class PythonProduct(EoLBaseProduct):
         self.ecosystem = ecosystem
 
     def match_package(self, package_name: str, package_version: str) -> bool:
-        major_version = MajorOnlyVersion(package_version, self.ecosystem).get_version()
+        major_version = MajorOnlyVersion(package_version, self.ecosystem).get_versions()[0]
         major_and_minor_version = MajorAndMinorVersion(
             package_version, self.ecosystem
-        ).get_version()
+        ).get_versions()[0]
         package_family = PackageFamily.from_registry(self.ecosystem)
 
         match package_family:
