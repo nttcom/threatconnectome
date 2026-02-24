@@ -42,7 +42,8 @@
     "Vulns",
     "VULNS",
     "weaponization",
-    "Lngs"
+    "Lngs",
+    "Unscored"
   ],
   "ignoreWords": [],
   "ignorePaths": [

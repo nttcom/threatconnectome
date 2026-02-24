@@ -53,7 +53,7 @@ class TestGetEolProductsWithPteamId:
 
         self.eol_product_id_2 = uuid4()
         self.eol_product_2_request: dict[str, Any] = {
-            "name": "product_2",
+            "name": "ubuntu",
             "product_category": models.ProductCategoryEnum.RUNTIME,
             "description": "product 2 description",
             "is_ecosystem": True,
@@ -145,7 +145,7 @@ class TestGetEolProductsWithPteamId:
         assert len(data["products"]) == 2
 
         for product in data["products"]:
-            if product["name"] == "product_2":
+            if product["name"] == "ubuntu":
                 assert product["eol_product_id"] == str(self.eol_product_id_2)
                 assert product["name"] == self.eol_product_2_request["name"]
                 assert product["product_category"] == self.eol_product_2_request["product_category"]

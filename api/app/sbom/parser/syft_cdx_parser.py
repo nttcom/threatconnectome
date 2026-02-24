@@ -20,6 +20,7 @@ from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
     SBOMParser,
 )
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 class SyftCDXParser(SBOMParser):
@@ -167,7 +168,12 @@ class SyftCDXParser(SBOMParser):
         return suffix_removed_filename[:version_index]
 
     @classmethod
-    def parse_sbom(cls, sbom_bom: Bom, sbom_info: SBOMInfo) -> list[Artifact]:
+    def parse_sbom(
+        cls,
+        sbom_bom: Bom,
+        sbom_info: SBOMInfo,
+        progress: TimeBasedProgressLogger,
+    ) -> list[Artifact]:
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}
@@ -181,10 +187,14 @@ class SyftCDXParser(SBOMParser):
         }.get(sbom_info.spec_version)
         if not actual_parse_func:
             raise ValueError("Internal error: actual_parse_func not found")
-        return actual_parse_func(sbom_bom)
+        return actual_parse_func(sbom_bom, progress)
 
     @classmethod
-    def parse_func_1_4(cls, sbom: Bom) -> list[Artifact]:
+    def parse_func_1_4(
+        cls,
+        sbom: Bom,
+        progress: TimeBasedProgressLogger,
+    ) -> list[Artifact]:
         # convert components to artifacts
         artifacts_map: dict[str, Artifact] = {}  # {artifacts_key: artifact}
 
@@ -197,7 +207,16 @@ class SyftCDXParser(SBOMParser):
         if raw_components:
             all_components.extend(raw_components)
 
+        PROGRESS_ALLOCATION = 20
+        if len(all_components) > 0:
+            step_progress = PROGRESS_ALLOCATION / len(all_components)
+        else:
+            step_progress = PROGRESS_ALLOCATION
+            progress.add_progress(step_progress)
+
         for component in all_components:
+            progress.add_progress(step_progress)
+
             if not component.version:
                 continue  # maybe directory or image
             if not (package_info := SyftCDXParser._to_package_info(component)):

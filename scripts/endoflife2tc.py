@@ -246,47 +246,6 @@ class EoLParamCreator:
         }
 
 
-class AlpineLinuxEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"alpine-{release}"
-
-
-class RockyLinuxEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"rocky-{release}"
-
-
-class UbuntuEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"ubuntu-{release}"
-
-
-class AmazonCorrettoEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        # Use the major release number so it matches MajorOnlyVersion parsing
-        release = eol_version_info.get("release")
-        return f"{release}"
-
-
-def create_eol_param_creator(
-    product: str, eol_product_item: EOLProductItem, product_eol_info: list[ProductEoLInfo]
-) -> EoLParamCreator:
-    match product:
-        case "alpine-linux":
-            return AlpineLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "rocky-linux":
-            return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "ubuntu":
-            return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "amazon-corretto":
-            return AmazonCorrettoEoLParamCreator(product, eol_product_item, product_eol_info)
-        case _:
-            return EoLParamCreator(product, eol_product_item, product_eol_info)
-
-
 class APIError(Exception):
     pass
 
@@ -450,7 +409,7 @@ def register_eol_info(tc_client: ThreatconnectomeClient) -> None:
         if len(product_eol_info) == 0:
             continue
 
-        eol_param_creator = create_eol_param_creator(product, eol_product_item, product_eol_info)
+        eol_param_creator = EoLParamCreator(product, eol_product_item, product_eol_info)
         eol_product_id = eol_param_creator.get_eol_product_id()
         eol_parameters = eol_param_creator.create_eol_parameters()
         tc_client.put_eol(eol_product_id, eol_parameters)
