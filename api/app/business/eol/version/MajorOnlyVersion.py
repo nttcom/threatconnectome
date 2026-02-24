@@ -2,7 +2,7 @@ import logging
 
 from univers.debian import Version as DebianVersion
 from univers.rpm import RpmVersion
-from univers.versions import SemverVersion
+from univers.versions import PypiVersion, SemverVersion
 
 from app.detector.package_family import PackageFamily
 
@@ -22,7 +22,7 @@ class MajorOnlyVersion(EoLBaseVersion):
                 case PackageFamily.ALPINE:
                     self.version = str(SemverVersion(version).major)
                 case PackageFamily.PYPI:
-                    self.version = str(SemverVersion(version).major)
+                    self.version = str(PypiVersion(version)).split(".")[0]
                 case PackageFamily.NPM:
                     self.version = str(SemverVersion(version).major)
                 case _:
