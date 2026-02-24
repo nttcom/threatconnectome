@@ -304,8 +304,8 @@ class ActionLogResponse(ORMModel):
     action: str
     user_id: UUID | None = None
     pteam_id: UUID
-    service_id: UUID
-    ticket_id: UUID
+    service_id: UUID | None = None
+    ticket_id: UUID | None = None
     email: str
     executed_at: datetime
     created_at: datetime
