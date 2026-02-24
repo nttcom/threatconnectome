@@ -515,19 +515,6 @@ TICKETS_SORT_KEYS = {
 }
 
 
-def get_related_package_versions_by_eol_version_for_ecosystem(
-    db: Session,
-    eol_version: models.EoLVersion,
-) -> Sequence[models.PackageVersion]:
-    select_stmt = (
-        select(models.PackageVersion)
-        .join(models.Package, models.Package.package_id == models.PackageVersion.package_id)
-        .where(models.Package.vuln_matching_ecosystem == str(eol_version.matching_version))
-    )
-
-    return db.scalars(select_stmt).all()
-
-
 def get_sorted_paginated_tickets_for_pteams(
     db: Session,
     pteam_ids: list[UUID],

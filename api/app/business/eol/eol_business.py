@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import models, persistence
-from app.business.eol import ecosystem_eol_business, package_eol_business
+from app.business.eol import ecosystem_eol_business, eol_detector, package_eol_business
 from app.notification import alert
 from app.notification.eol_notification_utils import is_within_eol_warning
 from app.utility.progress_logger import TimeBasedProgressLogger
@@ -38,10 +38,7 @@ def fix_eol_dependency_by_service(
         for eol_product in eol_products:
             if eol_product.is_ecosystem:
                 for eol_version in eol_product.eol_versions:
-                    if (
-                        eol_version.matching_version
-                        == package_version.package.vuln_matching_ecosystem
-                    ):
+                    if eol_detector.match_eol_for_ecosystem(package_version.package, eol_version):
                         related_eol_version_id.add(eol_version.eol_version_id)
             else:
                 package_eol_business.fix_package_eol_dependency_by_package_version_and_eol_product(
