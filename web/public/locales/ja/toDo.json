@@ -69,11 +69,11 @@
       "sortBy": "並べ替え",
       "ascending": "昇順",
       "descending": "降順",
-      "cve": "CVE",
-      "team": "チーム",
-      "service": "サービス",
-      "package": "パッケージ",
-      "ssvc": "SSVC",
+      "cve_id": "CVE",
+      "pteam_name": "チーム",
+      "service_name": "サービス",
+      "package_name": "パッケージ",
+      "ssvc_deployer_priority": "SSVC",
       "rowsPerPage": "1ページあたりの表示件数"
     }
   },
