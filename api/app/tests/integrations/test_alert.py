@@ -389,7 +389,7 @@ class TestAlert:
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
             eol_product_1_request: dict[str, Any] = {
-                "name": "product_1",
+                "name": "ubuntu",
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
@@ -487,7 +487,7 @@ class TestAlert:
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
             eol_product_1_request: dict[str, Any] = {
-                "name": "product_1",
+                "name": "ubuntu",
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
@@ -543,7 +543,7 @@ class TestAlert:
                 datetime.now(timezone.utc) + timedelta(days=EOL_NOT_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
             eol_product_1_request: dict[str, Any] = {
-                "name": "product_1",
+                "name": "ubuntu",
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
@@ -613,7 +613,7 @@ class TestAlert:
                 datetime.now(timezone.utc) + timedelta(days=EOL_WARNING_THRESHOLD_DAYS)
             ).strftime("%Y-%m-%d")
             eol_product_1_request: dict[str, Any] = {
-                "name": "product_1",
+                "name": "ubuntu",
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,

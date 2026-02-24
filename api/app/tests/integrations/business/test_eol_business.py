@@ -172,7 +172,7 @@ class TestFixEoLDependencyByEoLProduct:
     ):
         # Given
         eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product1)
-        eol_version1.matching_version = "unmatched_version"
+        eol_version1.version = "unmatched_version"
         testdb.commit()
 
         # When
@@ -274,7 +274,7 @@ class TestFixEoLDependencyByService:
     ):
         # Given
         eol_business.fix_eol_dependency_by_service(testdb, service1, progress)
-        eol_version1.matching_version = "unmatched_version"
+        eol_version1.version = "unmatched_version"
         testdb.commit()
 
         # When
