@@ -8,13 +8,14 @@ from .MajorOnlyVersion import MajorOnlyVersion
 class MajorOrMajorAndMinorVersion(EoLBaseVersion):
     """
     Return both major and major.minor patterns.
-    Order: prefer `major` first, then `major.minor` (useful when product records use major as primary key).
+    Order: prefer `major` first, then `major.minor`.
+    Useful when product records use major as primary key.
     """
 
     def __init__(self, version: str, ecosystem: str):
         try:
-            self._major = MajorOnlyVersion(version, ecosystem).get_version()
-            self._major_minor = MajorAndMinorVersion(version, ecosystem).get_version()
+            self._major = MajorOnlyVersion(version, ecosystem).get_versions()[0]
+            self._major_minor = MajorAndMinorVersion(version, ecosystem).get_versions()[0]
         except Exception as e:
             log = logging.getLogger(__name__)
             log.error(
