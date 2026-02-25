@@ -30,7 +30,8 @@ class CustomMiddleware(BaseHTTPMiddleware):
 
         match endpoint_name:
             case _endpoint_name if _endpoint_name in common_api_list:
-                return self.create_log_for_common_api(request, response, body_bytes)
+                self.create_log_for_common_api(request, response, body_bytes)
+                return response
             case _endpoint_name if _endpoint_name in upload_api_list:
                 return response
             case _endpoint_name if _endpoint_name in auth_api_list:
@@ -55,5 +56,3 @@ class CustomMiddleware(BaseHTTPMiddleware):
             "uid": uid,
         }
         logger.info(json.dumps(log_dict))
-
-        return response
