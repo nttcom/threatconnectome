@@ -286,8 +286,7 @@ class Package(Base):
         If the ecosystem starts with "alpine-",
         it change the value to include only the minor version.
         If it starts with "rocky-", it keeps only the major version.
-        If it starts with "alma-", it keeps only the major version.
-        Example: "alpine-3.22.0" → "alpine-3.22", "rocky-9.3" → "rocky-9", "alma-9.7" → "9"
+        Example: "alpine-3.22.0" → "alpine-3.22", "rocky-9.3" → "rocky-9"
         For other ecosystems, returns the original value.
         """
         if not self.ecosystem:
@@ -304,12 +303,6 @@ class Package(Base):
                 version = parts[1].split(".")
                 if len(version) >= 1:
                     return f"rocky-{version[0]}"
-        elif self.ecosystem.startswith("alma-"):
-            parts = self.ecosystem.split("-")
-            if len(parts) == 2:
-                version = parts[1].split(".")
-                if len(version) >= 1:
-                    return f"alma-{version[0]}"
         return self.ecosystem
 
     @vuln_matching_ecosystem.inplace.expression
