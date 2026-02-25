@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language;
   const [lang, setLang] = useState<string>(currentLanguage);
@@ -24,20 +24,26 @@ export function LanguageSwitcher() {
 
   return (
     <>
-      {isMobile ? (
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "text.primary" }}>
+      {compact && isMobile ? (
+        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "#5f6368" }}>
           <LanguageIcon />
         </IconButton>
       ) : (
         <Button
           variant="outlined"
-          color="inherit"
           onClick={(e) => setAnchorEl(e.currentTarget)}
           startIcon={<LanguageIcon />}
           endIcon={<ArrowDropDownIcon />}
-          sx={{ color: "text.primary" }}
+          size="small"
+          sx={{
+            bgcolor: "#f8f9fa",
+            borderColor: "#dadce0",
+            color: "#3c4043",
+            textTransform: "none",
+            fontSize: 14,
+          }}
         >
-          Language: {lang}
+          {lang.toUpperCase()}
         </Button>
       )}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
