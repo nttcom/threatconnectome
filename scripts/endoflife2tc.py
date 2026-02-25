@@ -203,6 +203,23 @@ eol_product_list: list[EOLProductItem] = [
             "matching_name": "sqlite",
         },
     },
+    {
+        "product": "ansible",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": (
+                "Ansible is an open-source software provisioning, configuration management and "
+                "application-deployment tool enabling infrastructure as code. ansible extends "
+                "the basic ansible-core with additional modules by delivering several "
+                "collections in an easy-to-consume PyPI package. The ansible community "
+                "package typically gets 2 major releases every year. A new minor version is "
+                "released every 4 weeks. Maintenance fixes are guaranteed for only the latest "
+                "major release.\nSee the Ansible Roadmap for upcoming release details."
+            ),
+            "is_ecosystem": False,
+            "matching_name": "ansible",
+        },
+    },
 ]
 
 
@@ -243,46 +260,6 @@ class EoLParamCreator:
             "matching_name": self._get_matching_name(),
             "eol_versions": eol_versions,
         }
-
-
-class AlmaLinuxEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"alma-{release}"
-
-
-class AlpineLinuxEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"alpine-{release}"
-
-
-class RockyLinuxEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"rocky-{release}"
-
-
-class UbuntuEoLParamCreator(EoLParamCreator):
-    def _get_matching_version(self, eol_version_info) -> str:
-        release = eol_version_info.get("release")
-        return f"ubuntu-{release}"
-
-
-def create_eol_param_creator(
-    product: str, eol_product_item: EOLProductItem, product_eol_info: list[ProductEoLInfo]
-) -> EoLParamCreator:
-    match product:
-        case "alpine-linux":
-            return AlpineLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "rocky-linux":
-            return RockyLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "ubuntu":
-            return UbuntuEoLParamCreator(product, eol_product_item, product_eol_info)
-        case "almalinux":
-            return AlmaLinuxEoLParamCreator(product, eol_product_item, product_eol_info)
-        case _:
-            return EoLParamCreator(product, eol_product_item, product_eol_info)
 
 
 class APIError(Exception):
@@ -448,7 +425,7 @@ def register_eol_info(tc_client: ThreatconnectomeClient) -> None:
         if len(product_eol_info) == 0:
             continue
 
-        eol_param_creator = create_eol_param_creator(product, eol_product_item, product_eol_info)
+        eol_param_creator = EoLParamCreator(product, eol_product_item, product_eol_info)
         eol_product_id = eol_param_creator.get_eol_product_id()
         eol_parameters = eol_param_creator.create_eol_parameters()
         tc_client.put_eol(eol_product_id, eol_parameters)

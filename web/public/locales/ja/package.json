@@ -73,6 +73,11 @@
         },
         "TicketListSection": {
           "failedToLoadTickets": "チケットの読み込みに失敗しました。"
+        },
+        "TicketListItem": {
+          "loading": "読み込んでいます...",
+          "errorLoadingTarget": "ターゲットの読み込みエラー",
+          "unknownTarget": "不明なターゲット"
         }
       },
       "TicketDetailPanel": {

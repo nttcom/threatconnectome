@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app import command, models, persistence
+from app import models, persistence
+from app.business.eol import eol_detector
 from app.notification import alert
 from app.notification.eol_notification_utils import is_within_eol_warning
 
@@ -11,29 +12,40 @@ def fix_ecosystem_eol_dependency_by_eol_product(
     for eol_version in eol_product.eol_versions:
         _delete_not_match_ecosystem_eol_dependency(db, eol_version)
 
-        package_versions = command.get_related_package_versions_by_eol_version_for_ecosystem(
-            db, eol_version
-        )
-        related_services = set()
-        for package_version in package_versions:
-            for dependency in package_version.dependencies:
-                related_services.add(dependency.service)
-
-        for service in related_services:
-            # Create ecosystem EoL dependency and notify immediately if created
-            ecosystem_eol_dependency = create_ecosystem_eol_dependency_if_not_exists(
-                db, eol_version.eol_version_id, service.service_id
-            )
-            if ecosystem_eol_dependency:
-                try:
-                    if is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
-                        notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
-                        if notification_sent:
-                            ecosystem_eol_dependency.eol_notification_sent = True
-                except Exception:
-                    pass
+        pteams = persistence.get_all_pteams(db)
+        for pteam in pteams:
+            for service in pteam.services:
+                if not match_eol_version_with_service(service, eol_version):
+                    continue
+                # Create ecosystem EoL dependency and notify immediately if created
+                ecosystem_eol_dependency = create_ecosystem_eol_dependency_if_not_exists(
+                    db, eol_version.eol_version_id, service.service_id
+                )
+                if ecosystem_eol_dependency:
+                    try:
+                        if is_within_eol_warning(ecosystem_eol_dependency.eol_version.eol_from):
+                            notification_sent = alert.notify_eol_ecosystem(ecosystem_eol_dependency)
+                            if notification_sent:
+                                ecosystem_eol_dependency.eol_notification_sent = True
+                    except Exception:
+                        pass
 
     db.flush()
+
+
+def match_eol_version_with_service(
+    service: models.Service,
+    eol_version: models.EoLVersion,
+) -> bool:
+    related_packages = set()
+    for dependency in service.dependencies:
+        related_packages.add(dependency.package_version.package)
+
+    for package in related_packages:
+        if eol_detector.match_eol_for_ecosystem(package, eol_version):
+            return True
+
+    return False
 
 
 def create_ecosystem_eol_dependency_if_not_exists(
@@ -86,10 +98,7 @@ def _delete_not_match_ecosystem_eol_dependency_by_ecosystem_eol_dependencies(
 
 def _check_match_any_dependencies(ecosystem_eol_dependency, eol_version):
     for dependency in ecosystem_eol_dependency.service.dependencies:
-        if (
-            dependency.package_version.package.vuln_matching_ecosystem
-            == eol_version.matching_version
-        ):
+        if eol_detector.match_eol_for_ecosystem(dependency.package_version.package, eol_version):
             return True
 
     return False

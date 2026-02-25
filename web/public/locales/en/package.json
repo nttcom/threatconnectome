@@ -73,6 +73,11 @@
         },
         "TicketListSection": {
           "failedToLoadTickets": "Failed to load tickets"
+        },
+        "TicketListItem": {
+          "loading": "Loading...",
+          "errorLoadingTarget": "Error loading target",
+          "unknownTarget": "Unknown Target"
         }
       },
       "TicketDetailPanel": {

@@ -1,11 +1,23 @@
+import pytest
 from cyclonedx.model.bom import Bom
 
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
+from app.utility.progress_logger import TimeBasedProgressLogger
+
+
+@pytest.fixture(scope="function")
+def progress():
+    progress = TimeBasedProgressLogger(title="test")
+    yield progress
+    progress.stop()
 
 
 class TestTrivyCDXParser:
-    def test_it_should_unescape_purl_and_extract_correct_package_name_and_ecosystem(self):
+    def test_it_should_unescape_purl_and_extract_correct_package_name_and_ecosystem(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = {
             "metadata": {
                 "component": {
@@ -50,8 +62,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "@babel/code-frame"
@@ -89,7 +101,10 @@ class TestTrivyCDXParser:
             ],
         }
 
-    def test_it_should_lowercase_package_name_and_ecosystem_from_sbom_pyjwt(self):
+    def test_it_should_lowercase_package_name_and_ecosystem_from_sbom_pyjwt(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = self.make_sbom_pyjwt()
         sbom_info = SBOMInfo(
             spec_name="CycloneDX",
@@ -97,15 +112,18 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         # package name and ecosystem name are lowercased
         assert artifact.package_name == "pyjwt"
         assert artifact.ecosystem == "pypi"
 
-    def test_it_should_create_target_without_metadata(self):
+    def test_it_should_create_target_without_metadata(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = {
             "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
             "bomFormat": "CycloneDX",
@@ -160,8 +178,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.package_name == "libcrypt1"
@@ -169,7 +187,10 @@ class TestTrivyCDXParser:
         assert len(artifact.targets) == 1
         assert list(artifact.targets)[0] == ("ubuntu", "1:4.4.10-10ubuntu4")
 
-    def test_it_should_create_target_with_closest_dependency(self):
+    def test_it_should_create_target_with_closest_dependency(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = {
             "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
             "bomFormat": "CycloneDX",
@@ -247,8 +268,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 2
 
         artifact3 = artifacts[0]
@@ -264,7 +285,10 @@ class TestTrivyCDXParser:
         assert list(artifact4.targets)[0] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
         assert list(artifact4.targets)[1] in {("test1_name", "39.0.2"), ("test2_name", "39.0.2")}
 
-    def test_it_should_create_ecosystem_when_wolfi(self):
+    def test_it_should_create_ecosystem_when_wolfi(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = {
             "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
             "bomFormat": "CycloneDX",
@@ -348,8 +372,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.63.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 1
         artifact = artifacts[0]
         assert artifact.ecosystem == "wolfi"
@@ -359,7 +383,10 @@ class TestTrivyCDXParser:
         assert len(artifact.targets) == 1
         assert list(artifact.targets)[0] == ("wolfi", "15.1.0-r1")
 
-    def test_it_should_create_target_with_dependent_across_multiple_generations(self):
+    def test_it_should_create_target_with_dependent_across_multiple_generations(
+        self,
+        progress: TimeBasedProgressLogger,
+    ):
         sbom = {
             "metadata": {
                 "component": {
@@ -425,8 +452,8 @@ class TestTrivyCDXParser:
             tool_name="trivy",
             tool_version="0.52.0",
         )
-        sbom_bom = Bom.from_json(sbom)
-        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info)
+        sbom_bom = Bom.from_json(sbom)  # type: ignore[attr-defined]
+        artifacts = TrivyCDXParser.parse_sbom(sbom_bom, sbom_info, progress)
         assert len(artifacts) == 3
 
         artifact0 = artifacts[0]

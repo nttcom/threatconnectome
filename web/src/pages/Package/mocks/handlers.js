@@ -16,6 +16,8 @@ import {
   mockTicketsVuln001,
   mockTicketsVuln002,
   mockTicketsVuln003,
+  mockTicketsVuln004,
+  mockTicketsVuln005,
 } from "./mockData";
 
 // Delay setting (ms) - set to 0 to disable delay
@@ -137,6 +139,10 @@ export function createDefaultHandlers() {
         return HttpResponse.json(mockTicketsVuln002);
       } else if (vulnId === "vuln-003") {
         return HttpResponse.json(mockTicketsVuln003);
+      } else if (vulnId === "vuln-004") {
+        return HttpResponse.json(mockTicketsVuln004);
+      } else if (vulnId === "vuln-005") {
+        return HttpResponse.json(mockTicketsVuln005);
       }
       // Dynamic generation for pagination testing
       if (vulnId && vulnId.startsWith("vuln-extra-")) {

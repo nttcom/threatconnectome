@@ -14,6 +14,7 @@ from app.sbom.parser.sbom_parser import (
 )
 from app.sbom.parser.syft_cdx_parser import SyftCDXParser
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 def _inspect_cyclonedx(sbom_bom: Bom) -> tuple[str, str | None]:  # tool_name, tool_version
@@ -74,17 +75,23 @@ SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
 }
 
 
-def sbom_json_to_artifact_json_lines(sbom_str: str) -> list[dict]:
+def sbom_json_to_artifact_json_lines(
+    sbom_str: str,
+    progress: TimeBasedProgressLogger,
+) -> list[dict]:
     sbom_json = json.loads(sbom_str)
+    progress.add_progress(0.1)
     spec_version = _validate_and_get_version(sbom_json, sbom_str)
+    progress.add_progress(8.9)
     sbom_bom = Bom.from_json(sbom_json)  # type: ignore[attr-defined]
+    progress.add_progress(1.0)
     tool_name, tool_version = _inspect_cyclonedx(sbom_bom)
     sbom_info = SBOMInfo("CycloneDX", spec_version, tool_name, tool_version)
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))
     if not sbom_parser:
         raise ValueError("Not supported file format")
 
-    artifacts = sbom_parser.parse_sbom(sbom_bom, sbom_info)
+    artifacts = sbom_parser.parse_sbom(sbom_bom, sbom_info, progress)
     return [
         artifact.to_json()
         for artifact in sorted(
