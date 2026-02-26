@@ -57,7 +57,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "request_body": body,
             "uid": uid,
         }
-        logger.info(json.dumps(log_dict, indent=2))
+        logger.info(json.dumps(log_dict))
 
     def create_log_for_create_user(self, request: Request, response, body_bytes):
         body = json.loads(body_bytes) if body_bytes else None
