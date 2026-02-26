@@ -33,7 +33,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         if endpoint_name in COMMON_API_LIST:
             self.create_log_for_common_api(request, response, body_bytes)
         elif endpoint_name in UPLOAD_API_LIST:
-            pass
+            self.create_log_for_upload_api(request, response)
         elif endpoint_name in AUTH_API_LIST:
             pass
         elif endpoint_name == INVITED_PTEAM:
@@ -56,5 +56,20 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "query_params": dict(request.query_params),
             "request_body": body,
             "uid": uid,
+        }
+        logger.info(json.dumps(log_dict))
+
+    def create_log_for_upload_api(self, request: Request, response):
+        user = getattr(request.state, "current_user", None)
+        file_info = getattr(request.state, "file_info", {})
+        log_dict = {
+            "http_status": response.status_code,
+            "method": request.method,
+            "path": request.url.path,
+            "query_params": dict(request.query_params),
+            "file_name": file_info.get("filename", None),
+            "file_size": f"{file_info['size']}byte" if "size" in file_info else None,
+            "content_type": file_info.get("content_type", None),
+            "uid": user.uid if user else None,
         }
         logger.info(json.dumps(log_dict))
