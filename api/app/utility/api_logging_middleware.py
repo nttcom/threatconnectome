@@ -67,8 +67,8 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "method": request.method,
             "path": request.url.path,
             "query_params": dict(request.query_params),
-            "file_name": file_info.get("filename", None),
-            "file_size": f"{file_info['size']}byte" if "size" in file_info else None,
+            "file_name": file_info.get("file_name", None),
+            "file_size": f"{file_info['file_size']}byte" if "file_size" in file_info else None,
             "content_type": file_info.get("content_type", None),
             "uid": user.uid if user else None,
         }

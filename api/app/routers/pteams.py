@@ -368,9 +368,9 @@ async def upload_service_thumbnail(
 
     # store uploaded file info in request.state for logging in middleware
     request.state.file_info = {
-        "filename": uploaded.filename,
+        "file_name": uploaded.filename,
         "content_type": uploaded.content_type,
-        "size": uploaded.size,
+        "file_size": uploaded.size,
     }
 
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
@@ -1220,9 +1220,9 @@ async def upload_pteam_sbom_file(
     """
     # store uploaded file info in request.state for logging in middleware
     request.state.file_info = {
-        "filename": file.filename,
+        "file_name": file.filename,
         "content_type": file.content_type,
-        "size": file.size,
+        "file_size": file.size,
     }
 
     if len(service) > 255:
@@ -1281,9 +1281,9 @@ def upload_pteam_packages_file(
     """
     # store uploaded file info in request.state for logging in middleware
     request.state.file_info = {
-        "filename": file.filename,
+        "file_name": file.filename,
         "content_type": file.content_type,
-        "size": file.size,
+        "file_size": file.size,
     }
 
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
