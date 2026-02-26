@@ -33,17 +33,18 @@ class CustomMiddleware(BaseHTTPMiddleware):
         match endpoint_name:
             case _endpoint_name if _endpoint_name in COMMON_API_LIST:
                 self.create_log_for_common_api(request, response, body_bytes)
-                return response
             case _endpoint_name if _endpoint_name in UPLOAD_API_LIST:
-                return response
+                pass
             case _endpoint_name if _endpoint_name in AUTH_API_LIST:
-                return response
+                pass
             case _endpoint_name if _endpoint_name == INVITED_PTEAM:
-                return response
+                pass
             case _endpoint_name if _endpoint_name == CREATE_USER:
-                return response
+                pass
             case _:
-                return response
+                pass
+
+        return response
 
     def create_log_for_common_api(self, request: Request, response, body_bytes):
         user = getattr(request.state, "current_user", None)
