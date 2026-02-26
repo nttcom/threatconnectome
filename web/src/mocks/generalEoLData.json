@@ -7,14 +7,12 @@
       "product_category": "package",
       "description": "Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.",
       "is_ecosystem": "False",
-      "matching_name": "django",
       "eol_versions": [
         {
           "eol_version_id": "eol_version_id_1",
           "version": "6.0",
           "release_date": "2025-12-03",
           "eol_from": "2026-08-31",
-          "matching_version": "6.0",
           "created_at": "2025-12-03T10:23:45Z",
           "updated_at": "2025-12-03T10:23:45Z"
         },
@@ -23,7 +21,6 @@
           "version": "5.2",
           "release_date": "2024-08-07",
           "eol_from": "2028-04-30",
-          "matching_version": "5.2",
           "created_at": "2025-12-03T10:23:45Z",
           "updated_at": "2025-12-03T10:23:45Z"
         },
@@ -32,7 +29,6 @@
           "version": "5.1",
           "release_date": "2025-04-02",
           "eol_from": "2025-12-03",
-          "matching_version": "5.1",
           "created_at": "2025-12-03T10:23:45Z",
           "updated_at": "2025-12-03T10:23:45Z"
         }
@@ -44,14 +40,12 @@
       "product_category": "package",
       "description": "Meta社が開発するUIライブラリ",
       "is_ecosystem": "False",
-      "matching_name": "react",
       "eol_versions": [
         {
           "eol_version_id": "react-18",
           "version": "18",
           "release_date": "2022-03-29",
           "eol_from": "2026-06-01",
-          "matching_version": "18",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         }
@@ -63,14 +57,12 @@
       "product_category": "package",
       "description": "Vercel社が開発するReactフレームワーク",
       "is_ecosystem": "False",
-      "matching_name": "nextjs",
       "eol_versions": [
         {
           "eol_version_id": "nextjs-14",
           "version": "14",
           "release_date": "2023-10-26",
           "eol_from": "2025-10-26",
-          "matching_version": "14",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         },
@@ -79,7 +71,6 @@
           "version": "13",
           "release_date": "2022-10-25",
           "eol_from": "2024-12-01",
-          "matching_version": "13",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         }
@@ -91,14 +82,12 @@
       "product_category": "os",
       "description": "Canonical社が提供するLinuxディストリビューション",
       "is_ecosystem": "False",
-      "matching_name": "ubuntu",
       "eol_versions": [
         {
           "eol_version_id": "ubuntu-24.04-lts",
           "version": "24.04 LTS",
           "release_date": "2024-04-25",
           "eol_from": "2029-04-25",
-          "matching_version": "24.04",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         },
@@ -107,7 +96,6 @@
           "version": "22.04 LTS",
           "release_date": "2022-04-21",
           "eol_from": "2027-04-21",
-          "matching_version": "22.04",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         }
@@ -119,14 +107,12 @@
       "product_category": "os",
       "description": "Red Hat Enterprise Linux互換のLinuxディストリビューション",
       "is_ecosystem": "False",
-      "matching_name": "centos",
       "eol_versions": [
         {
           "eol_version_id": "centos-stream-9",
           "version": "Stream 9",
           "release_date": "2021-12-03",
           "eol_from": "2027-05-31",
-          "matching_version": "9",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         },
@@ -135,7 +121,6 @@
           "version": "7",
           "release_date": "2014-07-07",
           "eol_from": "2024-06-30",
-          "matching_version": "7",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         }
@@ -147,14 +132,12 @@
       "product_category": "runtime",
       "description": "サーバーサイドJavaScript実行環境",
       "is_ecosystem": "False",
-      "matching_name": "nodejs",
       "eol_versions": [
         {
           "eol_version_id": "nodejs-22",
           "version": "22",
           "release_date": "2024-04-24",
           "eol_from": "2027-04-30",
-          "matching_version": "22",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         },
@@ -163,7 +146,6 @@
           "version": "20",
           "release_date": "2023-04-18",
           "eol_from": "2026-04-30",
-          "matching_version": "20",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         }
@@ -175,14 +157,12 @@
       "product_category": "middleware",
       "description": "オープンソースのリレーショナルデータベース",
       "is_ecosystem": "False",
-      "matching_name": "postgresql",
       "eol_versions": [
         {
           "eol_version_id": "postgresql-17",
           "version": "17",
           "release_date": "2024-09-26",
           "eol_from": "2029-11-13",
-          "matching_version": "17",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         },
@@ -191,7 +171,6 @@
           "version": "14",
           "release_date": "2021-09-30",
           "eol_from": "2026-11-12",
-          "matching_version": "14",
           "created_at": "2026-01-26T16:00:00Z",
           "updated_at": "2026-01-26T16:00:00Z"
         }
@@ -203,14 +182,12 @@
       "product_category": "middleware",
       "description": "Oracle社が提供するリレーショナルデータベース",
       "is_ecosystem": "False",
-      "matching_name": "mysql",
       "eol_versions": [
         {
           "eol_version_id": "mysql-8.4-lts",
           "version": "8.4 LTS",
           "release_date": "2024-04-30",
           "eol_from": "2032-04-30",
-          "matching_version": "8.4",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         },
@@ -219,7 +196,6 @@
           "version": "8.0",
           "release_date": "2018-04-19",
           "eol_from": "2026-04-30",
-          "matching_version": "8.0",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         }
@@ -231,14 +207,12 @@
       "product_category": "runtime",
       "description": "汎用プログラミング言語",
       "is_ecosystem": "False",
-      "matching_name": "python",
       "eol_versions": [
         {
           "eol_version_id": "python-3.13",
           "version": "3.13",
           "release_date": "2024-10-01",
           "eol_from": "2029-10-01",
-          "matching_version": "3.13",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         },
@@ -247,7 +221,6 @@
           "version": "3.10",
           "release_date": "2021-10-04",
           "eol_from": "2026-10-04",
-          "matching_version": "3.10",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         },
@@ -256,7 +229,6 @@
           "version": "3.9",
           "release_date": "2020-10-05",
           "eol_from": "2025-10-05",
-          "matching_version": "3.9",
           "created_at": "2026-01-26T16:51:00Z",
           "updated_at": "2026-01-26T16:51:00Z"
         }

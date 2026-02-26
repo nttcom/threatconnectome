@@ -33,4 +33,4 @@ def gen_product_instance_for_eol(
         case "ruby":
             return RubyProduct(ecosystem)
         case _:
-            return EoLBaseProduct(eol_product.matching_name)
+            return EoLBaseProduct(eol_product.name)

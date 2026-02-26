@@ -882,7 +882,6 @@ class EoLProduct(Base):
     product_category: Mapped[ProductCategoryEnum]
     description: Mapped[str | None]
     is_ecosystem: Mapped[bool] = mapped_column(default=False)
-    matching_name: Mapped[Str255]
 
     eol_versions = relationship(
         "EoLVersion", back_populates="eol_product", cascade="all, delete-orphan"
@@ -904,7 +903,6 @@ class EoLVersion(Base):
     version: Mapped[Str255]
     release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     eol_from: Mapped[date] = mapped_column(Date, nullable=False)
-    matching_version: Mapped[Str255]
 
     eol_product = relationship("EoLProduct", back_populates="eol_versions")
     package_eol_dependencies = relationship(
