@@ -35,7 +35,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         elif endpoint_name in UPLOAD_API_LIST:
             pass
         elif endpoint_name in AUTH_API_LIST:
-            pass
+            self.create_log_for_auth_api(request, response, body_bytes)
         elif endpoint_name == INVITED_PTEAM:
             pass
         elif endpoint_name == CREATE_USER:
@@ -48,6 +48,19 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
     def create_log_for_common_api(self, request: Request, response, body_bytes):
         user = getattr(request.state, "current_user", None)
         uid = user.uid if user else None
+        body = json.loads(body_bytes) if body_bytes else None
+        log_dict = {
+            "http_status": response.status_code,
+            "method": request.method,
+            "path": request.url.path,
+            "query_params": dict(request.query_params),
+            "request_body": body,
+            "uid": uid,
+        }
+        logger.info(json.dumps(log_dict))
+
+    def create_log_for_auth_api(self, request: Request, response, body_bytes):
+        uid = getattr(request.state, "uid", None)
         body = json.loads(body_bytes) if body_bytes else None
         log_dict = {
             "http_status": response.status_code,
