@@ -30,19 +30,18 @@ class CustomMiddleware(BaseHTTPMiddleware):
         route = request.scope.get("route")
         endpoint_name = getattr(route, "name", None) if route else None
 
-        match endpoint_name:
-            case _endpoint_name if _endpoint_name in COMMON_API_LIST:
-                self.create_log_for_common_api(request, response, body_bytes)
-            case _endpoint_name if _endpoint_name in UPLOAD_API_LIST:
-                pass
-            case _endpoint_name if _endpoint_name in AUTH_API_LIST:
-                pass
-            case _endpoint_name if _endpoint_name == INVITED_PTEAM:
-                pass
-            case _endpoint_name if _endpoint_name == CREATE_USER:
-                pass
-            case _:
-                pass
+        if endpoint_name in COMMON_API_LIST:
+            self.create_log_for_common_api(request, response, body_bytes)
+        elif endpoint_name in UPLOAD_API_LIST:
+            pass
+        elif endpoint_name in AUTH_API_LIST:
+            pass
+        elif endpoint_name == INVITED_PTEAM:
+            pass
+        elif endpoint_name == CREATE_USER:
+            pass
+        else:
+            pass
 
         return response
 
