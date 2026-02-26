@@ -95,10 +95,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         elif endpoint_name == CREATE_USER:
             pass
         else:
-            user = getattr(request.state, "current_user", None)
-            if user:
-                self.create_log_for_common_api(request, response, body_bytes)
-
+            pass
         return response
 
     def create_log_for_common_api(self, request: Request, response, body_bytes):
