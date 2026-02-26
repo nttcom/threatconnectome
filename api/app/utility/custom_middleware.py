@@ -5,13 +5,15 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger("api_logger")
-common_api_list = ["update_user", "get_dependencies"]
-upload_api_list = [
+COMMON_API_LIST = ["update_user", "get_dependencies"]
+UPLOAD_API_LIST = [
     "upload_service_thumbnail",
     "upload_pteam_sbom_file",
     "upload_pteam_packages_file",
 ]
-auth_api_list = ["login_for_access_token", "refresh_access_token"]
+AUTH_API_LIST = ["login_for_access_token", "refresh_access_token"]
+INVITED_PTEAM = "invited_pteam"
+CREATE_USER = "create_user"
 
 
 class CustomMiddleware(BaseHTTPMiddleware):
@@ -29,18 +31,18 @@ class CustomMiddleware(BaseHTTPMiddleware):
         endpoint_name = getattr(route, "name", None) if route else None
 
         match endpoint_name:
-            case _endpoint_name if _endpoint_name in common_api_list:
+            case _endpoint_name if _endpoint_name in COMMON_API_LIST:
                 self.create_log_for_common_api(request, response, body_bytes)
                 return response
-            case _endpoint_name if _endpoint_name in upload_api_list:
+            case _endpoint_name if _endpoint_name in UPLOAD_API_LIST:
                 return response
-            case _endpoint_name if _endpoint_name in auth_api_list:
+            case _endpoint_name if _endpoint_name in AUTH_API_LIST:
                 return response
-            case "invited_pteam":
+            case _endpoint_name if _endpoint_name == INVITED_PTEAM:
                 return response
-            case "create_user":
+            case _endpoint_name if _endpoint_name == CREATE_USER:
                 return response
-            case __:
+            case _:
                 return response
 
     def create_log_for_common_api(self, request: Request, response, body_bytes):
