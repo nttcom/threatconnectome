@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,7 @@ from ..models import Account
 
 
 def get_current_user(
+    request: Request,
     token: HTTPAuthorizationCredentials = Depends(
         HTTPBearer(scheme_name=None, description=None, auto_error=False)
     ),
@@ -33,4 +34,5 @@ def get_current_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
         )
+    request.state.current_user = user
     return user

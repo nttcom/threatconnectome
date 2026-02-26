@@ -1,0 +1,60 @@
+import json
+import logging
+
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+
+logger = logging.getLogger("api_logger")
+COMMON_API_LIST = ["update_user", "get_dependencies"]
+UPLOAD_API_LIST = [
+    "upload_service_thumbnail",
+    "upload_pteam_sbom_file",
+    "upload_pteam_packages_file",
+]
+AUTH_API_LIST = ["login_for_access_token", "refresh_access_token"]
+INVITED_PTEAM = "invited_pteam"
+CREATE_USER = "create_user"
+
+
+class ApiLoggingMiddleware(BaseHTTPMiddleware):
+
+    async def dispatch(self, request: Request, call_next):
+        body_bytes = None
+        if request.headers.get("content-type", "").startswith("application/json"):
+            try:
+                body_bytes = await request.body()
+            except Exception:
+                body_bytes = None
+
+        response = await call_next(request)
+        route = request.scope.get("route")
+        endpoint_name = getattr(route, "name", None) if route else None
+
+        if endpoint_name in COMMON_API_LIST:
+            self.create_log_for_common_api(request, response, body_bytes)
+        elif endpoint_name in UPLOAD_API_LIST:
+            pass
+        elif endpoint_name in AUTH_API_LIST:
+            pass
+        elif endpoint_name == INVITED_PTEAM:
+            pass
+        elif endpoint_name == CREATE_USER:
+            pass
+        else:
+            pass
+
+        return response
+
+    def create_log_for_common_api(self, request: Request, response, body_bytes):
+        user = getattr(request.state, "current_user", None)
+        uid = user.uid if user else None
+        body = json.loads(body_bytes) if body_bytes else None
+        log_dict = {
+            "http_status": response.status_code,
+            "method": request.method,
+            "path": request.url.path,
+            "query_params": dict(request.query_params),
+            "request_body": body,
+            "uid": uid,
+        }
+        logger.info(json.dumps(log_dict))
