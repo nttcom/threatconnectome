@@ -16,7 +16,7 @@ INVITED_PTEAM = "invited_pteam"
 CREATE_USER = "create_user"
 
 
-class CustomMiddleware(BaseHTTPMiddleware):
+class ApiLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         body_bytes = None
