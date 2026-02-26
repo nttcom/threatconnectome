@@ -96,6 +96,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             pass
         else:
             pass
+
         return response
 
     def create_log_for_common_api(self, request: Request, response, body_bytes):
