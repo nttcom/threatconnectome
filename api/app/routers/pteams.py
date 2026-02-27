@@ -123,7 +123,11 @@ def apply_invitation(
 
 
 @router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
-def invited_pteam(invitation_id: UUID, db: Session = Depends(get_db)):
+def invited_pteam(
+    invitation_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     if not (invitation := persistence.get_pteam_invitation_by_id(db, invitation_id)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid invitation id")
 
