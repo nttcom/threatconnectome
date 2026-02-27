@@ -37,6 +37,20 @@ class EOLProductItem(TypedDict):
 
 eol_product_list: list[EOLProductItem] = [
     {
+        "product": "almalinux",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.OS,
+            "description": "AlmaLinux OS is an open source, community-owned and governed, "
+            "forever-free enterprise Linux distribution. It is focused on long-term stability, "
+            "providing a robust production-grade platform. AlmaLinux OS is binary-compatible "
+            "with RHEL. It is owned and controlled by the non-profit AlmaLinux OS Foundation, "
+            "and managed by a community-elected board of directors and the self-managed "
+            "AlmaLinux Engineering Steering Committee.",
+            "is_ecosystem": True,
+            "matching_name": "alma",
+        },
+    },
+    {
         "product": "alpine-linux",
         "threatconnectome": {
             "product_category": ProductCategoryEnum.OS,
