@@ -7,7 +7,7 @@
         "eolDate": "サポート終了日"
     },
     "ServiceEolDashboardPage": {
-        "title": "EOL(サポート終了日)一覧",
+        "title": "EOL一覧",
         "subtitle": "チーム全体で使用しているライブラリやツールのサポート状況一覧。",
         "notificationTitle": "サポート終了日通知",
         "notificationItems": {
@@ -28,7 +28,7 @@
         "eolNotFound": "サポート終了日情報が見つかりません。"
     },
     "ProductEolListPage": {
-        "title": "サポート終了日情報の自動取得をサポートする製品一覧",
+        "title": "EOL確認済製品",
         "subtitle": "サポート終了日情報の自動取得と通知に対応している製品の一覧。",
         "aboutPageTitle": "このページについて",
         "aboutPageContent": "このページに記載されている製品のみがサポート終了日の自動取得と通知をサポートしています。ここに記載されていない製品については、公式ウェブサイトなどでサポート終了日情報を確認してください。",

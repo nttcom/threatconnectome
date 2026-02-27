@@ -28,7 +28,7 @@
         "eolNotFound": "Eol data not found"
     },
     "ProductEolListPage": {
-        "title": "List of Products Supporting Automatic Retrieval of EOL Information",
+        "title": "EOL Verified Products",
         "subtitle": "This is a list of products that support automatic retrieval and notification of EOL information.",
         "aboutPageTitle": "About this page",
         "aboutPageContent": "Only the products listed on this page support automatic retrieval and notification of EOL dates. For products not listed here, please check the official website or other sources for their EOL information.",

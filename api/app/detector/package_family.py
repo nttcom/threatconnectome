@@ -22,7 +22,7 @@ class PackageFamily(Enum):
             return cls.NPM
         if re.match(r"^(golang)", fixed_registry):
             return cls.GO
-        if re.match(r"^(rpm|rocky)", fixed_registry):
+        if re.match(r"^(rpm|rocky|alma)", fixed_registry):
             return cls.RPM
         if re.match(r"^(alpine)", fixed_registry):
             return cls.ALPINE
