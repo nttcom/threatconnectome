@@ -17,5 +17,7 @@ class AmazonCorrettoProduct(EoLBaseProduct):
                 return package_name == f"java-{major_version}-amazon-corretto-devel"
             case PackageFamily.DEBIAN:
                 return package_name == f"java-{major_version}-amazon-corretto-jdk"
+            case PackageFamily.ALPINE:
+                return package_name == f"amazon-corretto-{major_version}"
             case _:
                 return False
