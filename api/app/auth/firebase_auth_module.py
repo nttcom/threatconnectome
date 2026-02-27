@@ -16,7 +16,7 @@ class FirebaseAuthModule(AuthModule):
         self.cred = credentials.Certificate(os.environ["FIREBASE_CRED"])
         initialize_app(self.cred)
 
-    def login_for_access_token(self, username, password) -> Token:
+    def login_for_access_token(self, username, password) -> tuple[Token, str | None]:
         payload = {
             "email": username,
             "password": password.get_secret_value(),
@@ -52,11 +52,16 @@ class FirebaseAuthModule(AuthModule):
                 AuthErrorType.UNAUTHORIZED,
                 error_message if error_message else "Could not validate credentials",
             )
-        return Token(
-            access_token=data["idToken"], token_type="bearer", refresh_token=data["refreshToken"]
+        return (
+            Token(
+                access_token=data["idToken"],
+                token_type="bearer",
+                refresh_token=data["refreshToken"],
+            ),
+            data["localId"],
         )
 
-    def refresh_access_token(self, refresh_token) -> Token:
+    def refresh_access_token(self, refresh_token) -> tuple[Token, str | None]:
         payload = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
@@ -91,10 +96,13 @@ class FirebaseAuthModule(AuthModule):
                 AuthErrorType.UNAUTHORIZED,
                 error_message if error_message else "Could not refresh token",
             )
-        return Token(
-            access_token=data["id_token"],
-            token_type=data["token_type"],
-            refresh_token=data["refresh_token"],
+        return (
+            Token(
+                access_token=data["id_token"],
+                token_type=data["token_type"],
+                refresh_token=data["refresh_token"],
+            ),
+            data["user_id"],
         )
 
     def check_and_get_user_info(self, token):
