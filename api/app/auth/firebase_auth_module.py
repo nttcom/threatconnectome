@@ -16,7 +16,7 @@ class FirebaseAuthModule(AuthModule):
         self.cred = credentials.Certificate(os.environ["FIREBASE_CRED"])
         initialize_app(self.cred)
 
-    def login_for_access_token(self, username, password) -> tuple[Token, str]:
+    def login_for_access_token(self, username, password) -> tuple[Token, str | None]:
         payload = {
             "email": username,
             "password": password.get_secret_value(),
@@ -61,7 +61,7 @@ class FirebaseAuthModule(AuthModule):
             data["localId"],
         )
 
-    def refresh_access_token(self, refresh_token) -> tuple[Token, str]:
+    def refresh_access_token(self, refresh_token) -> tuple[Token, str | None]:
         payload = {
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,

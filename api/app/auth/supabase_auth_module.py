@@ -20,7 +20,7 @@ class SupabaseAuthModule(AuthModule):
 
         self.supabase = create_client(url, key)
 
-    def login_for_access_token(self, username, password) -> tuple[Token, str]:
+    def login_for_access_token(self, username, password) -> tuple[Token, str | None]:
         payload = {
             "email": username,
             "password": password.get_secret_value(),
@@ -29,25 +29,28 @@ class SupabaseAuthModule(AuthModule):
         user_model = user_data.model_dump()
         session = user_model.get("session")
         user = user_model.get("user")
+        user_id = user.get("id") if user else None
         return (
             Token(
                 access_token=session.get("access_token"),
                 token_type="bearer",
                 refresh_token=session.get("refresh_token"),
             ),
-            user.get("id"),
+            user_id,
         )
 
-    def refresh_access_token(self, refresh_token) -> tuple[Token, str]:
+    def refresh_access_token(self, refresh_token) -> tuple[Token, str | None]:
         session_data = self.supabase.auth.get_session()
         session = session_data.model_dump()
+        user = session.get("user")
+        user_id = user.get("id") if user else None
         return (
             Token(
                 access_token=session.get("access_token"),
                 token_type="bearer",
                 refresh_token=session.get("refresh_token"),
             ),
-            session.get("user").get("id"),
+            user_id,
         )
 
     def check_and_get_user_info(self, token):
