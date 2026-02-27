@@ -13,6 +13,8 @@ def gen_version_instance_for_eol(
 ) -> EoLBaseVersion:
     try:
         match product:
+            case "almalinux":
+                return MajorOnlyVersion(version_string, ecosystem)
             case "firefox":
                 return MajorOnlyVersion(version_string, ecosystem)
             case "sqlite":

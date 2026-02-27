@@ -69,11 +69,11 @@
       "sortBy": "Sort By",
       "ascending": "Ascending",
       "descending": "Descending",
-      "cve": "CVE",
-      "team": "Team",
-      "service": "Service",
-      "package": "Package",
-      "ssvc": "SSVC",
+      "cve_id": "CVE",
+      "pteam_name": "Team",
+      "service_name": "Service",
+      "package_name": "Package",
+      "ssvc_deployer_priority": "SSVC",
       "rowsPerPage": "Rows per page"
     }
   },
