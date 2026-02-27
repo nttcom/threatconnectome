@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -48,6 +48,7 @@ def get_my_user_info(
 @router.post("", response_model=schemas.UserResponse)
 def create_user(
     data: schemas.UserCreateRequest,
+    request: Request,
     token: HTTPAuthorizationCredentials = Depends(
         HTTPBearer(scheme_name=None, description=None, auto_error=False)
     ),
@@ -59,6 +60,9 @@ def create_user(
     """
     try:
         uid, email = auth_module.check_and_get_user_info(token)
+
+        # store uid in request.state for logging in middleware
+        request.state.uid = uid
     except AuthException as auth_exception:
         raise create_http_exception(auth_exception)
 

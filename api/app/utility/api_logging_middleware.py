@@ -39,7 +39,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         elif endpoint_name == INVITED_PTEAM:
             pass
         elif endpoint_name == CREATE_USER:
-            pass
+            self.create_log_for_create_user(request, response, body_bytes)
         else:
             pass
 
@@ -71,5 +71,17 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "file_size": f"{file_info['file_size']}byte" if "file_size" in file_info else None,
             "content_type": file_info.get("content_type", None),
             "uid": user.uid if user else None,
+        }
+        logger.info(json.dumps(log_dict))
+
+    def create_log_for_create_user(self, request: Request, response, body_bytes):
+        body = json.loads(body_bytes) if body_bytes else None
+        log_dict = {
+            "http_status": response.status_code,
+            "method": request.method,
+            "path": request.url.path,
+            "query_params": dict(request.query_params),
+            "request_body": body,
+            "uid": getattr(request.state, "uid", None),
         }
         logger.info(json.dumps(log_dict))
