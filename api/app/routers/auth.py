@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, Request
 from pydantic import SecretStr
 
 from app.auth.auth_exception import AuthException
@@ -15,21 +15,28 @@ router = APIRouter(
 
 @router.post("/token", response_model=Token)
 def login_for_access_token(
+    request: Request,
     username: str = Form(),
     password: SecretStr = Form(),
     auth_module: AuthModule = Depends(get_auth_module),
 ) -> Token:
     try:
-        return auth_module.login_for_access_token(username, password)
+        token, uid = auth_module.login_for_access_token(username, password)
+        request.state.uid = uid
+        return token
     except AuthException as auth_exception:
         raise create_http_exception(auth_exception)
 
 
 @router.post("/refresh", response_model=Token)
 def refresh_access_token(
-    request: RefreshTokenRequest, auth_module: AuthModule = Depends(get_auth_module)
+    request: Request,
+    refresh_token_request: RefreshTokenRequest,
+    auth_module: AuthModule = Depends(get_auth_module),
 ) -> Token:
     try:
-        return auth_module.refresh_access_token(request.refresh_token)
+        token, uid = auth_module.refresh_access_token(refresh_token_request.refresh_token)
+        request.state.uid = uid
+        return token
     except AuthException as auth_exception:
         raise create_http_exception(auth_exception)
