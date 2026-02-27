@@ -6,7 +6,16 @@ from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import Response
 from PIL import Image
 from sqlalchemy.orm import Session
@@ -338,6 +347,7 @@ async def upload_service_thumbnail(
     pteam_id: UUID,
     service_id: UUID,
     uploaded: UploadFile,
+    request: Request,
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -355,6 +365,13 @@ async def upload_service_thumbnail(
     )
     supported_media_types = {"image/png"}
     # https://www.iana.org/assignments/media-types/media-types.xhtml
+
+    # store uploaded file info in request.state for logging in middleware
+    request.state.file_info = {
+        "file_name": uploaded.filename,
+        "content_type": uploaded.content_type,
+        "file_size": uploaded.size,
+    }
 
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
@@ -1193,6 +1210,7 @@ async def upload_pteam_sbom_file(
     pteam_id: UUID,
     file: UploadFile,
     background_tasks: BackgroundTasks,
+    request: Request,
     service: str = Query("", description="name of service(repository or product)"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -1200,6 +1218,13 @@ async def upload_pteam_sbom_file(
     """
     upload sbom file
     """
+    # store uploaded file info in request.state for logging in middleware
+    request.state.file_info = {
+        "file_name": file.filename,
+        "content_type": file.content_type,
+        "file_size": file.size,
+    }
+
     if len(service) > 255:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -1244,6 +1269,7 @@ async def upload_pteam_sbom_file(
 def upload_pteam_packages_file(
     pteam_id: UUID,
     file: UploadFile,
+    request: Request,
     service: str = Query("", description="name of service(repository or product)"),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -1253,6 +1279,13 @@ def upload_pteam_packages_file(
 
     Format of file content must be JSON Lines.
     """
+    # store uploaded file info in request.state for logging in middleware
+    request.state.file_info = {
+        "file_name": file.filename,
+        "content_type": file.content_type,
+        "file_size": file.size,
+    }
+
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
