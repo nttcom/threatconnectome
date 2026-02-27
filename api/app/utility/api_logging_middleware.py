@@ -41,6 +41,7 @@ COMMON_API_LIST = [
     "get_service_thumbnail",
     "remove_service_thumbnail",
     "get_pteam_packages_summary",
+    "get_dependencies",
     "get_dependency",
     "get_vuln_ids_tied_to_service_package",
     "get_ticket_counts_tied_to_service_package",
@@ -58,7 +59,6 @@ COMMON_API_LIST = [
     "delete_invitation",
     "delete_pteam",
     "get_eol_products_with_pteam_id",
-    "get_dependencies",
 ]
 UPLOAD_API_LIST = [
     "upload_service_thumbnail",
