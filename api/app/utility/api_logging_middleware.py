@@ -5,14 +5,13 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger("api_logger")
-COMMON_API_LIST = ["update_user", "get_dependencies"]
+COMMON_API_LIST = ["update_user", "get_dependencies", "invited_pteam"]
 UPLOAD_API_LIST = [
     "upload_service_thumbnail",
     "upload_pteam_sbom_file",
     "upload_pteam_packages_file",
 ]
 AUTH_API_LIST = ["login_for_access_token", "refresh_access_token"]
-INVITED_PTEAM = "invited_pteam"
 CREATE_USER = "create_user"
 
 
@@ -35,8 +34,6 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         elif endpoint_name in UPLOAD_API_LIST:
             self.create_log_for_upload_api(request, response)
         elif endpoint_name in AUTH_API_LIST:
-            pass
-        elif endpoint_name == INVITED_PTEAM:
             pass
         elif endpoint_name == CREATE_USER:
             self.create_log_for_create_user(request, response, body_bytes)
