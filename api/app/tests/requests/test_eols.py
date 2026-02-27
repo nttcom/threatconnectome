@@ -27,13 +27,11 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "test_description",
             "is_ecosystem": False,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 }
             ],
         }
@@ -62,7 +60,6 @@ class TestUpdateEol:
         assert response.json()["product_category"] == self.request1["product_category"]
         assert response.json()["description"] == self.request1["description"]
         assert response.json()["is_ecosystem"] == self.request1["is_ecosystem"]
-        assert response.json()["matching_name"] == self.request1["matching_name"]
         assert (
             response.json()["eol_versions"][0]["version"]
             == self.request1["eol_versions"][0]["version"]
@@ -74,10 +71,6 @@ class TestUpdateEol:
         assert (
             response.json()["eol_versions"][0]["eol_from"]
             == self.request1["eol_versions"][0]["eol_from"]
-        )
-        assert (
-            response.json()["eol_versions"][0]["matching_version"]
-            == self.request1["eol_versions"][0]["matching_version"]
         )
         assert (
             current_time - timedelta(seconds=10)
@@ -102,19 +95,16 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.OS,
             "description": "test_update_description",
             "is_ecosystem": True,
-            "matching_name": "test_update_matching_name",
             "eol_versions": [
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-06",
                     "eol_from": "2030-02-01",
-                    "matching_version": "<2.0",
                 },
                 {
                     "version": "3.0.0",
                     "release_date": "2021-01-02",
                     "eol_from": "2032-01-02",
-                    "matching_version": "3.0.0",
                 },
             ],
         }
@@ -133,7 +123,6 @@ class TestUpdateEol:
         assert update_response.json()["product_category"] == update_request["product_category"]
         assert update_response.json()["description"] == update_request["description"]
         assert update_response.json()["is_ecosystem"] == update_request["is_ecosystem"]
-        assert update_response.json()["matching_name"] == update_request["matching_name"]
         assert update_response.json()["eol_versions"][0]["version"] in [
             eol_version["version"] for eol_version in update_request["eol_versions"]
         ]
@@ -142,9 +131,6 @@ class TestUpdateEol:
         ]
         assert update_response.json()["eol_versions"][0]["eol_from"] in [
             eol_version["eol_from"] for eol_version in update_request["eol_versions"]
-        ]
-        assert update_response.json()["eol_versions"][0]["matching_version"] in [
-            eol_version["matching_version"] for eol_version in update_request["eol_versions"]
         ]
         assert (
             update_response.json()["eol_versions"][0]["created_at"]
@@ -165,9 +151,6 @@ class TestUpdateEol:
         ]
         assert update_response.json()["eol_versions"][1]["eol_from"] in [
             eol_version["eol_from"] for eol_version in update_request["eol_versions"]
-        ]
-        assert update_response.json()["eol_versions"][1]["matching_version"] in [
-            eol_version["matching_version"] for eol_version in update_request["eol_versions"]
         ]
         assert (
             current_time - timedelta(seconds=10)
@@ -190,7 +173,6 @@ class TestUpdateEol:
             "name",
             "product_category",
             "is_ecosystem",
-            "matching_name",
         ],
     )
     def test_raise_400_when_create_if_field_with_none(self, field_name):
@@ -214,7 +196,6 @@ class TestUpdateEol:
             "name",
             "product_category",
             "is_ecosystem",
-            "matching_name",
         ],
     )
     def test_raise_400_when_update_if_field_with_none(self, update_setup, field_name):
@@ -240,7 +221,6 @@ class TestUpdateEol:
             "name",
             "product_category",
             "is_ecosystem",
-            "matching_name",
         ],
     )
     def test_raise_400_when_create_if_nothing_is_specified_in_the_request(self, field_name):
@@ -257,8 +237,7 @@ class TestUpdateEol:
         # Then
         assert response.status_code == 400
         expected_message = (
-            "'name' and 'product_category' and 'is_ecosystem' and 'matching_name' "
-            "are required when creating a eol."
+            "'name' and 'product_category' and 'is_ecosystem' are required when creating a eol."
         )
         assert response.json()["detail"] == expected_message
 
@@ -293,19 +272,16 @@ class TestGetEolProducts:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 1 description",
             "is_ecosystem": False,
-            "matching_name": "product_1",
             "eol_versions": [
                 {
                     "version": "1.0.0",
                     "release_date": "2020-01-01",
                     "eol_from": "2025-01-01",
-                    "matching_version": "1.0.0",
                 },
                 {
                     "version": "2.0.0",
                     "release_date": "2022-01-01",
                     "eol_from": "2030-01-01",
-                    "matching_version": "2.0.0",
                 },
             ],
         }
@@ -333,7 +309,6 @@ class TestGetEolProducts:
         )
         assert data["products"][0]["description"] == self.eol_product_1_request["description"]
         assert data["products"][0]["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
-        assert data["products"][0]["matching_name"] == self.eol_product_1_request["matching_name"]
 
         assert data["products"][0]["eol_versions"][0]["version"] in [
             eol_version["version"] for eol_version in self.eol_product_1_request["eol_versions"]
@@ -344,10 +319,6 @@ class TestGetEolProducts:
         ]
         assert data["products"][0]["eol_versions"][0]["eol_from"] in [
             eol_version["eol_from"] for eol_version in self.eol_product_1_request["eol_versions"]
-        ]
-        assert data["products"][0]["eol_versions"][0]["matching_version"] in [
-            eol_version["matching_version"]
-            for eol_version in self.eol_product_1_request["eol_versions"]
         ]
         assert (
             self.current_time - timedelta(seconds=10)
@@ -372,10 +343,6 @@ class TestGetEolProducts:
         ]
         assert data["products"][0]["eol_versions"][1]["eol_from"] in [
             eol_version["eol_from"] for eol_version in self.eol_product_1_request["eol_versions"]
-        ]
-        assert data["products"][0]["eol_versions"][1]["matching_version"] in [
-            eol_version["matching_version"]
-            for eol_version in self.eol_product_1_request["eol_versions"]
         ]
         assert (
             self.current_time - timedelta(seconds=10)
@@ -403,13 +370,11 @@ class TestDeleteEol:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "test_description",
             "is_ecosystem": False,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 }
             ],
         }

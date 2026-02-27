@@ -27,7 +27,6 @@ class ThreatConnectomeEoLData(TypedDict):
     product_category: ProductCategoryEnum
     description: str
     is_ecosystem: bool
-    matching_name: str
 
 
 class EOLProductItem(TypedDict):
@@ -57,7 +56,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "Alpine Linux is a security-oriented, lightweight Linux distribution "
             "based on musl libc and busybox.",
             "is_ecosystem": True,
-            "matching_name": "alpine",
         },
     },
     {
@@ -69,7 +67,6 @@ eol_product_list: list[EOLProductItem] = [
             "operating system source code. The project is led by Gregory Kurtzer, "
             "founder of the CentOS project.",
             "is_ecosystem": True,
-            "matching_name": "rocky",
         },
     },
     {
@@ -80,7 +77,6 @@ eol_product_list: list[EOLProductItem] = [
             "Ubuntu is officially released in three editions: Desktop, Server, "
             "and Core (for IoT devices and robots).",
             "is_ecosystem": True,
-            "matching_name": "ubuntu",
         },
     },
     {
@@ -90,7 +86,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "Django is a high-level Python Web framework that encourages rapid "
             "development and clean, pragmatic design.",
             "is_ecosystem": False,
-            "matching_name": "django",
         },
     },
     {
@@ -100,7 +95,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "Firefox, is a free and open-source web browser developed by the "
             "Mozilla. Firefox is available for Windows, macOS, Android, iOS, Linux, and ChromeOS.",
             "is_ecosystem": False,
-            "matching_name": "firefox",
         },
     },
     {
@@ -110,7 +104,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "React is an open-source JavaScript library for "
             "building modern web applications.",
             "is_ecosystem": False,
-            "matching_name": "react",
         },
     },
     {
@@ -120,7 +113,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "NumPy offers comprehensive mathematical functions, "
             "random number generators, linear algebra routines, Fourier transforms, and more.",
             "is_ecosystem": False,
-            "matching_name": "numpy",
         },
     },
     {
@@ -131,7 +123,6 @@ eol_product_list: list[EOLProductItem] = [
             "environment built on Chrome’s V8 JavaScript engine that executes JavaScript "
             "code outside a browser.",
             "is_ecosystem": False,
-            "matching_name": "nodejs",
         },
     },
     {
@@ -141,7 +132,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "PHP: Hypertext Preprocessor (or simply PHP) is a general-purpose "
             "programming language originally designed for web development.",
             "is_ecosystem": False,
-            "matching_name": "php",
         },
     },
     {
@@ -152,7 +142,6 @@ eol_product_list: list[EOLProductItem] = [
             "on simplicity and productivity. It has an elegant syntax that is natural to read "
             "and easy to write.",
             "is_ecosystem": False,
-            "matching_name": "ruby",
         },
     },
     {
@@ -162,7 +151,6 @@ eol_product_list: list[EOLProductItem] = [
             "description": "Python is an interpreted, high-level, "
             "general-purpose programming language.",
             "is_ecosystem": False,
-            "matching_name": "python",
         },
     },
     {
@@ -173,7 +161,6 @@ eol_product_list: list[EOLProductItem] = [
             "relational database management system (RDBMS) emphasizing extensibility "
             "and technical standards compliance.",
             "is_ecosystem": False,
-            "matching_name": "postgresql",
         },
     },
     {
@@ -188,7 +175,6 @@ eol_product_list: list[EOLProductItem] = [
             "and provides high availability via Redis Sentinel and automatic partitioning "
             "with Redis Cluster.",
             "is_ecosystem": False,
-            "matching_name": "redis",
         },
     },
     {
@@ -200,7 +186,6 @@ eol_product_list: list[EOLProductItem] = [
             "The code for SQLite is in the public domain and is thus free for use for any purpose, "
             "commercial or private.",
             "is_ecosystem": False,
-            "matching_name": "sqlite",
         },
     },
     {
@@ -232,7 +217,6 @@ eol_product_list: list[EOLProductItem] = [
                 "major release.\nSee the Ansible Roadmap for upcoming release details."
             ),
             "is_ecosystem": False,
-            "matching_name": "ansible",
         },
     },
 ]
@@ -249,12 +233,6 @@ class EoLParamCreator:
     def get_eol_product_id(self) -> str:
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, self.product))
 
-    def _get_matching_name(self) -> str:
-        return self.product
-
-    def _get_matching_version(self, eol_version_info) -> str:
-        return eol_version_info.get("release")
-
     def create_eol_parameters(self) -> dict:
         eol_versions = []
         for eol_version_info in self.product_eol_info:
@@ -263,7 +241,6 @@ class EoLParamCreator:
                     "version": eol_version_info.get("release"),
                     "release_date": eol_version_info.get("releaseDate"),
                     "eol_from": eol_version_info.get("eolFrom"),
-                    "matching_version": self._get_matching_version(eol_version_info),
                 }
             )
 
@@ -272,7 +249,6 @@ class EoLParamCreator:
             "product_category": self.eol_product_item["threatconnectome"]["product_category"],
             "description": self.eol_product_item["threatconnectome"]["description"],
             "is_ecosystem": self.eol_product_item["threatconnectome"]["is_ecosystem"],
-            "matching_name": self._get_matching_name(),
             "eol_versions": eol_versions,
         }
 

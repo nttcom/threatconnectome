@@ -34,19 +34,16 @@ class TestGetEolProductsWithPteamId:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 1 description",
             "is_ecosystem": False,
-            "matching_name": "product_1",
             "eol_versions": [
                 {
                     "version": "1.0.0",
                     "release_date": "2020-01-01",
                     "eol_from": "2025-01-01",
-                    "matching_version": "1.0.0",
                 },
                 {
                     "version": "2.0.0",
                     "release_date": "2022-01-01",
                     "eol_from": "2030-01-01",
-                    "matching_version": "2.0.0",
                 },
             ],
         }
@@ -57,30 +54,26 @@ class TestGetEolProductsWithPteamId:
             "product_category": models.ProductCategoryEnum.RUNTIME,
             "description": "product 2 description",
             "is_ecosystem": True,
-            "matching_name": "product_2",
             "eol_versions": [
                 {
                     "version": "20.04",
                     "release_date": "2021-01-01",
                     "eol_from": "2026-01-01",
-                    "matching_version": "ubuntu-20.04",
                 }
             ],
         }
 
         self.eol_product_id_3 = uuid4()
         self.eol_product_3_request: dict[str, Any] = {
-            "name": "product_3",
+            "name": "axios",
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 3 description",
             "is_ecosystem": False,
-            "matching_name": "axios",
             "eol_versions": [
                 {
                     "version": "1.6.7",
                     "release_date": "2019-01-01",
                     "eol_from": "2024-01-01",
-                    "matching_version": "1.6.7",
                 }
             ],
         }
@@ -151,7 +144,6 @@ class TestGetEolProductsWithPteamId:
                 assert product["product_category"] == self.eol_product_2_request["product_category"]
                 assert product["description"] == self.eol_product_2_request["description"]
                 assert product["is_ecosystem"] == self.eol_product_2_request["is_ecosystem"]
-                assert product["matching_name"] == self.eol_product_2_request["matching_name"]
                 assert (
                     product["eol_versions"][0]["version"]
                     == self.eol_product_2_request["eol_versions"][0]["version"]
@@ -163,10 +155,6 @@ class TestGetEolProductsWithPteamId:
                 assert (
                     product["eol_versions"][0]["eol_from"]
                     == self.eol_product_2_request["eol_versions"][0]["eol_from"]
-                )
-                assert (
-                    product["eol_versions"][0]["matching_version"]
-                    == self.eol_product_2_request["eol_versions"][0]["matching_version"]
                 )
                 assert (
                     self.current_time - timedelta(seconds=10)
@@ -186,13 +174,12 @@ class TestGetEolProductsWithPteamId:
                     product["eol_versions"][0]["services"][0]["service_name"] == self.service_name1
                 )
 
-            if product["name"] == "product_3":
+            if product["name"] == "axios":
                 assert product["eol_product_id"] == str(self.eol_product_id_3)
                 assert product["name"] == self.eol_product_3_request["name"]
                 assert product["product_category"] == self.eol_product_3_request["product_category"]
                 assert product["description"] == self.eol_product_3_request["description"]
                 assert product["is_ecosystem"] == self.eol_product_3_request["is_ecosystem"]
-                assert product["matching_name"] == self.eol_product_3_request["matching_name"]
                 assert (
                     product["eol_versions"][0]["version"]
                     == self.eol_product_3_request["eol_versions"][0]["version"]
@@ -204,10 +191,6 @@ class TestGetEolProductsWithPteamId:
                 assert (
                     product["eol_versions"][0]["eol_from"]
                     == self.eol_product_3_request["eol_versions"][0]["eol_from"]
-                )
-                assert (
-                    product["eol_versions"][0]["matching_version"]
-                    == self.eol_product_3_request["eol_versions"][0]["matching_version"]
                 )
                 assert (
                     self.current_time - timedelta(seconds=10)

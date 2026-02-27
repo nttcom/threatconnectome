@@ -36,4 +36,4 @@ def gen_product_instance_for_eol(
         case "amazon-corretto":
             return AmazonCorrettoProduct(ecosystem)
         case _:
-            return EoLBaseProduct(eol_product.matching_name)
+            return EoLBaseProduct(eol_product.name)

@@ -422,7 +422,6 @@ class EoLVersionRequest(ORMModel):
     version: str
     release_date: date
     eol_from: date
-    matching_version: str
 
 
 class EoLProductRequest(ORMModel):
@@ -430,7 +429,6 @@ class EoLProductRequest(ORMModel):
     product_category: ProductCategoryEnum | None = None
     description: str | None = None
     is_ecosystem: bool | None = None
-    matching_name: str | None = None
     eol_versions: list[EoLVersionRequest] = []
 
 
@@ -444,7 +442,6 @@ class EoLVersionResponseBase(ORMModel):
     version: str
     release_date: date | None
     eol_from: date
-    matching_version: str
     created_at: datetime
     updated_at: datetime
 
@@ -463,7 +460,6 @@ class EoLProductResponseBase(ORMModel):
     product_category: ProductCategoryEnum
     description: str | None
     is_ecosystem: bool
-    matching_name: str
 
 
 class EoLProductResponse(EoLProductResponseBase):

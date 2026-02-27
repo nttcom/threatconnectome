@@ -65,11 +65,11 @@ export type ActionLogResponse = {
     /**
      * Service Id
      */
-    service_id: string;
+    service_id?: string | null;
     /**
      * Ticket Id
      */
-    ticket_id: string;
+    ticket_id?: string | null;
     /**
      * Email
      */
@@ -254,10 +254,6 @@ export type EoLProductResponse = {
      */
     is_ecosystem: boolean;
     /**
-     * Matching Name
-     */
-    matching_name: string;
-    /**
      * Eol Versions
      */
     eol_versions?: Array<EoLVersionResponse>;
@@ -283,10 +279,6 @@ export type EoLVersionResponse = {
      * Eol From
      */
     eol_from: string;
-    /**
-     * Matching Version
-     */
-    matching_version: string;
     /**
      * Created At
      */
@@ -490,10 +482,6 @@ export type PTeamEoLProductResponse = {
      */
     is_ecosystem: boolean;
     /**
-     * Matching Name
-     */
-    matching_name: string;
-    /**
      * Eol Versions
      */
     eol_versions?: Array<PTeamEoLVersionResponse>;
@@ -519,10 +507,6 @@ export type PTeamEoLVersionResponse = {
      * Eol From
      */
     eol_from: string;
-    /**
-     * Matching Version
-     */
-    matching_version: string;
     /**
      * Created At
      */
@@ -1236,6 +1220,16 @@ export type ValidationError = {
      * Error Type
      */
     type: string;
+    /**
+     * Input
+     */
+    input?: unknown;
+    /**
+     * Context
+     */
+    ctx?: {
+        [key: string]: unknown;
+    };
 };
 
 /**
@@ -1336,10 +1330,6 @@ export type EoLProductRequest = {
      */
     is_ecosystem?: boolean | null;
     /**
-     * Matching Name
-     */
-    matching_name?: string | null;
-    /**
      * Eol Versions
      */
     eol_versions?: Array<EoLVersionRequest>;
@@ -1361,10 +1351,6 @@ export type EoLVersionRequest = {
      * Eol From
      */
     eol_from: string;
-    /**
-     * Matching Version
-     */
-    matching_version: string;
 };
 
 /**
@@ -3111,6 +3097,37 @@ export type UpdateEolEolsEolProductIdPutResponses = {
 };
 
 export type UpdateEolEolsEolProductIdPutResponse = UpdateEolEolsEolProductIdPutResponses[keyof UpdateEolEolsEolProductIdPutResponses];
+
+export type CheckEolNotificationEolsCheckNotificationsPostData = {
+    body?: never;
+    headers: {
+        /**
+         * X-Api-Key
+         */
+        'x-api-key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/eols/check_notifications';
+};
+
+export type CheckEolNotificationEolsCheckNotificationsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CheckEolNotificationEolsCheckNotificationsPostError = CheckEolNotificationEolsCheckNotificationsPostErrors[keyof CheckEolNotificationEolsCheckNotificationsPostErrors];
+
+export type CheckEolNotificationEolsCheckNotificationsPostResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type CheckEolNotificationEolsCheckNotificationsPostResponse = CheckEolNotificationEolsCheckNotificationsPostResponses[keyof CheckEolNotificationEolsCheckNotificationsPostResponses];
 
 export type InternalOpenapiSchemaInternalApiOpenapiJsonGetData = {
     body?: never;
