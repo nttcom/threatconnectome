@@ -25,6 +25,8 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "nodejs":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "amazon-corretto":
+                return MajorOnlyVersion(version_string, ecosystem)
             case "redis":
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "django":
