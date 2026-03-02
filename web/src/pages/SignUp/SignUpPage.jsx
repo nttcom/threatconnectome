@@ -23,31 +23,38 @@ import { useAuth } from "../../hooks/auth";
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
   const [message, setMessage] = useState("");
-  const [values, setValues] = useState({
+  const [signUpForm, setSignUpForm] = useState({
     edited: new Set(),
     email: "",
     password: "",
-    visible: false,
+    confirmPassword: "",
+    isVisible: false,
+    isConfirmVisible: false,
   });
   const [disabled, setDisabled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
 
-  const handleChange = (prop) => (event) => {
-    values.edited.add(prop);
-    setValues({
-      ...values,
+  const handleFormChange = (prop) => (event) => {
+    signUpForm.edited.add(prop);
+    setSignUpForm({
+      ...signUpForm,
       [prop]: event.target.value,
     });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (signUpForm.password !== signUpForm.confirmPassword) {
+      setMessage(t("passwordsDoNotMatch"));
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword({
-        email: values.email,
-        password: values.password,
+        email: signUpForm.email,
+        password: signUpForm.password,
       });
       if (
         import.meta.env.VITE_AUTH_SERVICE === "firebase" &&
@@ -66,8 +73,8 @@ export function SignUp() {
     }
   };
 
-  const handleVisibility = () => {
-    setValues({ ...values, visible: !values.visible });
+  const handleVisibility = (prop) => {
+    setSignUpForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
   };
 
   const handleLogIn = () =>
@@ -95,36 +102,71 @@ export function SignUp() {
           </Typography>
           <TextField
             autoComplete="email"
-            error={values.edited.has("email") && !values.email.match(/^.+@.+$/)}
+            error={signUpForm.edited.has("email") && !signUpForm.email.match(/^.+@.+$/)}
             fullWidth
             label={t("emailAddress")}
             margin="normal"
-            onChange={handleChange("email")}
+            onChange={handleFormChange("email")}
             required
-            value={values.email}
-            inputProps={{ pattern: "^.+@.+$" }}
+            value={signUpForm.email}
+            slotProps={{ htmlInput: { pattern: "^.+@.+$" } }}
           />
 
           <Tooltip arrow placement="bottom-end" title={t("passwordRequirement")}>
             <TextField
               autoComplete="new-password"
-              error={values.edited.has("password") && values.password.length < 8}
+              error={signUpForm.edited.has("password") && signUpForm.password.length < 8}
               fullWidth
               label={t("password")}
               margin="normal"
-              onChange={handleChange("password")}
+              onChange={handleFormChange("password")}
               required
-              type={values.visible ? "text" : "password"}
-              value={values.password}
-              inputProps={{ minLength: 8 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleVisibility} aria-label="toggle password visibility">
-                      {values.visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              type={signUpForm.isVisible ? "text" : "password"}
+              value={signUpForm.password}
+              slotProps={{
+                htmlInput: { minLength: 8 },
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => handleVisibility("isVisible")}
+                        aria-label="toggle password visibility"
+                      >
+                        {signUpForm.isVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Tooltip>
+          <Tooltip arrow placement="bottom-end" title={t("passwordRequirement")}>
+            <TextField
+              autoComplete="new-password"
+              error={
+                signUpForm.edited.has("confirmPassword") && signUpForm.confirmPassword.length < 8
+              }
+              fullWidth
+              label={t("confirmPassword")}
+              margin="normal"
+              onChange={handleFormChange("confirmPassword")}
+              required
+              type={signUpForm.isConfirmVisible ? "text" : "password"}
+              value={signUpForm.confirmPassword}
+              slotProps={{
+                htmlInput: { minLength: 8 },
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => handleVisibility("isConfirmVisible")}
+                        aria-label="toggle password visibility"
+                      >
+                        {signUpForm.isConfirmVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
           </Tooltip>
