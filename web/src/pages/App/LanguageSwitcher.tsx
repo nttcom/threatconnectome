@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
+export function LanguageSwitcher({ collapseOnMobile = true }: { collapseOnMobile?: boolean }) {
   const { i18n } = useTranslation();
   const lang = i18n.language;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -23,7 +23,7 @@ export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
 
   return (
     <>
-      {compact && isMobile ? (
+      {collapseOnMobile && isMobile ? (
         <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "text.secondary" }}>
           <LanguageIcon />
         </IconButton>

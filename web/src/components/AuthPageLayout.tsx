@@ -14,7 +14,7 @@ export function AuthPageLayout() {
           pt: 2,
         }}
       >
-        <LanguageSwitcher compact={false} />
+        <LanguageSwitcher collapseOnMobile={false} />
       </Box>
       <Outlet />
     </>
