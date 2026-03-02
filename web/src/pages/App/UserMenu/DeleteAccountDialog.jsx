@@ -1,5 +1,5 @@
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import { Box, Stack, TextField, Typography } from "@mui/material";
+import { Box, CircularProgress, Stack, TextField, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -27,6 +27,7 @@ export function DeleteAccountDialog(props) {
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [deleteUser] = useDeleteUserMutation();
 
@@ -40,6 +41,7 @@ export function DeleteAccountDialog(props) {
 
   const handleDeleteAccount = async () => {
     if (email === userMe.email) {
+      setIsDeleting(true);
       await deleteUser()
         .unwrap()
         .then(async () => {
@@ -47,11 +49,13 @@ export function DeleteAccountDialog(props) {
           dispatch(setAuthUserIsReady(false));
           dispatch(setRedirectedFrom({}));
           await signOut();
+          setIsDeleting(false);
         })
         .catch((error) => {
           enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), {
             variant: "error",
           });
+          setIsDeleting(false);
         });
     } else if (email !== userMe.email) {
       enqueueSnackbar(t("emailWrong"), { variant: "error" });
@@ -88,7 +92,13 @@ export function DeleteAccountDialog(props) {
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center" }}>
           <Stack spacing={1}>
-            <Button variant="contained" color="error" onClick={handleDeleteAccount}>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              startIcon={isDeleting ? <CircularProgress size={20} /> : null}
+            >
               {t("deleteConfirm")}
             </Button>
             <Button sx={{ color: "grey" }} onClick={handleClose}>
