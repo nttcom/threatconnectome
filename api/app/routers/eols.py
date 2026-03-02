@@ -28,7 +28,6 @@ def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductRe
                 version=eol_version.version,
                 release_date=eol_version.release_date,
                 eol_from=eol_version.eol_from,
-                matching_version=eol_version.matching_version,
                 created_at=eol_version.created_at,
                 updated_at=eol_version.updated_at,
             )
@@ -40,7 +39,6 @@ def _create_eol_response(eol_product: models.EoLProduct) -> schemas.EoLProductRe
         product_category=eol_product.product_category,
         description=eol_product.description,
         is_ecosystem=eol_product.is_ecosystem,
-        matching_name=eol_product.matching_name,
         eol_versions=eol_versions,
     )
 
@@ -128,13 +126,11 @@ def _is_eol_versions_changed(db_versions, req_versions) -> bool:
             v_db.version,
             str(v_db.eol_from),
             str(v_db.release_date),
-            v_db.matching_version,
         )
         req_values = (
             v_req["version"],
             str(v_req["eol_from"]),
             str(v_req["release_date"]),
-            v_req["matching_version"],
         )
 
         if db_values != req_values:
@@ -153,13 +149,11 @@ def __handle_create_eol(
         ("name" not in update_request.keys())
         or ("product_category" not in update_request.keys())
         or ("is_ecosystem" not in update_request.keys())
-        or ("matching_name" not in update_request.keys())
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "'name' and 'product_category' and 'is_ecosystem' and "
-                "'matching_name' are required when creating a eol."
+                "'name' and 'product_category' and 'is_ecosystem' are required when creating a eol."
             ),
         )
 
@@ -172,7 +166,6 @@ def __handle_create_eol(
         product_category=request.product_category,
         description=request.description,
         is_ecosystem=request.is_ecosystem,
-        matching_name=request.matching_name,
     )
 
     persistence.create_eol_product(db, eol_product)
@@ -185,7 +178,6 @@ def __handle_create_eol(
             version=eol_version.version,
             release_date=eol_version.release_date,
             eol_from=eol_version.eol_from,
-            matching_version=eol_version.matching_version,
             created_at=now,
             updated_at=now,
         )
@@ -208,8 +200,6 @@ def __handle_update_eol(
         eol_product.description = request.description
     if "is_ecosystem" in update_request.keys() and request.is_ecosystem is not None:
         eol_product.is_ecosystem = request.is_ecosystem
-    if "matching_name" in update_request.keys() and request.matching_name is not None:
-        eol_product.matching_name = request.matching_name
     if "eol_versions" in update_request.keys():
         eol_versions_request = [eol_version.version for eol_version in request.eol_versions]
         for eol_version in eol_product.eol_versions:
@@ -233,12 +223,6 @@ def __handle_update_eol(
                 if "eol_from" in update_eol_version.keys() and eol_version.eol_from is not None:
                     persisted_eol_version.eol_from = eol_version.eol_from
 
-                if (
-                    "matching_version" in update_eol_version.keys()
-                    and eol_version.matching_version is not None
-                ):
-                    persisted_eol_version.matching_version = eol_version.matching_version
-
                 persisted_eol_version.updated_at = now
             else:
                 new_eol_version = models.EoLVersion(
@@ -246,7 +230,6 @@ def __handle_update_eol(
                     version=eol_version.version,
                     release_date=eol_version.release_date,
                     eol_from=eol_version.eol_from,
-                    matching_version=eol_version.matching_version,
                     created_at=now,
                     updated_at=now,
                 )
@@ -262,7 +245,6 @@ def _check_request_fields(request):
         "name",
         "product_category",
         "is_ecosystem",
-        "matching_name",
     ]
     update_request = request.model_dump(exclude_unset=True)
     for field in eol_product_fields_to_check:

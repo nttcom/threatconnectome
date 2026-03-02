@@ -393,13 +393,11 @@ class TestAlert:
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
-                "matching_name": "product_1",
                 "eol_versions": [
                     {
                         "version": "20.04",
                         "release_date": "2021-01-01",
                         "eol_from": eol_from_date1,
-                        "matching_version": "ubuntu-20.04",
                     }
                 ],
             }
@@ -431,17 +429,15 @@ class TestAlert:
             eol_product_id_2 = str(uuid4())
             eol_from_date2 = (datetime.now(timezone.utc) + timedelta(days=180)).strftime("%Y-%m-%d")
             eol_product_2_request: dict[str, Any] = {
-                "name": "product_2",
+                "name": "axios",
                 "product_category": models.ProductCategoryEnum.PACKAGE,
                 "description": "product 2 description",
                 "is_ecosystem": False,
-                "matching_name": "axios",
                 "eol_versions": [
                     {
                         "version": "1.6.7",
                         "release_date": "2019-01-01",
                         "eol_from": eol_from_date2,
-                        "matching_version": "1.6.7",
                     }
                 ],
             }
@@ -491,13 +487,11 @@ class TestAlert:
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
-                "matching_name": "product_1",
                 "eol_versions": [
                     {
                         "version": "20.04",
                         "release_date": "2021-01-01",
                         "eol_from": eol_from_date1,
-                        "matching_version": "ubuntu-20.04",
                     }
                 ],
             }
@@ -547,13 +541,11 @@ class TestAlert:
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
-                "matching_name": "product_1",
                 "eol_versions": [
                     {
                         "version": "20.04",
                         "release_date": "2021-01-01",
                         "eol_from": eol_from_date1,
-                        "matching_version": "ubuntu-20.04",
                     }
                 ],
             }
@@ -617,13 +609,11 @@ class TestAlert:
                 "product_category": models.ProductCategoryEnum.RUNTIME,
                 "description": "product 1 description",
                 "is_ecosystem": True,
-                "matching_name": "product_1",
                 "eol_versions": [
                     {
                         "version": "20.04",
                         "release_date": "2021-01-01",
                         "eol_from": eol_from_date1,
-                        "matching_version": "ubuntu-20.04",
                     }
                 ],
             }

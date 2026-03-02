@@ -154,7 +154,7 @@ export function ProductEolList() {
           >
             <Card
               variant="outlined"
-              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+              sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}
             >
               <CardActionArea
                 onClick={() =>

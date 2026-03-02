@@ -31,13 +31,11 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "test_description",
             "is_ecosystem": False,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 }
             ],
         }
@@ -57,7 +55,6 @@ class TestUpdateEol:
                     "version": "3.0.0",
                     "release_date": "2021-01-02",
                     "eol_from": "2032-01-02",
-                    "matching_version": "3.0.0",
                 },
             ],
         }
@@ -82,10 +79,6 @@ class TestUpdateEol:
             before_eol_product["eol_versions"][0]["eol_from"]
             != after_eol_product.json()["eol_versions"][0]["eol_from"]
         )
-        assert (
-            before_eol_product["eol_versions"][0]["matching_version"]
-            != after_eol_product.json()["eol_versions"][0]["matching_version"]
-        )
 
     def test_it_should_create_eol_dependency_when_ecosystem_matched(self, testdb: Session):
         # Given
@@ -106,13 +99,11 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.OS,
             "description": "test_description",
             "is_ecosystem": True,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "20.04",
                     "release_date": "2020-04-23",
                     "eol_from": "2025-05-31",
-                    "matching_version": "ubuntu-20.04",
                 }
             ],
         }
@@ -124,7 +115,6 @@ class TestUpdateEol:
         ecosystem_eol_dependency_1 = testdb.scalars(select(models.EcosystemEoLDependency)).one()
         assert ecosystem_eol_dependency_1.service.service_name == service_name1
         assert ecosystem_eol_dependency_1.eol_version.version == "20.04"
-        assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
         assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
         assert ecosystem_eol_dependency_1.eol_notification_sent is False
 
@@ -135,13 +125,11 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "test_description",
             "is_ecosystem": False,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 }
             ],
         }
@@ -165,19 +153,16 @@ class TestUpdateEol:
                 "product_category": models.ProductCategoryEnum.PACKAGE,
                 "description": "test_description",
                 "is_ecosystem": False,
-                "matching_name": "test_matching_name1",
                 "eol_versions": [
                     {
                         "version": "1.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2030-01-02",
-                        "matching_version": "2.0.0",
                     },
                     {
                         "version": "2.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2030-01-02",
-                        "matching_version": "2.0.0",
                     },
                 ],
             },
@@ -186,19 +171,16 @@ class TestUpdateEol:
                 "product_category": models.ProductCategoryEnum.PACKAGE,
                 "description": "test_description",
                 "is_ecosystem": False,
-                "matching_name": "test_matching_name",
                 "eol_versions": [
                     {
                         "version": "1.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2030-01-02",
-                        "matching_version": "2.0.0",
                     },
                     {
                         "version": "2.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2035-01-02",
-                        "matching_version": "2.0.0",
                     },
                 ],
             },
@@ -207,25 +189,21 @@ class TestUpdateEol:
                 "product_category": models.ProductCategoryEnum.PACKAGE,
                 "description": "test_description",
                 "is_ecosystem": False,
-                "matching_name": "test_matching_name",
                 "eol_versions": [
                     {
                         "version": "1.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2030-01-02",
-                        "matching_version": "2.0.0",
                     },
                     {
                         "version": "2.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2035-01-02",
-                        "matching_version": "2.0.0",
                     },
                     {
                         "version": "3.0.0",
                         "release_date": "2020-01-02",
                         "eol_from": "2036-01-02",
-                        "matching_version": "3.0.0",
                     },
                 ],
             },
@@ -238,19 +216,16 @@ class TestUpdateEol:
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "test_description",
             "is_ecosystem": False,
-            "matching_name": "test_matching_name",
             "eol_versions": [
                 {
                     "version": "1.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 },
                 {
                     "version": "2.0.0",
                     "release_date": "2020-01-02",
                     "eol_from": "2030-01-02",
-                    "matching_version": "2.0.0",
                 },
             ],
         }

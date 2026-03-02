@@ -75,7 +75,6 @@ def eol_product1(testdb: Session) -> models.EoLProduct:
         product_category=models.ProductCategoryEnum.OS,
         description="description_1",
         is_ecosystem=True,
-        matching_name="ubuntu_dummy_name",
     )
 
     persistence.create_eol_product(testdb, eol_product)
@@ -90,7 +89,6 @@ def eol_product2(testdb: Session) -> models.EoLProduct:
         product_category=models.ProductCategoryEnum.PACKAGE,
         description="description_2",
         is_ecosystem=False,
-        matching_name="sqlite",
     )
 
     persistence.create_eol_product(testdb, eol_product)
@@ -109,7 +107,6 @@ def eol_version1(
         version="20.04",
         release_date="2020-04-23",
         eol_from="2025-05-31",
-        matching_version="ubuntu-20.04",
         created_at=now,
         updated_at=now,
     )
@@ -129,7 +126,6 @@ def eol_version2(
         version="3",
         release_date="2023-10-24",
         eol_from="2023-11-21",
-        matching_version="3",
         created_at=now,
         updated_at=now,
     )
@@ -157,9 +153,6 @@ class TestFixEoLDependencyByEoLProduct:
 
         assert ecosystem_eol_dependency_1.service.service_name == service1.service_name
         assert ecosystem_eol_dependency_1.eol_version.version == eol_version1.version
-        assert (
-            ecosystem_eol_dependency_1.eol_version.matching_version == eol_version1.matching_version
-        )
         assert ecosystem_eol_dependency_1.eol_version.eol_product.name == eol_product1.name
         assert ecosystem_eol_dependency_1.eol_notification_sent is False
 
@@ -206,9 +199,6 @@ class TestFixEoLDependencyByEoLProduct:
 
         assert package_eol_dependency_2.dependency.service.service_name == service2.service_name
         assert package_eol_dependency_2.eol_version.version == eol_version2.version
-        assert (
-            package_eol_dependency_2.eol_version.matching_version == eol_version2.matching_version
-        )
         assert package_eol_dependency_2.eol_version.eol_product.name == eol_product2.name
         assert package_eol_dependency_2.eol_notification_sent is False
 
@@ -221,7 +211,7 @@ class TestFixEoLDependencyByEoLProduct:
     ):
         # Given
         eol_business.fix_eol_dependency_by_eol_product(testdb, eol_product2)
-        eol_version2.matching_version = "unmatched_version"
+        eol_version2.version = "unmatched_version"
         testdb.commit()
 
         # When
@@ -258,9 +248,6 @@ class TestFixEoLDependencyByService:
 
         assert ecosystem_eol_dependency_1.service.service_name == service1.service_name
         assert ecosystem_eol_dependency_1.eol_version.version == eol_version1.version
-        assert (
-            ecosystem_eol_dependency_1.eol_version.matching_version == eol_version1.matching_version
-        )
         assert ecosystem_eol_dependency_1.eol_version.eol_product.name == eol_product1.name
         assert ecosystem_eol_dependency_1.eol_notification_sent is False
 
@@ -309,9 +296,6 @@ class TestFixEoLDependencyByService:
 
         assert package_eol_dependency_2.dependency.service.service_name == service2.service_name
         assert package_eol_dependency_2.eol_version.version == eol_version2.version
-        assert (
-            package_eol_dependency_2.eol_version.matching_version == eol_version2.matching_version
-        )
         assert package_eol_dependency_2.eol_version.eol_product.name == eol_product2.name
         assert package_eol_dependency_2.eol_notification_sent is False
 
@@ -325,7 +309,7 @@ class TestFixEoLDependencyByService:
     ):
         # Given
         eol_business.fix_eol_dependency_by_service(testdb, service2, progress)
-        eol_version2.matching_version = "unmatched_version"
+        eol_version2.version = "unmatched_version"
         testdb.commit()
 
         # When

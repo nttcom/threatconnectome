@@ -1261,13 +1261,11 @@ class TestPostUploadSBOMFileCycloneDX:
                 "product_category": models.ProductCategoryEnum.OS,
                 "description": "test_description",
                 "is_ecosystem": True,
-                "matching_name": "test_matching_name",
                 "eol_versions": [
                     {
                         "version": "20.04",
                         "release_date": "2020-04-23",
                         "eol_from": "2025-05-31",
-                        "matching_version": "ubuntu-20.04",
                     }
                 ],
             }
@@ -1291,7 +1289,6 @@ class TestPostUploadSBOMFileCycloneDX:
 
             assert ecosystem_eol_dependency_1.service.service_name == service_name1
             assert ecosystem_eol_dependency_1.eol_version.version == "20.04"
-            assert ecosystem_eol_dependency_1.eol_version.matching_version == "ubuntu-20.04"
             assert ecosystem_eol_dependency_1.eol_version.eol_product.name == "ubuntu"
             assert ecosystem_eol_dependency_1.eol_notification_sent is False
 
@@ -1694,23 +1691,20 @@ class TestGetEolProductsWithPteamId:
         # Create EoL products
         self.eol_product_id_1 = uuid4()
         self.eol_product_1_request = {
-            "name": "product_1",
+            "name": "axios",
             "product_category": models.ProductCategoryEnum.PACKAGE,
             "description": "product 1 description",
             "is_ecosystem": False,
-            "matching_name": "axios",
             "eol_versions": [
                 {
                     "version": "1.6.7",
                     "release_date": "2020-01-01",
                     "eol_from": "2025-01-01",
-                    "matching_version": "1.6.7",
                 },
                 {
                     "version": "2.0.0",
                     "release_date": "2022-01-01",
                     "eol_from": "2030-01-01",
-                    "matching_version": "2.0.0",
                 },
             ],
         }
@@ -1764,7 +1758,6 @@ class TestGetEolProductsWithPteamId:
         assert data["product_category"] == self.eol_product_1_request["product_category"]
         assert data["description"] == self.eol_product_1_request["description"]
         assert data["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
-        assert data["matching_name"] == self.eol_product_1_request["matching_name"]
         assert (
             data["eol_versions"][0]["version"]
             == self.eol_product_1_request["eol_versions"][0]["version"]
@@ -1776,10 +1769,6 @@ class TestGetEolProductsWithPteamId:
         assert (
             data["eol_versions"][0]["eol_from"]
             == self.eol_product_1_request["eol_versions"][0]["eol_from"]
-        )
-        assert (
-            data["eol_versions"][0]["matching_version"]
-            == self.eol_product_1_request["eol_versions"][0]["matching_version"]
         )
         assert (
             self.current_time - timedelta(seconds=10)
@@ -1832,7 +1821,6 @@ class TestGetEolProductsWithPteamId:
         )
         assert data["products"][0]["description"] == self.eol_product_1_request["description"]
         assert data["products"][0]["is_ecosystem"] == self.eol_product_1_request["is_ecosystem"]
-        assert data["products"][0]["matching_name"] == self.eol_product_1_request["matching_name"]
 
         assert len(data["products"][0]["eol_versions"]) == 1
         assert (
@@ -1846,10 +1834,6 @@ class TestGetEolProductsWithPteamId:
         assert (
             data["products"][0]["eol_versions"][0]["eol_from"]
             == self.eol_product_1_request["eol_versions"][0]["eol_from"]
-        )
-        assert (
-            data["products"][0]["eol_versions"][0]["matching_version"]
-            == self.eol_product_1_request["eol_versions"][0]["matching_version"]
         )
         assert (
             self.current_time - timedelta(seconds=10)

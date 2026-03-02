@@ -50,4 +50,4 @@ def _check_matched_package_version_and_eol_version(
         return False
 
     # compare against primary candidate version
-    return eol_version.matching_version == version.get_versions()[0]
+    return eol_version.version == version.get_versions()[0]
