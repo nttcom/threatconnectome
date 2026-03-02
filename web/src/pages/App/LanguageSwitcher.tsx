@@ -25,7 +25,7 @@ export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
   return (
     <>
       {compact && isMobile ? (
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "#5f6368" }}>
+        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "text.secondary" }}>
           <LanguageIcon />
         </IconButton>
       ) : (
@@ -35,15 +35,9 @@ export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
           startIcon={<LanguageIcon />}
           endIcon={<ArrowDropDownIcon />}
           size="small"
-          sx={{
-            bgcolor: "#f8f9fa",
-            borderColor: "#dadce0",
-            color: "#3c4043",
-            textTransform: "none",
-            fontSize: 14,
-          }}
+          sx={{ bgcolor: "background.subtle", borderColor: "divider", color: "text.primary" }}
         >
-          {lang.toUpperCase()}
+          {lang}
         </Button>
       )}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
