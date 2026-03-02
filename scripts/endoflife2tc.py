@@ -46,7 +46,6 @@ eol_product_list: list[EOLProductItem] = [
             "and managed by a community-elected board of directors and the self-managed "
             "AlmaLinux Engineering Steering Committee.",
             "is_ecosystem": True,
-            "matching_name": "alma",
         },
     },
     {
