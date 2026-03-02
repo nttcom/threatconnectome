@@ -160,7 +160,7 @@ export function SignUp() {
                     <InputAdornment position="end">
                       <IconButton
                         onClick={() => handleVisibility("isConfirmVisible")}
-                        aria-label="toggle password visibility"
+                        aria-label="toggle confirm password visibility"
                       >
                         {signUpForm.isConfirmVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>

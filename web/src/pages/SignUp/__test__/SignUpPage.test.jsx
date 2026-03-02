@@ -84,6 +84,7 @@ describe("TestSignUpPage", () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const emailValue = "test@example.com";
       const passwordValue = "Password1234@";
+      const confirmPassword = "Password1234@";
       const uidValue = "12345";
 
       const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue({
@@ -99,9 +100,14 @@ describe("TestSignUpPage", () => {
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
       await ue.type(emailField, emailValue);
 
-      const passwordFields = screen.getAllByLabelText(/^Password/);
-      const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+      const passwordInputs = screen.getAllByLabelText(/^Password/i);
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
       await ue.type(passwordField, passwordValue);
+      await ue.type(confirmField, confirmPassword);
 
       await ue.click(screen.getByRole("button", { name: "Sign up" }));
 
@@ -128,6 +134,7 @@ describe("TestSignUpPage", () => {
     it("handles error", async () => {
       const validEmail = "test@example.com";
       const validPassword = "Password1234@";
+      const confirmPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const errorCode = "test error";
       const errorMessage = "Something went wrong.";
@@ -147,9 +154,14 @@ describe("TestSignUpPage", () => {
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
       await ue.type(emailField, validEmail);
 
-      const passwordFields = screen.getAllByLabelText(/^Password/);
-      const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+      const passwordInputs = screen.getAllByLabelText(/^Password/i);
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
       await ue.type(passwordField, validPassword);
+      await ue.type(confirmField, confirmPassword);
 
       await ue.click(screen.getByRole("button", { name: "Sign up" }));
 
