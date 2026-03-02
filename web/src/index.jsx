@@ -4,7 +4,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import { CssBaseline } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
 import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
@@ -32,6 +32,7 @@ import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboardPage";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
+import theme from "./theme";
 import "./i18n/config.ts";
 
 const container = document.getElementById("root");
@@ -40,7 +41,7 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={createTheme()}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <SnackbarProvider
           maxSnack={3}

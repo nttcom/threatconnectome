@@ -16,8 +16,7 @@ import { useTranslation } from "react-i18next";
 
 export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
   const { i18n } = useTranslation();
-  const currentLanguage = i18n.language;
-  const [lang, setLang] = useState<string>(currentLanguage);
+  const lang = i18n.language;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -43,7 +42,6 @@ export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
         <MenuItem
           onClick={() => {
-            setLang("en");
             setAnchorEl(null);
             i18n.changeLanguage("en");
           }}
@@ -55,7 +53,6 @@ export function LanguageSwitcher({ compact = true }: { compact?: boolean }) {
         </MenuItem>
         <MenuItem
           onClick={() => {
-            setLang("ja");
             setAnchorEl(null);
             i18n.changeLanguage("ja");
           }}
