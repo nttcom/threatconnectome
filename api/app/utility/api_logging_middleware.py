@@ -34,6 +34,7 @@ COMMON_API_LIST = [
     "check_eol_notification",
     # pteams
     "apply_invitation",
+    "invited_pteam",
     "get_pteam",
     "force_calculate_ssvc_priority",
     "get_pteam_services",
@@ -66,7 +67,6 @@ UPLOAD_API_LIST = [
     "upload_pteam_packages_file",
 ]
 AUTH_API_LIST = ["login_for_access_token", "refresh_access_token"]
-INVITED_PTEAM = "invited_pteam"
 CREATE_USER = "create_user"
 
 
@@ -90,8 +90,6 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             self.create_log_for_upload_api(request, response)
         elif endpoint_name in AUTH_API_LIST:
             self.create_log_for_auth_api(request, response)
-        elif endpoint_name == INVITED_PTEAM:
-            pass
         elif endpoint_name == CREATE_USER:
             self.create_log_for_create_user(request, response, body_bytes)
         else:
