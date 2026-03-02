@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { Outlet } from "react-router-dom";
 
-import { LanguageSwitcher } from "../pages/App/LanguageSwitcher";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function AuthPageLayout() {
   return (
