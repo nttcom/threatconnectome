@@ -3,10 +3,6 @@ import { Outlet } from "react-router-dom";
 
 import { LanguageSwitcher } from "../pages/App/LanguageSwitcher";
 
-/**
- * Layout route for authentication pages (Login, SignUp, ResetPassword, EmailVerification).
- * Places a LanguageSwitcher in the top-right corner of the page.
- */
 export function AuthPageLayout() {
   return (
     <>
