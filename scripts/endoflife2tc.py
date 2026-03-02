@@ -200,7 +200,6 @@ eol_product_list: list[EOLProductItem] = [
                 "macOS and Docker."
             ),
             "is_ecosystem": False,
-            "matching_name": "amazon-corretto",
         },
     },
     {
