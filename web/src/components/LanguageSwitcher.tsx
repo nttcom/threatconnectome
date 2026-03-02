@@ -34,7 +34,7 @@ export function LanguageSwitcher({ collapseOnMobile = true }: { collapseOnMobile
           startIcon={<LanguageIcon />}
           endIcon={<ArrowDropDownIcon />}
           size="small"
-          sx={{ bgcolor: "background.subtle", borderColor: "divider", color: "text.primary" }}
+          sx={{ bgcolor: "background.soft", borderColor: "divider", color: "text.primary" }}
         >
           {lang}
         </Button>
