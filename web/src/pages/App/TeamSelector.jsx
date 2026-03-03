@@ -83,6 +83,7 @@ export function TeamSelector() {
             textTransform: "none",
             color: drawerParams.hoverColor,
             border: `1.5px solid ${grey[300]}`,
+            wordBreak: "keep-all",
             "&:hover": {
               bgcolor: grey[100],
               border: `1.5px solid ${grey[300]}`,
@@ -107,6 +108,7 @@ export function TeamSelector() {
                   key={pteam_role.pteam.pteam_id}
                   value={pteam_role.pteam.pteam_id}
                   onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
+                  sx={{ wordBreak: "keep-all" }}
                 >
                   {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>

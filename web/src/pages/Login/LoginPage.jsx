@@ -278,8 +278,15 @@ export function Login() {
             )}
           <Divider />
           <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
-            <Typography mr={1}>{t("noAccount")}</Typography>
-            <Link component="button" onClick={handleSignUp} variant="body1">
+            <Typography mr={1} sx={{ wordBreak: "keep-all" }}>
+              {t("noAccount")}
+            </Typography>
+            <Link
+              component="button"
+              onClick={handleSignUp}
+              variant="body1"
+              sx={{ wordBreak: "keep-all" }}
+            >
               {t("signUp")}
             </Link>
           </Box>
