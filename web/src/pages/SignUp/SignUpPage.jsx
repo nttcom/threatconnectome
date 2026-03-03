@@ -36,6 +36,10 @@ export function SignUp() {
   const navigate = useNavigate();
   const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
 
+  const showMessage = (text, type = "error") => {
+    setMessage({ text, type });
+  };
+
   const handleFormChange = (prop) => (event) => {
     signUpForm.edited.add(prop);
     setSignUpForm({
@@ -47,7 +51,7 @@ export function SignUp() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (signUpForm.password !== signUpForm.confirmPassword) {
-      setMessage(t("passwordsDoNotMatch"));
+      showMessage(t("passwordsDoNotMatch"));
       return;
     }
 
@@ -62,14 +66,14 @@ export function SignUp() {
         // TODO: should care about supabase + ENABLE_EMAIL_AUTO_CONFIRM=false?
       ) {
         await sendEmailVerification({ actionCodeSettings: null });
-        setMessage(t("verificationEmailSent"));
+        showMessage(t("verificationEmailSent"), "info");
       } else {
-        setMessage(t("signUpSuccess"));
+        showMessage(t("signUpSuccess"), "info");
       }
       setDisabled(true);
     } catch (error) {
       console.error(error);
-      setMessage(error.message);
+      showMessage(error.message);
     }
   };
 
@@ -187,7 +191,9 @@ export function SignUp() {
           </Link>
         </Box>
         <Box alignItems="center" display="flex" flexDirection="column" mt={3}>
-          <Typography>{message}</Typography>
+          <Typography color={message.type === "error" ? "error" : "textPrimary"}>
+            {message.text}
+          </Typography>
         </Box>
         <Typography align="center" variant="body1" style={{ color: "grey" }} mt={3}>
           {t("betaNotice")}
