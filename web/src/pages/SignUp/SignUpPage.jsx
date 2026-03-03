@@ -1,23 +1,9 @@
-import {
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-} from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Container,
-  CssBaseline,
-  IconButton,
-  InputAdornment,
-  Link,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, CssBaseline, TextField, Link, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { PasswordField } from "../../components/PasswordField/PasswordField";
 import { useAuth } from "../../hooks/auth";
 
 export function SignUp() {
@@ -116,64 +102,27 @@ export function SignUp() {
             slotProps={{ htmlInput: { pattern: "^.+@.+$" } }}
           />
 
-          <Tooltip arrow placement="bottom-end" title={t("passwordRequirement")}>
-            <TextField
-              autoComplete="new-password"
-              error={signUpForm.edited.has("password") && signUpForm.password.length < 8}
-              fullWidth
-              label={t("password")}
-              margin="normal"
-              onChange={handleFormChange("password")}
-              required
-              type={signUpForm.isVisible ? "text" : "password"}
-              value={signUpForm.password}
-              slotProps={{
-                htmlInput: { minLength: 8 },
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => handleVisibility("isVisible")}
-                        aria-label="toggle password visibility"
-                      >
-                        {signUpForm.isVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Tooltip>
-          <Tooltip arrow placement="bottom-end" title={t("passwordRequirement")}>
-            <TextField
-              autoComplete="new-password"
-              error={
-                signUpForm.edited.has("confirmPassword") && signUpForm.confirmPassword.length < 8
-              }
-              fullWidth
-              label={t("confirmPassword")}
-              margin="normal"
-              onChange={handleFormChange("confirmPassword")}
-              required
-              type={signUpForm.isConfirmVisible ? "text" : "password"}
-              value={signUpForm.confirmPassword}
-              slotProps={{
-                htmlInput: { minLength: 8 },
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => handleVisibility("isConfirmVisible")}
-                        aria-label="toggle confirm password visibility"
-                      >
-                        {signUpForm.isConfirmVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Tooltip>
+          <PasswordField
+            name="password"
+            label={t("password")}
+            value={signUpForm.password}
+            edited={signUpForm.edited}
+            onChange={handleFormChange("password")}
+            isVisible={signUpForm.isVisible}
+            onToggle={() => handleVisibility("isVisible")}
+            tooltipTitle={t("passwordRequirement")}
+          />
+
+          <PasswordField
+            name="confirmPassword"
+            label={t("confirmPassword")}
+            value={signUpForm.confirmPassword}
+            edited={signUpForm.edited}
+            onChange={handleFormChange("confirmPassword")}
+            isVisible={signUpForm.isConfirmVisible}
+            onToggle={() => handleVisibility("isConfirmVisible")}
+            tooltipTitle={t("passwordRequirement")}
+          />
           <Button
             disabled={disabled}
             color="success"
