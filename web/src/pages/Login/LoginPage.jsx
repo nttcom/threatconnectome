@@ -277,15 +277,46 @@ export function Login() {
               </>
             )}
           <Divider />
-          <Box display="flex" flexDirection="row" flexGrow={1} justifyContent="center" mt={1}>
-            <Typography mr={1} sx={{ wordBreak: "keep-all" }}>
-              {t("noAccount")}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: { xs: "wrap", md: "nowrap" },
+              gap: 1,
+              mt: 1,
+            }}
+          >
+            <Typography
+              component="span"
+              sx={{
+                whiteSpace: { xs: "normal", md: "nowrap" },
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  display: { xs: "block", md: "inline" },
+                }}
+              >
+                {t("noAccountPart1")}
+              </Box>
+              <Box
+                component="span"
+                sx={{
+                  display: { xs: "block", md: "inline" },
+                }}
+              >
+                {t("noAccountPart2")}
+              </Box>
             </Typography>
             <Link
               component="button"
               onClick={handleSignUp}
               variant="body1"
-              sx={{ wordBreak: "keep-all" }}
+              sx={{
+                whiteSpace: "nowrap",
+              }}
             >
               {t("signUp")}
             </Link>
