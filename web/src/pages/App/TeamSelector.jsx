@@ -83,15 +83,31 @@ export function TeamSelector() {
             textTransform: "none",
             color: drawerParams.hoverColor,
             border: `1.5px solid ${grey[300]}`,
-            wordBreak: "keep-all",
+            minWidth: 0,
+            display: "flex",
             "&:hover": {
               bgcolor: grey[100],
               border: `1.5px solid ${grey[300]}`,
             },
           }}
-          endIcon={<KeyboardArrowDownIcon />}
         >
-          {currentTeamName}
+          <Box
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              wordBreak: "keep-all",
+              overflowWrap: "break-word",
+              textAlign: "left",
+              flexGrow: 1,
+              minWidth: 0,
+            }}
+          >
+            {currentTeamName}
+          </Box>
+          <KeyboardArrowDownIcon sx={{ flexShrink: 0, ml: 0.5 }} />
         </Button>
         <Menu
           id="grouped-select"
@@ -108,9 +124,21 @@ export function TeamSelector() {
                   key={pteam_role.pteam.pteam_id}
                   value={pteam_role.pteam.pteam_id}
                   onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
-                  sx={{ wordBreak: "keep-all" }}
                 >
-                  {textTrim(pteam_role.pteam.pteam_name)}
+                  <Box
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      wordBreak: "keep-all",
+                      overflowWrap: "break-word",
+                      width: "100%",
+                    }}
+                  >
+                    {pteam_role.pteam.pteam_name}
+                  </Box>
                 </MenuItem>
               ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
