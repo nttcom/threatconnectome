@@ -83,31 +83,14 @@ export function TeamSelector() {
             textTransform: "none",
             color: drawerParams.hoverColor,
             border: `1.5px solid ${grey[300]}`,
-            minWidth: 0,
-            display: "flex",
             "&:hover": {
               bgcolor: grey[100],
               border: `1.5px solid ${grey[300]}`,
             },
           }}
+          endIcon={<KeyboardArrowDownIcon />}
         >
-          <Box
-            sx={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              wordBreak: "keep-all",
-              overflowWrap: "break-word",
-              textAlign: "left",
-              flexGrow: 1,
-              minWidth: 0,
-            }}
-          >
-            {currentTeamName}
-          </Box>
-          <KeyboardArrowDownIcon sx={{ flexShrink: 0, ml: 0.5 }} />
+          {currentTeamName}
         </Button>
         <Menu
           id="grouped-select"
@@ -125,20 +108,7 @@ export function TeamSelector() {
                   value={pteam_role.pteam.pteam_id}
                   onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
                 >
-                  <Box
-                    sx={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      wordBreak: "keep-all",
-                      overflowWrap: "break-word",
-                      width: "100%",
-                    }}
-                  >
-                    {pteam_role.pteam.pteam_name}
-                  </Box>
+                  {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>
               ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
