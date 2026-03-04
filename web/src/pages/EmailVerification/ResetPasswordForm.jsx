@@ -1,42 +1,56 @@
-import {
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-} from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Typography, Container } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { PasswordField } from "../../components/PasswordField/PasswordField";
 import { useAuth } from "../../hooks/auth";
 
 export default function ResetPasswordForm(props) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [password, setPassword] = useState("");
-  const [visible, setVisible] = useState(false);
+  const [message, setMessage] = useState("");
+  const [signUpForm, setSignUpForm] = useState({
+    edited: new Set(),
+    password: "",
+    confirmPassword: "",
+    isVisible: false,
+    isConfirmVisible: false,
+  });
 
   const { verifyPasswordResetCode, confirmPasswordReset } = useAuth();
 
+  const showMessage = (text, type = "error") => {
+    setMessage({ text, type });
+  };
+
   async function handleResetPassword() {
+    if (signUpForm.password !== signUpForm.confirmPassword) {
+      showMessage(t("passwordsDoNotMatch"));
+      return;
+    }
     setDisabled(true);
     await verifyPasswordResetCode({ actionCode: oobCode })
-      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: password }))
-      .then(() => setMessage(t("success")))
+      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: signUpForm.password }))
+      .then(() => showMessage(t("success"), "info"))
       .catch((error) => {
         console.error(error);
-        setMessage(error.message);
+        showMessage(error.message);
       });
   }
+
+  const handleVisibility = (prop) => {
+    setSignUpForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
+  };
+
+  const handleFormChange = (prop) => (event) => {
+    signUpForm.edited.add(prop);
+    setSignUpForm({
+      ...signUpForm,
+      [prop]: event.target.value,
+    });
+  };
 
   if (import.meta.env.VITE_AUTH_SERVICE === "supabase") {
     return <>{t("notSupported")}</>;
@@ -46,47 +60,46 @@ export default function ResetPasswordForm(props) {
   }
 
   return (
-    <Box alignItems="center" display="flex" flexDirection="column">
-      <Typography variant="h5" my={2}>
-        {t("title")}
-      </Typography>
-      <Tooltip arrow placement="bottom-end" title={t("passwordHint")}>
-        <TextField
-          autoComplete="new-password"
-          error={password.length < 8}
+    <Container component="main" maxWidth="xs">
+      <Box alignItems="center" display="flex" flexDirection="column">
+        <Typography variant="h5" my={2}>
+          {t("title")}
+        </Typography>
+        <PasswordField
+          name="password"
           label={t("newPassword")}
-          margin="normal"
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          type={visible ? "text" : "password"}
-          value={password}
-          inputProps={{ minLength: 8 }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setVisible(!visible)}
-                  aria-label="toggle password visibility"
-                >
-                  {visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
+          value={signUpForm.password}
+          edited={signUpForm.edited}
+          onChange={handleFormChange("password")}
+          isVisible={signUpForm.isVisible}
+          onToggle={() => handleVisibility("isVisible")}
+          tooltipTitle={t("passwordHint")}
         />
-      </Tooltip>
-      <Button
-        onClick={() => handleResetPassword()}
-        disabled={disabled || password.length < 8}
-        variant="contained"
-        sx={{ my: 2 }}
-      >
-        {t("submit")}
-      </Button>
-      <Box mt={3}>
-        <Typography>{message}</Typography>
+        <PasswordField
+          name="confirmPassword"
+          label={t("confirmPassword")}
+          value={signUpForm.confirmPassword}
+          edited={signUpForm.edited}
+          onChange={handleFormChange("confirmPassword")}
+          isVisible={signUpForm.isConfirmVisible}
+          onToggle={() => handleVisibility("isConfirmVisible")}
+          tooltipTitle={t("passwordHint")}
+        />
+        <Button
+          onClick={() => handleResetPassword()}
+          disabled={disabled || signUpForm.password.length < 8}
+          variant="contained"
+          sx={{ my: 2 }}
+        >
+          {t("submit")}
+        </Button>
+        <Box mt={3}>
+          <Typography color={message.type === "error" ? "error" : "textPrimary"}>
+            {message.text}
+          </Typography>
+        </Box>
       </Box>
-    </Box>
+    </Container>
   );
 }
 

@@ -11,11 +11,13 @@
     "ResetPasswordForm": {
         "title": "パスワードをリセット",
         "newPassword": "新しいパスワード",
+        "confirmPassword": "確認パスワード",
         "passwordHint": "パスワードは8文字以上である必要があります。",
         "submit": "送信",
         "success": "パスワードの更新に成功しました",
         "notSupported": "申し訳ございません。Supabaseでは現在パスワードのリセットをサポートしていません。",
         "missingCode": "oobCodeがありません",
-        "error": "エラー: {{error}}"
+        "error": "エラー: {{error}}",
+        "passwordsDoNotMatch": "パスワードが一致していません。"
     }
 }
