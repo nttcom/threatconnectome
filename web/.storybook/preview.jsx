@@ -10,6 +10,7 @@ import { AppFallback } from "../src/pages/App/AppFallback";
 import { AuthProvider } from "../src/providers/auth/AuthContext";
 import { tcApi } from "../src/services/tcApi";
 import { sliceReducers } from "../src/slices";
+import "../src/tailwind.css";
 
 // Initialize MSW
 initialize();
