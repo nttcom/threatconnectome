@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { PasswordField } from "../../components/PasswordField/PasswordField";
+import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 
 export default function ResetPasswordForm(props) {
