@@ -291,23 +291,18 @@ export function Login() {
               component="span"
               sx={{
                 whiteSpace: { xs: "normal", md: "nowrap" },
+                wordBreak: "keep-all",
               }}
             >
               <Box
                 component="span"
                 sx={{
                   display: { xs: "block", md: "inline" },
+                  width: { xs: "100%", md: "auto" },
+                  textAlign: { xs: "center", md: "left" },
                 }}
               >
-                {t("noAccountPart1")}
-              </Box>
-              <Box
-                component="span"
-                sx={{
-                  display: { xs: "block", md: "inline" },
-                }}
-              >
-                {t("noAccountPart2")}
+                {t("noAccount")}
               </Box>
             </Typography>
             <Link
