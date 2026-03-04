@@ -1354,15 +1354,18 @@ def apply_service_packages(
             raise ValueError("Missing target and|or version")
         package_manager = str(line.get("package_manager", ""))
 
+        is_os_ecosystem = ecosystem_analyzer.is_os_ecosystem(ecosystem)
+        source_name = line.get("source_name") if is_os_ecosystem else None
+
         if not (
             _package := persistence.get_package_by_name_and_ecosystem_and_source_name(
-                db, package_name, ecosystem, line.get("source_name")
+                db, package_name, ecosystem, source_name
             )
         ):
             # create new package
-            if ecosystem_analyzer.is_os_ecosystem(ecosystem):
+            if is_os_ecosystem:
                 _package = models.OSPackage(
-                    name=package_name, ecosystem=ecosystem, source_name=line.get("source_name")
+                    name=package_name, ecosystem=ecosystem, source_name=source_name
                 )
                 persistence.create_package(db, _package)
             else:
