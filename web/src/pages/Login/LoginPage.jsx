@@ -289,7 +289,6 @@ export function Login() {
             }}
           >
             <Box
-              component="span"
               sx={{
                 whiteSpace: "nowrap",
                 textAlign: "left",
@@ -303,7 +302,6 @@ export function Login() {
             <Link
               component="button"
               onClick={handleSignUp}
-              variant="body1"
               sx={{
                 whiteSpace: "nowrap",
               }}
