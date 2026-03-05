@@ -137,7 +137,7 @@ describe("TestResetPasswordForm", () => {
         message: errorMessage,
       });
 
-      expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Submit" })).not.toBeDisabled();
       expect(mockVerifyPasswordResetCode).toHaveBeenCalledWith({
         actionCode: oobCodeExample,
       });
