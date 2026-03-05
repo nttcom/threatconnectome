@@ -11,7 +11,7 @@ export default function ResetPasswordForm(props) {
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
-  const [signUpForm, setSignUpForm] = useState({
+  const [resetForm, setResetForm] = useState({
     edited: new Set(),
     password: "",
     confirmPassword: "",
@@ -26,13 +26,13 @@ export default function ResetPasswordForm(props) {
   };
 
   async function handleResetPassword() {
-    if (signUpForm.password !== signUpForm.confirmPassword) {
+    if (resetForm.password !== resetForm.confirmPassword) {
       showMessage(t("passwordsDoNotMatch"));
       return;
     }
     setDisabled(true);
     await verifyPasswordResetCode({ actionCode: oobCode })
-      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: signUpForm.password }))
+      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password }))
       .then(() => showMessage(t("success"), "info"))
       .catch((error) => {
         console.error(error);
@@ -41,13 +41,13 @@ export default function ResetPasswordForm(props) {
   }
 
   const handleVisibility = (prop) => {
-    setSignUpForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
+    setResetForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
   };
 
   const handleFormChange = (prop) => (event) => {
-    signUpForm.edited.add(prop);
-    setSignUpForm({
-      ...signUpForm,
+    resetForm.edited.add(prop);
+    setResetForm({
+      ...resetForm,
       [prop]: event.target.value,
     });
   };
@@ -68,27 +68,27 @@ export default function ResetPasswordForm(props) {
         <PasswordField
           name="password"
           label={t("newPassword")}
-          value={signUpForm.password}
-          edited={signUpForm.edited}
+          value={resetForm.password}
+          edited={resetForm.edited}
           onChange={handleFormChange("password")}
-          isVisible={signUpForm.isVisible}
+          isVisible={resetForm.isVisible}
           onToggle={() => handleVisibility("isVisible")}
           tooltipTitle={t("passwordHint")}
         />
         <PasswordField
           name="confirmPassword"
           label={t("confirmPassword")}
-          value={signUpForm.confirmPassword}
-          edited={signUpForm.edited}
+          value={resetForm.confirmPassword}
+          edited={resetForm.edited}
           onChange={handleFormChange("confirmPassword")}
-          isVisible={signUpForm.isConfirmVisible}
+          isVisible={resetForm.isConfirmVisible}
           onToggle={() => handleVisibility("isConfirmVisible")}
           tooltipTitle={t("passwordHint")}
         />
         <Button
           onClick={() => handleResetPassword()}
           disabled={
-            disabled || signUpForm.password.length < 8 || signUpForm.confirmPassword.length < 8
+            disabled || resetForm.password.length < 8 || resetForm.confirmPassword.length < 8
           }
           variant="contained"
           sx={{ my: 2 }}
