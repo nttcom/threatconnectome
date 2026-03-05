@@ -30,7 +30,7 @@ export default function ResetPasswordForm(props) {
       showMessage(t("passwordsDoNotMatch"));
       return;
     }
-    
+
     await verifyPasswordResetCode({ actionCode: oobCode })
       .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password }))
       .then(() => {
