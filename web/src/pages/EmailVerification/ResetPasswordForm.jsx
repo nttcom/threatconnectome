@@ -1,4 +1,4 @@
-import { Box, Button, Typography, Container } from "@mui/material";
+import { Box, Button, Typography, Container, CircularProgress } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ export default function ResetPasswordForm(props) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [resetForm, setResetForm] = useState({
     edited: new Set(),
@@ -30,14 +31,23 @@ export default function ResetPasswordForm(props) {
       showMessage(t("passwordsDoNotMatch"));
       return;
     }
+
     setDisabled(true);
+    setIsLoading(true);
+
     await verifyPasswordResetCode({ actionCode: oobCode })
-      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password }))
-      .then(() => showMessage(t("success"), "info"))
+      .then(() => {
+        confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password });
+      })
+      .then(() => {
+        showMessage(t("success"), "info");
+      })
       .catch((error) => {
         console.error(error);
         showMessage(error.message);
+        setDisabled(false);
       });
+    setIsLoading(false);
   }
 
   const handleVisibility = (prop) => {
@@ -90,6 +100,7 @@ export default function ResetPasswordForm(props) {
           disabled={
             disabled || resetForm.password.length < 8 || resetForm.confirmPassword.length < 8
           }
+          startIcon={isLoading ? <CircularProgress size={20} /> : null}
           variant="contained"
           sx={{ my: 2 }}
         >
