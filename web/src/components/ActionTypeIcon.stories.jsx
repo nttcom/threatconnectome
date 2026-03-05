@@ -12,7 +12,6 @@ import {
 import { ActionTypeIcon } from "./ActionTypeIcon";
 
 export default {
-  title: "Components/ActionTypeIcon",
   component: ActionTypeIcon,
 };
 

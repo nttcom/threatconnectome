@@ -7,7 +7,6 @@ import { ProductEolList } from "./ProductEolListPage";
 
 // --- ProductEolListPage story ---
 const listMeta = {
-  title: "Eol/ProductEolListPage",
   component: ProductEolList,
   parameters: {
     layout: "fullscreen",

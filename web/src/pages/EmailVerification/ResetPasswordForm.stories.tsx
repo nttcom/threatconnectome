@@ -6,7 +6,6 @@ import { AuthContext } from "../../hooks/auth";
 import ResetPasswordForm from "./ResetPasswordForm";
 
 const meta = {
-  title: "Pages/EmailVerification/ResetPasswordForm",
   component: ResetPasswordForm,
   parameters: {
     layout: "fullscreen",
