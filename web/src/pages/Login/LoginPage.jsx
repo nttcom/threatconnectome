@@ -282,6 +282,7 @@ export function Login() {
               display: "flex",
               justifyContent: "center",
               flexWrap: "nowrap",
+              gap: 1.0,
               mt: 1,
               "@media (max-width:479.98px)": {
                 flexWrap: "wrap",
