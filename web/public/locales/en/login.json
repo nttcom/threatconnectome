@@ -7,7 +7,7 @@
         "loginWithEmail": "Log In with Email",
         "loginWithSaml": "Log In with SAML",
         "loginWithKeycloak": "Log In with Keycloak",
-        "noAccount": "No metemcyber\u200Baccount?",
+        "noAccount": "No metemcyber account?",
         "signUp": "Sign up",
         "closedBetaNotice": "This service is in closed beta. LOGIN is only available for email addresses of authorized organizations.",
         "loggingIn": "Logging in...",
