@@ -11,11 +11,13 @@
     "ResetPasswordForm": {
         "title": "Reset Password",
         "newPassword": "New Password",
+        "confirmPassword": "Confirm Password",
         "passwordHint": "Password should be at least 8 characters.",
         "submit": "Submit",
         "success": "update password success",
         "notSupported": "Sorry. Resetting password is not supported for supabase, currently.",
         "missingCode": "Missing oobCode",
-        "error": "Error: {{error}}"
+        "error": "Error: {{error}}",
+        "passwordsDoNotMatch": "Passwords do not match."
     }
 }

@@ -66,6 +66,7 @@ describe("TestResetPasswordForm", () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const oobCodeExample = "00000";
       const validPassword = "Password1234@";
+      const confirmPassword = "Password1234@";
 
       const mockVerifyPasswordResetCode = vi.fn().mockResolvedValue();
       const mockConfirmPasswordReset = vi.fn().mockResolvedValue();
@@ -78,7 +79,12 @@ describe("TestResetPasswordForm", () => {
 
       const passwordFields = screen.getAllByLabelText(/^New Password/);
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
       await ue.type(passwordField, validPassword);
+      await ue.type(confirmField, confirmPassword);
 
       await ue.click(screen.getByRole("button", { name: "Submit" }));
 
@@ -98,6 +104,7 @@ describe("TestResetPasswordForm", () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const oobCodeExample = "00000";
       const validPassword = "Password1234@";
+      const confirmPassword = "Password1234@";
       const errorCode = "error";
       const errorMessage = "Something went wrong.";
 
@@ -116,7 +123,12 @@ describe("TestResetPasswordForm", () => {
 
       const passwordFields = screen.getAllByLabelText(/^New Password/);
       const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
       await ue.type(passwordField, validPassword);
+      await ue.type(confirmField, confirmPassword);
 
       await ue.click(screen.getByRole("button", { name: "Submit" }));
 

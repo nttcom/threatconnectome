@@ -3,12 +3,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { PasswordField } from "../../components/PasswordField/PasswordField";
+import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [signUpForm, setSignUpForm] = useState({
     edited: new Set(),
     email: "",
