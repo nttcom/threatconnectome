@@ -10,7 +10,7 @@ export default function ResetPasswordForm(props) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
   const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [signUpForm, setSignUpForm] = useState({
     edited: new Set(),
     password: "",
