@@ -281,32 +281,16 @@ export function Login() {
             sx={{
               display: "flex",
               justifyContent: "center",
-              flexWrap: "nowrap",
-              gap: 1.0,
+              alignItems: "center",
+              flexWrap: { xs: "wrap", sm: "nowrap" },
+              gap: 0.5,
               mt: 1,
-              "@media (max-width:479.98px)": {
-                flexWrap: "wrap",
-              },
             }}
           >
-            <Box
-              sx={{
-                whiteSpace: "nowrap",
-                textAlign: "left",
-                "@media (max-width:379.98px)": {
-                  whiteSpace: "normal",
-                },
-              }}
-            >
+            <Typography component="span" sx={{ whiteSpace: { xs: "normal", sm: "nowrap" } }}>
               {t("noAccount")}
-            </Box>
-            <Link
-              component="button"
-              onClick={handleSignUp}
-              sx={{
-                whiteSpace: "nowrap",
-              }}
-            >
+            </Typography>
+            <Link component="button" onClick={handleSignUp} sx={{ whiteSpace: "nowrap" }}>
               {t("signUp")}
             </Link>
           </Box>
