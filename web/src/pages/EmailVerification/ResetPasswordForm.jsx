@@ -87,7 +87,9 @@ export default function ResetPasswordForm(props) {
         />
         <Button
           onClick={() => handleResetPassword()}
-          disabled={disabled || signUpForm.password.length < 8}
+          disabled={
+            disabled || signUpForm.password.length < 8 || signUpForm.confirmPassword.length < 8
+          }
           variant="contained"
           sx={{ my: 2 }}
         >
