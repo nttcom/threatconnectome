@@ -14,7 +14,14 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function LanguageSwitcher({ collapseOnMobile = true }: { collapseOnMobile?: boolean }) {
+export function LanguageSwitcher({
+  // After login, the header contains other elements (team selector, user menu)
+  // that make it crowded on mobile, so the switcher collapses to an icon.
+  // On pages with no other header elements (e.g. auth pages), pass false.
+  collapseOnMobile = true,
+}: {
+  collapseOnMobile?: boolean;
+}) {
   const { i18n } = useTranslation();
   const lang = i18n.language;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
