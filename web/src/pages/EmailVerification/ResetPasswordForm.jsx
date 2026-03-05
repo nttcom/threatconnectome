@@ -36,12 +36,8 @@ export default function ResetPasswordForm(props) {
     setIsLoading(true);
 
     await verifyPasswordResetCode({ actionCode: oobCode })
-      .then(() => {
-        confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password });
-      })
-      .then(() => {
-        showMessage(t("success"), "info");
-      })
+      .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password }))
+      .then(() => showMessage(t("success"), "info"))
       .catch((error) => {
         console.error(error);
         showMessage(error.message);
