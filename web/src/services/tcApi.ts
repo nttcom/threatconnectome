@@ -86,6 +86,11 @@ type GetPTeamEoLsRequestQuery = Pick<
   "path"
 >["path"];
 
+type UploadSbomRequestParams = Pick<
+  UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
+  "body" | "path" | "query"
+>;
+
 const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
   firebase: Firebase.getBearerToken.bind(Firebase),
@@ -440,7 +445,7 @@ export const tcApi = createApi({
     }),
 
     /* SBOM */
-    uploadSBOMFile: builder.mutation<void, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData>({
+    uploadSBOMFile: builder.mutation<void, UploadSbomRequestParams>({
       query: (arg) => {
         const sbomFormData = new FormData();
         sbomFormData.append("file", arg.body.file);
