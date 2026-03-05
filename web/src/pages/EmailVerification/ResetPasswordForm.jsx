@@ -30,10 +30,13 @@ export default function ResetPasswordForm(props) {
       showMessage(t("passwordsDoNotMatch"));
       return;
     }
-    setDisabled(true);
+    
     await verifyPasswordResetCode({ actionCode: oobCode })
       .then(() => confirmPasswordReset({ actionCode: oobCode, newPassword: resetForm.password }))
-      .then(() => showMessage(t("success"), "info"))
+      .then(() => {
+        showMessage(t("success"), "info");
+        setDisabled(true);
+      })
       .catch((error) => {
         console.error(error);
         showMessage(error.message);
