@@ -8,7 +8,6 @@ type FileDropZoneProps = {
   selectedFile?: File | null;
   allowClick?: boolean;
   showFileName?: boolean;
-  accept?: string;
 };
 
 export function FileDropZone({
@@ -16,7 +15,6 @@ export function FileDropZone({
   selectedFile = null,
   allowClick = true,
   showFileName = true,
-  accept = ".json",
 }: FileDropZoneProps) {
   const { t } = useTranslation("status", { keyPrefix: "FileDropZone" });
   const dropRef = useRef<HTMLDivElement>(null);
@@ -55,6 +53,7 @@ export function FileDropZone({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     validateAndSetFile(event.target.files);
+    event.target.value = "";
   };
 
   const getDisplayText = () => {
@@ -85,7 +84,7 @@ export function FileDropZone({
         <input
           ref={fileInputRef}
           type="file"
-          accept={accept}
+          accept=".json"
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
