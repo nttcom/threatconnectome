@@ -31,8 +31,3 @@ export function SBOMUpdateButton({ pteamId, serviceName }: Props) {
     </>
   );
 }
-
-SBOMUpdateButton.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  serviceName: PropTypes.string.isRequired,
-};
