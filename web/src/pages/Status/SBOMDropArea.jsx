@@ -1,4 +1,4 @@
-import { Close as CloseIcon, UploadFile as UploadFileIcon } from "@mui/icons-material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -12,13 +12,14 @@ import {
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { maxServiceNameLengthInHalf } from "../../utils/const";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
+import { FileDropZone } from "../../components/FileDropZone";
 
 import { WaitingModal } from "./WaitingModal";
 
@@ -108,7 +109,6 @@ PreUploadModal.propTypes = {
 export function SBOMDropArea(props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { pteamId, onUploaded } = props;
-  const dropRef = useRef(null);
   const { enqueueSnackbar } = useSnackbar();
   const [sbomFile, setSbomFile] = useState(null);
   const [preModalOpen, setPreModalOpen] = useState(false);
@@ -116,43 +116,11 @@ export function SBOMDropArea(props) {
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  const handleDragOver = useCallback((event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    /* nothing to do */
-  }, []);
+  const handleFileSelected = (file) => {
+    setSbomFile(file);
+    setPreModalOpen(true);
+  };
 
-  const handleDrop = useCallback(
-    (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const { files } = event.dataTransfer;
-      if (files && files.length) {
-        if (files.length > 1) {
-          alert(t("alertOnlyOneFile"));
-          return;
-        }
-        if (!files[0].name.endsWith(".json")) {
-          alert(t("alertOnlyJson"));
-          return;
-        }
-        setSbomFile(files[0]);
-        setPreModalOpen(true);
-      }
-    },
-    [t],
-  );
-
-  useEffect(() => {
-    const node = dropRef.current;
-    if (!node) return;
-    node.addEventListener("dragover", handleDragOver);
-    node.addEventListener("drop", handleDrop);
-    return () => {
-      node.removeEventListener("dragover", handleDragOver);
-      node.removeEventListener("drop", handleDrop);
-    };
-  }, [handleDragOver, handleDrop]);
   const handlePreUploadCompleted = (service) => {
     setPreModalOpen(false);
     processUploadSBOM(sbomFile, service);
@@ -191,17 +159,12 @@ export function SBOMDropArea(props) {
 
   return (
     <>
-      <Box
-        alignItems="center"
-        justifyContent="center"
-        display="flex"
-        flexDirection="column"
-        ref={dropRef}
-        sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888" }}
-      >
-        <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
-        <Typography>{t("dropSBOMFile")}</Typography>
-      </Box>
+      <FileDropZone
+        onFileSelected={handleFileSelected}
+        selectedFile={null}
+        allowClick={false}
+        showFileName={false}
+      />
       <PreUploadModal
         sbomFile={sbomFile}
         open={preModalOpen}
