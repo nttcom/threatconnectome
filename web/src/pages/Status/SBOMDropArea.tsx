@@ -11,8 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -20,12 +19,20 @@ import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { maxServiceNameLengthInHalf } from "../../utils/const";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 
+// @ts-expect-error TS7016
 import { WaitingModal } from "./WaitingModal";
 
-function PreUploadModal(props) {
+interface PreUploadModalProps {
+  sbomFile: File | null;
+  open: boolean;
+  onSetOpen: (open: boolean) => void;
+  onCompleted: (serviceName: string) => void;
+}
+
+function PreUploadModal(props: PreUploadModalProps) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { sbomFile, open, onSetOpen, onCompleted } = props;
-  const [serviceName, setServiceName] = useState("");
+  const [serviceName, setServiceName] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
 
   const handleClose = () => {
@@ -37,7 +44,7 @@ function PreUploadModal(props) {
     setServiceName(""); // reset for next open
   };
 
-  const handleServiceNameSetting = (string) => {
+  const handleServiceNameSetting = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
         t("tooLongServiceName", {
@@ -98,32 +105,31 @@ function PreUploadModal(props) {
     </Dialog>
   );
 }
-PreUploadModal.propTypes = {
-  sbomFile: PropTypes.object,
-  open: PropTypes.bool.isRequired,
-  onSetOpen: PropTypes.func.isRequired,
-  onCompleted: PropTypes.func.isRequired,
-};
 
-export function SBOMDropArea(props) {
+interface SBOMDropAreaProps {
+  pteamId: string;
+  onUploaded: () => void;
+}
+
+export function SBOMDropArea(props: SBOMDropAreaProps) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { pteamId, onUploaded } = props;
-  const dropRef = useRef(null);
+  const dropRef = useRef<HTMLDivElement>(null);
   const { enqueueSnackbar } = useSnackbar();
-  const [sbomFile, setSbomFile] = useState(null);
-  const [preModalOpen, setPreModalOpen] = useState(false);
-  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
+  const [sbomFile, setSbomFile] = useState<File | null>(null);
+  const [preModalOpen, setPreModalOpen] = useState<boolean>(false);
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState<boolean>(false);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  const handleDragOver = useCallback((event) => {
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     /* nothing to do */
   }, []);
 
   const handleDrop = useCallback(
-    (event) => {
+    (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       const { files } = event.dataTransfer;
@@ -143,22 +149,12 @@ export function SBOMDropArea(props) {
     [t],
   );
 
-  useEffect(() => {
-    const node = dropRef.current;
-    if (!node) return;
-    node.addEventListener("dragover", handleDragOver);
-    node.addEventListener("drop", handleDrop);
-    return () => {
-      node.removeEventListener("dragover", handleDragOver);
-      node.removeEventListener("drop", handleDrop);
-    };
-  }, [handleDragOver, handleDrop]);
-  const handlePreUploadCompleted = (service) => {
+  const handlePreUploadCompleted = (service: string) => {
     setPreModalOpen(false);
     processUploadSBOM(sbomFile, service);
   };
 
-  const processUploadSBOM = (sbomFile, serviceName) => {
+  const processUploadSBOM = (sbomFile: File | null, serviceName: string) => {
     if (!sbomFile || !serviceName) {
       alert(t("alertMissingFile"));
       return;
@@ -171,7 +167,7 @@ export function SBOMDropArea(props) {
       body: { file: sbomFile },
     })
       .unwrap()
-      .then((response) => {
+      .then(() => {
         enqueueSnackbar(t("uploadSuccess"), {
           variant: "success",
         });
@@ -197,6 +193,8 @@ export function SBOMDropArea(props) {
         display="flex"
         flexDirection="column"
         ref={dropRef}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
         sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888" }}
       >
         <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
@@ -212,7 +210,3 @@ export function SBOMDropArea(props) {
     </>
   );
 }
-SBOMDropArea.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  onUploaded: PropTypes.func.isRequired,
-};
