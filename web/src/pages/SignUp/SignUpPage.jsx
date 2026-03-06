@@ -1,4 +1,13 @@
-import { Box, Button, Container, CssBaseline, TextField, Link, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  TextField,
+  Link,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +27,7 @@ export function SignUp() {
     isConfirmVisible: false,
   });
   const [disabled, setDisabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
@@ -41,6 +51,9 @@ export function SignUp() {
       return;
     }
 
+    setDisabled(true);
+    setIsLoading(true);
+
     try {
       await createUserWithEmailAndPassword({
         email: signUpForm.email,
@@ -56,10 +69,12 @@ export function SignUp() {
       } else {
         showMessage(t("signUpSuccess"), "info");
       }
-      setDisabled(true);
     } catch (error) {
       console.error(error);
       showMessage(error.message);
+      setDisabled(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,7 +139,10 @@ export function SignUp() {
             tooltipTitle={t("passwordRequirement")}
           />
           <Button
-            disabled={disabled}
+            disabled={
+              disabled || signUpForm.password.length < 8 || signUpForm.confirmPassword.length < 8
+            }
+            startIcon={isLoading ? <CircularProgress size={20} /> : null}
             color="success"
             fullWidth
             type="submit"
