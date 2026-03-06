@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -115,7 +115,6 @@ interface SBOMDropAreaProps {
 export function SBOMDropArea(props: SBOMDropAreaProps) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { pteamId, onUploaded } = props;
-  const dropRef = useRef<HTMLDivElement>(null);
   const { enqueueSnackbar } = useSnackbar();
   const [sbomFile, setSbomFile] = useState<File | null>(null);
   const [preModalOpen, setPreModalOpen] = useState<boolean>(false);
@@ -123,32 +122,10 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    /* nothing to do */
-  }, []);
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const { files } = event.dataTransfer;
-      if (files && files.length) {
-        if (files.length > 1) {
-          alert(t("alertOnlyOneFile"));
-          return;
-        }
-        if (!files[0].name.endsWith(".json")) {
-          alert(t("alertOnlyJson"));
-          return;
-        }
-        setSbomFile(files[0]);
-        setPreModalOpen(true);
-      }
-    },
-    [t],
-  );
+  const handleFileSelected = (file: File) => {
+    setSbomFile(file);
+    setPreModalOpen(true);
+  };
 
   const handlePreUploadCompleted = (service: string) => {
     setPreModalOpen(false);
@@ -188,19 +165,13 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
 
   return (
     <>
-      <Box
-        alignItems="center"
-        justifyContent="center"
-        display="flex"
-        flexDirection="column"
-        ref={dropRef}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        sx={{ width: "100%", minHeight: "300px", border: "4px dotted #888" }}
-      >
-        <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
-        <Typography>{t("dropSBOMFile")}</Typography>
-      </Box>
+      <FileDropZone
+        onFileSelected={handleFileSelected}
+        selectedFile={null}
+        allowClick={false}
+        showFileName={false}
+        customDisplayText={<Typography>{t("dropSBOMFile")}</Typography>}
+      />
       <PreUploadModal
         sbomFile={sbomFile}
         open={preModalOpen}
