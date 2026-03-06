@@ -170,7 +170,6 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
         selectedFile={null}
         allowClick={false}
         showFileName={false}
-        customDisplayText={<Typography>{t("dropSBOMFile")}</Typography>}
       />
       <PreUploadModal
         sbomFile={sbomFile}

@@ -9,7 +9,6 @@ type FileDropZoneProps = {
   allowClick?: boolean;
   showFileName?: boolean;
   accept?: string;
-  customDisplayText?: React.ReactNode;
 };
 
 export function FileDropZone({
