@@ -47,7 +47,6 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
       path: { pteam_id: pteamId },
       query: { service: serviceName },
       body: { file: sbomFile },
-      url: "/pteams/{pteam_id}/upload_sbom_file",
     })
       .unwrap()
       .then(() => {

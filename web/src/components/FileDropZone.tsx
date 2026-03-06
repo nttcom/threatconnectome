@@ -1,5 +1,5 @@
 import { UploadFile as UploadFileIcon } from "@mui/icons-material";
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,7 +19,6 @@ export function FileDropZone({
   accept = ".json",
 }: FileDropZoneProps) {
   const { t } = useTranslation("status", { keyPrefix: "FileDropZone" });
-  const theme = useTheme();
   const dropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
