@@ -2,7 +2,6 @@ import { Close as CloseIcon, LockOutlined as LockIcon } from "@mui/icons-materia
 import {
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -20,6 +19,9 @@ import { FileDropZone } from "./FileDropZone";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 
+// @ts-expect-error TS7016
+import { WaitingModal } from "./WaitingModal";
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -32,7 +34,7 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
   const { enqueueSnackbar } = useSnackbar();
 
   const [sbomFile, setSbomFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
@@ -41,7 +43,8 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
       alert(t("alertMissingFile"));
       return;
     }
-    setIsUploading(true);
+    onClose();
+    setIsOpenWaitingModal(true);
     enqueueSnackbar(t("uploadingFile", { fileName: sbomFile.name }), { variant: "info" });
     uploadSBOMFile({
       path: { pteam_id: pteamId },
@@ -54,32 +57,30 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
           variant: "success",
         });
         setSbomFile(null);
-        onClose();
       })
       .catch((error) => {
         const msg = errorToString(error);
         enqueueSnackbar(t("uploadFailed", { message: msg }), { variant: "error" });
       })
       .finally(() => {
-        setIsUploading(false);
+        setIsOpenWaitingModal(false);
       });
   };
 
   const handleDialogClose = () => {
-    if (!isUploading) {
-      setSbomFile(null);
-      onClose();
-    }
+    setSbomFile(null);
+    onClose();
   };
 
   return (
-    <Dialog fullWidth open={open} onClose={handleDialogClose}>
+    <>
+      <Dialog fullWidth open={open} onClose={handleDialogClose}>
       <DialogTitle>
         <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
           <Typography variant="h6" flexGrow={1}>
             {t("updateSBOM")}
           </Typography>
-          <IconButton onClick={handleDialogClose} disabled={isUploading}>
+          <IconButton onClick={handleDialogClose}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -101,35 +102,21 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
               },
             }}
           />
-          {isUploading ? (
-            <Box
-              sx={{
-                alignItems: "center",
-                justifyContent: "center",
-                display: "flex",
-                flexDirection: "column",
-                width: "100%",
-                minHeight: "300px",
-              }}
-            >
-              <CircularProgress size={60} sx={{ mb: 2 }} />
-              <Typography variant="body2">{t("uploading")}</Typography>
-            </Box>
-          ) : (
-            <FileDropZone
-              onFileSelected={setSbomFile}
-              selectedFile={sbomFile}
-              allowClick={true}
-              showFileName={true}
-            />
-          )}
+          <FileDropZone
+            onFileSelected={setSbomFile}
+            selectedFile={sbomFile}
+            allowClick={true}
+            showFileName={true}
+          />
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleUpload} disabled={!sbomFile || isUploading}>
+        <Button onClick={handleUpload} disabled={!sbomFile}>
           {t("upload")}
         </Button>
       </DialogActions>
     </Dialog>
+    <WaitingModal isOpen={isOpenWaitingModal} text={t("uploading")} />
+    </>
   );
 }

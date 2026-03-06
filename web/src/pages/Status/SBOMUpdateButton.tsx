@@ -1,6 +1,5 @@
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { IconButton, Tooltip } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
