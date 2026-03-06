@@ -56,7 +56,7 @@ export function SignUp() {
 
     try {
       await createUserWithEmailAndPassword({
-        email: signUpForm.email,
+        email: "",
         password: signUpForm.password,
       });
       if (
@@ -71,7 +71,8 @@ export function SignUp() {
       }
     } catch (error) {
       console.error(error);
-      showMessage(error.message);
+      const errorCode = (error.code || "auth/internal-error").replace("/", ".");
+      showMessage(t(errorCode));
       setDisabled(false);
     } finally {
       setIsLoading(false);
