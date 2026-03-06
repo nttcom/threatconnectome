@@ -16,7 +16,7 @@ import { useSnackbar } from "notistack";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { FileDropZone } from "../../components/FileDropZone";
+import { FileDropZone } from "./FileDropZone";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 

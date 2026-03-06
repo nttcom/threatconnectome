@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,20 +21,12 @@ import { maxServiceNameLengthInHalf } from "../../utils/const";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 import { FileDropZone } from "./FileDropZone";
 
-// @ts-expect-error TS7016
 import { WaitingModal } from "./WaitingModal";
 
-interface PreUploadModalProps {
-  sbomFile: File | null;
-  open: boolean;
-  onSetOpen: (open: boolean) => void;
-  onCompleted: (serviceName: string) => void;
-}
-
-function PreUploadModal(props: PreUploadModalProps) {
+function PreUploadModal(props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { sbomFile, open, onSetOpen, onCompleted } = props;
-  const [serviceName, setServiceName] = useState<string>("");
+  const [serviceName, setServiceName] = useState("");
   const { enqueueSnackbar } = useSnackbar();
 
   const handleClose = () => {
@@ -45,7 +38,7 @@ function PreUploadModal(props: PreUploadModalProps) {
     setServiceName(""); // reset for next open
   };
 
-  const handleServiceNameSetting = (string: string) => {
+  const handleServiceNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxServiceNameLengthInHalf) {
       enqueueSnackbar(
         t("tooLongServiceName", {
@@ -106,33 +99,34 @@ function PreUploadModal(props: PreUploadModalProps) {
     </Dialog>
   );
 }
+PreUploadModal.propTypes = {
+  sbomFile: PropTypes.object,
+  open: PropTypes.bool.isRequired,
+  onSetOpen: PropTypes.func.isRequired,
+  onCompleted: PropTypes.func.isRequired,
+};
 
-interface SBOMDropAreaProps {
-  pteamId: string;
-  onUploaded: () => void;
-}
-
-export function SBOMDropArea(props: SBOMDropAreaProps) {
+export function SBOMDropArea(props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMDropArea" });
   const { pteamId, onUploaded } = props;
   const { enqueueSnackbar } = useSnackbar();
-  const [sbomFile, setSbomFile] = useState<File | null>(null);
-  const [preModalOpen, setPreModalOpen] = useState<boolean>(false);
-  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState<boolean>(false);
+  const [sbomFile, setSbomFile] = useState(null);
+  const [preModalOpen, setPreModalOpen] = useState(false);
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  const handleFileSelected = (file: File) => {
+  const handleFileSelected = (file) => {
     setSbomFile(file);
     setPreModalOpen(true);
   };
 
-  const handlePreUploadCompleted = (service: string) => {
+  const handlePreUploadCompleted = (service) => {
     setPreModalOpen(false);
     processUploadSBOM(sbomFile, service);
   };
 
-  const processUploadSBOM = (sbomFile: File | null, serviceName: string) => {
+  const processUploadSBOM = (sbomFile, serviceName) => {
     if (!sbomFile || !serviceName) {
       alert(t("alertMissingFile"));
       return;
@@ -145,7 +139,7 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
       body: { file: sbomFile },
     })
       .unwrap()
-      .then(() => {
+      .then((response) => {
         enqueueSnackbar(t("uploadSuccess"), {
           variant: "success",
         });
@@ -181,3 +175,7 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
     </>
   );
 }
+SBOMDropArea.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+  onUploaded: PropTypes.func.isRequired,
+};
