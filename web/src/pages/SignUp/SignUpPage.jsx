@@ -87,6 +87,7 @@ export function SignUp() {
       state: {
         from: location.state?.from ?? "/",
         search: location.state?.search ?? "",
+        fromSignUp: true,
       },
     });
 

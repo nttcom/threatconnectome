@@ -197,6 +197,7 @@ describe("TestSignUpPage", () => {
       state: {
         from: mockLocation.state.from,
         search: mockLocation.state.search,
+        fromSignUp: true,
       },
     });
   });
