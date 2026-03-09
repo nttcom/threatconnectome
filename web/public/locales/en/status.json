@@ -26,8 +26,8 @@
   "SBOMUpdateDialog": {
     "updateSBOM": "Update SBOM",
     "serviceName": "Service name",
-    "uploading": "Uploading...",
     "upload": "Upload",
+    "uploadingSBOMFile": "Uploading SBOM file",
     "alertMissingFile": "Something went wrong: missing file or service.",
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",

@@ -24,7 +24,7 @@
     "dropFileHere": "ここにSBOMファイルをドロップ"
   },
   "SBOMUpdateDialog": {
-    "updateSBOM": "SBOM を更新",
+    "updateSBOM": "SBOMを更新",
     "serviceName": "サービス名",
     "uploadingSBOMFile": "SBOMファイルのアップロード",
     "upload": "アップロード",
@@ -34,7 +34,7 @@
     "uploadFailed": "操作に失敗しました: {{message}}。"
   },
   "SBOMUpdateButton": {
-    "updateSBOM": "SBOM を更新"
+    "updateSBOM": "SBOMを更新"
   },
   "SBOMDropArea": {
     "uploadSBOMFile": "SBOMファイルをアップロード",
