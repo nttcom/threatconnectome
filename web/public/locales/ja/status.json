@@ -26,7 +26,7 @@
   "SBOMUpdateDialog": {
     "updateSBOM": "SBOMを更新",
     "serviceName": "サービス名",
-    "uploadingSBOMFile": "SBOMファイルのアップロード",
+    "uploadingSBOMFile": "SBOMファイルのアップロード中",
     "upload": "アップロード",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
@@ -44,7 +44,7 @@
     "selectedFile": "選択されたファイル: ",
     "upload": "アップロード",
     "dropSBOMFile": "ここにSBOMファイルをドロップ",
-    "uploadingSBOMFile": "SBOMファイルのアップロード",
+    "uploadingSBOMFile": "SBOMファイルのアップロード中",
     "alertOnlyOneFile": "1つのファイルのみをドロップしてください",
     "alertOnlyJson": "*.jsonのみサポートされています",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
@@ -54,7 +54,7 @@
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。"
   },
   "WaitingModal": {
-    "inProgress": "{{text}}処理中です。お待ちください。"
+    "inProgress": "{{text}}です。お待ちください。"
   },
   "PTeamServiceDelete": {
     "loadingTeam": "チーム情報を読み込んでいます...",
