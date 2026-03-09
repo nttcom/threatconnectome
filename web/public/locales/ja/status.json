@@ -26,7 +26,7 @@
   "SBOMUpdateDialog": {
     "updateSBOM": "SBOM を更新",
     "serviceName": "サービス名",
-    "uploading": "アップロード中...",
+    "uploadingSBOMFile": "SBOMファイルのアップロード",
     "upload": "アップロード",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
@@ -44,7 +44,7 @@
     "selectedFile": "選択されたファイル: ",
     "upload": "アップロード",
     "dropSBOMFile": "ここにSBOMファイルをドロップ",
-    "uploadingSBOMFile": "SBOMファイルをアップロード中",
+    "uploadingSBOMFile": "SBOMファイルのアップロード",
     "alertOnlyOneFile": "1つのファイルのみをドロップしてください",
     "alertOnlyJson": "*.jsonのみサポートされています",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",

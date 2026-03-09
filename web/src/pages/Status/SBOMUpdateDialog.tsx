@@ -75,48 +75,48 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
   return (
     <>
       <Dialog fullWidth open={open} onClose={handleDialogClose}>
-      <DialogTitle>
-        <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
-          <Typography variant="h6" flexGrow={1}>
-            {t("updateSBOM")}
-          </Typography>
-          <IconButton onClick={handleDialogClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <TextField
-            label={t("serviceName")}
-            size="small"
-            value={serviceName}
-            disabled
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <LockIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <FileDropZone
-            onFileSelected={setSbomFile}
-            selectedFile={sbomFile}
-            allowClick={true}
-            showFileName={true}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleUpload} disabled={!sbomFile}>
-          {t("upload")}
-        </Button>
-      </DialogActions>
-    </Dialog>
-    <WaitingModal isOpen={isOpenWaitingModal} text={t("uploading")} />
+        <DialogTitle>
+          <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
+            <Typography variant="h6" flexGrow={1}>
+              {t("updateSBOM")}
+            </Typography>
+            <IconButton onClick={handleDialogClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label={t("serviceName")}
+              size="small"
+              value={serviceName}
+              disabled
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <FileDropZone
+              onFileSelected={setSbomFile}
+              selectedFile={sbomFile}
+              allowClick={true}
+              showFileName={true}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUpload} disabled={!sbomFile}>
+            {t("upload")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <WaitingModal isOpen={isOpenWaitingModal} text={t("uploadingSBOMFile")} />
     </>
   );
 }
