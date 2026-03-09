@@ -136,7 +136,7 @@ describe("TestSignUpPage", () => {
       const validPassword = "Password1234@";
       const confirmPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const errorCode = "test error";
+      const errorCode = "auth/email-already-in-use";
       const errorMessage = "Something went wrong.";
 
       const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
@@ -175,7 +175,7 @@ describe("TestSignUpPage", () => {
         password: validPassword,
       });
 
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      expect(screen.getByText("Email already in use")).toBeInTheDocument();
     });
   });
 
