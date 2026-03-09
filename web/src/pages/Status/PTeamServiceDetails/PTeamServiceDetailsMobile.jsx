@@ -12,7 +12,6 @@ import {
 import PropTypes from "prop-types";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
-import { SBOMUpdateButton } from "../SBOMUpdateButton";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 export function PTeamServiceDetailsMobile(props) {
@@ -51,7 +50,6 @@ export function PTeamServiceDetailsMobile(props) {
             >
               {serviceName}
             </Typography>
-            <SBOMUpdateButton />
             <PTeamServiceDetailsSettings
               pteamId={props.pteamId}
               service={props.service}

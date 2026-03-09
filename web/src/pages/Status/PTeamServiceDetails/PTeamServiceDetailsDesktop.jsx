@@ -107,7 +107,7 @@ export function PTeamServiceDetails(props) {
       >
         <Card sx={{ display: "flex", height: 200, position: "relative" }}>
           <Box sx={{ position: { md: "absolute", xs: undefined }, right: "48px", top: 0 }}>
-            <SBOMUpdateButton />
+            <SBOMUpdateButton pteamId={pteamId} serviceName={service.service_name} />
           </Box>
           <PTeamServiceDetailsSettings
             pteamId={pteamId}

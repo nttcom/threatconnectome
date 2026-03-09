@@ -1,8 +1,4 @@
-import {
-  Close as CloseIcon,
-  LockOutlined as LockIcon,
-  UploadFile as UploadFileIcon,
-} from "@mui/icons-material";
+import { Close as CloseIcon, LockOutlined as LockIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -14,69 +10,113 @@ import {
   InputAdornment,
   TextField,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { FileDropZone } from "./FileDropZone";
+import { useUploadSBOMFileMutation } from "../../services/tcApi";
+import { errorToString } from "../../utils/func";
+
+// @ts-expect-error TS7016
+import { WaitingModal } from "./WaitingModal";
 
 type Props = {
   open: boolean;
   onClose: () => void;
+  pteamId: string;
+  serviceName: string;
 };
 
-export function SBOMUpdateDialog({ open, onClose }: Props) {
-  const theme = useTheme();
-  const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
+export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMUpdateDialog" });
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [sbomFile, setSbomFile] = useState<File | null>(null);
+  const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
+
+  const [uploadSBOMFile] = useUploadSBOMFileMutation();
+
+  const handleUpload = () => {
+    if (!sbomFile || !serviceName) {
+      alert(t("alertMissingFile"));
+      return;
+    }
+    onClose();
+    setIsOpenWaitingModal(true);
+    enqueueSnackbar(t("uploadingFile", { fileName: sbomFile.name }), { variant: "info" });
+    uploadSBOMFile({
+      path: { pteam_id: pteamId },
+      query: { service: serviceName },
+      body: { file: sbomFile },
+    })
+      .unwrap()
+      .then(() => {
+        enqueueSnackbar(t("uploadSuccess"), {
+          variant: "success",
+        });
+        setSbomFile(null);
+      })
+      .catch((error) => {
+        const msg = errorToString(error);
+        enqueueSnackbar(t("uploadFailed", { message: msg }), { variant: "error" });
+      })
+      .finally(() => {
+        setIsOpenWaitingModal(false);
+      });
+  };
+
+  const handleDialogClose = () => {
+    setSbomFile(null);
+    onClose();
+  };
 
   return (
-    <Dialog fullWidth open={open} onClose={onClose}>
-      <DialogTitle>
-        <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
-          <Typography variant="h6" flexGrow={1}>
-            SBOM を更新
-          </Typography>
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <TextField
-            label="サービス名"
-            size="small"
-            value="sample-service"
-            disabled
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <LockIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <Box
-            sx={{
-              alignItems: "center",
-              justifyContent: "center",
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              minHeight: "300px",
-              border: "4px dotted #888",
-            }}
-          >
-            <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
-            <Typography variant="body2">
-              {isMdDown ? "タップして選択" : "ドロップまたはクリックして選択"}
+    <>
+      <Dialog fullWidth open={open} onClose={handleDialogClose}>
+        <DialogTitle>
+          <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
+            <Typography variant="h6" flexGrow={1}>
+              {t("updateSBOM")}
             </Typography>
+            <IconButton onClick={handleDialogClose}>
+              <CloseIcon />
+            </IconButton>
           </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button disabled>アップロード</Button>
-      </DialogActions>
-    </Dialog>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label={t("serviceName")}
+              size="small"
+              value={serviceName}
+              disabled
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <FileDropZone
+              onFileSelected={setSbomFile}
+              selectedFile={sbomFile}
+              allowClick={true}
+              showFileName={true}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUpload} disabled={!sbomFile}>
+            {t("upload")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <WaitingModal isOpen={isOpenWaitingModal} text={t("uploadingSBOMFile")} />
+    </>
   );
 }
