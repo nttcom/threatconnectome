@@ -19,7 +19,6 @@ import { FileDropZone } from "./FileDropZone";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
 
-// @ts-expect-error TS7016
 import { WaitingModal } from "./WaitingModal";
 
 type Props = {

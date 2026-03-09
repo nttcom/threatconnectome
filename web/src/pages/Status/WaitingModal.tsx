@@ -1,17 +1,20 @@
 import {
   Box,
+  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
   Typography,
-  CircularProgress,
 } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-export function WaitingModal(props) {
+type Props = {
+  isOpen: boolean;
+  text: string;
+};
+
+export function WaitingModal({ isOpen, text }: Props) {
   const { t } = useTranslation("status", { keyPrefix: "WaitingModal" });
-  const { isOpen, text } = props;
 
   return (
     <Dialog fullWidth open={isOpen}>
@@ -27,7 +30,3 @@ export function WaitingModal(props) {
     </Dialog>
   );
 }
-WaitingModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  text: PropTypes.string.isRequired,
-};

@@ -20,7 +20,6 @@ import { maxServiceNameLengthInHalf } from "../../utils/const";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 import { FileDropZone } from "./FileDropZone";
 
-// @ts-expect-error TS7016
 import { WaitingModal } from "./WaitingModal";
 
 interface PreUploadModalProps {
