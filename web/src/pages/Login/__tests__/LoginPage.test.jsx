@@ -91,6 +91,10 @@ const useAuthReturnValueBase = {
   signInWithEmailAndPassword: vi.fn(),
   signInWithSamlPopup: vi.fn(),
   signOut: vi.fn(),
+  onAuthStateChanged: vi.fn().mockImplementation(() => {
+    // return unsubscribe handler
+    return () => {};
+  }),
 };
 
 describe("TestLoginPage", () => {
