@@ -48,14 +48,28 @@ export function Login() {
     signInWithEmailAndPassword,
     signInWithSamlPopup,
     signInWithRedirect,
-    signOut,
+    onAuthStateChanged,
   } = useAuth();
 
   useEffect(() => {
-    dispatch(setAuthUserIsReady(false));
+    // If we were redirected here from SignUp, do not run the onAuthStateChanged
+    // because sign-up can trigger an auth state change before TC's DB setup completes.
+    // SignUp sets `fromSignUp: true` in location.state.
+    if (location.state?.fromSignUp) {
+      return;
+    }
+
+    const signInCallback = () => {
+      navigate({
+        pathname: redirectedFrom.from ?? "/",
+        search: redirectedFrom.search ?? "",
+      });
+    };
+    const signOutCallback = () => {};
+    const unsubscribe = onAuthStateChanged({ signInCallback, signOutCallback });
     setMessage({ text: location.state?.message, type: location.state?.messageType });
-    signOut();
-  }, [dispatch, location, signOut]);
+    return () => unsubscribe();
+  }, [navigate, redirectedFrom, location.state]);
 
   useEffect(() => {
     const recaptcha_element = document.getElementById(recaptchaId);
