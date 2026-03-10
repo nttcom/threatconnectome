@@ -8,7 +8,7 @@ export function getAuthErrorMessage(error, options = {}) {
     replaceSlash = false,
   } = options;
 
-  let code = error?.code || error || "auth/internal-error";
+  let code = error?.code || (typeof error === "string" ? error : "auth/internal-error");
 
   if (replaceSlash && typeof code === "string") {
     code = code.replace(/\//g, ".");
