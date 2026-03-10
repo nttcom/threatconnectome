@@ -35,16 +35,18 @@ const renderSignUp = () => {
   );
 };
 
+const setupDefaultAuthMock = () => {
+  useAuth.mockReturnValue({
+    createUserWithEmailAndPassword: vi.fn().mockResolvedValue(),
+    sendEmailVerification: vi.fn().mockResolvedValue(),
+    signOut: vi.fn().mockResolvedValue(undefined),
+  });
+};
+
 describe("TestSignUpPage", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue();
-      const mockSendEmailVerification = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
-        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
-        sendEmailVerification: mockSendEmailVerification,
-        signOut: vi.fn().mockResolvedValue(undefined),
-      });
+      setupDefaultAuthMock();
     });
 
     afterEach(() => {
@@ -81,6 +83,10 @@ describe("TestSignUpPage", () => {
   });
 
   describe("Sign up button behavior", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it("creates an account when given valid parameters", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const emailValue = "test@example.com";
@@ -263,6 +269,8 @@ describe("TestSignUpPage", () => {
   it("navigate login page when click link button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
+    setupDefaultAuthMock();
+
     const mockNavigate = vi.fn();
     useNavigate.mockReturnValue(mockNavigate);
 
@@ -285,6 +293,8 @@ describe("TestSignUpPage", () => {
   it("change password mask when click visibility icon button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
+    setupDefaultAuthMock();
+
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
     const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
@@ -301,6 +311,8 @@ describe("TestSignUpPage", () => {
     const tooShortPassword = "pass";
     const validPassword = "Password1234@";
 
+    setupDefaultAuthMock();
+
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
     const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
@@ -314,6 +326,8 @@ describe("TestSignUpPage", () => {
   it("shows error when email is invalid format", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const invalidEmail = "invalid email format";
+
+    setupDefaultAuthMock();
 
     renderSignUp();
     const emailField = screen.getByRole("textbox", { name: "Email Address" });
