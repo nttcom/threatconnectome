@@ -12,11 +12,11 @@ import { styled } from "@mui/material/styles";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDispatch, useSelector } from "react-redux";
 
+import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { setDrawerOpen } from "../../slices/system";
 import { drawerWidth } from "../../utils/const";
 
 import { AppFallback } from "./AppFallback";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { TeamSelector } from "./TeamSelector";
 import { UserMenu } from "./UserMenu/UserMenu";
 
