@@ -17,6 +17,25 @@
     "selectAService": "サービスを選択",
     "cancel": "キャンセル"
   },
+  "FileDropZone": {
+    "alertOnlyOneFile": "1つのファイルのみを選択してください",
+    "alertOnlyJson": "*.jsonのみサポートされています",
+    "dropOrClickToSelect": "ドロップまたはクリックして選択",
+    "dropFileHere": "ここにSBOMファイルをドロップ"
+  },
+  "SBOMUpdateDialog": {
+    "updateSBOM": "SBOMを更新",
+    "serviceName": "サービス名",
+    "uploadingSBOMFile": "SBOMファイルのアップロード中",
+    "upload": "アップロード",
+    "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
+    "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
+    "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
+    "uploadFailed": "操作に失敗しました: {{message}}。"
+  },
+  "SBOMUpdateButton": {
+    "updateSBOM": "SBOMを更新"
+  },
   "SBOMDropArea": {
     "uploadSBOMFile": "SBOMファイルをアップロード",
     "serviceName": "サービス名",
@@ -25,7 +44,7 @@
     "selectedFile": "選択されたファイル: ",
     "upload": "アップロード",
     "dropSBOMFile": "ここにSBOMファイルをドロップ",
-    "uploadingSBOMFile": "SBOMファイルをアップロード中",
+    "uploadingSBOMFile": "SBOMファイルのアップロード中",
     "alertOnlyOneFile": "1つのファイルのみをドロップしてください",
     "alertOnlyJson": "*.jsonのみサポートされています",
     "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
@@ -35,7 +54,7 @@
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。"
   },
   "WaitingModal": {
-    "inProgress": "{{text}}処理中です。お待ちください。"
+    "inProgress": "{{text}}です。お待ちください。"
   },
   "PTeamServiceDelete": {
     "loadingTeam": "チーム情報を読み込んでいます...",

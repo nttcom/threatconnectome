@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 import { getAuthErrorMessage } from "../../utils/authErrorUtils";
+import { getBearerToken } from "../../services/tcApi";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
@@ -31,7 +32,7 @@ export function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
+  const { createUserWithEmailAndPassword, sendEmailVerification, signOut } = useAuth();
 
   const showMessage = (text, type = "error") => {
     setMessage({ text, type });
@@ -43,6 +44,17 @@ export function SignUp() {
       ...signUpForm,
       [prop]: event.target.value,
     });
+  };
+
+  const handleForcedSignOut = async () => {
+    try {
+      const token = await getBearerToken();
+      if (token) {
+        await signOut();
+      }
+    } catch (tokenError) {
+      console.error("Sign-out failed during cleanup:", tokenError);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -70,6 +82,13 @@ export function SignUp() {
       } else {
         showMessage(t("signUpSuccess"), "info");
       }
+
+      /**
+       * After completing the new registration, do not remain logged in; sign out once.
+       * This prevents unexpected screen transitions triggered by onAuthStateChanged in LoginPage.jsx.
+       * Sign out to maintain consistency with the TC database.
+       */
+      await signOut();
     } catch (error) {
       console.error(error);
       const fallbackMessage = getAuthErrorMessage(error, {
@@ -80,6 +99,12 @@ export function SignUp() {
       });
       showMessage(fallbackMessage);
       setDisabled(false);
+
+      /**
+       * If user creation succeeds but subsequent processes such as email sending encounter errors,
+       * a forced sign-out is executed to prevent an incomplete login state from remaining on the client.
+       */
+      await handleForcedSignOut();
     } finally {
       setIsLoading(false);
     }

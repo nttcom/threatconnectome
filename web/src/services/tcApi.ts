@@ -91,7 +91,7 @@ type UploadSbomRequestParams = Pick<
   "body" | "path" | "query"
 >;
 
-const _getBearerToken = {
+export const getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
   firebase: Firebase.getBearerToken.bind(Firebase),
 }[import.meta.env.VITE_AUTH_SERVICE];
@@ -101,7 +101,7 @@ export const tcApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const token = await _getBearerToken();
+      const token = await getBearerToken();
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
