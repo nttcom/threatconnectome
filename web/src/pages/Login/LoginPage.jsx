@@ -117,17 +117,17 @@ export function Login() {
           break;
         }
         case "No such user":
-          createUser({ body: {} })
-            .unwrap()
-            .then(() =>
-              navigate("/account", {
-                state: {
-                  from: redirectedFrom.from ?? "/",
-                  search: redirectedFrom.search ?? "",
-                },
-              }),
-            )
-            .catch((error) => showMessage(error.data?.detail ?? t("somethingWentWrong")));
+          try {
+            await createUser({ body: {} }).unwrap();
+            navigate("/account", {
+              state: {
+                from: redirectedFrom.from ?? "/",
+                search: redirectedFrom.search ?? "",
+              },
+            });
+          } catch (error) {
+            showMessage(error.data?.detail ?? t("somethingWentWrong"));
+          }
           break;
         default:
           showMessage(t("somethingWentWrong"));
