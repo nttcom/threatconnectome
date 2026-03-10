@@ -63,7 +63,7 @@ root.render(
               >
                 <Routes>
                   <Route element={<AuthPageLayout />}>
-                    <Route exact path="/login" element={<Login />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/auth_keycloak_callback" element={<AuthKeycloakCallback />} />
                     <Route path="/email_verification" element={<EmailVerification />} />
                     <Route path="/reset_password" element={<ResetPassword />} />
