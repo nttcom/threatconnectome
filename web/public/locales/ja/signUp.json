@@ -15,7 +15,7 @@
       "invalid-email": "メールアドレスの形式が正しくありません。",
       "missing-email": "メールアドレスを入力してください。",
       "missing-password": "パスワードを入力してください。",
-      "weak-password": "パスワードが弱すぎます。少なくとも8文字以上である必要があります。",
+      "weak-password": "パスワードが弱すぎます。8文字以上である必要があります。",
       "operation-not-allowed": "この認証方法は許可されていません。",
       "network-request-failed": "ネットワークエラーが発生しました。接続を確認してください。",
       "internal-error": "内部エラーが発生しました。時間をおいて再度お試しください。",
