@@ -59,7 +59,7 @@ export function Login() {
     // reacting to auth state changes triggered by that flow.
     if (isLoggingIn) return;
 
-    const signInCallback = async () => {
+    const signInCallback = () => {
       navigate({
         pathname: redirectedFrom.from ?? "/",
         search: redirectedFrom.search ?? "",
