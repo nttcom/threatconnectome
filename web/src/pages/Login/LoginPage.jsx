@@ -16,12 +16,11 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
-import { setAuthUserIsReady } from "../../slices/auth";
 import Firebase from "../../utils/Firebase";
 
 import { TwoFactorAuth } from "./TwoFactorAuth";
@@ -33,11 +32,15 @@ export function Login() {
   const [isShowSmsCode, setIsShowSmsCode] = useState(false);
   const [authData, setAuthData] = useState([]);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
+
+  // `isLoggingIn`: Flag indicating that the login process is in progress.
+  // - true: onAuthStateChanged does not respond.
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
 
   const recaptchaId = "recaptcha-container-visible-login";
 
-  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -52,14 +55,12 @@ export function Login() {
   } = useAuth();
 
   useEffect(() => {
-    // If we were redirected here from SignUp, do not run the onAuthStateChanged
-    // because sign-up can trigger an auth state change before TC's DB setup completes.
-    // SignUp sets `fromSignUp: true` in location.state.
-    if (location.state?.fromSignUp) {
-      return;
-    }
+    // If we're in the middle of a login flow, skip subscribing to avoid
+    // reacting to auth state changes triggered by that flow.
+    if (isLoggingIn) return;
 
-    const signInCallback = () => {
+    const signInCallback = async () => {
+      if (isLoggingIn) return;
       navigate({
         pathname: redirectedFrom.from ?? "/",
         search: redirectedFrom.search ?? "",
@@ -69,7 +70,7 @@ export function Login() {
     const unsubscribe = onAuthStateChanged({ signInCallback, signOutCallback });
     setMessage({ text: location.state?.message, type: location.state?.messageType });
     return () => unsubscribe();
-  }, [navigate, redirectedFrom, location.state]);
+  }, [navigate, redirectedFrom, location.state, isLoggingIn, onAuthStateChanged]);
 
   useEffect(() => {
     const recaptcha_element = document.getElementById(recaptchaId);
@@ -138,37 +139,51 @@ export function Login() {
 
   const handleLoginWithEmail = async (event) => {
     event.preventDefault();
+    setIsLoggingIn(true);
     showMessage(t("loggingIn"), "info");
     const data = new FormData(event.currentTarget);
     const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
-    if (authData === undefined) return;
+    if (authData === undefined) {
+      setIsLoggingIn(false);
+      return;
+    }
     if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && authData?.mfa) {
       // Firebase SMS multi-factor auth
       setIsShowSmsCode(true);
       setAuthData(authData);
+      setIsLoggingIn(false);
     } else {
-      navigateInternalPage();
+      try {
+        await navigateInternalPage();
+      } finally {
+        setIsLoggingIn(false);
+      }
     }
   };
 
   const handleLoginWithSaml = () => {
+    setIsLoggingIn(true);
     signInWithSamlPopup()
       .then(() => navigateInternalPage())
       .catch((error) => {
         showMessage(t("somethingWentWrong"));
         console.error(error);
-      });
+      })
+      .finally(() => setIsLoggingIn(false));
   };
 
   const handleLoginWithKeycloak = async () => {
     /* Note: currently, work with supabase only.
      * redirectTo: set the page which SUPABASE_AUTH_CONTAINER/auth/v1/callback should redirect to.
      */
+    setIsLoggingIn(true);
     const redirectTo = `${window.location.origin}/auth_keycloak_callback`;
-    await signInWithRedirect({ provider: "keycloak", redirectTo }).catch((authError) => {
-      showMessage(authError.message);
-      console.error(authError);
-    });
+    await signInWithRedirect({ provider: "keycloak", redirectTo })
+      .catch((authError) => {
+        showMessage(authError.message);
+        console.error(authError);
+      })
+      .finally(() => setIsLoggingIn(false));
   };
 
   const handleResetPassword = (event) => {

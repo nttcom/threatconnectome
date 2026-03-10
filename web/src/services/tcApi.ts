@@ -91,7 +91,7 @@ type UploadSbomRequestParams = Pick<
   "body" | "path" | "query"
 >;
 
-const _getBearerToken = {
+export const _getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
   firebase: Firebase.getBearerToken.bind(Firebase),
 }[import.meta.env.VITE_AUTH_SERVICE];
