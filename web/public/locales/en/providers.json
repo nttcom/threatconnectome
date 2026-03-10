@@ -13,6 +13,7 @@
       "auth/invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
       "auth/invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
       "auth/requires-recent-login": "Please log out and sign in again before trying.",
+      "auth/internal-error": "An internal error occurred.",
       "samlNotSupported": "SAML is not supported.",
       "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678)."
     },

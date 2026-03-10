@@ -26,18 +26,18 @@ import { isE164Format } from "../../utils/phoneNumberUtils";
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
 function _errorToMessage(error) {
-  return getAuthErrorMessage(error, {
+  const message = getAuthErrorMessage(error, {
     namespace: "providers",
     keyPrefix: "auth.FirebaseProvider",
     replaceSlash: false,
-    defaultMessage:
-      error?.message || i18n.t("auth.FirebaseProvider.auth/internal-error", { ns: "providers" }),
+    defaultMessage: error?.message || "An internal error occurred.",
   });
+  return message;
 }
 
 class FirebaseAuthError extends AuthError {
   constructor(error) {
-    super(error, error.code, _errorToMessage(error.code));
+    super(error, error.code, _errorToMessage(error));
     console.error("Authentication error:", this.message);
   }
 }

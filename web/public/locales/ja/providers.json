@@ -13,6 +13,7 @@
       "auth/invalid-multi-factor-session": "セッションが無効または期限切れです。もう一度お試しください。",
       "auth/invalid-phone-number": "電話番号の形式が正しくありません。E.164形式で入力してください。",
       "auth/requires-recent-login": "再ログインが必要です。いったんサインアウトしてから再度サインインしてください。",
+      "auth/internal-error": "内部エラーが発生しました。",
       "samlNotSupported": "SAMLはサポートされていません。",
       "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください。（例: +818012345678）"
     },
