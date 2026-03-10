@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
-import { _getBearerToken } from "../../services/tcApi";
+import { getBearerToken } from "../../services/tcApi";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
@@ -86,7 +86,7 @@ export function SignUp() {
        * If user creation succeeds but subsequent processes such as email sending encounter errors,
        * a forced sign-out is executed to prevent an incomplete login state from remaining on the client.
        */
-      const token = await _getBearerToken();
+      const token = await getBearerToken();
       if (token) {
         await signOut();
       }
