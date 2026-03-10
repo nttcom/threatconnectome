@@ -60,7 +60,6 @@ export function Login() {
     if (isLoggingIn) return;
 
     const signInCallback = async () => {
-      if (isLoggingIn) return;
       navigate({
         pathname: redirectedFrom.from ?? "/",
         search: redirectedFrom.search ?? "",
