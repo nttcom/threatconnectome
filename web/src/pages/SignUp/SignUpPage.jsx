@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
@@ -71,9 +72,12 @@ export function SignUp() {
       }
     } catch (error) {
       console.error(error);
-      const errorCode = (error.code || "auth/internal-error").replace("/", ".");
-      const translated = t(errorCode, { defaultValue: "" });
-      const fallbackMessage = translated || error.message || t("internalError");
+      const fallbackMessage = getAuthErrorMessage(error, {
+        namespace: "signUp",
+        keyPrefix: "SignUpPage",
+        replaceSlash: true,
+        defaultMessage: error.message || t("auth.internal-error"),
+      });
       showMessage(fallbackMessage);
       setDisabled(false);
     } finally {

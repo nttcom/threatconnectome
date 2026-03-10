@@ -20,17 +20,19 @@ import {
 
 import i18n from "../../i18n/config";
 import Firebase from "../../utils/Firebase";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
 function _errorToMessage(error) {
-  const code = error.code || error;
-  const key = `auth.FirebaseProvider.${code}`;
-  if (i18n.exists(key, { ns: "providers" })) {
-    return i18n.t(key, { ns: "providers" });
-  }
-  return error.message || code || `Something went wrong (${error}).`;
+  return getAuthErrorMessage(error, {
+    namespace: "providers",
+    keyPrefix: "auth.FirebaseProvider",
+    replaceSlash: false,
+    defaultMessage:
+      error?.message || i18n.t("auth.FirebaseProvider.auth/internal-error", { ns: "providers" }),
+  });
 }
 
 class FirebaseAuthError extends AuthError {
