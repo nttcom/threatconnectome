@@ -24,7 +24,12 @@
       "app-not-authorized": "This app is not authorized to use authentication.",
       "unauthorized-domain": "This domain is not authorized for authentication.",
       "quota-exceeded": "Email quota exceeded. Please try again later.",
-      "timeout": "The operation timed out. Please try again."
+      "timeout": "The operation timed out. Please try again.",
+      "invalid-user-token": "Invalid user token. Please log in again.",
+      "user-token-expired": "User token has expired. Please log in again.",
+      "app-deleted": "This app has been deleted.",
+      "admin-restricted-operation": "This operation is restricted to administrators only.",
+      "invalid-credential": "Invalid credentials. Please check your email and password."
     }
   }
 }
