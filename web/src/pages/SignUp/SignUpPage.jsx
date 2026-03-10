@@ -72,7 +72,9 @@ export function SignUp() {
     } catch (error) {
       console.error(error);
       const errorCode = (error.code || "auth/internal-error").replace("/", ".");
-      showMessage(t(errorCode));
+      const translated = t(errorCode, { defaultValue: "" });
+      const fallbackMessage = translated || error.message || t("internalError");
+      showMessage(fallbackMessage);
       setDisabled(false);
     } finally {
       setIsLoading(false);
