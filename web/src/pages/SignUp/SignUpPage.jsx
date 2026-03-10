@@ -45,6 +45,17 @@ export function SignUp() {
     });
   };
 
+  const handleForcedSignOut = async () => {
+    try {
+      const token = await getBearerToken();
+      if (token) {
+        await signOut();
+      }
+    } catch (tokenError) {
+      console.error("Sign-out failed during cleanup:", tokenError);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (signUpForm.password !== signUpForm.confirmPassword) {
@@ -86,10 +97,7 @@ export function SignUp() {
        * If user creation succeeds but subsequent processes such as email sending encounter errors,
        * a forced sign-out is executed to prevent an incomplete login state from remaining on the client.
        */
-      const token = await getBearerToken();
-      if (token) {
-        await signOut();
-      }
+      await handleForcedSignOut();
     } finally {
       setIsLoading(false);
     }
