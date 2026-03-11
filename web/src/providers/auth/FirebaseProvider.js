@@ -29,7 +29,7 @@ function _errorToMessage(error) {
   const message = getAuthErrorMessage(error, {
     namespace: "providers",
     keyPrefix: "auth.FirebaseProvider",
-    defaultMessage: error?.message || "An internal error occurred.",
+    defaultMessage: "An internal error occurred.",
   });
   return message;
 }
