@@ -102,7 +102,7 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
                 },
               }}
             />
-            <Alert severity="error" sx={{ fontWeight: "medium" }}>
+            <Alert severity="warning" sx={{ fontWeight: "medium" }}>
               {t("sbomWarning")}
             </Alert>
             <FileDropZone
