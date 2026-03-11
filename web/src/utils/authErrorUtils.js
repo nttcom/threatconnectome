@@ -5,12 +5,11 @@ export function getAuthErrorMessage(error, options = {}) {
     namespace = "providers",
     keyPrefix = "auth.FirebaseProvider",
     defaultMessage = "An error occurred.",
-    replaceSlash = false,
   } = options;
 
   let code = error?.code || (typeof error === "string" ? error : "auth/internal-error");
 
-  if (replaceSlash && typeof code === "string") {
+  if (typeof code === "string") {
     code = code.replace(/\//g, ".");
   }
 
