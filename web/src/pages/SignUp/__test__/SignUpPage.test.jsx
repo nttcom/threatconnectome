@@ -43,6 +43,7 @@ describe("TestSignUpPage", () => {
       useAuth.mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
     });
 
@@ -94,6 +95,7 @@ describe("TestSignUpPage", () => {
       useAuth.mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderSignUp();
@@ -147,6 +149,7 @@ describe("TestSignUpPage", () => {
       useAuth.mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
       const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -197,7 +200,6 @@ describe("TestSignUpPage", () => {
       state: {
         from: mockLocation.state.from,
         search: mockLocation.state.search,
-        fromSignUp: true,
       },
     });
   });
