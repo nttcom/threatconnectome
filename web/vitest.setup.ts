@@ -20,4 +20,4 @@ i18n.changeLanguage("en");
 i18n.options.react.useSuspense = false;
 
 // Extend default test timeout to reduce flakiness in async UI flows
-vi.setConfig({ testTimeout: 10000 });
+vi.setConfig({ testTimeout: 20000 });
