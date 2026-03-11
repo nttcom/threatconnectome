@@ -94,7 +94,6 @@ export function SignUp() {
       const fallbackMessage = getAuthErrorMessage(error, {
         namespace: "signUp",
         keyPrefix: "SignUpPage",
-        replaceSlash: true,
         defaultMessage: error.message || t("auth.internal-error"),
       });
       showMessage(fallbackMessage);
