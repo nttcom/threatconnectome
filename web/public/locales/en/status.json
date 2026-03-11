@@ -31,7 +31,8 @@
     "alertMissingFile": "Something went wrong: missing file or service.",
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
-    "uploadFailed": "Operation failed: {{message}}"
+    "uploadFailed": "Operation failed: {{message}}",
+    "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
   },
   "SBOMUpdateButton": {
     "updateSBOM": "Update SBOM"
