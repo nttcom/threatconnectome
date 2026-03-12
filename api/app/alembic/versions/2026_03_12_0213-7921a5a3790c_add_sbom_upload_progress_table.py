@@ -1,4 +1,4 @@
-"""add sbom_upload_progress table
+"""add sbomuploadprogress  table
 
 Revision ID: 7921a5a3790c
 Revises: bcbd2d04d6f5
