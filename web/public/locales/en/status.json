@@ -32,7 +32,7 @@
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
-    "estimatedTime": "Estimated execution time: ",
+    "estimatedTime": "Estimated execution time:",
     "minutes": "{{minutes}}minutes",
     "hoursAndMinutes": "{{hours}}h {{minutes}}m"
   },
@@ -55,7 +55,7 @@
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
-    "estimatedTime": "Estimated execution time: "
+    "estimatedTime": "Estimated execution time:"
   },
   "WaitingModal": {
     "inProgress": "{{text}} is in progress. Please wait."
