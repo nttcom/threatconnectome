@@ -472,6 +472,9 @@ class Service(Base):
     ecosystem_eol_dependencies = relationship(
         "EcosystemEoLDependency", back_populates="service", cascade="all, delete-orphan"
     )
+    sbom_upload_progress = relationship(
+        "SbomUploadProgress", back_populates="service", cascade="all, delete-orphan"
+    )
 
 
 class ServiceThumbnail(Base):
@@ -973,3 +976,22 @@ class EcosystemEoLDependency(Base):
 
     service = relationship("Service", back_populates="ecosystem_eol_dependencies")
     eol_version = relationship("EoLVersion", back_populates="ecosystem_eol_dependencies")
+
+
+class SbomUploadProgress(Base):
+    __tablename__ = "sbomuploadprogress"
+
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    )
+    progress_rate: Mapped[float | None] = mapped_column(nullable=True)  # 0.0-100.0 or None
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+
+    service = relationship("Service", back_populates="sbom_upload_progress")
