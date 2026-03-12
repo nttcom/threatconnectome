@@ -986,7 +986,7 @@ class SbomUploadProgress(Base):
         primary_key=True,
         index=True,
     )
-    progress_rate: Mapped[float | None] = mapped_column(nullable=True)  # 0.0-100.0 or None
+    progress_rate: Mapped[float | None] = mapped_column(nullable=True)  # 0.0～1.0 or None
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=current_timestamp()
     )
