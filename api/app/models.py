@@ -473,7 +473,7 @@ class Service(Base):
         "EcosystemEoLDependency", back_populates="service", cascade="all, delete-orphan"
     )
     sbom_upload_progress = relationship(
-        "SbomUploadProgress", back_populates="service", cascade="all, delete-orphan"
+        "SbomUploadProgress", uselist=False, cascade="all, delete-orphan"
     )
 
 
@@ -993,5 +993,3 @@ class SbomUploadProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=current_timestamp()
     )
-
-    service = relationship("Service", back_populates="sbom_upload_progress")
