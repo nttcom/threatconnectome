@@ -38,22 +38,7 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
-  const formatEstimatedTime = (totalMinutes: number): string => {
-    let roundedMinutes = Math.max(1, Math.round(totalMinutes));
-    if (roundedMinutes < 60) {
-      return t("minutes", { minutes: roundedMinutes });
-    }
-
-    const hours = Math.floor(roundedMinutes / 60);
-    const minutes = roundedMinutes % 60;
-
-    return t("hoursAndMinutes", {
-      hours: hours,
-      minutes: minutes,
-    });
-  };
-  const estimateTotalMinutes = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
-  const estimateTime = formatEstimatedTime(estimateTotalMinutes);
+  const estimateTime = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
 
   const handleUpload = () => {
     if (!sbomFile || !serviceName) {

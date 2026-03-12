@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { calculateEstimateTimeFromSize } from "../estimator";
+import { calculateEstimateTimeFromSizeWithoutFormat } from "../estimator";
 
-describe("calculateEstimateTimeFromSize", () => {
+describe("calculateEstimateTimeFromSizeWithoutFormat", () => {
   // Test cases: [sizeInBytes, expectedMinutes]
   it.each([
     [0, 0.0871], // 0 B
@@ -12,7 +12,7 @@ describe("calculateEstimateTimeFromSize", () => {
   ])(
     "when size is %d Bytes, it should return approximately %d minutes",
     (sizeInBytes, expectedMinutes) => {
-      const result = calculateEstimateTimeFromSize(sizeInBytes);
+      const result = calculateEstimateTimeFromSizeWithoutFormat(sizeInBytes);
 
       // Checking if the result is close to the expected minutes with 2-decimal precision
       expect(result).toBeCloseTo(expectedMinutes, 2);

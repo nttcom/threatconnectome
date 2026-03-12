@@ -25,6 +25,10 @@
       "na": "N/A"
     }
   },
+  "estimator": {
+    "minutes": "{{minutes}}minutes",
+    "hoursAndMinutes": "{{hours}}h {{minutes}}m"
+  },
   "func": {
     "today": "today",
     "yesterday": "yesterday",

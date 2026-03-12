@@ -1,9 +1,16 @@
+import { t } from "i18next";
+
 /**
  * Calculates the estimated analysis time based on the SBOM file size.
  * @param sizeInBytes - The size of the SBOM file in Bytes (B).
  * @returns The estimated processing time in minutes.
  */
-export function calculateEstimateTimeFromSize(sizeInBytes: number): number {
+export function calculateEstimateTimeFromSize(sizeInBytes: number): string {
+  const estimateTime = calculateEstimateTimeFromSizeWithoutFormat(sizeInBytes);
+  return _formatEstimatedTime(estimateTime);
+}
+
+export function calculateEstimateTimeFromSizeWithoutFormat(sizeInBytes: number): number {
   // Convert Bytes to Kilobytes to maintain consistency with the original regression model
   const sizeInKB = sizeInBytes / 1024;
 
@@ -14,3 +21,15 @@ export function calculateEstimateTimeFromSize(sizeInBytes: number): number {
 
   return c0 + c1 * sizeInKB + c2 * Math.pow(sizeInKB, 2);
 }
+
+const _formatEstimatedTime = (totalMinutes: number): string => {
+  let roundedMinutes = Math.max(1, Math.round(totalMinutes));
+  if (roundedMinutes < 60) {
+    return t("estimator.minutes", { ns: "utils", minutes: roundedMinutes });
+  }
+
+  const hours = Math.floor(roundedMinutes / 60);
+  const minutes = roundedMinutes % 60;
+
+  return t("estimator.hoursAndMinutes", { ns: "utils", hours: hours, minutes: minutes });
+};
