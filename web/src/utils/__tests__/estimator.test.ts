@@ -10,7 +10,7 @@ describe("calculateEstimateTimeFromSizeWithoutFormat", () => {
     [10240 * 1024, 39.4308], // 10 MB (10240 KB)
     [51200 * 1024, 477.8241], // 50 MB (51200 KB)
   ])(
-    "when size is %d Bytes, it should return approximately %d minutes",
+    "when size is %d Bytes, it should return approximately %f minutes",
     (sizeInBytes, expectedMinutes) => {
       const result = calculateEstimateTimeFromSizeWithoutFormat(sizeInBytes);
 
