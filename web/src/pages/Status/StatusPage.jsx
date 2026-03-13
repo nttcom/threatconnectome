@@ -51,6 +51,7 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
+import { SBOMUploadProgress } from "./SBOMUploadProgress";
 
 const ssvcPriorityCountMax = 99999;
 
@@ -485,6 +486,21 @@ export function Status() {
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
+
+        <SBOMUploadProgress
+          progresses={[
+            {
+              serviceName: "frontend",
+              progressPercent: 45,
+              estimatedCompletionTime: "14:32",
+            },
+            {
+              serviceName: "backend",
+              progressPercent: 80,
+              estimatedCompletionTime: "14:28",
+            },
+          ]}
+        />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
