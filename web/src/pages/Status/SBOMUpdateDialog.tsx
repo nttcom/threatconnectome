@@ -1,5 +1,6 @@
 import { Close as CloseIcon, LockOutlined as LockIcon } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -101,6 +102,9 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
                 },
               }}
             />
+            <Alert severity="warning" sx={{ fontWeight: "medium" }}>
+              {t("sbomWarning")}
+            </Alert>
             <FileDropZone
               onFileSelected={setSbomFile}
               selectedFile={sbomFile}
