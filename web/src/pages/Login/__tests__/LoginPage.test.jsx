@@ -7,6 +7,7 @@ import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import loginEn from "../../../../public/locales/en/login.json";
+import providersEn from "../../../../public/locales/en/providers.json";
 import { useAuth } from "../../../hooks/auth";
 import { AuthProvider } from "../../../providers/auth/AuthContext";
 import { useTryLoginMutation, useCreateUserMutation } from "../../../services/tcApi";
@@ -18,11 +19,12 @@ import { Login } from "../LoginPage";
 i18n.use(initReactI18next).init({
   lng: "en",
   fallbackLng: "en",
-  ns: ["login"],
+  ns: ["login", "providers"],
   defaultNS: "login",
   resources: {
     en: {
       login: loginEn,
+      providers: providersEn,
     },
   },
   interpolation: {
@@ -91,6 +93,10 @@ const useAuthReturnValueBase = {
   signInWithEmailAndPassword: vi.fn(),
   signInWithSamlPopup: vi.fn(),
   signOut: vi.fn(),
+  onAuthStateChanged: vi.fn().mockImplementation(() => {
+    // return unsubscribe handler
+    return () => {};
+  }),
 };
 
 describe("TestLoginPage", () => {
@@ -222,7 +228,7 @@ describe("TestLoginPage", () => {
       await ue.type(passwordField, passwordValue);
       await ue.click(loginButton);
 
-      expect(await screen.getByText(errorMessage)).toBeInTheDocument();
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
 
     it("Navigate when authentication successful without location.state", async () => {
