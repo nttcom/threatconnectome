@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";
 
-import { PTeamInviteModal } from "./PTeamInviteModal";
+import { InvitationManageDialog } from "./InvitationManageDialog";
 import { PTeamMemberMenu } from "./PTeamMemberMenu";
 
 export function PTeamMember(props) {
@@ -37,7 +37,7 @@ export function PTeamMember(props) {
   return (
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        {pteamId && <PTeamInviteModal pteamId={pteamId} text={t("addMember")} />}
+        {pteamId && <InvitationManageDialog />}
       </Box>
       {isMdDown ? (
         <Stack spacing={2}>
