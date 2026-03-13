@@ -8,7 +8,6 @@ const mockUser = {
 };
 
 export default {
-  title: "Dialogs/AccountSettingsDialog",
   component: AccountSettingsDialog,
   argTypes: {
     setAccountSettingOpen: { action: "setAccountSettingOpen" },

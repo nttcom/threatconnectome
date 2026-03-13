@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 import { getBearerToken } from "../../services/tcApi";
 
 export function SignUp() {
@@ -90,7 +91,12 @@ export function SignUp() {
       await signOut();
     } catch (error) {
       console.error(error);
-      showMessage(error.message);
+      const fallbackMessage = getAuthErrorMessage(error, {
+        namespace: "signUp",
+        keyPrefix: "SignUpPage",
+        defaultMessage: t("auth.internal-error"),
+      });
+      showMessage(fallbackMessage);
       setDisabled(false);
 
       /**

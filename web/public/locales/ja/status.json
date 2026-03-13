@@ -33,6 +33,7 @@
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
     "estimatedTime": "推定実行時間:",
+    "sbomWarning": "重要: 誤ったSBOMをアップロードすると、関連チケットが削除される可能性があります。アップロード前にSBOMが正しいか確認してください。"
   },
   "SBOMUpdateButton": {
     "updateSBOM": "SBOMを更新"

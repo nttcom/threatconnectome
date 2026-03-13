@@ -12,7 +12,6 @@ const mockAuthData = {
 const mockNavigateInternalPage = () => {};
 
 export default {
-  title: "Login/TwoFactorAuth",
   component: TwoFactorAuth,
 };
 

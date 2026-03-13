@@ -32,7 +32,8 @@
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
-    "estimatedTime": "Estimated execution time:"
+    "estimatedTime": "Estimated execution time:",
+    "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
   },
   "SBOMUpdateButton": {
     "updateSBOM": "Update SBOM"

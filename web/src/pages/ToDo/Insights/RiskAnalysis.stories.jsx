@@ -6,7 +6,6 @@ import generalInsightData from "../../../mocks/generalInsightData.json";
 import { RiskAnalysis } from "./RiskAnalysis.jsx";
 
 export default {
-  title: "RiskAnalysis",
   component: RiskAnalysis,
   args: {
     ticketId: "ticket-123",
