@@ -31,10 +31,8 @@
     "sendBy": "Send by",
     "slack": "Slack",
     "email": "Email",
+    "testConnection": "Test connection",
     "save": "Save"
-  },
-  "CheckButton": {
-    "check": "Check"
   },
   "SmsResendButton": {
     "resend": "Resend the code",
