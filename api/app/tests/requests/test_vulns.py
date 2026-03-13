@@ -1155,13 +1155,11 @@ class TestGetVulns:
         updated_at_list = ["2023-01-01 00:00:00", "2023-02-01 00:00:00", "2023-03-01 00:00:00"]
         for i in range(number_of_vulns):
             testdb.execute(
-                text(
-                    """
+                text("""
                 UPDATE vuln
                 SET created_at = :created_at, updated_at = :updated_at
                 WHERE vuln_id = :vuln_id
-                """
-                ),
+                """),
                 {
                     "vuln_id": str(vuln_ids[i]),
                     "created_at": created_at_list[i],
@@ -1409,13 +1407,11 @@ class TestGetVulns:
 
             if update_fields:
                 testdb.execute(
-                    text(
-                        f"""
+                    text(f"""
                         UPDATE vuln
                         SET {", ".join(update_fields)}
                         WHERE vuln_id = :vuln_id
-                        """
-                    ),
+                        """),
                     update_params,
                 )
 
