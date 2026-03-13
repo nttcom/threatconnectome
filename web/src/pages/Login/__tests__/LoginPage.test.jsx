@@ -222,7 +222,7 @@ describe("TestLoginPage", () => {
       await ue.type(passwordField, passwordValue);
       await ue.click(loginButton);
 
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      expect(await screen.getByText(errorMessage)).toBeInTheDocument();
     });
 
     it("Navigate when authentication successful without location.state", async () => {
