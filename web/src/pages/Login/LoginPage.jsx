@@ -67,9 +67,12 @@ export function Login() {
     };
     const signOutCallback = () => {};
     const unsubscribe = onAuthStateChanged({ signInCallback, signOutCallback });
-    setMessage({ text: location.state?.message, type: location.state?.messageType });
     return () => unsubscribe();
-  }, [navigate, redirectedFrom, location.state, isLoggingIn, onAuthStateChanged]);
+  }, [navigate, redirectedFrom, isLoggingIn, onAuthStateChanged]);
+
+  useEffect(() => {
+    setMessage({ text: location.state?.message, type: location.state?.messageType });
+  }, [location.state]);
 
   useEffect(() => {
     const recaptcha_element = document.getElementById(recaptchaId);
