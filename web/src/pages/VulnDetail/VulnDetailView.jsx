@@ -115,13 +115,12 @@ export function VulnDetailView(props) {
                         alignItems: "center",
                         display: "flex",
                         flexDirection: "row",
+                        whiteSpace: "normal",
                       }}
                     >
                       <ActionTypeIcon />
                       <Box display="flex" flexDirection="column">
-                        <Typography noWrap variant="body">
-                          {updateAction}
-                        </Typography>
+                        <Typography variant="body">{updateAction}</Typography>
                       </Box>
                     </MenuItem>
                   ))}
