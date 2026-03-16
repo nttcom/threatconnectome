@@ -2,7 +2,6 @@ import { Menu as MenuIcon } from "@mui/icons-material";
 import {
   AppBar as MuiAppBar,
   Box,
-  Divider,
   IconButton,
   Toolbar,
   useMediaQuery,
@@ -59,17 +58,27 @@ export function AppBar() {
             edge="start"
             size="large"
             onClick={handleDrawerOpen}
-            sx={{ mr: 1.5 }}
+            sx={{ mr: { xs: 0, sm: 1 } }}
           >
             <MenuIcon />
           </IconButton>
-          <Divider orientation="vertical" flexItem sx={{ mr: 2 }} />
-          <ErrorBoundary FallbackComponent={AppFallback}>
-            <TeamSelector />
-          </ErrorBoundary>
+          <Box
+            sx={{
+              pr: { xs: 0, md: 1 },
+              flexGrow: { xs: 1, md: 0 },
+              minWidth: 0,
+              maxWidth: "350px",
+            }}
+          >
+            <ErrorBoundary FallbackComponent={AppFallback}>
+              <TeamSelector />
+            </ErrorBoundary>
+          </Box>
           <Box flexGrow={1} />
-          <LanguageSwitcher />
-          <UserMenu />
+          <Box sx={{ display: "flex", flexShrink: 0 }}>
+            <LanguageSwitcher />
+            <UserMenu />
+          </Box>
         </Toolbar>
       </StyledAppBar>
       <Toolbar />
