@@ -1462,6 +1462,9 @@ def get_sbom_progress(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
+    command.delete_old_sbom_upload_progress(db)
+    db.commit()
+
     progress_response = []
     for progress_model in pteam.sbom_upload_progresses:
         expected_finish_time = progress_business.predict_completion_time(
