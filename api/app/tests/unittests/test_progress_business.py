@@ -29,7 +29,7 @@ class TestProgressBusiness:
 
         # When
         before = datetime.now(timezone.utc)
-        result = progress_business.predict_completion_time(created_at, adjusted_progress_rate)
+        result = progress_business.predict_completion_time(created_at, progress_rate)
         after = datetime.now(timezone.utc)
 
         # Then
