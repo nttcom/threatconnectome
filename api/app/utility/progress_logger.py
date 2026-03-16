@@ -42,11 +42,11 @@ class TimeBasedProgressLogger:
             db.commit()
             self.sbom_upload_progress_id = progress.sbom_upload_progress_id
 
-        while True:
-            if self._stop_event.is_set():
-                break
-            self._stop_event.wait(self.INTERVAL_DB_SECONDS)
-            self._update_progress_in_db(db, progress)
+            while True:
+                if self._stop_event.is_set():
+                    break
+                self._stop_event.wait(self.INTERVAL_DB_SECONDS)
+                self._update_progress_in_db(db, progress)
 
     def _update_progress_in_db(self, db, progress):
         percent = min(self.current_percent, 100.0)
