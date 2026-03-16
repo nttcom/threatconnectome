@@ -57,9 +57,9 @@ class TestGetSbomProgress:
         assert data[0]["service_name"] == self.service1.service_name
         assert data[0]["progress_rate"] == progress_rate
 
-        expected_finish_time = datetime.strptime(
-            data[0]["expected_finish_time"], "%Y-%m-%dT%H:%M:%S.%fZ"
-        ).replace(tzinfo=timezone.utc)
+        expected_finish_time = datetime.fromisoformat(
+            data[0]["expected_finish_time"].replace("Z", "+00:00")
+        )
         expected_min = created_at + (before - created_at) / progress_rate
         expected_max = created_at + (after - created_at) / progress_rate
         assert expected_min <= expected_finish_time <= expected_max
