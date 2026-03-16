@@ -32,21 +32,25 @@ class TimeBasedProgressLogger:
     def _run(self):
         # First Insert
         with self.SessionLocal() as db:
-            progress = models.SbomUploadProgress(
-                pteam_id=self.pteam_id,
-                service_name=self.service_name,
-                progress_rate=0.0,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(progress)
-            db.commit()
-            self.sbom_upload_progress_id = progress.sbom_upload_progress_id
+            progress = self._create_initial_progress(db)
 
             while True:
-                if self._stop_event.is_set():
+                if self._stop_event.wait(self.interval_seconds):
                     break
-                self._stop_event.wait(self.INTERVAL_DB_SECONDS)
+
                 self._update_progress_in_db(db, progress)
+
+    def _create_initial_progress(self, db) -> models.SbomUploadProgress:
+        progress = models.SbomUploadProgress(
+            pteam_id=self.pteam_id,
+            service_name=self.service_name,
+            progress_rate=0.0,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(progress)
+        db.commit()
+        self.sbom_upload_progress_id = progress.sbom_upload_progress_id
+        return progress
 
     def _update_progress_in_db(self, db, progress):
         percent = min(self.current_percent, 100.0)
