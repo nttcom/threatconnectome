@@ -1,4 +1,14 @@
-import { Box, Button, Divider, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
@@ -19,6 +29,8 @@ export function PTeamGeneralSetting(props) {
 
   const [pteamName, setPTeamName] = useState(pteam.pteam_name);
   const [contactInfo, setContactInfo] = useState(pteam.contact_info);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
 
   const [updatePTeam] = useUpdatePTeamMutation();
 
@@ -79,6 +91,16 @@ export function PTeamGeneralSetting(props) {
       .catch((error) => operationError(error));
   };
 
+  const handleOpenDeleteDialog = () => {
+    setDeleteConfirmName("");
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteConfirmName("");
+  };
+
   return (
     <Box>
       <Box mb={4}>
@@ -120,6 +142,74 @@ export function PTeamGeneralSetting(props) {
           {t("save")}
         </Button>
       </Box>
+
+      <Box
+        mt={4}
+        p={2}
+        sx={{
+          border: "1px solid",
+          borderColor: "error.main",
+          borderRadius: 1,
+        }}
+      >
+        <Box
+          display="flex"
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          justifyContent="space-between"
+          flexDirection={{ xs: "column", sm: "row" }}
+          gap={2}
+        >
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600 }} color="error">
+              このチームを削除
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              削除すると、全サービス・チケット・データが完全に失われます。
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleOpenDeleteDialog}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            削除
+          </Button>
+        </Box>
+      </Box>
+
+      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6">チームの削除</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography mb={2}>
+            この操作は取り消せません。「{pteam.pteam_name}
+            」に関連する全サービス・チケット・データが完全に削除されます。
+          </Typography>
+          <Typography variant="body2" mb={1}>
+            確認のため「{pteam.pteam_name}」と入力してください:
+          </Typography>
+          <TextField
+            size="small"
+            fullWidth
+            value={deleteConfirmName}
+            onChange={(e) => setDeleteConfirmName(e.target.value)}
+            placeholder={pteam.pteam_name}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>キャンセル</Button>
+          <Button
+            disabled={deleteConfirmName !== pteam.pteam_name}
+            onClick={handleCloseDeleteDialog}
+            color="error"
+            variant="contained"
+          >
+            このチームを削除
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
