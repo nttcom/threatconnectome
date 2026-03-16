@@ -36,6 +36,7 @@ class TimeBasedProgressLogger:
                 pteam_id=self.pteam_id,
                 service_name=self.service_name,
                 progress_rate=0.0,
+                created_at=datetime.now(timezone.utc),
             )
             db.add(progress)
             db.commit()
