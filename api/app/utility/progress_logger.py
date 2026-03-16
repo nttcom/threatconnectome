@@ -40,7 +40,6 @@ class TimeBasedProgressLogger:
             )
             db.add(progress)
             db.commit()
-            self._progress = progress
             self.sbom_upload_progress_id = progress.sbom_upload_progress_id
 
         while True:
