@@ -22,7 +22,13 @@ from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
 from app.auth.account import get_current_user
-from app.business import dependency_business, package_business, threat_business, ticket_business
+from app.business import (
+    dependency_business,
+    package_business,
+    progress_business,
+    threat_business,
+    ticket_business,
+)
 from app.business.eol import eol_business
 from app.business.ssvc_business import (
     get_ticket_counts_summary_by_pteam_and_package_id,
@@ -1442,6 +1448,39 @@ def apply_service_packages(
 
     db.refresh(service)
     eol_business.fix_eol_dependency_by_service(db, service, progress)
+
+
+@router.get(
+    "/{pteam_id}/sbom_upload_progress",
+    response_model=list[schemas.SbomUploadProgressResponse],
+)
+def get_sbom_progress(
+    pteam_id: UUID,
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get sbom upload progress of the pteam.
+    """
+    if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
+        raise NO_SUCH_PTEAM
+    if not check_pteam_membership(pteam, current_user):
+        raise NOT_A_PTEAM_MEMBER
+
+    progress_response = []
+    for progress_model in pteam.sbom_upload_progresses:
+        expected_finish_time = progress_business.predict_completion_time(
+            progress_model.created_at, progress_model.progress_rate
+        )
+        progress_response.append(
+            schemas.SbomUploadProgressResponse(
+                sbom_upload_progress_id=progress_model.sbom_upload_progress_id,
+                service_name=progress_model.service_name,
+                progress_rate=progress_model.progress_rate,
+                expected_finish_time=expected_finish_time,
+            )
+        )
+    return progress_response
 
 
 @router.delete("/{pteam_id}/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)
