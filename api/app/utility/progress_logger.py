@@ -46,16 +46,13 @@ class TimeBasedProgressLogger:
             if self._stop_event.is_set():
                 break
             self._stop_event.wait(self.INTERVAL_DB_SECONDS)
-            self._update_progress_in_db()
+            self._update_progress_in_db(db, progress)
 
-    def _update_progress_in_db(self):
+    def _update_progress_in_db(self, db, progress):
         percent = min(self.current_percent, 100.0)
-
-        with self.SessionLocal() as db:
-            progress = db.merge(self._progress)
-            progress.progress_rate = percent / 100.0
-            progress.updated_at = datetime.now(timezone.utc)
-            db.commit()
+        progress.progress_rate = percent / 100.0
+        progress.updated_at = datetime.now(timezone.utc)
+        db.commit()
 
         self.count += 1
         if self.count % self.LOG_TRIGGER_COUNT == 0:
