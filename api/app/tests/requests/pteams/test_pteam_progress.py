@@ -13,6 +13,7 @@ from app.tests.medium.utils import (
     create_user,
     headers,
 )
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 client = TestClient(app)
 
@@ -67,7 +68,9 @@ class TestGetSbomProgress:
     def test_it_should_not_return_old_sbom_progress(self, testdb: Session):
         # Given
         progress_rate = 0.5
-        test_time = datetime.now(timezone.utc) - timedelta(minutes=3)
+        threshold_interval_minutes = TimeBasedProgressLogger.INTERVAL_DB_SECONDS * 2 / 60
+        old_minutes = threshold_interval_minutes + 1
+        test_time = datetime.now(timezone.utc) - timedelta(minutes=old_minutes)
         sbom_upload_progress = models.SbomUploadProgress(
             pteam_id=self.pteam1.pteam_id,
             service_name=self.service1.service_name,
