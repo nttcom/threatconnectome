@@ -62,7 +62,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
         <DialogTitle
           sx={{
             alignItems: "center",
-            bgcolor: "grey.50",
+            bgcolor: "background.soft",
             display: "flex",
             justifyContent: "space-between",
             py: 2,
@@ -75,13 +75,12 @@ export function SBOMUploadProgress({ progresses }: Props) {
                 borderRadius: 2,
                 color: "primary.main",
                 display: "flex",
-                opacity: 0.8,
                 p: 1,
               }}
             >
               <PendingActionsIcon />
             </Box>
-            <Typography variant="h6" fontWeight="bold" lineHeight={1.2}>
+            <Typography variant="h6" fontWeight="bold">
               アップロード進捗
             </Typography>
           </Box>
@@ -99,7 +98,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
             <>
               {/* PC用: テーブル */}
               <TableContainer sx={{ display: { xs: "none", md: "block" } }}>
-                <Table size="medium" sx={{ tableLayout: "fixed", width: "100%" }}>
+                <Table sx={{ width: "100%" }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ color: "text.secondary", fontWeight: "bold", width: "40%" }}>
@@ -115,11 +114,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
                   </TableHead>
                   <TableBody>
                     {progresses.map((p) => (
-                      <TableRow
-                        key={p.serviceName}
-                        hover
-                        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                      >
+                      <TableRow key={p.serviceName} hover>
                         <TableCell>
                           <Box sx={{ alignItems: "center", display: "flex", gap: 2 }}>
                             <Box sx={{ color: "primary.main" }}>
@@ -143,11 +138,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
                                 sx={{ borderRadius: 4, height: 8 }}
                               />
                             </Box>
-                            <Typography
-                              variant="body2"
-                              fontWeight="bold"
-                              sx={{ minWidth: 40, textAlign: "right" }}
-                            >
+                            <Typography variant="body2" fontWeight="bold">
                               {p.progressPercent}%
                             </Typography>
                           </Box>
@@ -175,7 +166,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
               <Stack spacing={2} sx={{ display: { xs: "flex", md: "none" } }}>
                 {progresses.map((p) => (
                   <Card key={p.serviceName} variant="outlined" sx={{ borderRadius: 2 }}>
-                    <CardContent sx={{ "&:last-child": { pb: 2 }, p: 2 }}>
+                    <CardContent sx={{ p: 2 }}>
                       <Box sx={{ alignItems: "center", display: "flex", gap: 2, mb: 1.5 }}>
                         <Box sx={{ color: "primary.main", display: "flex" }}>
                           <InsertDriveFileIcon sx={{ fontSize: 28 }} />
@@ -198,11 +189,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
                             sx={{ borderRadius: 3, height: 6 }}
                           />
                         </Box>
-                        <Typography
-                          variant="body2"
-                          fontWeight="bold"
-                          sx={{ minWidth: 35, textAlign: "right" }}
-                        >
+                        <Typography variant="body2" fontWeight="bold">
                           {p.progressPercent}%
                         </Typography>
                       </Box>
@@ -228,7 +215,7 @@ export function SBOMUploadProgress({ progresses }: Props) {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ bgcolor: "grey.50", p: 2 }}>
+        <DialogActions sx={{ bgcolor: "background.soft", p: 2 }}>
           <Button startIcon={<RefreshIcon />}>更新</Button>
         </DialogActions>
       </Dialog>
