@@ -18,7 +18,7 @@ class TestProgressBusiness:
                 0.5,
             ),
             (
-                datetime(2027, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+                datetime(2025, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 1.0,
             ),
         ],
