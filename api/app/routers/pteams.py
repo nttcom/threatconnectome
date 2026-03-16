@@ -1463,6 +1463,7 @@ def get_sbom_progress(
         raise NOT_A_PTEAM_MEMBER
 
     command.delete_old_sbom_upload_progress(db)
+    db.commit()
 
     progress_response = []
     for progress_model in pteam.sbom_upload_progresses:
