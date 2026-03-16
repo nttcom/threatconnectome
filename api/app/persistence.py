@@ -547,8 +547,10 @@ def get_all_package_eol_dependencies(db: Session) -> Sequence[models.PackageEoLD
 
 ### SbomUploadProgress
 def get_sbom_upload_progress_by_id(
-    db: Session, progress_id: str
+    db: Session, sbom_upload_progress_id: str
 ) -> models.SbomUploadProgress | None:
-    return (
-        db.query(models.SbomUploadProgress).filter_by(sbom_upload_progress_id=progress_id).first()
-    )
+    return db.scalars(
+        select(models.SbomUploadProgress).where(
+            models.SbomUploadProgress.sbom_upload_progress_id == sbom_upload_progress_id
+        )
+    ).one_or_none()
