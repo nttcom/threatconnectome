@@ -26,6 +26,7 @@ class TimeBasedProgressLogger:
         self.count = 0
         self.SessionLocal = create_session()
 
+        self.sbom_upload_progress_id: str | None = None
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
@@ -67,6 +68,9 @@ class TimeBasedProgressLogger:
 
     def stop(self):
         self._stop_event.set()
+
+        if self.sbom_upload_progress_id is None:
+            return
 
         with self.SessionLocal() as db:
             progress = persistence.get_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
