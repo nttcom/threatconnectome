@@ -26,6 +26,10 @@ class TimeBasedProgressLogger:
         self.count = 0
         self.SessionLocal = create_session()
 
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self):
         # First Insert
         with self.SessionLocal() as db:
             progress = models.SbomUploadProgress(
@@ -36,13 +40,9 @@ class TimeBasedProgressLogger:
             )
             db.add(progress)
             db.commit()
-            self.sbom_upload_progress_id = progress.sbom_upload_progress_id
             self._progress = progress
+            self.sbom_upload_progress_id = progress.sbom_upload_progress_id
 
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
-
-    def _run(self):
         while True:
             if self._stop_event.is_set():
                 break
