@@ -2,7 +2,7 @@ import logging
 import threading
 from datetime import datetime, timezone
 
-from app import models
+from app import models, persistence
 from app.database import create_session
 
 
@@ -26,13 +26,8 @@ class TimeBasedProgressLogger:
         self.count = 0
         self.SessionLocal = create_session()
 
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
-
-    def _run(self):
         # First Insert
-        db = self.SessionLocal()
-        try:
+        with self.SessionLocal() as db:
             progress = models.SbomUploadProgress(
                 pteam_id=self.pteam_id,
                 service_name=self.service_name,
@@ -41,40 +36,28 @@ class TimeBasedProgressLogger:
             )
             db.add(progress)
             db.commit()
-        finally:
-            db.close()
+            self.sbom_upload_progress_id = progress.sbom_upload_progress_id
+            self._progress = progress
 
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self):
         while True:
             if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
                 break
 
-            db = self.SessionLocal()
-            try:
-                progress = (
-                    db.query(models.SbomUploadProgress)
-                    .filter_by(
-                        pteam_id=self.pteam_id,
-                        service_name=self.service_name,
-                    )
-                    .first()
-                )
-                if not progress:
-                    continue
+            percent = min(self.current_percent, 100.0)
 
-                percent = min(self.current_percent, 100.0)
-
-                # Update DB
+            with self.SessionLocal() as db:
+                progress = db.merge(self._progress)
                 progress.progress_rate = percent / 100.0
                 progress.updated_at = datetime.now(timezone.utc)
                 db.commit()
 
-                # Log (throttled)
-                self.count += 1
-                if self.count % self.LOG_TRIGGER_COUNT == 0:
-                    self.logger.info(f"[{self.title}] Progress: {percent:.1f}%")
-
-            finally:
-                db.close()
+            self.count += 1
+            if self.count % self.LOG_TRIGGER_COUNT == 0:
+                self.logger.info(f"[{self.title}] Progress: {percent:.1f}%")
 
     def add_progress(self, percent: float):
         self.current_percent += percent
@@ -82,18 +65,8 @@ class TimeBasedProgressLogger:
     def stop(self):
         self._stop_event.set()
 
-        db = self.SessionLocal()
-        try:
-            progress = (
-                db.query(models.SbomUploadProgress)
-                .filter_by(
-                    pteam_id=self.pteam_id,
-                    service_name=self.service_name,
-                )
-                .first()
-            )
+        with self.SessionLocal() as db:
+            progress = persistence.get_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
             if progress:
                 db.delete(progress)
                 db.commit()
-        finally:
-            db.close()
