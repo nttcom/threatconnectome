@@ -1173,7 +1173,12 @@ def bg_create_tags_from_sbom_json(
 
     log = logging.getLogger(__name__)
     log.info(f"Start SBOM upload as a service: {service_name}")
-    progress = TimeBasedProgressLogger(title=f"service: {service_name}", logger=log)
+    progress = TimeBasedProgressLogger(
+        title=f"service: {service_name}",
+        pteam_id=str(pteam_id),
+        service_name=service_name,
+        logger=log,
+    )
     try:
         with open_db_session() as db:
             if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
