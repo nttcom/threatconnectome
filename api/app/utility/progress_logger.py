@@ -30,8 +30,8 @@ class TimeBasedProgressLogger:
         self._thread.start()
 
     def _run(self):
-        # First Insert
         with self.SessionLocal() as db:
+            # First Insert
             progress = self._create_initial_progress(db)
 
             while True:
