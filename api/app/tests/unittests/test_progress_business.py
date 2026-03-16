@@ -25,14 +25,14 @@ class TestProgressBusiness:
     )
     def test_predict_completion_time(self, created_at: datetime, progress_rate: float):
         # Given
-        adjasted_progress_rate = progress_rate if progress_rate != 0 else 0.001
+        adjusted_progress_rate = progress_rate if progress_rate != 0 else 0.001
 
         # When
         before = datetime.now(timezone.utc)
-        result = progress_business.predict_completion_time(created_at, adjasted_progress_rate)
+        result = progress_business.predict_completion_time(created_at, adjusted_progress_rate)
         after = datetime.now(timezone.utc)
 
         # Then
-        expected_min = created_at + (before - created_at) / adjasted_progress_rate
-        expected_max = created_at + (after - created_at) / adjasted_progress_rate
+        expected_min = created_at + (before - created_at) / adjusted_progress_rate
+        expected_max = created_at + (after - created_at) / adjusted_progress_rate
         assert expected_min <= result <= expected_max
