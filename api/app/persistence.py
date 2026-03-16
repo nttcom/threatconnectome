@@ -543,3 +543,12 @@ def get_package_eol_dependency_by_eol_version_id_and_dependency_id(
 
 def get_all_package_eol_dependencies(db: Session) -> Sequence[models.PackageEoLDependency]:
     return db.scalars(select(models.PackageEoLDependency)).all()
+
+
+### SbomUploadProgress
+def get_sbom_upload_progress_by_id(
+    db: Session, progress_id: str
+) -> models.SbomUploadProgress | None:
+    return (
+        db.query(models.SbomUploadProgress).filter_by(sbom_upload_progress_id=progress_id).first()
+    )
