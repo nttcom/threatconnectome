@@ -53,7 +53,6 @@ class TestGetSbomProgress:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        print(data[0])
         assert "sbom_upload_progress_id" in data[0]
         assert data[0]["service_name"] == self.service1.service_name
         assert data[0]["progress_rate"] == progress_rate
