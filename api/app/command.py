@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Sequence
 from uuid import UUID
 
@@ -713,3 +713,11 @@ def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str)
         "total": len(results),
         "products": results,
     }
+
+
+def delete_old_sbom_upload_progress(db: Session) -> None:
+    threshold = datetime.now(timezone.utc) - timedelta(minutes=2)
+    db.execute(
+        delete(models.SbomUploadProgress).where(models.SbomUploadProgress.updated_at < threshold)
+    )
+    db.flush()

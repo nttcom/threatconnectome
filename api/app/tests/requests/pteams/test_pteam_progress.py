@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -63,6 +63,30 @@ class TestGetSbomProgress:
         expected_min = created_at + (before - created_at) / progress_rate
         expected_max = created_at + (after - created_at) / progress_rate
         assert expected_min <= expected_finish_time <= expected_max
+
+    def test_it_should_not_return_old_sbom_progress(self, testdb: Session):
+        # Given
+        progress_rate = 0.5
+        test_time = datetime.now(timezone.utc) - timedelta(minutes=3)
+        sbom_upload_progress = models.SbomUploadProgress(
+            pteam_id=self.pteam1.pteam_id,
+            service_name=self.service1.service_name,
+            progress_rate=progress_rate,
+            created_at=test_time,
+            updated_at=test_time,
+        )
+        testdb.add(sbom_upload_progress)
+        testdb.flush()
+
+        # When
+        response = client.get(
+            f"/pteams/{self.pteam1.pteam_id}/sbom_upload_progress", headers=headers(USER1)
+        )
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 0
 
     def test_it_should_return_no_sbom_progress(self):
         # When
