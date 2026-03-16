@@ -7,6 +7,9 @@ from app.database import create_session
 
 
 class TimeBasedProgressLogger:
+    LOG_TRIGGER_COUNT = 10
+    INTERVAL_DB_SECONDS = 60
+
     def __init__(
         self,
         title: str,
@@ -17,8 +20,6 @@ class TimeBasedProgressLogger:
         self.title = title
         self.pteam_id = pteam_id
         self.service_name = service_name
-        self.log_rate = 10
-        self.interval_db_seconds = 60
         self.logger = logger or logging.getLogger(__name__)
         self.current_percent: float = 0.0
         self._stop_event = threading.Event()
@@ -44,7 +45,7 @@ class TimeBasedProgressLogger:
             db.close()
 
         while True:
-            if self._stop_event.wait(self.interval_db_seconds):
+            if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
                 break
 
             db = self.SessionLocal()
@@ -69,7 +70,7 @@ class TimeBasedProgressLogger:
 
                 # Log (throttled)
                 self.count += 1
-                if self.count % self.log_rate == 0:
+                if self.count % self.LOG_TRIGGER_COUNT == 0:
                     self.logger.info(f"[{self.title}] Progress: {percent:.1f}%")
 
             finally:
