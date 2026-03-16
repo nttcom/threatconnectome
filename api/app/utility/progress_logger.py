@@ -43,7 +43,9 @@ class TimeBasedProgressLogger:
         self._thread.start()
 
     def _run(self):
-        while not self._stop_event.is_set():
+        while True:
+            if self._stop_event.is_set():
+                break
             self._stop_event.wait(self.INTERVAL_DB_SECONDS)
             self._update_progress_in_db()
 
