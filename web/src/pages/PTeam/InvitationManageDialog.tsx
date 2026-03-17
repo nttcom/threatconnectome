@@ -1,7 +1,7 @@
 import {
   Add as AddIcon,
-  ArrowBack as ArrowBackIcon,
   CheckCircle as CheckCircleIcon,
+  ArrowBack as ArrowBackIcon,
   Close as CloseIcon,
   ContentCopy as ContentCopyIcon,
   Link as LinkIcon,
@@ -371,9 +371,6 @@ export function InvitationManageDialog({ initialInvitations = DUMMY_INVITATIONS 
                 >
                   <LinkIcon sx={{ color: "success.dark", fontSize: 32 }} />
                 </Box>
-                <Typography variant="h6" fontWeight="bold">
-                  招待準備が完了しました
-                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   以下のリンクをコピーして共有してください
                 </Typography>
