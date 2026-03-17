@@ -4,13 +4,14 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
 import { CssBaseline } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
 import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 
+import { AuthPageLayout } from "./components/AuthPageLayout";
 import {
   AcceptPTeamInvitation,
   App,
@@ -31,6 +32,7 @@ import { ProductEolList } from "./pages/Eol/ProductEolListPage";
 import { ServiceEolDashboard } from "./pages/Eol/ServiceEolDashboardPage";
 import { AuthProvider } from "./providers/auth/AuthContext";
 import store from "./store";
+import theme from "./theme";
 import "./i18n/config.ts";
 
 const container = document.getElementById("root");
@@ -39,7 +41,7 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={createTheme()}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
         <SnackbarProvider
           maxSnack={3}
@@ -60,11 +62,13 @@ root.render(
                 }}
               >
                 <Routes>
-                  <Route exact path="/login" element={<Login />} />
-                  <Route path="/auth_keycloak_callback" element={<AuthKeycloakCallback />} />
-                  <Route path="/email_verification" element={<EmailVerification />} />
-                  <Route path="/reset_password" element={<ResetPassword />} />
-                  <Route path="/sign_up" element={<SignUp />} />
+                  <Route element={<AuthPageLayout />}>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/auth_keycloak_callback" element={<AuthKeycloakCallback />} />
+                    <Route path="/email_verification" element={<EmailVerification />} />
+                    <Route path="/reset_password" element={<ResetPassword />} />
+                    <Route path="/sign_up" element={<SignUp />} />
+                  </Route>
                   <Route path="/" element={<App />}>
                     <Route index element={<Status />} />
                     <Route path="pteam">

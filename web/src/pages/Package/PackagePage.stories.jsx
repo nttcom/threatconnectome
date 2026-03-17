@@ -7,7 +7,6 @@ import { pteamId, serviceId, packageId } from "./mocks/mockData";
 const defaultHandlers = createDefaultHandlers();
 
 export default {
-  title: "PackagePage",
   component: Package,
   tags: ["autodocs"],
 };

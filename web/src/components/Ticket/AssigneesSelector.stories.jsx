@@ -35,8 +35,6 @@ const mockMembersArray = [
 ];
 
 export default {
-  title:
-    "PackagePage/VulnerabilityTable/VulnerabilitySplitDialog/TicketDetailPanel/AssigneesSelector",
   component: AssigneesSelector,
   tags: ["autodocs"],
   decorators: [

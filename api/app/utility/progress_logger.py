@@ -3,6 +3,8 @@ import threading
 
 
 class TimeBasedProgressLogger:
+    INTERVAL_DB_SECONDS = 60
+
     def __init__(self, title: str, interval_seconds: float = 600.0, logger=None):
         """
         title: Title of the progress task.

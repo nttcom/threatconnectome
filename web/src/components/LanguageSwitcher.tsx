@@ -14,36 +14,41 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({
+  // After login, the header contains other elements (team selector, user menu)
+  // that make it crowded on mobile, so the switcher collapses to an icon.
+  // On pages with no other header elements (e.g. auth pages), pass false.
+  collapseOnMobile = true,
+}: {
+  collapseOnMobile?: boolean;
+}) {
   const { i18n } = useTranslation();
-  const currentLanguage = i18n.language;
-  const [lang, setLang] = useState<string>(currentLanguage);
+  const lang = i18n.language;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <>
-      {isMobile ? (
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "text.primary" }}>
+      {collapseOnMobile && isMobile ? (
+        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: "text.secondary" }}>
           <LanguageIcon />
         </IconButton>
       ) : (
         <Button
           variant="outlined"
-          color="inherit"
           onClick={(e) => setAnchorEl(e.currentTarget)}
           startIcon={<LanguageIcon />}
           endIcon={<ArrowDropDownIcon />}
-          sx={{ color: "text.primary" }}
+          size="small"
+          sx={{ bgcolor: "background.soft", borderColor: "divider", color: "text.primary" }}
         >
-          Language: {lang}
+          {lang}
         </Button>
       )}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
         <MenuItem
           onClick={() => {
-            setLang("en");
             setAnchorEl(null);
             i18n.changeLanguage("en");
           }}
@@ -55,7 +60,6 @@ export function LanguageSwitcher() {
         </MenuItem>
         <MenuItem
           onClick={() => {
-            setLang("ja");
             setAnchorEl(null);
             i18n.changeLanguage("ja");
           }}

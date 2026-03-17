@@ -13,7 +13,6 @@ import {
 const pteamId = "pteam-abc-123";
 
 const meta = {
-  title: "Eol/ServiceEolDashboard",
   component: ServiceEolDashboard,
   parameters: {
     layout: "fullscreen",

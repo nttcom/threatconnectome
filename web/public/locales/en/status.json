@@ -17,6 +17,27 @@
     "selectAService": "Select a Service",
     "cancel": "Cancel"
   },
+  "FileDropZone": {
+    "alertOnlyOneFile": "Please select only 1 file",
+    "alertOnlyJson": "Only *.json is supported",
+    "dropOrClickToSelect": "Drop or click to select",
+    "dropFileHere": "Drop SBOM file here"
+  },
+  "SBOMUpdateDialog": {
+    "updateSBOM": "Update SBOM",
+    "serviceName": "Service name",
+    "upload": "Upload",
+    "uploadingSBOMFile": "Uploading SBOM file",
+    "alertMissingFile": "Something went wrong: missing file or service.",
+    "uploadingFile": "Uploading SBOM file: {{fileName}}",
+    "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
+    "uploadFailed": "Operation failed: {{message}}",
+    "estimatedTime": "Estimated execution time:",
+    "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
+  },
+  "SBOMUpdateButton": {
+    "updateSBOM": "Update SBOM"
+  },
   "SBOMDropArea": {
     "uploadSBOMFile": "Upload SBOM File",
     "serviceName": "Service name",
@@ -32,7 +53,8 @@
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
-    "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width"
+    "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
+    "estimatedTime": "Estimated execution time:"
   },
   "WaitingModal": {
     "inProgress": "{{text}} is in progress. Please wait."

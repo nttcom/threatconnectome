@@ -86,7 +86,12 @@ type GetPTeamEoLsRequestQuery = Pick<
   "path"
 >["path"];
 
-const _getBearerToken = {
+type UploadSbomRequestParams = Pick<
+  UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
+  "body" | "path" | "query"
+>;
+
+export const getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
   firebase: Firebase.getBearerToken.bind(Firebase),
 }[import.meta.env.VITE_AUTH_SERVICE];
@@ -96,7 +101,7 @@ export const tcApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      const token = await _getBearerToken();
+      const token = await getBearerToken();
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
@@ -440,7 +445,7 @@ export const tcApi = createApi({
     }),
 
     /* SBOM */
-    uploadSBOMFile: builder.mutation<void, UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData>({
+    uploadSBOMFile: builder.mutation<void, UploadSbomRequestParams>({
       query: (arg) => {
         const sbomFormData = new FormData();
         sbomFormData.append("file", arg.body.file);

@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamStatusSSVCCards } from "../PTeamStatusSSVCCards";
+import { SBOMUpdateButton } from "../SBOMUpdateButton";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 function ServiceIDCopyButton({ ServiceId }) {
@@ -105,6 +106,9 @@ export function PTeamServiceDetails(props) {
         onClick={handleCollapseClick}
       >
         <Card sx={{ display: "flex", height: 200, position: "relative" }}>
+          <Box sx={{ position: { md: "absolute", xs: undefined }, right: "48px", top: 0 }}>
+            <SBOMUpdateButton pteamId={pteamId} serviceName={service.service_name} />
+          </Box>
           <PTeamServiceDetailsSettings
             pteamId={pteamId}
             service={service}
@@ -119,7 +123,7 @@ export function PTeamServiceDetails(props) {
                 spacing={0.5}
                 useFlexGap
                 sx={{
-                  maxWidth: "90%", // Limit width to 90% to avoid overlapping with the absolutely positioned settings button.
+                  maxWidth: "calc(100% - 96px)", // Limit width to avoid overlapping with the two absolutely positioned buttons (upload + settings).
                   flexWrap: "wrap",
                 }}
               >

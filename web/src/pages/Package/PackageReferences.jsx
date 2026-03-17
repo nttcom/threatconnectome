@@ -42,7 +42,6 @@ export function PackageReferences(props) {
                   <TableRow>
                     <TableCell sx={{ fontWeight: 900 }}>{t("target")}</TableCell>
                     <TableCell sx={{ fontWeight: 900 }}>{t("version")}</TableCell>
-                    <TableCell sx={{ fontWeight: 900 }}>{t("service")}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -54,7 +53,6 @@ export function PackageReferences(props) {
                             {ref.target}
                           </TableCell>
                           <TableCell>{ref.version}</TableCell>
-                          <TableCell>{ref.service}</TableCell>
                         </TableRow>
                       ),
                   )}

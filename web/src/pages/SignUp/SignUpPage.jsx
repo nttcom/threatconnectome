@@ -1,14 +1,25 @@
-import { Box, Button, Container, CssBaseline, TextField, Link, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  TextField,
+  Link,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { PasswordField } from "../../components/PasswordField/PasswordField";
+import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
+import { getBearerToken } from "../../services/tcApi";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [signUpForm, setSignUpForm] = useState({
     edited: new Set(),
     email: "",
@@ -18,9 +29,10 @@ export function SignUp() {
     isConfirmVisible: false,
   });
   const [disabled, setDisabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { createUserWithEmailAndPassword, sendEmailVerification } = useAuth();
+  const { createUserWithEmailAndPassword, sendEmailVerification, signOut } = useAuth();
 
   const showMessage = (text, type = "error") => {
     setMessage({ text, type });
@@ -34,12 +46,26 @@ export function SignUp() {
     });
   };
 
+  const handleForcedSignOut = async () => {
+    try {
+      const token = await getBearerToken();
+      if (token) {
+        await signOut();
+      }
+    } catch (tokenError) {
+      console.error("Sign-out failed during cleanup:", tokenError);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (signUpForm.password !== signUpForm.confirmPassword) {
       showMessage(t("passwordsDoNotMatch"));
       return;
     }
+
+    setDisabled(true);
+    setIsLoading(true);
 
     try {
       await createUserWithEmailAndPassword({
@@ -56,10 +82,30 @@ export function SignUp() {
       } else {
         showMessage(t("signUpSuccess"), "info");
       }
-      setDisabled(true);
+
+      /**
+       * After completing the new registration, do not remain logged in; sign out once.
+       * This prevents unexpected screen transitions triggered by onAuthStateChanged in LoginPage.jsx.
+       * Sign out to maintain consistency with the TC database.
+       */
+      await signOut();
     } catch (error) {
       console.error(error);
-      showMessage(error.message);
+      const fallbackMessage = getAuthErrorMessage(error, {
+        namespace: "signUp",
+        keyPrefix: "SignUpPage",
+        defaultMessage: t("auth.internal-error"),
+      });
+      showMessage(fallbackMessage);
+      setDisabled(false);
+
+      /**
+       * If user creation succeeds but subsequent processes such as email sending encounter errors,
+       * a forced sign-out is executed to prevent an incomplete login state from remaining on the client.
+       */
+      await handleForcedSignOut();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,7 +170,10 @@ export function SignUp() {
             tooltipTitle={t("passwordRequirement")}
           />
           <Button
-            disabled={disabled}
+            disabled={
+              disabled || signUpForm.password.length < 8 || signUpForm.confirmPassword.length < 8
+            }
+            startIcon={isLoading ? <CircularProgress size={20} /> : null}
             color="success"
             fullWidth
             type="submit"

@@ -35,15 +35,18 @@ const renderSignUp = () => {
   );
 };
 
+const setupDefaultAuthMock = () => {
+  useAuth.mockReturnValue({
+    createUserWithEmailAndPassword: vi.fn().mockResolvedValue(),
+    sendEmailVerification: vi.fn().mockResolvedValue(),
+    signOut: vi.fn().mockResolvedValue(undefined),
+  });
+};
+
 describe("TestSignUpPage", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue();
-      const mockSendEmailVerification = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
-        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
-        sendEmailVerification: mockSendEmailVerification,
-      });
+      setupDefaultAuthMock();
     });
 
     afterEach(() => {
@@ -80,6 +83,10 @@ describe("TestSignUpPage", () => {
   });
 
   describe("Sign up button behavior", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it("creates an account when given valid parameters", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const emailValue = "test@example.com";
@@ -94,6 +101,7 @@ describe("TestSignUpPage", () => {
       useAuth.mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
+        signOut: vi.fn().mockResolvedValue(undefined),
       });
 
       renderSignUp();
@@ -136,8 +144,56 @@ describe("TestSignUpPage", () => {
       const validPassword = "Password1234@";
       const confirmPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const errorCode = "test error";
+      const errorCode = "auth/email-already-in-use";
       const errorMessage = "Something went wrong.";
+
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
+        code: errorCode,
+        message: errorMessage,
+      });
+      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: mockSendEmailVerification,
+        signOut: vi.fn().mockResolvedValue(undefined),
+      });
+      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      renderSignUp();
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      await ue.type(emailField, validEmail);
+
+      const passwordInputs = screen.getAllByLabelText(/^Password/i);
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
+      await ue.type(passwordField, validPassword);
+      await ue.type(confirmField, confirmPassword);
+
+      await ue.click(screen.getByRole("button", { name: "Sign up" }));
+
+      expect(mockConsoleError).toHaveBeenCalledWith({
+        code: errorCode,
+        message: errorMessage,
+      });
+
+      expect(mockCreateUserWithEmailAndPassword).toHaveBeenCalledWith({
+        email: validEmail,
+        password: validPassword,
+      });
+
+      expect(screen.getByText("Email already in use")).toBeInTheDocument();
+    });
+
+    it("shows error.message when translation key does not exist", async () => {
+      const validEmail = "test@example.com";
+      const validPassword = "Password1234@";
+      const confirmPassword = "Password1234@";
+      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const errorCode = "auth/unknown-error";
+      const errorMessage = "This is a provider-translated error message.";
 
       const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
         code: errorCode,
@@ -169,18 +225,51 @@ describe("TestSignUpPage", () => {
         code: errorCode,
         message: errorMessage,
       });
-
-      expect(mockCreateUserWithEmailAndPassword).toHaveBeenCalledWith({
-        email: validEmail,
-        password: validPassword,
-      });
-
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    });
+
+    it("shows internal error message when error.code is missing", async () => {
+      const validEmail = "test@example.com";
+      const validPassword = "Password1234@";
+      const confirmPassword = "Password1234@";
+      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
+        message: undefined,
+      });
+      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: mockSendEmailVerification,
+      });
+      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      renderSignUp();
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      await ue.type(emailField, validEmail);
+
+      const passwordInputs = screen.getAllByLabelText(/^Password/i);
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
+      await ue.type(passwordField, validPassword);
+      await ue.type(confirmField, confirmPassword);
+
+      await ue.click(screen.getByRole("button", { name: "Sign up" }));
+
+      expect(mockConsoleError).toHaveBeenCalled();
+      expect(
+        screen.getByText("An internal error occurred. Please try again later."),
+      ).toBeInTheDocument();
     });
   });
 
   it("navigate login page when click link button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+    setupDefaultAuthMock();
 
     const mockNavigate = vi.fn();
     useNavigate.mockReturnValue(mockNavigate);
@@ -204,6 +293,8 @@ describe("TestSignUpPage", () => {
   it("change password mask when click visibility icon button", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
 
+    setupDefaultAuthMock();
+
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
     const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
@@ -220,6 +311,8 @@ describe("TestSignUpPage", () => {
     const tooShortPassword = "pass";
     const validPassword = "Password1234@";
 
+    setupDefaultAuthMock();
+
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
     const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
@@ -233,6 +326,8 @@ describe("TestSignUpPage", () => {
   it("shows error when email is invalid format", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const invalidEmail = "invalid email format";
+
+    setupDefaultAuthMock();
 
     renderSignUp();
     const emailField = screen.getByRole("textbox", { name: "Email Address" });

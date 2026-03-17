@@ -27,6 +27,7 @@
     "python.languageServer": "Pylance",
 
     "black-formatter.args": ["--config", "api/pyproject.toml"],
+    "black-formatter.importStrategy": "fromEnvironment",
     "ruff.configuration": "api/pyproject.toml",
     //"ruff.fixAll": true,
     "files.insertFinalNewline": true,
