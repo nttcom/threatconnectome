@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.orm import Session, selectinload
 
 from app import models
@@ -546,11 +546,9 @@ def get_all_package_eol_dependencies(db: Session) -> Sequence[models.PackageEoLD
 
 
 ### SbomUploadProgress
-def get_sbom_upload_progress_by_id(
-    db: Session, sbom_upload_progress_id: str
-) -> models.SbomUploadProgress | None:
-    return db.scalars(
-        select(models.SbomUploadProgress).where(
-            models.SbomUploadProgress.sbom_upload_progress_id == sbom_upload_progress_id
-        )
-    ).one_or_none()
+def delete_sbom_upload_progress_by_id(db: Session, sbom_upload_progress_id: str) -> None:
+    stmt = delete(models.SbomUploadProgress).where(
+        models.SbomUploadProgress.sbom_upload_progress_id == sbom_upload_progress_id
+    )
+    db.execute(stmt)
+    db.flush()

@@ -73,7 +73,5 @@ class TimeBasedProgressLogger:
             return
 
         with self.SessionLocal() as db:
-            progress = persistence.get_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
-            if progress:
-                db.delete(progress)
-                db.commit()
+            persistence.delete_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
+            db.commit()
