@@ -10,22 +10,22 @@ const meta = {
     docs: {
       description: {
         component: `
-チームへの招待リンクを発行・管理するダイアログコンポーネント。
+A dialog component for issuing and managing invitation links to a team.
 
-**主な機能:**
-- 発行済み招待リンクの一覧表示（有効・期限切れの状態表示）
-- 新規招待リンクの作成（使用回数制限・有効期限の設定）
-- リンクのコピー・無効化
+**Key features:**
+- List of issued invitation links (showing active/expired status)
+- Create new invitation links (with usage limit and expiration settings)
+- Copy and revoke links
 
-**画面遷移:**
-\`リスト画面\` → \`作成フォーム\` → \`作成完了\` → \`リスト画面\`
+**Screen flow:**
+\`List\` → \`Create form\` → \`Created\` → \`List\`
         `,
       },
     },
   },
   argTypes: {
     initialInvitations: {
-      description: "初期表示する招待リンクのリスト（モック用）",
+      description: "List of invitation links to display initially (for mocking)",
       control: false,
     },
   },
@@ -36,11 +36,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * 有効なリンクと期限切れリンクが混在する通常状態。
- * ステータスバッジの色・テキストの違いと、コピー・無効化ボタンの動作を確認できる。
+ * Normal state with a mix of active and expired links.
+ * Shows the difference in status badge color/text and the behavior of copy/revoke buttons.
  */
 export const ListWithInvitations: Story = {
-  name: "リスト: 通常（複数リンク）",
+  name: "List: Normal (multiple links)",
   args: {
     initialInvitations: [
       {
@@ -63,18 +63,18 @@ export const ListWithInvitations: Story = {
     docs: {
       description: {
         story:
-          "有効なリンクが2件の状態。無制限・期限なしのリンクと、回数制限・有効期限ありのリンクが並ぶ。「無効化」ボタンでリストからリンクを削除できる。",
+          "State with 2 active links. An unlimited/no-expiration link and a usage-limited/expiring link are shown side by side. The 'Revoke' button removes a link from the list.",
       },
     },
   },
 };
 
 /**
- * 発行済みリンクが1件もない状態。
- * 空状態のメッセージが表示されることを確認する。
+ * State with no issued links.
+ * Verifies that the empty state message is displayed.
  */
 export const ListEmpty: Story = {
-  name: "リスト: 空（リンク0件）",
+  name: "List: Empty (0 links)",
   args: {
     initialInvitations: [],
   },
@@ -82,18 +82,18 @@ export const ListEmpty: Story = {
     docs: {
       description: {
         story:
-          "招待リンクが1件も存在しない初期状態。「有効な招待リンクはありません」というメッセージが表示される。「新規作成」ボタンから作成フォームへ遷移できる。",
+          "Initial state with no invitation links. A message saying 'No active invitation links' is displayed. The 'Create New' button navigates to the creation form.",
       },
     },
   },
 };
 
 /**
- * 大量のリンクが存在する場合のスクロール確認用。
- * レイアウト崩れが起きないことを確認する。
+ * For verifying scrolling behavior when a large number of links exist.
+ * Checks that no layout breakage occurs.
  */
 export const ListManyInvitations: Story = {
-  name: "リスト: 大量リンク（8件・スクロール確認）",
+  name: "List: Many links (8 items)",
   args: {
     initialInvitations: Array.from({ length: 8 }, (_, i) => ({
       id: String(i + 1),
@@ -107,18 +107,18 @@ export const ListManyInvitations: Story = {
     docs: {
       description: {
         story:
-          "8件のリンクが存在する状態。有効・期限切れ・無制限・回数制限などが混在。ダイアログのスクロール動作とレイアウト崩れを確認する。",
+          "State with 8 links — a mix of active, expired, unlimited, and usage-limited. Verifies dialog scroll behavior and layout integrity.",
       },
     },
   },
 };
 
 /**
- * 非常に長いURLが含まれるケース。
- * テキストが折り返し・省略されてレイアウトが崩れないことを確認する。
+ * Case with a very long URL.
+ * Verifies that text wraps or truncates correctly without breaking the layout.
  */
 export const ListLongUrl: Story = {
-  name: "リスト: 長いURL（テキスト折り返し確認）",
+  name: "List: Long URL",
   args: {
     initialInvitations: [
       {
@@ -134,7 +134,7 @@ export const ListLongUrl: Story = {
     docs: {
       description: {
         story:
-          "トークン部分が非常に長いURLの表示確認。`text-overflow: ellipsis` が機能してレイアウトが崩れないことを確認する。",
+          "Checks display of a URL with a very long token segment. Verifies that `text-overflow: ellipsis` works correctly and the layout does not break.",
       },
     },
   },
