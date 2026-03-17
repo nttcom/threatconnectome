@@ -50,8 +50,8 @@ import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
-import { SBOMDropArea } from "./sbom/SBOMDropArea";
-import { SBOMUploadProgressButton } from "./sbom/SBOMUploadProgressButton";
+import { SBOMDropArea } from "./SbomDrop/SBOMDropArea";
+import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 const ssvcPriorityCountMax = 99999;
 

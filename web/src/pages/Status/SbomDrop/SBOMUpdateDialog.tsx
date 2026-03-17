@@ -20,8 +20,8 @@ import { useUploadSBOMFileMutation } from "../../../services/tcApi";
 import { calculateEstimateTimeFromSize } from "../../../utils/estimator";
 import { errorToString } from "../../../utils/func";
 
-import { WaitingModal } from "../WaitingModal";
 import { FileDropZone } from "./FileDropZone";
+import { WaitingModal } from "./WaitingModal";
 
 type Props = {
   open: boolean;

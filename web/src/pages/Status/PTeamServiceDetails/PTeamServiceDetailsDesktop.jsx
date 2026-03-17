@@ -19,8 +19,8 @@ import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamStatusSSVCCards } from "../PTeamStatusSSVCCards";
+import { SBOMUpdateButton } from "../SbomDrop/SBOMUpdateButton";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
-import { SBOMUpdateButton } from "../sbom/SBOMUpdateButton";
 
 function ServiceIDCopyButton({ ServiceId }) {
   const { t } = useTranslation("status", { keyPrefix: "ServiceIDCopyButton" });

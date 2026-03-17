@@ -20,8 +20,8 @@ import { maxServiceNameLengthInHalf } from "../../../utils/const";
 import { calculateEstimateTimeFromSize } from "../../../utils/estimator";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../../utils/func";
 
-import { WaitingModal } from "../WaitingModal";
 import { FileDropZone } from "./FileDropZone";
+import { WaitingModal } from "./WaitingModal";
 
 interface PreUploadModalProps {
   sbomFile: File | null;
