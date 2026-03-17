@@ -45,7 +45,7 @@ class TimeBasedProgressLogger:
     def _run(self):
         db = None
         try:
-            with self.SessionLocal() as db:
+            with self._SessionLocal() as db:
                 # First Insert
                 progress = self._create_initial_progress(db)
                 # Loop to periodically record progress
@@ -54,10 +54,7 @@ class TimeBasedProgressLogger:
                         break
                     self._update_progress_in_db(db, progress)
         except Exception:
-            self.logger.exception(
-                "[%s] Unexpected error occurred in TimeBasedProgressLogger background thread",
-                self.title,
-            )
+            self.logger.error("Failed uploading SBOM as a service: %s", self.service_name)
             if db is not None:
                 try:
                     db.rollback()
