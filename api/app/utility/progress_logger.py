@@ -34,9 +34,9 @@ class TimeBasedProgressLogger:
         with self.SessionLocal() as db:
             # First Insert
             progress = self._create_initial_progress(db)
-
+            # Loop to periodically record progress
             while True:
-                if self._stop_event.wait(self.interval_seconds):
+                if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
                     break
 
                 self._update_progress_in_db(db, progress)
