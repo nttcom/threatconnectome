@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Sequence
 from uuid import UUID
 
@@ -546,9 +547,24 @@ def get_all_package_eol_dependencies(db: Session) -> Sequence[models.PackageEoLD
 
 
 ### SbomUploadProgress
+def create_sbom_upload_progress(db: Session, progress: models.SbomUploadProgress) -> None:
+    db.add(progress)
+    db.commit()
+
+
+def update_sbom_upload_progress(
+    db: Session,
+    progress: models.SbomUploadProgress,
+    progress_rate: float,
+) -> None:
+    progress.progress_rate = progress_rate
+    progress.updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+
 def delete_sbom_upload_progress_by_id(db: Session, sbom_upload_progress_id: str) -> None:
     stmt = delete(models.SbomUploadProgress).where(
         models.SbomUploadProgress.sbom_upload_progress_id == sbom_upload_progress_id
     )
     db.execute(stmt)
-    db.flush()
+    db.commit()

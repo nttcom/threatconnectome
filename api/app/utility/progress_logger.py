@@ -53,16 +53,17 @@ class TimeBasedProgressLogger:
             progress_rate=0.0,
             created_at=datetime.now(timezone.utc),
         )
-        db.add(progress)
-        db.commit()
+        persistence.create_sbom_upload_progress(db, progress)
         self.sbom_upload_progress_id = progress.sbom_upload_progress_id
         return progress
 
     def _update_progress_in_db(self, db, progress):
         percent = min(self.current_percent, 100.0)
-        progress.progress_rate = percent / 100.0
-        progress.updated_at = datetime.now(timezone.utc)
-        db.commit()
+        persistence.update_sbom_upload_progress(
+            db,
+            progress,
+            percent / 100.0,
+        )
 
         self.count += 1
         if self.count % self.LOG_TRIGGER_COUNT == 0:
@@ -79,4 +80,3 @@ class TimeBasedProgressLogger:
 
         with self.SessionLocal() as db:
             persistence.delete_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
-            db.commit()
