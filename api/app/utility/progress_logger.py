@@ -43,15 +43,30 @@ class TimeBasedProgressLogger:
             self._SessionLocal = None
 
     def _run(self):
-        with self._SessionLocal() as db:
-            # First Insert
-            progress = self._create_initial_progress(db)
-            # Loop to periodically record progress
-            while True:
-                if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
-                    break
-
-                self._update_progress_in_db(db, progress)
+        db = None
+        try:
+            with self.SessionLocal() as db:
+                # First Insert
+                progress = self._create_initial_progress(db)
+                # Loop to periodically record progress
+                while True:
+                    if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
+                        break
+                    self._update_progress_in_db(db, progress)
+        except Exception:
+            self.logger.exception(
+                "[%s] Unexpected error occurred in TimeBasedProgressLogger background thread",
+                self.title,
+            )
+            if db is not None:
+                try:
+                    db.rollback()
+                except Exception:
+                    self.logger.exception(
+                        "[%s] Failed to rollback DB session in TimeBasedProgressLogger",
+                        self.title,
+                    )
+            self._stop_event.set()
 
     def _create_initial_progress(self, db) -> models.SbomUploadProgress:
         progress = models.SbomUploadProgress(
