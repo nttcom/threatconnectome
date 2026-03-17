@@ -32,11 +32,15 @@ class TimeBasedProgressLogger:
         self.current_percent: float = 0.0
         self._stop_event = threading.Event()
         self.count = 0
-        self._SessionLocal = session_factory or SessionLocal
 
-        self.sbom_upload_progress_id: str | None = None
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
+        self._db_enabled = self.pteam_id is not None and self.service_name is not None
+        if self._db_enabled:
+            self._SessionLocal = session_factory or SessionLocal
+            self.sbom_upload_progress_id: str | None = None
+            self._thread = threading.Thread(target=self._run, daemon=True)
+            self._thread.start()
+        else:
+            self._SessionLocal = None
 
     def _run(self):
         with self._SessionLocal() as db:
@@ -76,6 +80,9 @@ class TimeBasedProgressLogger:
         self.current_percent += percent
 
     def stop(self):
+        if not getattr(self, "_db_enabled", False):
+            return
+
         self._stop_event.set()
 
         if self.sbom_upload_progress_id is None:
