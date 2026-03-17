@@ -1,21 +1,39 @@
 import { PendingActions as PendingActionsIcon } from "@mui/icons-material";
 import { Badge, IconButton, Tooltip } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useGetSbomUploadProgressQuery } from "../../services/tcApi";
+// @ts-expect-error TS7016
+import { APIError } from "../../utils/APIError";
+import { errorToString } from "../../utils/func";
 
 import { SBOMUploadProgressDialog } from "./SBOMUploadProgressDialog";
 
-export type UploadProgress = {
-  serviceName: string;
-  progressPercent: number;
-  estimatedCompletionTime: string;
-};
-
 type Props = {
-  progresses: UploadProgress[];
+  pteamId: string;
 };
 
-export function SBOMUploadProgressButton({ progresses }: Props) {
+export function SBOMUploadProgressButton({ pteamId }: Props) {
   const [open, setOpen] = useState(false);
+
+  const {
+    data: progressesResponse,
+    error: sbomUploadProgressError,
+    isLoading: sbomUploadProgressIsLoading,
+    refetch: refetchSbomUploadProgress,
+  } = useGetSbomUploadProgressQuery({ pteam_id: pteamId });
+
+  if (sbomUploadProgressError)
+    throw new APIError(errorToString(sbomUploadProgressError), {
+      api: "getSbomUploadProgress",
+    });
+  if (sbomUploadProgressIsLoading) return <>{"Now loading SbomUploadProgress..."}</>;
+
+  useEffect(() => {
+    if (open) refetchSbomUploadProgress();
+  }, [open]);
+
+  const progresses = progressesResponse || [];
 
   return (
     <>
@@ -27,7 +45,12 @@ export function SBOMUploadProgressButton({ progresses }: Props) {
         </IconButton>
       </Tooltip>
 
-      <SBOMUploadProgressDialog progresses={progresses} open={open} setOpen={setOpen} />
+      <SBOMUploadProgressDialog
+        progresses={progresses}
+        open={open}
+        setOpen={setOpen}
+        refetch={refetchSbomUploadProgress}
+      />
     </>
   );
 }

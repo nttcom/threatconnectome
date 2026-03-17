@@ -487,20 +487,7 @@ export function Status() {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
 
-        <SBOMUploadProgressButton
-          progresses={[
-            {
-              serviceName: "frontend",
-              progressPercent: 45,
-              estimatedCompletionTime: "14:32",
-            },
-            {
-              serviceName: "backend",
-              progressPercent: 80,
-              estimatedCompletionTime: "14:28",
-            },
-          ]}
-        />
+        <SBOMUploadProgressButton pteamId={pteamId} />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />

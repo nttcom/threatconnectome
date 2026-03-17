@@ -26,19 +26,17 @@ import {
   Typography,
 } from "@mui/material";
 
-export type UploadProgress = {
-  serviceName: string;
-  progressPercent: number;
-  estimatedCompletionTime: string;
-};
+import type { SbomUploadProgressResponse } from "../../../types/types.gen";
+import { utcStringToLocalDate } from "../../utils/func";
 
 type Props = {
-  progresses: UploadProgress[];
+  progresses: SbomUploadProgressResponse[];
   open: boolean;
   setOpen: (open: boolean) => void;
+  refetch: () => void;
 };
 
-export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
+export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }: Props) {
   return (
     <>
       <Dialog
@@ -102,8 +100,8 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {progresses.map((p) => (
-                      <TableRow key={p.serviceName} hover>
+                    {progresses.map((progress) => (
+                      <TableRow key={progress.service_name} hover>
                         <TableCell>
                           <Box sx={{ alignItems: "center", display: "flex", gap: 2 }}>
                             <Box sx={{ color: "primary.main" }}>
@@ -114,7 +112,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                               fontWeight="bold"
                               sx={{ wordBreak: "break-all" }}
                             >
-                              {p.serviceName}
+                              {progress.service_name}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -123,12 +121,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             <Box sx={{ flex: 1 }}>
                               <LinearProgress
                                 variant="determinate"
-                                value={p.progressPercent}
+                                value={progress.progress_rate * 100}
                                 sx={{ borderRadius: 4, height: 8 }}
                               />
                             </Box>
                             <Typography variant="body2" fontWeight="bold">
-                              {p.progressPercent}%
+                              {progress.progress_rate * 100}%
                             </Typography>
                           </Box>
                         </TableCell>
@@ -142,7 +140,9 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             }}
                           >
                             <AccessTimeIcon fontSize="small" />
-                            <Typography variant="body2">{p.estimatedCompletionTime}</Typography>
+                            <Typography variant="body2">
+                              {utcStringToLocalDate(progress.expected_finish_time, false)}
+                            </Typography>
                           </Box>
                         </TableCell>
                       </TableRow>
@@ -153,8 +153,8 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
 
               {/* モバイル用: カード */}
               <Stack spacing={2} sx={{ display: { xs: "flex", md: "none" } }}>
-                {progresses.map((p) => (
-                  <Card key={p.serviceName} variant="outlined" sx={{ borderRadius: 2 }}>
+                {progresses.map((progress) => (
+                  <Card key={progress.service_name} variant="outlined" sx={{ borderRadius: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Box sx={{ alignItems: "center", display: "flex", gap: 2, mb: 1.5 }}>
                         <Box sx={{ color: "primary.main", display: "flex" }}>
@@ -166,7 +166,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             fontWeight="bold"
                             sx={{ wordBreak: "break-all" }}
                           >
-                            {p.serviceName}
+                            {progress.service_name}
                           </Typography>
                         </Box>
                       </Box>
@@ -174,12 +174,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                         <Box sx={{ flex: 1 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={p.progressPercent}
+                            value={progress.progress_rate * 100}
                             sx={{ borderRadius: 3, height: 6 }}
                           />
                         </Box>
                         <Typography variant="body2" fontWeight="bold">
-                          {p.progressPercent}%
+                          {progress.progress_rate * 100}%
                         </Typography>
                       </Box>
                       <Box
@@ -193,7 +193,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                       >
                         <AccessTimeIcon sx={{ fontSize: 14 }} />
                         <Typography variant="caption">
-                          完了予測時刻: {p.estimatedCompletionTime}
+                          完了予測時刻: {utcStringToLocalDate(progress.expected_finish_time, false)}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -205,7 +205,9 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
         </DialogContent>
 
         <DialogActions sx={{ bgcolor: "background.soft", p: 2 }}>
-          <Button startIcon={<RefreshIcon />}>更新</Button>
+          <Button startIcon={<RefreshIcon />} onClick={refetch}>
+            更新
+          </Button>
         </DialogActions>
       </Dialog>
     </>
