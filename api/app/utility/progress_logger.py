@@ -17,6 +17,11 @@ class TimeBasedProgressLogger:
         service_name: str | None = None,
         logger=None,
     ):
+        """
+        title: Title of the progress task.
+        interval_seconds: Interval (in seconds) at which progress logs should be emitted.
+        logger: Optional logger instance. If not provided, the default logger is used.
+        """
         self.title = title
         self.pteam_id = pteam_id
         self.service_name = service_name
