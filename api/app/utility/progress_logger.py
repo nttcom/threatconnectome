@@ -99,8 +99,12 @@ class TimeBasedProgressLogger:
             return
 
         self._stop_event.set()
-        self._thread.join()
 
+        # Wait for worker thread to finish if it exists
+        if hasattr(self, "_thread") and self._thread is not None:
+            self._thread.join()
+
+        # After thread finishes, check and delete DB record
         if self.sbom_upload_progress_id is None:
             return
 
