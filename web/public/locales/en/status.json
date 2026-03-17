@@ -56,7 +56,7 @@
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "estimatedTime": "Estimated execution time:"
   },
-    "SBOMUploadProgressButton": {
+  "SBOMUploadProgressButton": {
     "loadingSbomProgress": "Loading SBOM upload progress...",
     "buttonTitle": "Upload Progress"
   },
