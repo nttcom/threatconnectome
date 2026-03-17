@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   FormLabel,
   IconButton,
@@ -228,7 +229,7 @@ export function PTeamNotificationSetting(props) {
             <OutlinedInput
               id="pteam-mail-address-field"
               type="text"
-              autoComplete="new-password"
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => handleMailAddressSetting(event.target.value)}
             />
@@ -266,7 +267,7 @@ export function PTeamNotificationSetting(props) {
             <OutlinedInput
               id="pteam-slack-url-field"
               type={editingSlackUrl ? "text" : "password"}
-              autoComplete="new-password"
+              autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
               endAdornment={
@@ -304,18 +305,22 @@ export function PTeamNotificationSetting(props) {
         <Box mt={1}>{slackMessage}</Box>
       </Box>
 
-      <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }}>{t("sendBy")}</FormLabel>
-        <Box display="flex" gap={2} mt={1}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography>{t("slack")}</Typography>
+      <Box mb={4}>
+        <Typography sx={{ fontWeight: 400 }}>{t("sendBy")}</Typography>
+        <FormControlLabel
+          control={
             <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
-          </Box>
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography>{t("email")}</Typography>
+          }
+          labelPlacement="start"
+          label={t("slack")}
+        />
+        <FormControlLabel
+          control={
             <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
-          </Box>
-        </Box>
+          }
+          labelPlacement="start"
+          label={t("email")}
+        />
       </Box>
       <Divider />
       <Box display="flex" mt={2}>
