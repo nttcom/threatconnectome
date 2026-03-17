@@ -99,6 +99,7 @@ class TimeBasedProgressLogger:
             return
 
         self._stop_event.set()
+        self._thread.join()
 
         if self.sbom_upload_progress_id is None:
             return
