@@ -14,14 +14,14 @@ import { useSnackbar } from "notistack";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import dialogStyle from "../../cssModule/dialog.module.css";
-import { useUploadSBOMFileMutation } from "../../services/tcApi";
-import { maxServiceNameLengthInHalf } from "../../utils/const";
-import { calculateEstimateTimeFromSize } from "../../utils/estimator";
-import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
-import { FileDropZone } from "./FileDropZone";
+import dialogStyle from "../../../cssModule/dialog.module.css";
+import { useUploadSBOMFileMutation } from "../../../services/tcApi";
+import { maxServiceNameLengthInHalf } from "../../../utils/const";
+import { calculateEstimateTimeFromSize } from "../../../utils/estimator";
+import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../../utils/func";
+import { FileDropZone } from "../FileDropZone";
 
-import { WaitingModal } from "./WaitingModal";
+import { WaitingModal } from "../WaitingModal";
 
 interface PreUploadModalProps {
   sbomFile: File | null;

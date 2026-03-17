@@ -3,10 +3,10 @@ import { Badge, IconButton, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useGetSbomUploadProgressQuery } from "../../services/tcApi";
+import { useGetSbomUploadProgressQuery } from "../../../services/tcApi";
 // @ts-expect-error TS7016
-import { APIError } from "../../utils/APIError";
-import { errorToString } from "../../utils/func";
+import { APIError } from "../../../utils/APIError";
+import { errorToString } from "../../../utils/func";
 
 import { SBOMUploadProgressDialog } from "./SBOMUploadProgressDialog";
 

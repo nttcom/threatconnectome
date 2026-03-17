@@ -27,8 +27,8 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import type { SbomUploadProgressResponse } from "../../../types/types.gen";
-import { utcStringToLocalDate } from "../../utils/func";
+import type { SbomUploadProgressResponse } from "../../../../types/types.gen";
+import { utcStringToLocalDate } from "../../../utils/func";
 
 type Props = {
   progresses: SbomUploadProgressResponse[];
