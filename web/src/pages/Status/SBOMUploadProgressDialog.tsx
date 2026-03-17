@@ -6,7 +6,6 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import {
-  Badge,
   Box,
   Button,
   Card,
@@ -24,10 +23,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
 
 export type UploadProgress = {
   serviceName: string;
@@ -37,21 +34,13 @@ export type UploadProgress = {
 
 type Props = {
   progresses: UploadProgress[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
 };
 
-export function SBOMUploadProgress({ progresses }: Props) {
-  const [open, setOpen] = useState(false);
-
+export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
   return (
     <>
-      <Tooltip title="アップロード進捗">
-        <IconButton onClick={() => setOpen(true)}>
-          <Badge variant="dot" color="primary" invisible={progresses.length === 0}>
-            <PendingActionsIcon />
-          </Badge>
-        </IconButton>
-      </Tooltip>
-
       <Dialog
         open={open}
         onClose={() => setOpen(false)}

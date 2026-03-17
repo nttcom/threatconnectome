@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { SBOMUploadProgress } from "./SBOMUploadProgress";
+import { SBOMUploadProgressButton } from "./SBOMUploadProgressButton";
 
 const meta = {
-  component: SBOMUploadProgress,
-} satisfies Meta<typeof SBOMUploadProgress>;
+  component: SBOMUploadProgressButton,
+} satisfies Meta<typeof SBOMUploadProgressButton>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

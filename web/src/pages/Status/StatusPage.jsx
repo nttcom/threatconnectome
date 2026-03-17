@@ -51,7 +51,7 @@ import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
 import { SBOMDropArea } from "./SBOMDropArea";
-import { SBOMUploadProgress } from "./SBOMUploadProgress";
+import { SBOMUploadProgressButton } from "./SBOMUploadProgressButton";
 
 const ssvcPriorityCountMax = 99999;
 
@@ -487,7 +487,7 @@ export function Status() {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
 
-        <SBOMUploadProgress
+        <SBOMUploadProgressButton
           progresses={[
             {
               serviceName: "frontend",
