@@ -1,5 +1,6 @@
 import { Close as CloseIcon, LockOutlined as LockIcon } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -17,6 +18,7 @@ import { useTranslation } from "react-i18next";
 
 import { FileDropZone } from "./FileDropZone";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
+import { calculateEstimateTimeFromSize } from "../../utils/estimator";
 import { errorToString } from "../../utils/func";
 
 import { WaitingModal } from "./WaitingModal";
@@ -36,6 +38,8 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
   const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
+
+  const estimateTime = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
 
   const handleUpload = () => {
     if (!sbomFile || !serviceName) {
@@ -101,6 +105,9 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
                 },
               }}
             />
+            <Alert severity="warning" sx={{ fontWeight: "medium" }}>
+              {t("sbomWarning")}
+            </Alert>
             <FileDropZone
               onFileSelected={setSbomFile}
               selectedFile={sbomFile}
@@ -109,8 +116,22 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUpload} disabled={!sbomFile}>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          {/* Display estimated time if a file is selected */}
+          {sbomFile && (
+            <Box
+              display="flex"
+              flexDirection="row"
+              gap={1}
+              sx={{ flexGrow: 1, alignItems: "center" }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                {t("estimatedTime")}
+              </Typography>
+              <Typography variant="body2">{estimateTime}</Typography>
+            </Box>
+          )}
+          <Button variant="contained" onClick={handleUpload} disabled={!sbomFile}>
             {t("upload")}
           </Button>
         </DialogActions>

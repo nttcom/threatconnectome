@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import dialogStyle from "../../cssModule/dialog.module.css";
 import { useUploadSBOMFileMutation } from "../../services/tcApi";
 import { maxServiceNameLengthInHalf } from "../../utils/const";
+import { calculateEstimateTimeFromSize } from "../../utils/estimator";
 import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 import { FileDropZone } from "./FileDropZone";
 
@@ -34,6 +35,8 @@ function PreUploadModal(props: PreUploadModalProps) {
   const { sbomFile, open, onSetOpen, onCompleted } = props;
   const [serviceName, setServiceName] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
+
+  const estimateTime = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
 
   const handleClose = () => {
     setServiceName("");
@@ -91,6 +94,10 @@ function PreUploadModal(props: PreUploadModalProps) {
           <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
             <Typography sx={{ fontWeight: "bold" }}>{t("selectedFile")}</Typography>
             <Typography>{sbomFile?.name}</Typography>
+          </Box>
+          <Box display="flex" flexDirection="row" sx={{ mt: 1, ml: 1 }}>
+            <Typography sx={{ fontWeight: "bold" }}>{t("estimatedTime")}</Typography>
+            <Typography>{estimateTime}</Typography>
           </Box>
         </Box>
       </DialogContent>

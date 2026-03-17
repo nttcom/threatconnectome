@@ -14,8 +14,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
-import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 import { getBearerToken } from "../../services/tcApi";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
