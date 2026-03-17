@@ -201,9 +201,7 @@ export function PTeamNotificationSetting(props) {
   return (
     <Box>
       <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }} mb={2}>
-          {t("alertThreshold")}
-        </FormLabel>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("alertThreshold")}</FormLabel>
         <Select
           value={alertThreshold}
           onChange={(event) => setAlertThreshold(String(event.target.value))}
@@ -219,9 +217,7 @@ export function PTeamNotificationSetting(props) {
         </Select>
       </Box>
       <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }} mb={2}>
-          {t("emailAddress")}
-        </FormLabel>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("emailAddress")}</FormLabel>
         <Box
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}
@@ -259,9 +255,7 @@ export function PTeamNotificationSetting(props) {
         <Box mt={1}>{emailMessage}</Box>
       </Box>
       <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }} mb={2}>
-          {t("slackWebhook")}
-        </FormLabel>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("slackWebhook")}</FormLabel>
         <Box
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}

@@ -82,9 +82,7 @@ export function PTeamGeneralSetting(props) {
   return (
     <Box>
       <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }} mb={2}>
-          {t("teamName")}
-        </FormLabel>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("teamName")}</FormLabel>
         <TextField
           size="small"
           value={pteamName}
@@ -98,9 +96,7 @@ export function PTeamGeneralSetting(props) {
         />
       </Box>
       <Box mb={2}>
-        <FormLabel sx={{ fontWeight: "medium" }} mb={2}>
-          {t("contactInfo")}
-        </FormLabel>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("contactInfo")}</FormLabel>
         <TextField
           size="small"
           value={contactInfo}
