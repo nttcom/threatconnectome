@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from app import models, persistence
 from app.database import create_session
 
+SessionLocal = create_session()
+
 
 class TimeBasedProgressLogger:
     LOG_TRIGGER_COUNT = 10
@@ -16,6 +18,7 @@ class TimeBasedProgressLogger:
         pteam_id: str | None = None,
         service_name: str | None = None,
         logger=None,
+        session_factory=None,
     ):
         """
         title: Title of the progress task.
@@ -29,14 +32,14 @@ class TimeBasedProgressLogger:
         self.current_percent: float = 0.0
         self._stop_event = threading.Event()
         self.count = 0
-        self.SessionLocal = create_session()
+        self._SessionLocal = session_factory or SessionLocal
 
         self.sbom_upload_progress_id: str | None = None
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
     def _run(self):
-        with self.SessionLocal() as db:
+        with self._SessionLocal() as db:
             # First Insert
             progress = self._create_initial_progress(db)
             # Loop to periodically record progress
@@ -78,5 +81,5 @@ class TimeBasedProgressLogger:
         if self.sbom_upload_progress_id is None:
             return
 
-        with self.SessionLocal() as db:
+        with self._SessionLocal() as db:
             persistence.delete_sbom_upload_progress_by_id(db, self.sbom_upload_progress_id)
