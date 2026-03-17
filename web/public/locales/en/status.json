@@ -56,6 +56,18 @@
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "estimatedTime": "Estimated execution time:"
   },
+    "SBOMUploadProgressButton": {
+    "loadingSbomProgress": "Loading SBOM upload progress...",
+    "buttonTitle": "Upload Progress"
+  },
+  "SBOMUploadProgressDialog": {
+    "dialogTitle": "Upload Progress",
+    "noServices": "No services are currently uploading",
+    "serviceName": "Service Name",
+    "progressState": "Progress",
+    "expectedFinishTime": "Estimated Completion Time",
+    "refresh": "Refresh"
+  },
   "WaitingModal": {
     "inProgress": "{{text}} is in progress. Please wait."
   },

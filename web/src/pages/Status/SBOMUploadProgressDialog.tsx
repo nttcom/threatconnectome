@@ -25,6 +25,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import type { SbomUploadProgressResponse } from "../../../types/types.gen";
 import { utcStringToLocalDate } from "../../utils/func";
@@ -37,6 +38,8 @@ type Props = {
 };
 
 export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }: Props) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMUploadProgressDialog" });
+
   return (
     <>
       <Dialog
@@ -68,7 +71,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
               <PendingActionsIcon />
             </Box>
             <Typography variant="h6" fontWeight="bold">
-              アップロード進捗
+              {t("dialogTitle")}
             </Typography>
           </Box>
           <IconButton onClick={() => setOpen(false)} size="small">
@@ -79,23 +82,22 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
         <DialogContent dividers sx={{ p: { xs: 2, md: 3 } }}>
           {progresses.length === 0 ? (
             <Typography color="text.secondary" sx={{ py: 2, textAlign: "center" }}>
-              アップロード中のサービスはありません
+              {t("noServices")}
             </Typography>
           ) : (
             <>
-              {/* PC用: テーブル */}
               <TableContainer sx={{ display: { xs: "none", md: "block" } }}>
                 <Table sx={{ width: "100%" }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ color: "text.secondary", fontWeight: "bold", width: "40%" }}>
-                        サービス名
+                        {t("serviceName")}
                       </TableCell>
                       <TableCell sx={{ color: "text.secondary", fontWeight: "bold", width: "35%" }}>
-                        進捗状況
+                        {t("progressState")}
                       </TableCell>
                       <TableCell sx={{ color: "text.secondary", fontWeight: "bold", width: "25%" }}>
-                        完了予測時刻
+                        {t("expectedFinishTime")}
                       </TableCell>
                     </TableRow>
                   </TableHead>
@@ -151,7 +153,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
                 </Table>
               </TableContainer>
 
-              {/* モバイル用: カード */}
+              {/* For mobile */}
               <Stack spacing={2} sx={{ display: { xs: "flex", md: "none" } }}>
                 {progresses.map((progress) => (
                   <Card key={progress.service_name} variant="outlined" sx={{ borderRadius: 2 }}>
@@ -193,7 +195,8 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
                       >
                         <AccessTimeIcon sx={{ fontSize: 14 }} />
                         <Typography variant="caption">
-                          完了予測時刻: {utcStringToLocalDate(progress.expected_finish_time, false)}
+                          {t("expectedFinishTime")}:{" "}
+                          {utcStringToLocalDate(progress.expected_finish_time, false)}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -206,7 +209,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
 
         <DialogActions sx={{ bgcolor: "background.soft", p: 2 }}>
           <Button startIcon={<RefreshIcon />} onClick={refetch}>
-            更新
+            {t("refresh")}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,6 +1,7 @@
 import { PendingActions as PendingActionsIcon } from "@mui/icons-material";
 import { Badge, IconButton, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useGetSbomUploadProgressQuery } from "../../services/tcApi";
 // @ts-expect-error TS7016
@@ -15,6 +16,7 @@ type Props = {
 
 export function SBOMUploadProgressButton({ pteamId }: Props) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation("status", { keyPrefix: "SBOMUploadProgressButton" });
 
   const {
     data: progressesResponse,
@@ -23,21 +25,21 @@ export function SBOMUploadProgressButton({ pteamId }: Props) {
     refetch: refetchSbomUploadProgress,
   } = useGetSbomUploadProgressQuery({ pteam_id: pteamId });
 
+  useEffect(() => {
+    if (open) refetchSbomUploadProgress();
+  }, [open]);
+
   if (sbomUploadProgressError)
     throw new APIError(errorToString(sbomUploadProgressError), {
       api: "getSbomUploadProgress",
     });
-  if (sbomUploadProgressIsLoading) return <>{"Now loading SbomUploadProgress..."}</>;
-
-  useEffect(() => {
-    if (open) refetchSbomUploadProgress();
-  }, [open]);
+  if (sbomUploadProgressIsLoading) return <>{t("loadingSbomProgress")}</>;
 
   const progresses = progressesResponse || [];
 
   return (
     <>
-      <Tooltip title="アップロード進捗">
+      <Tooltip title={t("buttonTitle")}>
         <IconButton onClick={() => setOpen(true)}>
           <Badge variant="dot" color="primary" invisible={progresses.length === 0}>
             <PendingActionsIcon />
