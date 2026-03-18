@@ -120,7 +120,7 @@ export function VulnDetailView(props) {
                     >
                       <ActionTypeIcon />
                       <Box display="flex" flexDirection="column">
-                        <Typography variant="body">{updateAction}</Typography>
+                        <Typography>{updateAction}</Typography>
                       </Box>
                     </MenuItem>
                   ))}
