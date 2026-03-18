@@ -43,7 +43,12 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     }),
     useGetPTeamQuery: vi.fn(),
     useGetPTeamPackagesSummaryQuery: vi.fn(),
-    useGetSbomUploadProgressQuery: vi.fn(),
+    useGetSbomUploadProgressQuery: vi.fn().mockReturnValue({
+      data: [],
+      error: undefined,
+      isLoading: false,
+      refetch: vi.fn(),
+    }),
   };
 });
 
@@ -135,6 +140,22 @@ const testPackagesData = {
 
 describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
+    beforeEach(() => {
+      const progresses = {
+        currentData: [
+          {
+            sbom_upload_progress_id: testPTeamData["pteam_id"],
+            service_name: "frontend",
+            progress_rate: 0.45,
+            expected_finish_time: "2026-03-17T06:24:27.776117Z",
+          },
+        ],
+        error: false,
+        isFetching: false,
+      };
+      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
+    });
+
     it("Show SBOMDropArea component when the service is an unregistered", () => {
       const testLocation = {
         pathname: "/",
@@ -190,16 +211,6 @@ describe("StatusPage", () => {
       };
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
-      const progresses = [
-        {
-          sbom_upload_progress_id: testPTeamData["pteam_id"],
-          service_name: "frontend",
-          progress_rate: 0.45,
-          expected_finish_time: "2026-03-17T06:24:27.776117Z",
-        },
-      ];
-      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
-
       renderStatusPage();
       expect(screen.queryByText("Drop SBOM file here")).toBeNull();
     });
@@ -228,16 +239,6 @@ describe("StatusPage", () => {
         isFetching: false,
       };
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
-
-      const progresses = [
-        {
-          sbom_upload_progress_id: testPTeamData["pteam_id"],
-          service_name: "frontend",
-          progress_rate: 0.45,
-          expected_finish_time: "2026-03-17T06:24:27.776117Z",
-        },
-      ];
-      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
 
       const ue = userEvent.setup();
       renderStatusPage();
