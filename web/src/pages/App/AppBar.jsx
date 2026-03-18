@@ -65,7 +65,6 @@ export function AppBar() {
           <Box
             sx={{
               pr: { xs: 0, md: 1 },
-              flexGrow: { xs: 1, md: 0 },
               minWidth: 0,
               maxWidth: "350px",
             }}
