@@ -8,7 +8,9 @@ from app.utility.progress_logger import TimeBasedProgressLogger
 
 @pytest.fixture(scope="function")
 def progress():
-    progress = TimeBasedProgressLogger(title="test")
+    progress = TimeBasedProgressLogger(
+        title="test", pteam_id="test_pteam", service_name="test_service"
+    )
     yield progress
     progress.stop()
 
