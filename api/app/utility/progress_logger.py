@@ -53,8 +53,12 @@ class TimeBasedProgressLogger:
                     if self._stop_event.wait(self.INTERVAL_DB_SECONDS):
                         break
                     self._update_progress_in_db(db, progress)
-        except Exception:
-            self.logger.error("Failed uploading SBOM as a service: %s", self.service_name)
+        except Exception as e:
+            self.logger.error(
+                "SBOM progress DB update: Exception occurred for service: %s, error: %s",
+                self.service_name,
+                repr(e),
+            )
             if db is not None:
                 try:
                     db.rollback()
