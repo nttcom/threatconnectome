@@ -120,7 +120,7 @@ export function VulnDetailView(props) {
                     >
                       <ActionTypeIcon />
                       <Box display="flex" flexDirection="column">
-                        <Typography>{updateAction}</Typography>
+                        <Typography sx={{ wordBreak: "break-word" }}>{updateAction}</Typography>
                       </Box>
                     </MenuItem>
                   ))}
