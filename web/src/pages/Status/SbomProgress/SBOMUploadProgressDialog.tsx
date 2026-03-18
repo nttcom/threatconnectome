@@ -156,7 +156,11 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
               {/* For mobile */}
               <Stack spacing={2} sx={{ display: { xs: "flex", md: "none" } }}>
                 {progresses.map((progress) => (
-                  <Card key={progress.service_name} variant="outlined" sx={{ borderRadius: 2 }}>
+                  <Card
+                    key={progress.sbom_upload_progress_id}
+                    variant="outlined"
+                    sx={{ borderRadius: 2 }}
+                  >
                     <CardContent sx={{ p: 2 }}>
                       <Box sx={{ alignItems: "center", display: "flex", gap: 2, mb: 1.5 }}>
                         <Box sx={{ color: "primary.main", display: "flex" }}>
