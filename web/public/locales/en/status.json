@@ -65,8 +65,7 @@
     "noServices": "No services are currently uploading",
     "serviceName": "Service Name",
     "progressState": "Progress",
-    "expectedFinishTime": "Estimated Completion Time",
-    "refresh": "Refresh"
+    "expectedFinishTime": "Estimated Completion Time"
   },
   "WaitingModal": {
     "inProgress": "{{text}} is in progress. Please wait."

@@ -57,7 +57,7 @@
     "estimatedTime": "推定実行時間:"
   },
   "SBOMUploadProgressButton": {
-    "loadingSbomProgress": "SBOMアップロードの進行状況を読み込んでいます...",
+    "loadingSbomProgress": "SBOMアップロードの進捗状況を読み込んでいます...",
     "buttonTitle": "アップロード進捗"
   },
   "SBOMUploadProgressDialog": {
@@ -65,8 +65,7 @@
     "noServices": "アップロード中のサービスはありません",
     "serviceName": "サービス名",
     "progressState": "進捗状況",
-    "expectedFinishTime": "完了予測時刻",
-    "refresh": "更新"
+    "expectedFinishTime": "完了予測時刻"
   },
   "WaitingModal": {
     "inProgress": "{{text}}です。お待ちください。"
