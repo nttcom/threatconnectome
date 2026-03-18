@@ -103,7 +103,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
                   </TableHead>
                   <TableBody>
                     {progresses.map((progress) => (
-                      <TableRow key={progress.service_name} hover>
+                      <TableRow key={progress.sbom_upload_progress_id} hover>
                         <TableCell>
                           <Box sx={{ alignItems: "center", display: "flex", gap: 2 }}>
                             <Box sx={{ color: "primary.main" }}>
