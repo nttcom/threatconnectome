@@ -15,8 +15,8 @@ class TimeBasedProgressLogger:
     def __init__(
         self,
         title: str,
-        pteam_id: str | None = None,
-        service_name: str | None = None,
+        pteam_id: str,
+        service_name: str,
         logger=None,
         session_factory=None,
     ):
