@@ -32,7 +32,7 @@
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
-    "estimatedTime": "推定実行時間:",
+    "estimatedTime": "予測実行時間:",
     "sbomWarning": "重要: 誤ったSBOMをアップロードすると、関連チケットが削除される可能性があります。アップロード前にSBOMが正しいか確認してください。"
   },
   "SBOMUpdateButton": {
@@ -54,7 +54,7 @@
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
-    "estimatedTime": "推定実行時間:"
+    "estimatedTime": "予測実行時間:"
   },
   "SBOMUploadProgressButton": {
     "loadingSbomProgress": "SBOMアップロードの進捗状況を読み込んでいます...",
@@ -65,7 +65,8 @@
     "noServices": "アップロード中のサービスはありません",
     "serviceName": "サービス名",
     "progressState": "進捗状況",
-    "expectedFinishTime": "完了予測時刻"
+    "expectedFinishTime": "完了予測時刻",
+    "calculating": "計算中..."
   },
   "WaitingModal": {
     "inProgress": "{{text}}です。お待ちください。"

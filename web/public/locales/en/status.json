@@ -32,7 +32,7 @@
     "uploadingFile": "Uploading SBOM file: {{fileName}}",
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
-    "estimatedTime": "Estimated execution time:",
+    "estimatedTime": "Predicted execution time:",
     "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
   },
   "SBOMUpdateButton": {
@@ -54,7 +54,7 @@
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
-    "estimatedTime": "Estimated execution time:"
+    "estimatedTime": "Predicted execution time:"
   },
   "SBOMUploadProgressButton": {
     "loadingSbomProgress": "Loading SBOM upload progress...",
@@ -65,7 +65,8 @@
     "noServices": "No services are currently uploading",
     "serviceName": "Service Name",
     "progressState": "Progress",
-    "expectedFinishTime": "Estimated Completion Time"
+    "expectedFinishTime": "Estimated Completion Time",
+    "calculating": "Calculating..."
   },
   "WaitingModal": {
     "inProgress": "{{text}} is in progress. Please wait."

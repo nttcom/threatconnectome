@@ -27,8 +27,25 @@ import { useTranslation } from "react-i18next";
 import type { SbomUploadProgressResponse } from "../../../../types/types.gen";
 import { utcStringToLocalDate } from "../../../utils/func";
 
-const toPercent = (rate: number): number => {
-  return Math.round(rate * 100);
+const toPercentvalue = (progress: SbomUploadProgressResponse): number => {
+  return Math.round(progress.progress_rate * 100);
+};
+
+const toPercentString = (progress: SbomUploadProgressResponse): string => {
+  if (progress.progress_rate <= 0.001) {
+    return "";
+  }
+  return `${toPercentvalue(progress)}%`;
+};
+
+const toFinishTimeString = (
+  progress: SbomUploadProgressResponse,
+  calculatingString: string,
+): string | null => {
+  if (progress.progress_rate <= 0.001) {
+    return calculatingString;
+  }
+  return utcStringToLocalDate(progress.expected_finish_time, false);
 };
 
 type Props = {
@@ -123,12 +140,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             <Box sx={{ flex: 1 }}>
                               <LinearProgress
                                 variant="determinate"
-                                value={toPercent(progress.progress_rate)}
+                                value={toPercentvalue(progress)}
                                 sx={{ borderRadius: 4, height: 8 }}
                               />
                             </Box>
                             <Typography variant="body2" fontWeight="bold">
-                              {toPercent(progress.progress_rate)}%
+                              {toPercentString(progress)}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -143,7 +160,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                           >
                             <AccessTimeIcon fontSize="small" />
                             <Typography variant="body2">
-                              {utcStringToLocalDate(progress.expected_finish_time, false)}
+                              {toFinishTimeString(progress, t("calculating"))}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -180,12 +197,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                         <Box sx={{ flex: 1 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={toPercent(progress.progress_rate)}
+                            value={toPercentvalue(progress)}
                             sx={{ borderRadius: 3, height: 6 }}
                           />
                         </Box>
                         <Typography variant="body2" fontWeight="bold">
-                          {toPercent(progress.progress_rate)}%
+                          {toPercentString(progress)}
                         </Typography>
                       </Box>
                       <Box
@@ -200,7 +217,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                         <AccessTimeIcon sx={{ fontSize: 14 }} />
                         <Typography variant="caption">
                           {t("expectedFinishTime")}:{" "}
-                          {utcStringToLocalDate(progress.expected_finish_time, false)}
+                          {toFinishTimeString(progress, t("calculating"))}
                         </Typography>
                       </Box>
                     </CardContent>
