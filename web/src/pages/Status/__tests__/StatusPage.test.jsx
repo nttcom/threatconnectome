@@ -4,7 +4,11 @@ import { Provider } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../../services/tcApi";
+import {
+  useGetPTeamQuery,
+  useGetPTeamPackagesSummaryQuery,
+  useGetSbomUploadProgressQuery,
+} from "../../../services/tcApi";
 import store from "../../../store";
 import { Status } from "../StatusPage";
 
@@ -39,6 +43,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     }),
     useGetPTeamQuery: vi.fn(),
     useGetPTeamPackagesSummaryQuery: vi.fn(),
+    useGetSbomUploadProgressQuery: vi.fn(),
   };
 });
 
@@ -185,6 +190,16 @@ describe("StatusPage", () => {
       };
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
+      const progresses = [
+        {
+          sbom_upload_progress_id: testPTeamData["pteam_id"],
+          service_name: "frontend",
+          progress_rate: 0.45,
+          expected_finish_time: "2026-03-17T06:24:27.776117Z",
+        },
+      ];
+      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
+
       renderStatusPage();
       expect(screen.queryByText("Drop SBOM file here")).toBeNull();
     });
@@ -213,6 +228,16 @@ describe("StatusPage", () => {
         isFetching: false,
       };
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+
+      const progresses = [
+        {
+          sbom_upload_progress_id: testPTeamData["pteam_id"],
+          service_name: "frontend",
+          progress_rate: 0.45,
+          expected_finish_time: "2026-03-17T06:24:27.776117Z",
+        },
+      ];
+      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
 
       const ue = userEvent.setup();
       renderStatusPage();
