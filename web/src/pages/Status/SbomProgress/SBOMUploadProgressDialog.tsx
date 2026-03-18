@@ -30,6 +30,10 @@ import { useTranslation } from "react-i18next";
 import type { SbomUploadProgressResponse } from "../../../../types/types.gen";
 import { utcStringToLocalDate } from "../../../utils/func";
 
+const toPercent = (rate: number): number => {
+  return Math.round(rate * 100);
+};
+
 type Props = {
   progresses: SbomUploadProgressResponse[];
   open: boolean;
@@ -123,12 +127,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
                             <Box sx={{ flex: 1 }}>
                               <LinearProgress
                                 variant="determinate"
-                                value={progress.progress_rate * 100}
+                                value={toPercent(progress.progress_rate)}
                                 sx={{ borderRadius: 4, height: 8 }}
                               />
                             </Box>
                             <Typography variant="body2" fontWeight="bold">
-                              {progress.progress_rate * 100}%
+                              {toPercent(progress.progress_rate)}%
                             </Typography>
                           </Box>
                         </TableCell>
@@ -176,12 +180,12 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
                         <Box sx={{ flex: 1 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={progress.progress_rate * 100}
+                            value={toPercent(progress.progress_rate)}
                             sx={{ borderRadius: 3, height: 6 }}
                           />
                         </Box>
                         <Typography variant="body2" fontWeight="bold">
-                          {progress.progress_rate * 100}%
+                          {toPercent(progress.progress_rate)}%
                         </Typography>
                       </Box>
                       <Box
