@@ -1323,7 +1323,9 @@ def upload_pteam_packages_file(
         db.flush()
 
     log = logging.getLogger(__name__)
-    progress = TimeBasedProgressLogger(title=f"service: {service}", logger=log)
+    progress = TimeBasedProgressLogger(
+        title=f"service: {service}", pteam_id=str(pteam_id), service_name=service, logger=log
+    )
     try:
         # Adjust the progress before calling the common function to align
         # with the upload_sbom_file API's progress handling.
