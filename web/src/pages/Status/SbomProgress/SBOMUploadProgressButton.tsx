@@ -1,6 +1,6 @@
 import { PendingActions as PendingActionsIcon } from "@mui/icons-material";
 import { Badge, IconButton, Tooltip } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useGetSbomUploadProgressQuery } from "../../../services/tcApi";
@@ -22,12 +22,13 @@ export function SBOMUploadProgressButton({ pteamId }: Props) {
     data: progressesResponse,
     error: sbomUploadProgressError,
     isLoading: sbomUploadProgressIsLoading,
-    refetch: refetchSbomUploadProgress,
-  } = useGetSbomUploadProgressQuery({ pteam_id: pteamId });
-
-  useEffect(() => {
-    if (open) refetchSbomUploadProgress();
-  }, [open]);
+  } = useGetSbomUploadProgressQuery(
+    { pteam_id: pteamId },
+    {
+      skip: !open,
+      pollingInterval: 10000,
+    },
+  );
 
   if (sbomUploadProgressError)
     throw new APIError(errorToString(sbomUploadProgressError), {
@@ -47,12 +48,7 @@ export function SBOMUploadProgressButton({ pteamId }: Props) {
         </IconButton>
       </Tooltip>
 
-      <SBOMUploadProgressDialog
-        progresses={progresses}
-        open={open}
-        setOpen={setOpen}
-        refetch={refetchSbomUploadProgress}
-      />
+      <SBOMUploadProgressDialog progresses={progresses} open={open} setOpen={setOpen} />
     </>
   );
 }

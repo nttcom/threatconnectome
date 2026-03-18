@@ -3,15 +3,12 @@ import {
   Close as CloseIcon,
   InsertDriveFile as InsertDriveFileIcon,
   PendingActions as PendingActionsIcon,
-  Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -38,10 +35,9 @@ type Props = {
   progresses: SbomUploadProgressResponse[];
   open: boolean;
   setOpen: (open: boolean) => void;
-  refetch: () => void;
 };
 
-export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }: Props) {
+export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMUploadProgressDialog" });
 
   return (
@@ -210,12 +206,6 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen, refetch }:
             </>
           )}
         </DialogContent>
-
-        <DialogActions sx={{ bgcolor: "background.soft", p: 2 }}>
-          <Button startIcon={<RefreshIcon />} onClick={refetch}>
-            {t("refresh")}
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );
