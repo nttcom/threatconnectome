@@ -8,6 +8,8 @@ from app.auth.auth_module import AuthModule
 
 from ..schemas import Token
 
+log = logging.getLogger(__name__)
+
 
 class SupabaseAuthModule(AuthModule):
     def __init__(self):
@@ -35,7 +37,6 @@ class SupabaseAuthModule(AuthModule):
             user = user_model.get("user")
             user_id = user.get("id") if user else None
         except Exception as e:
-            log = logging.getLogger(__name__)
             log.error(f"Failed to login: {e}")
             raise AuthException(
                 AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
@@ -57,7 +58,6 @@ class SupabaseAuthModule(AuthModule):
             user = session.get("user")
             user_id = user.get("id") if user else None
         except Exception as e:
-            log = logging.getLogger(__name__)
             log.error(f"Failed to refresh: {e}")
             raise AuthException(
                 AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
@@ -74,8 +74,16 @@ class SupabaseAuthModule(AuthModule):
 
     def check_and_get_user_info(self, token):
         super().check_token(token)
-        user_data = self.supabase.auth.get_user(token.credentials)
-        user = user_data.model_dump().get("user")
+
+        try:
+            user_data = self.supabase.auth.get_user(token.credentials)
+            user = user_data.model_dump().get("user")
+        except Exception as e:
+            log.error(f"Failed to get user: {e}")
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
+            )
+
         return user.get("id"), user.get("email")
 
     def delete_user(self, uid):
@@ -86,5 +94,11 @@ class SupabaseAuthModule(AuthModule):
         if key is None:
             raise Exception(f"Unsupported SERVICE_ROLE_KEY: {key}")
 
-        supabase1 = create_client(url, key)
-        supabase1.auth.admin.delete_user(uid)
+        try:
+            supabase1 = create_client(url, key)
+            supabase1.auth.admin.delete_user(uid)
+        except Exception as e:
+            log.error(f"Failed to delete user: {e}")
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
+            )
