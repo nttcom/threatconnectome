@@ -122,6 +122,13 @@
           "updateSuccess": "Updated successfully",
           "updateError": "Failed to update",
           "placeholder": "Report URL, event log, file hash, etc. Evidence that the action was completed."
+        },
+        "VersionUpdateCard": {
+          "failedToLoad": "Failed to load",
+          "versionStatus": "Version status",
+          "currentVersion": "Current version",
+          "fixedVersion": "Fixed version",
+          "noFixedVersions": "No fixed versions available"
         }
       }
     }

@@ -634,6 +634,7 @@ class PTeam(Base):
     alert_mail: Mapped["PTeamMail"] = relationship(
         back_populates="pteam", cascade="all, delete-orphan"
     )
+    sbom_upload_progresses = relationship("SbomUploadProgress", cascade="all, delete-orphan")
 
 
 class PTeamMail(Base):
@@ -973,3 +974,26 @@ class EcosystemEoLDependency(Base):
 
     service = relationship("Service", back_populates="ecosystem_eol_dependencies")
     eol_version = relationship("EoLVersion", back_populates="ecosystem_eol_dependencies")
+
+
+class SbomUploadProgress(Base):
+    __tablename__ = "sbomuploadprogress"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.sbom_upload_progress_id:
+            self.sbom_upload_progress_id = str(uuid.uuid4())
+
+    sbom_upload_progress_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    pteam_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"),
+        index=True,
+    )
+    service_name: Mapped[Str255]
+    progress_rate: Mapped[float] = mapped_column()  # 0.0～1.0
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=current_timestamp()
+    )

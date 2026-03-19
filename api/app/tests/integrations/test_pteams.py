@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from logging import ERROR, INFO
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 import pytest
@@ -713,6 +714,13 @@ class TestPostUploadSBOMFileCycloneDX:
             # Note: all tests in this class use USER1 & PTEAM1
             self.user1 = create_user(USER1)
             self.pteam1 = create_pteam(USER1, PTEAM1)
+
+        @pytest.fixture(scope="function", autouse=True)
+        def mock_progress_logger(self):
+            with patch("app.routers.pteams.TimeBasedProgressLogger") as MockLogger:
+                mock_instance = MagicMock()
+                MockLogger.return_value = mock_instance
+                yield mock_instance
 
         @dataclass(frozen=True, kw_only=True)
         class LibraryParam:

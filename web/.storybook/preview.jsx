@@ -14,6 +14,11 @@ import { sliceReducers } from "../src/slices";
 // Initialize MSW
 initialize();
 
+// Hide Firebase emulator banner
+const style = document.createElement("style");
+style.textContent = ".firebase-emulator-warning { display: none !important; }";
+document.head.appendChild(style);
+
 const mockAuthedState = {
   auth: {
     authUserIsReady: true,
