@@ -259,6 +259,9 @@ export function Status() {
             <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
             <Box flexGrow={1} />
           </Box>
+          <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+            <SBOMUploadProgressButton pteamId={pteamId} />
+          </Box>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
         </>
       );
