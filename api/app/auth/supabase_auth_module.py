@@ -1,7 +1,9 @@
+import logging
 import os
 
 from supabase import create_client
 
+from app.auth.auth_exception import AuthErrorType, AuthException
 from app.auth.auth_module import AuthModule
 
 from ..schemas import Token
@@ -25,11 +27,20 @@ class SupabaseAuthModule(AuthModule):
             "email": username,
             "password": password.get_secret_value(),
         }
-        user_data = self.supabase.auth.sign_in_with_password(payload)
-        user_model = user_data.model_dump()
-        session = user_model.get("session")
-        user = user_model.get("user")
-        user_id = user.get("id") if user else None
+
+        try:
+            user_data = self.supabase.auth.sign_in_with_password(payload)
+            user_model = user_data.model_dump()
+            session = user_model.get("session")
+            user = user_model.get("user")
+            user_id = user.get("id") if user else None
+        except Exception as e:
+            log = logging.getLogger(__name__)
+            log.error(f"Failed to login: {e}")
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
+            )
+
         return (
             Token(
                 access_token=session.get("access_token"),
@@ -40,10 +51,18 @@ class SupabaseAuthModule(AuthModule):
         )
 
     def refresh_access_token(self, refresh_token) -> tuple[Token, str | None]:
-        session_data = self.supabase.auth.get_session()
-        session = session_data.model_dump()
-        user = session.get("user")
-        user_id = user.get("id") if user else None
+        try:
+            session_data = self.supabase.auth.get_session()
+            session = session_data.model_dump()
+            user = session.get("user")
+            user_id = user.get("id") if user else None
+        except Exception as e:
+            log = logging.getLogger(__name__)
+            log.error(f"Failed to refresh: {e}")
+            raise AuthException(
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
+            )
+
         return (
             Token(
                 access_token=session.get("access_token"),
