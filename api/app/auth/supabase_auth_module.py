@@ -36,11 +36,11 @@ class SupabaseAuthModule(AuthModule):
             session = user_model.get("session")
             user = user_model.get("user")
             user_id = user.get("id") if user else None
-        except Exception as e:
-            log.error(f"Failed to login: {e}")
+        except Exception as error:
+            log.error(f"Failed to login: {error}")
             raise AuthException(
-                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
-            )
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Error get access token"
+            ) from error
 
         return (
             Token(
@@ -57,11 +57,11 @@ class SupabaseAuthModule(AuthModule):
             session = session_data.model_dump()
             user = session.get("user")
             user_id = user.get("id") if user else None
-        except Exception as e:
-            log.error(f"Failed to refresh: {e}")
+        except Exception as error:
+            log.error(f"Failed to refresh: {error}")
             raise AuthException(
-                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
-            )
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not refresh token"
+            ) from error
 
         return (
             Token(
@@ -78,11 +78,11 @@ class SupabaseAuthModule(AuthModule):
         try:
             user_data = self.supabase.auth.get_user(token.credentials)
             user = user_data.model_dump().get("user")
-        except Exception as e:
-            log.error(f"Failed to get user: {e}")
+        except Exception as error:
+            log.error(f"Failed to get user: {error}")
             raise AuthException(
-                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
-            )
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Error get user info"
+            ) from error
 
         return user.get("id"), user.get("email")
 
@@ -97,8 +97,8 @@ class SupabaseAuthModule(AuthModule):
         try:
             supabase1 = create_client(url, key)
             supabase1.auth.admin.delete_user(uid)
-        except Exception as e:
-            log.error(f"Failed to delete user: {e}")
+        except Exception as error:
+            log.error(f"Failed to delete user: {error}")
             raise AuthException(
-                AuthErrorType.INTERNAL_SERVER_ERROR, "Could not validate credentials"
-            )
+                AuthErrorType.INTERNAL_SERVER_ERROR, "Error deleting user"
+            ) from error
