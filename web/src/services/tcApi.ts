@@ -515,21 +515,22 @@ export const tcApi = createApi({
       ],
     }),
 
-    updateTicket: builder.mutation<TicketResponse, UpdateTicketPteamsPteamIdTicketsTicketIdPutData>(
-      {
-        query: (arg) => ({
-          url: `pteams/${arg.path.pteam_id}/tickets/${arg.path.ticket_id}`,
-          method: "PUT",
-          body: arg.body,
-        }),
-        invalidatesTags: (_result, _error, _arg) => [
-          { type: "Ticket", id: "ALL" },
-          { type: "Ticket", id: _arg.path.ticket_id },
-          { type: "TicketStatus", id: "ALL" },
-          { type: "TicketStatus", id: _arg.path.ticket_id },
-        ],
-      },
-    ),
+    updateTicket: builder.mutation<
+      TicketResponse,
+      Omit<UpdateTicketPteamsPteamIdTicketsTicketIdPutData, "url">
+    >({
+      query: (arg) => ({
+        url: `pteams/${arg.path.pteam_id}/tickets/${arg.path.ticket_id}`,
+        method: "PUT",
+        body: arg.body,
+      }),
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "Ticket", id: "ALL" },
+        { type: "Ticket", id: _arg.path.ticket_id },
+        { type: "TicketStatus", id: "ALL" },
+        { type: "TicketStatus", id: _arg.path.ticket_id },
+      ],
+    }),
 
     /* User */
     getUserMe: builder.query<UserResponse, GetMyUserInfoUsersMeGetData>({

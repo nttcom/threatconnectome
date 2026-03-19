@@ -115,6 +115,14 @@
           "save": "Saving...",
           "saveReason": "Save Reason"
         },
+        "CompletionEvidenceSection": {
+          "title": "Completion Note",
+          "notProvided": "Not entered",
+          "save": "Save",
+          "updateSuccess": "Updated successfully",
+          "updateError": "Failed to update",
+          "placeholder": "Report URL, event log, file hash, etc. Evidence that the action was completed."
+        },
         "VersionUpdateCard": {
           "failedToLoad": "Failed to load",
           "versionStatus": "Version status",
