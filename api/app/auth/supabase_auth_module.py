@@ -53,8 +53,9 @@ class SupabaseAuthModule(AuthModule):
 
     def refresh_access_token(self, refresh_token) -> tuple[Token, str | None]:
         try:
-            session_data = self.supabase.auth.get_session()
-            session = session_data.model_dump()
+            response_data = self.supabase.auth.refresh_session(refresh_token)
+            response_model = response_data.model_dump()
+            session = response_model.get("session")
             user = session.get("user")
             user_id = user.get("id") if user else None
         except Exception as error:
