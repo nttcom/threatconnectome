@@ -50,7 +50,8 @@ import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
-import { SBOMDropArea } from "./SBOMDropArea";
+import { SBOMDropArea } from "./SbomDrop/SBOMDropArea";
+import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 const ssvcPriorityCountMax = 99999;
 
@@ -257,6 +258,9 @@ export function Status() {
           <Box display="flex" flexDirection="row">
             <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
             <Box flexGrow={1} />
+          </Box>
+          <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+            <SBOMUploadProgressButton pteamId={pteamId} />
           </Box>
           <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
         </>
@@ -485,6 +489,8 @@ export function Status() {
       </Box>
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
+
+        <SBOMUploadProgressButton pteamId={pteamId} />
         <FormControlLabel
           control={
             <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />

@@ -62,6 +62,8 @@ import type {
   PteamMemberGetResponse,
   VulnResponse,
   GetVulnVulnsVulnIdGetData,
+  GetSbomProgressPteamsPteamIdSbomUploadProgressGetData,
+  SbomUploadProgressResponse,
 } from "../../types/types.gen";
 
 const TAG_TYPES_LIST = [
@@ -90,6 +92,11 @@ type UploadSbomRequestParams = Pick<
   UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
   "body" | "path" | "query"
 >;
+
+type GetSbomProgressRequestQuery = Pick<
+  GetSbomProgressPteamsPteamIdSbomUploadProgressGetData,
+  "path"
+>["path"];
 
 export const getBearerToken = {
   supabase: Supabase.getBearerToken.bind(Supabase),
@@ -337,7 +344,7 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* PTeam  */
+    /* PTeam */
     getPTeamVulnIdsTiedToServicePackage: builder.query<
       ServicePackageVulnsSolvedUnsolved,
       GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData
@@ -462,6 +469,15 @@ export const tcApi = createApi({
         { type: "EoLDependency", id: "ALL" },
       ],
     }),
+
+    /* SbomUploadProgress */
+    getSbomUploadProgress: builder.query<SbomUploadProgressResponse[], GetSbomProgressRequestQuery>(
+      {
+        query: (arg) => ({
+          url: `pteams/${arg.pteam_id}/sbom_upload_progress`,
+        }),
+      },
+    ),
 
     /* Ticket */
     getTickets: builder.query<TicketListResponse, GetTicketsTicketsGetData>({
@@ -638,6 +654,7 @@ export const {
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamPackagesSummaryQuery,
   useUploadSBOMFileMutation,
+  useGetSbomUploadProgressQuery,
   useGetTicketsQuery,
   useGetPteamTicketsQuery,
   useUpdateTicketMutation,
