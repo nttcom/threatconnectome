@@ -114,6 +114,14 @@
           "textField": "Safety Impactを変更する理由を入力してください...",
           "save": "保存中...",
           "saveReason": "変更理由を保存する"
+        },
+        "CompletionEvidenceSection": {
+          "title": "完了メモ",
+          "notProvided": "（未入力）",
+          "save": "保存",
+          "updateSuccess": "更新しました",
+          "updateError": "更新に失敗しました",
+          "placeholder": "レポートURL、イベントログ、ファイルハッシュなど、アクションを完了したことを証明するもの。"
         }
       }
     }
