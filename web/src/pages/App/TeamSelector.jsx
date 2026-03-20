@@ -87,10 +87,16 @@ export function TeamSelector() {
               bgcolor: grey[100],
               border: `1.5px solid ${grey[300]}`,
             },
+            maxWidth: "100%",
           }}
           endIcon={<KeyboardArrowDownIcon />}
         >
-          {currentTeamName}
+          <Box
+            component="span"
+            sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          >
+            {currentTeamName}
+          </Box>
         </Button>
         <Menu
           id="grouped-select"
