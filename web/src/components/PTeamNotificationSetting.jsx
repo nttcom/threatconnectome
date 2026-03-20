@@ -7,9 +7,12 @@ import {
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
   FormControl,
   FormControlLabel,
+  FormHelperText,
+  FormLabel,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -37,8 +40,6 @@ import {
 } from "../utils/const";
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
 import { getSsvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
-
-import { CheckButton } from "./CheckButton";
 
 export function PTeamNotificationSetting(props) {
   const { pteam } = props;
@@ -201,15 +202,13 @@ export function PTeamNotificationSetting(props) {
   return (
     <Box>
       <Box mb={2}>
-        <Typography sx={{ fontWeight: 400 }} mb={1}>
-          {t("alertThreshold")}
-        </Typography>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("alertThreshold")}</FormLabel>
         <Select
           value={alertThreshold}
           onChange={(event) => setAlertThreshold(String(event.target.value))}
           // use String() to prevent undefined from setting alertimpact
-          sx={{ marginRight: "10px", minWidth: "800px" }}
           size="small"
+          fullWidth
         >
           {sortedSSVCPriorities.map((ssvcPriority) => (
             <MenuItem key={ssvcPriority} value={ssvcPriority}>
@@ -219,51 +218,58 @@ export function PTeamNotificationSetting(props) {
         </Select>
       </Box>
       <Box mb={2}>
-        <Typography sx={{ fontWeight: 400 }} mb={1}>
-          {t("emailAddress")}
-        </Typography>
-        <Box display="flex" alignItems="center">
-          <FormControl
-            sx={{ marginRight: "10px", minWidth: "715px" }}
-            variant="outlined"
-            size="small"
-          >
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("emailAddress")}</FormLabel>
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems={{ sm: "center" }}
+          gap={1}
+        >
+          <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
             <OutlinedInput
               id="pteam-mail-address-field"
               type="text"
               autoComplete="new-password" // to avoid autocomplete by browser
               value={mailAddress}
               onChange={(event) => handleMailAddressSetting(event.target.value)}
-              placeholder={t("emailPlaceholder", {
-                maxHalf: maxEmailAddressLengthInHalf,
-                maxFull: Math.floor(maxEmailAddressLengthInHalf / 2),
-              })}
             />
           </FormControl>
-          <CheckButton onHandleClick={handleCheckMail} isLoading={checkEmail} />
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleCheckMail}
+            sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap", px: 2 }}
+          >
+            {checkEmail ? (
+              <CircularProgress size="1.6rem" sx={{ color: "#fff" }} />
+            ) : (
+              t("testConnection")
+            )}
+          </Button>
         </Box>
+        <FormHelperText>
+          {t("emailPlaceholder", {
+            maxHalf: maxEmailAddressLengthInHalf,
+            maxFull: Math.floor(maxEmailAddressLengthInHalf / 2),
+          })}
+        </FormHelperText>
         <Box mt={1}>{emailMessage}</Box>
       </Box>
       <Box mb={2}>
-        <Typography sx={{ fontWeight: 400 }} mb={1}>
-          {t("slackWebhook")}
-        </Typography>
-        <Box display="flex" alignItems="center">
-          <FormControl
-            sx={{ marginRight: "10px", minWidth: "715px" }}
-            variant="outlined"
-            size="small"
-          >
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("slackWebhook")}</FormLabel>
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems={{ sm: "center" }}
+          gap={1}
+        >
+          <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
             <OutlinedInput
               id="pteam-slack-url-field"
               type={editingSlackUrl ? "text" : "password"}
               autoComplete="new-password" // to avoid autocomplete by browser
               value={slackUrl}
               onChange={(event) => handleSlackUrlSetting(event.target.value)}
-              placeholder={t("slackPlaceholder", {
-                maxHalf: maxSlackWebhookUrlLengthInHalf,
-                maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
-              })}
               endAdornment={
                 <InputAdornment position="end">
                   <IconButton
@@ -277,8 +283,25 @@ export function PTeamNotificationSetting(props) {
               }
             />
           </FormControl>
-          <CheckButton onHandleClick={handleCheckSlack} isLoading={checkSlack} />
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleCheckSlack}
+            sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap", px: 2 }}
+          >
+            {checkSlack ? (
+              <CircularProgress size="1.6rem" sx={{ color: "#fff" }} />
+            ) : (
+              t("testConnection")
+            )}
+          </Button>
         </Box>
+        <FormHelperText>
+          {t("slackPlaceholder", {
+            maxHalf: maxSlackWebhookUrlLengthInHalf,
+            maxFull: Math.floor(maxSlackWebhookUrlLengthInHalf / 2),
+          })}
+        </FormHelperText>
         <Box mt={1}>{slackMessage}</Box>
       </Box>
 

@@ -31,10 +31,8 @@
     "sendBy": "送信方法",
     "slack": "Slack",
     "email": "メール",
+    "testConnection": "疎通確認",
     "save": "保存"
-  },
-  "CheckButton": {
-    "check": "確認"
   },
   "SmsResendButton": {
     "resend": "コードを再送信",
