@@ -161,10 +161,10 @@ export function PTeamGeneralSetting(props) {
         >
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600 }} color="error">
-              このチームを削除
+              {t("deleteSectionTitle")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              削除すると、全サービス・チケット・データが完全に失われます。
+              {t("deleteSectionDescription")}
             </Typography>
           </Box>
           <Button
@@ -173,22 +173,21 @@ export function PTeamGeneralSetting(props) {
             onClick={handleOpenDeleteDialog}
             sx={{ width: { xs: "100%", sm: "auto" } }}
           >
-            削除
+            {t("deleteButton")}
           </Button>
         </Box>
       </Box>
 
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <Typography variant="h6">チームの削除</Typography>
+          <Typography variant="h6">{t("deleteDialogTitle")}</Typography>
         </DialogTitle>
         <DialogContent>
           <Typography mb={2}>
-            この操作は取り消せません。「{pteam.pteam_name}
-            」に関連する全サービス・チケット・データが完全に削除されます。
+            {t("deleteDialogDescription", { teamName: pteam.pteam_name })}
           </Typography>
           <Typography variant="body2" mb={1}>
-            確認のため「{pteam.pteam_name}」と入力してください:
+            {t("deleteDialogConfirmLabel", { teamName: pteam.pteam_name })}
           </Typography>
           <TextField
             size="small"
@@ -199,14 +198,14 @@ export function PTeamGeneralSetting(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>キャンセル</Button>
+          <Button onClick={handleCloseDeleteDialog}>{t("deleteDialogCancel")}</Button>
           <Button
             disabled={deleteConfirmName !== pteam.pteam_name}
             onClick={handleCloseDeleteDialog}
             color="error"
             variant="contained"
           >
-            このチームを削除
+            {t("deleteDialogConfirm")}
           </Button>
         </DialogActions>
       </Dialog>
