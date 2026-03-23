@@ -22,7 +22,7 @@ def upgrade() -> None:
     sa.Column('sbom_upload_progress_id', sa.String(length=36), nullable=False),
     sa.Column('pteam_id', sa.String(length=36), nullable=False),
     sa.Column('service_name', sa.String(length=255), nullable=False),
-    sa.Column('progress_rate', sa.Float(), nullable=True),
+    sa.Column('progress_rate', sa.Float(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['pteam_id'], ['pteam.pteam_id'], ondelete='CASCADE'),
