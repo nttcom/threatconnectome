@@ -30,6 +30,7 @@ import type {
   GetInsightTicketsTicketIdInsightGetData,
   GetPteamPteamsPteamIdGetData,
   UpdatePteamPteamsPteamIdPutData,
+  DeletePteamPteamsPteamIdDeleteData,
   PTeamInviterResponse,
   InvitedPteamPteamsInvitationInvitationIdGetData,
   CreateInvitationPteamsPteamIdInvitationPostData,
@@ -203,6 +204,17 @@ export const tcApi = createApi({
       invalidatesTags: (_result, _error, _arg) => [
         { type: "PTeam", id: _arg.path.pteam_id },
         { type: "PTeam", id: "ALL" },
+      ],
+    }),
+    deletePTeam: builder.mutation<void, DeletePteamPteamsPteamIdDeleteData>({
+      query: (arg) => ({
+        url: `pteams/${arg.path.pteam_id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, arg) => [
+        { type: "PTeam", id: arg.path.pteam_id },
+        { type: "PTeam", id: "ALL" },
+        { type: "PTeamAccountRole", id: "ALL" },
       ],
     }),
 
@@ -621,6 +633,7 @@ export const {
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
+  useDeletePTeamMutation,
   useGetPTeamEoLsQuery,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
