@@ -16,11 +16,11 @@ import { useSnackbar } from "notistack";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { FileDropZone } from "./FileDropZone";
-import { useUploadSBOMFileMutation } from "../../services/tcApi";
-import { calculateEstimateTimeFromSize } from "../../utils/estimator";
-import { errorToString } from "../../utils/func";
+import { useUploadSBOMFileMutation } from "../../../services/tcApi";
+import { calculateEstimateTimeFromSize } from "../../../utils/estimator";
+import { errorToString } from "../../../utils/func";
 
+import { FileDropZone } from "./FileDropZone";
 import { WaitingModal } from "./WaitingModal";
 
 type Props = {
