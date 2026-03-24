@@ -30,6 +30,7 @@ import type {
   GetInsightTicketsTicketIdInsightGetData,
   GetPteamPteamsPteamIdGetData,
   UpdatePteamPteamsPteamIdPutData,
+  DeletePteamPteamsPteamIdDeleteData,
   PTeamInviterResponse,
   InvitedPteamPteamsInvitationInvitationIdGetData,
   CreateInvitationPteamsPteamIdInvitationPostData,
@@ -150,7 +151,10 @@ export const tcApi = createApi({
           limit: arg?.query?.limit,
         },
       }),
-      providesTags: (_result, _error, _arg) => [{ type: "Service", id: "ALL" }],
+      providesTags: (_result, _error, _arg) => [
+        { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
+      ],
     }),
     getDependency: builder.query<
       DependencyResponse,
@@ -163,6 +167,7 @@ export const tcApi = createApi({
       providesTags: (_result, _error, _arg) => [
         { type: "Service", id: "ALL" },
         { type: "Dependency", id: _arg.path.dependency_id },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -179,6 +184,7 @@ export const tcApi = createApi({
       providesTags: (_result, _error, _arg) => [
         { type: "Service", id: "ALL" },
         { type: "Threat", id: "ALL" },
+        { type: "PTeam", id: "ALL" },
       ],
     }),
 
@@ -212,13 +218,26 @@ export const tcApi = createApi({
         { type: "PTeam", id: "ALL" },
       ],
     }),
+    deletePTeam: builder.mutation<void, DeletePteamPteamsPteamIdDeleteData>({
+      query: (arg) => ({
+        url: `pteams/${arg.path.pteam_id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "PTeam", id: _arg.path.pteam_id },
+        { type: "PTeam", id: "ALL" },
+      ],
+    }),
 
     /* PTeam EoL */
     getPTeamEoLs: builder.query<PTeamEoLProductListResponse, GetPTeamEoLsRequestQuery>({
       query: (arg) => ({
         url: `pteams/${arg.pteam_id}/eols`,
       }),
-      providesTags: (_result, _error, _arg) => [{ type: "EoLDependency", id: "ALL" }],
+      providesTags: (_result, _error, _arg) => [
+        { type: "EoLDependency", id: "ALL" },
+        { type: "PTeam", id: _arg.pteam_id },
+      ],
     }),
 
     /* PTeam Invitation */
@@ -267,7 +286,7 @@ export const tcApi = createApi({
       query: (arg) => `pteams/${arg.path.pteam_id}/members`,
 
       providesTags: (_result, _error, _arg) => [
-        { type: "PTeam", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
         { type: "PTeamAccountRole", id: "ALL" },
         ...(_result
           ? _result.map((member) => ({ type: "Account" as const, id: member.user_id }))
@@ -311,6 +330,7 @@ export const tcApi = createApi({
           id: service.service_id,
         })) ?? []),
         { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
     updatePTeamService: builder.mutation<
@@ -363,6 +383,7 @@ export const tcApi = createApi({
         { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -384,6 +405,7 @@ export const tcApi = createApi({
         { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -399,6 +421,7 @@ export const tcApi = createApi({
       providesTags: (_result, _error, _arg) => [
         { type: "Service", id: "ALL" },
         { type: "Service.thumbnail", id: _arg.path.service_id },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -448,6 +471,7 @@ export const tcApi = createApi({
         { type: "Threat", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
         { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -503,6 +527,7 @@ export const tcApi = createApi({
         { type: "Ticket", id: "ALL" },
         { type: "TicketStatus", id: "ALL" },
         { type: "Threat", id: "ALL" },
+        { type: "PTeam", id: "ALL" },
       ],
     }),
     getPteamTickets: builder.query<
@@ -518,7 +543,7 @@ export const tcApi = createApi({
           package_id: arg.query?.package_id,
         },
       }),
-      providesTags: (_result, _error, _) => [
+      providesTags: (_result, _error, _arg) => [
         ...(_result
           ? _result.map((ticket) => ({
               type: "TicketStatus" as AllowedTagTypes,
@@ -528,6 +553,7 @@ export const tcApi = createApi({
         { type: "Ticket", id: "ALL" },
         { type: "Threat", id: "ALL" },
         { type: "Service", id: "ALL" },
+        { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
 
@@ -598,11 +624,16 @@ export const tcApi = createApi({
       }),
       providesTags: (_result, _error, _arg) => [
         { type: "Vuln", id: "ALL" },
-        { type: "Service", id: "ALL" },
         ...(_result?.vulns.reduce<Array<{ type: AllowedTagTypes; id: string }>>(
           (ret, vuln) => [...ret, { type: "Vuln", id: vuln.vuln_id }],
           [],
         ) ?? []),
+        ...(_arg.query?.pteam_id
+          ? [
+              { type: "Service" as AllowedTagTypes, id: "ALL" },
+              { type: "PTeam" as AllowedTagTypes, id: _arg.query.pteam_id },
+            ]
+          : []),
       ],
     }),
     getVuln: builder.query<VulnResponse, GetVulnVulnsVulnIdGetData>({
@@ -637,6 +668,7 @@ export const {
   useGetPTeamQuery,
   useCreatePTeamMutation,
   useUpdatePTeamMutation,
+  useDeletePTeamMutation,
   useGetPTeamEoLsQuery,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
