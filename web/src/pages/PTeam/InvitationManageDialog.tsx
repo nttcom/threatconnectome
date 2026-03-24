@@ -19,7 +19,6 @@ import {
   InputAdornment,
   OutlinedInput,
   Paper,
-  Switch,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -29,35 +28,35 @@ import {
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addHours, isBefore } from "date-fns";
+import { useSnackbar } from "notistack";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { SerializedError } from "@reduxjs/toolkit";
+
+// @ts-expect-error TS7016
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import {
+  useCreatePTeamInvitationMutation,
+  useDeleteInvitationMutation,
+  useGetInvitationListQuery,
+} from "../../services/tcApi";
+import { errorToString } from "../../utils/func";
+// @ts-expect-error TS7016
+import { APIError } from "../../utils/APIError";
+
+import type { PTeamInvitationResponse } from "../../../types/types.gen";
 
 type Invitation = {
   id: string;
   link: string;
-  limitCount: number | null;
-  expiration: Date | null;
+  limitCount: number | null | undefined;
+  expiration: Date;
   usedCount: number;
 };
 
 type UsageMode = "unlimited" | "limited";
-
-// Dummy data for mock
-const DUMMY_INVITATIONS: Invitation[] = [
-  {
-    id: "1",
-    link: "https://example.com/pteam/join?token=xt7k9p2m",
-    limitCount: null,
-    expiration: null,
-    usedCount: 0,
-  },
-  {
-    id: "2",
-    link: "https://example.com/pteam/join?token=b4v9m1zq",
-    limitCount: 5,
-    expiration: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    usedCount: 2,
-  },
-];
 
 const formatExpiration = (date: Date | null): string => {
   if (!date) return "無期限";
@@ -68,20 +67,50 @@ const formatExpiration = (date: Date | null): string => {
   return `${m}月${d}日 ${hh}:${mm}まで`;
 };
 
+const tokenToLink = (token: string) =>
+  `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/pteam/join?token=${token}`;
+
 type InvitationListViewProps = {
-  invitations: Invitation[];
-  onDelete: (id: string) => void;
+  pteamId: string;
   onCreateClick: () => void;
   onClose: () => void;
+  t: TFunction;
 };
 
-function InvitationItem({ inv, onDelete }: { inv: Invitation; onDelete: (id: string) => void }) {
+function InvitationItem({
+  inv,
+  pteamId,
+  t,
+}: {
+  inv: PTeamInvitationResponse;
+  pteamId: string;
+  t: TFunction;
+}) {
   const [copied, setCopied] = useState(false);
 
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [deleteInvitation] = useDeleteInvitationMutation();
+
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(inv.link).catch(console.error);
+    await navigator.clipboard.writeText(tokenToLink(inv.invitation_id)).catch(console.error);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDelete = async (invitationId: string) => {
+    const onSuccess = () => {
+      enqueueSnackbar(t("createInvitationSucceeded"), { variant: "success" });
+    };
+    const onError = (error: string | SerializedError | FetchBaseQueryError) => {
+      enqueueSnackbar(t("createInvitationFailed", { error: errorToString(error) }), {
+        variant: "error",
+      });
+    };
+    await deleteInvitation({ path: { pteam_id: pteamId, invitation_id: invitationId } })
+      .unwrap()
+      .then(() => onSuccess())
+      .catch((error) => onError(error));
   };
 
   return (
@@ -96,19 +125,19 @@ function InvitationItem({ inv, onDelete }: { inv: Invitation; onDelete: (id: str
           mb: 0.5,
         }}
       >
-        {inv.link}
+        {tokenToLink(inv.invitation_id)}
       </Typography>
       <Box display="flex" alignItems="center" gap={2} mb={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
           <PersonIcon fontSize="small" color="action" />
           <Typography variant="caption" color="text.secondary">
-            {inv.limitCount == null ? "無制限" : `${inv.usedCount}/${inv.limitCount}回`}
+            {inv.limit_count == null ? "無制限" : `${inv.used_count}/${inv.limit_count}回`}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" gap={0.5}>
           <ScheduleIcon fontSize="small" color="action" />
           <Typography variant="caption" color="text.secondary">
-            {formatExpiration(inv.expiration)}
+            {formatExpiration(new Date(inv.expiration))}
           </Typography>
         </Box>
       </Box>
@@ -123,7 +152,12 @@ function InvitationItem({ inv, onDelete }: { inv: Invitation; onDelete: (id: str
             コピー
           </Button>
         </Tooltip>
-        <Button size="small" variant="outlined" color="error" onClick={() => onDelete(inv.id)}>
+        <Button
+          size="small"
+          variant="outlined"
+          color="error"
+          onClick={() => handleDelete(inv.invitation_id)}
+        >
           無効化
         </Button>
       </Box>
@@ -131,12 +165,21 @@ function InvitationItem({ inv, onDelete }: { inv: Invitation; onDelete: (id: str
   );
 }
 
-function InvitationListView({
-  invitations,
-  onDelete,
-  onCreateClick,
-  onClose,
-}: InvitationListViewProps) {
+function InvitationListView({ pteamId, onCreateClick, onClose, t }: InvitationListViewProps) {
+  const skip = useSkipUntilAuthUserIsReady() || !pteamId;
+  const {
+    data: invitationsData,
+    error: invitationsError,
+    isLoading: invitationsIsLoading,
+  } = useGetInvitationListQuery({ pteam_id: pteamId }, { skip });
+
+  if (skip) return <></>;
+  if (invitationsError)
+    throw new APIError(errorToString(invitationsError), {
+      api: "getInvitationList",
+    });
+  if (invitationsIsLoading) return <>{t("loading")}</>;
+
   return (
     <>
       <DialogTitle sx={{ pb: 1 }}>
@@ -167,12 +210,14 @@ function InvitationListView({
             新規作成
           </Button>
         </Box>
-        {invitations.length === 0 ? (
+        {invitationsData && invitationsData.length === 0 ? (
           <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
             有効な招待リンクはありません
           </Typography>
         ) : (
-          invitations.map((inv) => <InvitationItem key={inv.id} inv={inv} onDelete={onDelete} />)
+          invitationsData?.map((inv) => (
+            <InvitationItem key={inv.invitation_id} inv={inv} pteamId={pteamId} t={t} />
+          ))
         )}
       </DialogContent>
     </>
@@ -180,29 +225,58 @@ function InvitationListView({
 }
 
 type InvitationCreateFormProps = {
-  onCreate: (invitation: Invitation) => void;
   onBack: () => void;
+  onSuccessNavigate: () => void;
   onClose: () => void;
+  onSetCreatedInv: (inv: Invitation) => void;
+  pteamId: string;
+  t: TFunction;
 };
 
-function InvitationCreateForm({ onCreate, onBack, onClose }: InvitationCreateFormProps) {
+function InvitationCreateForm({
+  onBack,
+  onSuccessNavigate,
+  onClose,
+  onSetCreatedInv,
+  pteamId,
+  t,
+}: InvitationCreateFormProps) {
   const [usageMode, setUsageMode] = useState<UsageMode>("unlimited");
   const [limitCount, setLimitCount] = useState(1);
-  const [expirationEnabled, setExpirationEnabled] = useState(false);
-  const [expiration, setExpiration] = useState<Date>(addHours(new Date(), 24));
+  const [expiration, setExpiration] = useState<Date>(addHours(new Date(), 1));
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [createPTeamInvitation] = useCreatePTeamInvitationMutation();
 
   const now = new Date();
-  const isCreateDisabled = expirationEnabled && !isBefore(now, expiration);
+  const isCreateDisabled = !isBefore(now, expiration);
 
-  const handleCreate = () => {
-    const newInv: Invitation = {
-      id: String(Date.now()),
-      link: `https://example.com/pteam/join?token=${Math.random().toString(36).slice(2, 10)}`,
-      limitCount: usageMode === "limited" ? limitCount : null,
-      expiration: expirationEnabled ? expiration : null,
-      usedCount: 0,
+  const handleCreate = async () => {
+    const onSuccess = (data: PTeamInvitationResponse) => {
+      enqueueSnackbar(t("createInvitationSucceeded"), { variant: "success" });
+      onSetCreatedInv({
+        id: data.invitation_id,
+        link: tokenToLink(data.invitation_id),
+        limitCount: data.limit_count,
+        expiration: new Date(data.expiration),
+        usedCount: data.used_count,
+      });
+      onSuccessNavigate();
     };
-    onCreate(newInv);
+    const onError = (error: string | SerializedError | FetchBaseQueryError) => {
+      enqueueSnackbar(t("createInvitationFailed", { error: errorToString(error) }), {
+        variant: "error",
+      });
+    };
+    const data = {
+      expiration: expiration.toISOString(),
+      limit_count: usageMode === "limited" ? limitCount : null,
+    };
+    await createPTeamInvitation({ path: { pteam_id: pteamId }, body: data })
+      .unwrap()
+      .then((success) => onSuccess(success))
+      .catch((error) => onError(error));
   };
 
   return (
@@ -266,25 +340,14 @@ function InvitationCreateForm({ onCreate, onBack, onClose }: InvitationCreateFor
                 有効期限
               </Typography>
               <Box flexGrow={1} />
-              <Switch
-                checked={expirationEnabled}
-                onChange={(e) => setExpirationEnabled(e.target.checked)}
-                size="small"
-              />
             </Box>
-            {expirationEnabled ? (
-              <DateTimePicker
-                format="yyyy/MM/dd HH:mm"
-                minDateTime={now}
-                value={expiration}
-                onChange={(val) => val && setExpiration(val)}
-                slotProps={{ textField: { size: "small", fullWidth: true, sx: { mt: 1 } } }}
-              />
-            ) : (
-              <Typography variant="body2" color="text.secondary" mt={0.5}>
-                期限なし（いつでも使用可能）
-              </Typography>
-            )}
+            <DateTimePicker
+              format="yyyy/MM/dd HH:mm"
+              minDateTime={now}
+              value={expiration}
+              onChange={(val) => val && setExpiration(val)}
+              slotProps={{ textField: { size: "small", fullWidth: true, sx: { mt: 1 } } }}
+            />
           </Box>
         </Paper>
       </DialogContent>
@@ -307,7 +370,7 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(invitation.link).catch(console.error);
+    await navigator.clipboard.writeText(tokenToLink(invitation.link)).catch(console.error);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -407,13 +470,14 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
 }
 
 type Props = {
-  initialInvitations?: Invitation[];
+  pteamId: string;
 };
 
-export function InvitationManageDialog({ initialInvitations = DUMMY_INVITATIONS }: Props) {
+export function InvitationManageDialog({ pteamId }: Props) {
+  const { t } = useTranslation("pteam", { keyPrefix: "InvitationManageDialog" });
+
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"list" | "create" | "success">("list");
-  const [invitations, setInvitations] = useState<Invitation[]>(initialInvitations);
   const [createdInv, setCreatedInv] = useState<Invitation | null>(null);
 
   const handleOpen = () => {
@@ -421,16 +485,6 @@ export function InvitationManageDialog({ initialInvitations = DUMMY_INVITATIONS 
     setOpen(true);
   };
   const handleClose = () => setOpen(false);
-
-  const handleCreate = (inv: Invitation) => {
-    setInvitations((prev) => [inv, ...prev]);
-    setCreatedInv(inv);
-    setView("success");
-  };
-
-  const handleDelete = (id: string) => {
-    setInvitations((prev) => prev.filter((inv) => inv.id !== id));
-  };
 
   return (
     <>
@@ -440,17 +494,20 @@ export function InvitationManageDialog({ initialInvitations = DUMMY_INVITATIONS 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {view === "list" && (
           <InvitationListView
-            invitations={invitations}
-            onDelete={handleDelete}
+            pteamId={pteamId}
             onCreateClick={() => setView("create")}
             onClose={handleClose}
+            t={t}
           />
         )}
         {view === "create" && (
           <InvitationCreateForm
-            onCreate={handleCreate}
             onBack={() => setView("list")}
+            onSuccessNavigate={() => setView("success")}
             onClose={handleClose}
+            onSetCreatedInv={setCreatedInv}
+            pteamId={pteamId}
+            t={t}
           />
         )}
         {view === "success" && createdInv && (

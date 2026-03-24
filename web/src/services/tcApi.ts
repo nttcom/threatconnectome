@@ -17,6 +17,8 @@ import type {
   CreatePteamPteamsPostData,
   PTeamInvitationResponse,
   ApplyInvitationPteamsApplyInvitationPostData,
+  ListInvitationsPteamsPteamIdInvitationGetData,
+  DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteData,
   PTeamMemberUpdateResponse,
   UpdatePteamServicePteamsPteamIdServicesServiceIdPutData,
   PTeamServiceUpdateResponse,
@@ -89,6 +91,18 @@ type GetPTeamEoLsRequestQuery = Pick<
 type UploadSbomRequestParams = Pick<
   UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
   "body" | "path" | "query"
+>;
+
+type CreateInvitationRequestParams = Pick<
+  CreateInvitationPteamsPteamIdInvitationPostData,
+  "body" | "path"
+>;
+
+type GetInvitationListQuery = Pick<ListInvitationsPteamsPteamIdInvitationGetData, "path">["path"];
+
+type DeleteInvitationRequestParams = Pick<
+  DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteData,
+  "body" | "path"
 >;
 
 export const getBearerToken = {
@@ -227,16 +241,23 @@ export const tcApi = createApi({
         { type: "PTeamInvitation", id: "ALL" },
       ],
     }),
-    createPTeamInvitation: builder.mutation<
-      PTeamInvitationResponse,
-      CreateInvitationPteamsPteamIdInvitationPostData
-    >({
+    createPTeamInvitation: builder.mutation<PTeamInvitationResponse, CreateInvitationRequestParams>(
+      {
+        query: (arg) => ({
+          url: `pteams/${arg.path.pteam_id}/invitation`,
+          method: "POST",
+          body: arg.body,
+        }),
+        invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
+      },
+    ),
+    deleteInvitation: builder.mutation<void, DeleteInvitationRequestParams>({
       query: (arg) => ({
-        url: `pteams/${arg.path.pteam_id}/invitation`,
-        method: "POST",
+        url: `pteams/${arg.path.pteam_id}/invitation/${arg.path.invitation_id}`,
+        method: "DELETE",
         body: arg.body,
       }),
-      invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
+      invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" },],
     }),
     applyPTeamInvitation: builder.mutation<PTeamInfo, ApplyInvitationPteamsApplyInvitationPostData>(
       {
@@ -251,6 +272,12 @@ export const tcApi = createApi({
         ],
       },
     ),
+    getInvitationList: builder.query<Array<PTeamInvitationResponse>, GetInvitationListQuery>({
+      query: (arg) => ({
+        url: `pteams/${arg.pteam_id}/invitation`,
+      }),
+      providesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
+    }),
 
     /* PTeam Member */
     getPTeamMembers: builder.query<
@@ -624,7 +651,9 @@ export const {
   useGetPTeamEoLsQuery,
   useGetPTeamInvitationQuery,
   useCreatePTeamInvitationMutation,
+  useDeleteInvitationMutation,
   useApplyPTeamInvitationMutation,
+  useGetInvitationListQuery,
   useGetPTeamMembersQuery,
   useDeletePTeamMemberMutation,
   useUpdatePTeamMemberMutation,

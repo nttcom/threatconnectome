@@ -37,7 +37,7 @@ export function PTeamMember(props) {
   return (
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        {pteamId && <InvitationManageDialog />}
+        {pteamId && <InvitationManageDialog pteamId={pteamId} />}
       </Box>
       {isMdDown ? (
         <Stack spacing={2}>
