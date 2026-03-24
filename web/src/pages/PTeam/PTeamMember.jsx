@@ -18,6 +18,10 @@ import { useTranslation } from "react-i18next";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
 import { experienceColors } from "../../utils/const";
+import { useGetUserMeQuery } from "../../services/tcApi";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { APIError } from "../../utils/APIError";
+import { errorToString } from "../../utils/func";
 
 import { InvitationManageDialog } from "./InvitationManageDialog";
 import { PTeamMemberMenu } from "./PTeamMemberMenu";
@@ -34,10 +38,27 @@ export function PTeamMember(props) {
         .filter((member) => member.disabled === false)
     : [];
 
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
+  if (skip) return <></>;
+  if (userMeError)
+    throw new APIError(errorToString(membersError), {
+      api: "getUserMe",
+    });
+
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+
+  const user = userMe.pteam_roles.find((pteam_role) => pteam_role.pteam.pteam_id === pteamId);
+
   return (
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        {pteamId && <InvitationManageDialog pteamId={pteamId} />}
+        {user.is_admin && pteamId && <InvitationManageDialog pteamId={pteamId} />}
       </Box>
       {isMdDown ? (
         <Stack spacing={2}>
@@ -71,6 +92,7 @@ export function PTeamMember(props) {
                     memberUserId={member.user_id}
                     userEmail={member.email}
                     isTargetMemberAdmin={member.is_admin}
+                    userMe={userMe}
                   />
                 </Box>
               </Box>
@@ -140,6 +162,7 @@ export function PTeamMember(props) {
                       memberUserId={member.user_id}
                       userEmail={member.email}
                       isTargetMemberAdmin={member.is_admin}
+                      userMe={userMe}
                     />
                   </TableCell>
                 </TableRow>

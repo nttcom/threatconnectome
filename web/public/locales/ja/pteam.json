@@ -43,6 +43,7 @@
     "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}。"
   },
   "PTeamMember": {
+    "loadingUserInfo": "ユーザー情報を読み込んでいます...",
     "addMember": "メンバーを追加",
     "userEmail": "ユーザー（メール）",
     "experienceInSecOps": "セキュリティ運用の経験年数",
@@ -51,7 +52,6 @@
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
-    "nowLoadingUserInfo": "ユーザー情報を読み込んでいます...",
     "nowLoadingTeam": "チーム情報を読み込んでいます...",
     "authorities": "権限",
     "removeFromTeam": "チームから削除"
