@@ -114,6 +114,13 @@
           "textField": "Enter the reason for changing Safety Impact...",
           "save": "Saving...",
           "saveReason": "Save Reason"
+        },
+        "VersionUpdateCard": {
+          "failedToLoad": "Failed to load",
+          "versionStatus": "Version status",
+          "currentVersion": "Current version",
+          "fixedVersion": "Fixed version",
+          "noFixedVersions": "No fixed versions available"
         }
       }
     }

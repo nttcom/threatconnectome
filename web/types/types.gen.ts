@@ -893,6 +893,28 @@ export type SsvcDeployerPriorityEnum = 'immediate' | 'out_of_cycle' | 'scheduled
 export type SafetyImpactEnum = 'catastrophic' | 'critical' | 'marginal' | 'negligible';
 
 /**
+ * SbomUploadProgressResponse
+ */
+export type SbomUploadProgressResponse = {
+    /**
+     * Sbom Upload Progress Id
+     */
+    sbom_upload_progress_id: string;
+    /**
+     * Service Name
+     */
+    service_name: string;
+    /**
+     * Progress Rate
+     */
+    progress_rate: number;
+    /**
+     * Expected Finish Time
+     */
+    expected_finish_time: string;
+};
+
+/**
  * ServiceEntry
  */
 export type ServiceEntry = {
@@ -2356,6 +2378,38 @@ export type UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponses 
 };
 
 export type UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponse = UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponses[keyof UploadPteamPackagesFilePteamsPteamIdUploadPackagesFilePostResponses];
+
+export type GetSbomProgressPteamsPteamIdSbomUploadProgressGetData = {
+    body?: never;
+    path: {
+        /**
+         * Pteam Id
+         */
+        pteam_id: string;
+    };
+    query?: never;
+    url: '/pteams/{pteam_id}/sbom_upload_progress';
+};
+
+export type GetSbomProgressPteamsPteamIdSbomUploadProgressGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetSbomProgressPteamsPteamIdSbomUploadProgressGetError = GetSbomProgressPteamsPteamIdSbomUploadProgressGetErrors[keyof GetSbomProgressPteamsPteamIdSbomUploadProgressGetErrors];
+
+export type GetSbomProgressPteamsPteamIdSbomUploadProgressGetResponses = {
+    /**
+     * Response Get Sbom Progress Pteams  Pteam Id  Sbom Upload Progress Get
+     *
+     * Successful Response
+     */
+    200: Array<SbomUploadProgressResponse>;
+};
+
+export type GetSbomProgressPteamsPteamIdSbomUploadProgressGetResponse = GetSbomProgressPteamsPteamIdSbomUploadProgressGetResponses[keyof GetSbomProgressPteamsPteamIdSbomUploadProgressGetResponses];
 
 export type GetPteamMembersPteamsPteamIdMembersGetData = {
     body?: never;

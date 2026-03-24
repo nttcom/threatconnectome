@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamStatusSSVCCards } from "../PTeamStatusSSVCCards";
-import { SBOMUpdateButton } from "../SBOMUpdateButton";
+import { SBOMUpdateButton } from "../SbomDrop/SBOMUpdateButton";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 function ServiceIDCopyButton({ ServiceId }) {

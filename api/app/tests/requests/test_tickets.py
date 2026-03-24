@@ -499,13 +499,11 @@ class TestGetTickets:
 
         for i in range(3):
             testdb.execute(
-                text(
-                    f"""
+                text(f"""
                     UPDATE vuln
                     SET {"cve_id = :cve_id"}
                     WHERE vuln_id = :vuln_id
-                    """
-                ),
+                    """),
                 {
                     "vuln_id": str(ticket_setup["vuln" + str(i + 1)].vuln_id),
                     "cve_id": vulns_data[i]["cve_id"],

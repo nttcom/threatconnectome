@@ -294,6 +294,13 @@ class PTeamInviterResponse(ORMModel):
     user_id: UUID
 
 
+class SbomUploadProgressResponse(ORMModel):
+    sbom_upload_progress_id: UUID
+    service_name: str
+    progress_rate: float
+    expected_finish_time: datetime
+
+
 class ApplyInvitationRequest(ORMModel):
     invitation_id: UUID
 
