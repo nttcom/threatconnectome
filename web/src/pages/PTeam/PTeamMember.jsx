@@ -17,10 +17,10 @@ import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
-import { experienceColors } from "../../utils/const";
-import { useGetUserMeQuery } from "../../services/tcApi";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { experienceColors } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 import { InvitationManageDialog } from "./InvitationManageDialog";
@@ -47,7 +47,7 @@ export function PTeamMember(props) {
 
   if (skip) return <></>;
   if (userMeError)
-    throw new APIError(errorToString(membersError), {
+    throw new APIError(errorToString(userMeError), {
       api: "getUserMe",
     });
 

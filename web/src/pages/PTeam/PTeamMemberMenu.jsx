@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
+import { useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString, checkAdmin } from "../../utils/func";
 

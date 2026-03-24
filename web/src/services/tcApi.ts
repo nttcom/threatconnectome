@@ -257,7 +257,7 @@ export const tcApi = createApi({
         method: "DELETE",
         body: arg.body,
       }),
-      invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" },],
+      invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
     }),
     applyPTeamInvitation: builder.mutation<PTeamInfo, ApplyInvitationPteamsApplyInvitationPostData>(
       {
