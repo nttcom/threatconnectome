@@ -116,7 +116,7 @@
           "saveReason": "変更理由を保存する"
         },
         "CompletionEvidenceSection": {
-          "title": "完了メモ",
+          "title": "完了の証拠",
           "notProvided": "（未入力）",
           "save": "保存",
           "updateSuccess": "更新しました",
