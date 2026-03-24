@@ -15,6 +15,7 @@
     "contactInfo": "Contact Info",
     "contactInfoPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "save": "Save",
+    "deleteSucceeded": "Delete team succeeded",
     "deleteSectionTitle": "Delete this team",
     "deleteSectionDescription": "Deleting this team will permanently remove all services, tickets, and data.",
     "deleteButton": "Delete",

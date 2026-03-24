@@ -13,9 +13,10 @@ import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { useViewportOffset } from "../hooks/useViewportOffset";
-import { useUpdatePTeamMutation } from "../services/tcApi";
+import { useUpdatePTeamMutation, useDeletePTeamMutation } from "../services/tcApi";
 import {
   modalCommonButtonStyle,
   maxPTeamNameLengthInHalf,
@@ -33,9 +34,11 @@ export function PTeamGeneralSetting(props) {
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
 
   const [updatePTeam] = useUpdatePTeamMutation();
+  const [deletePTeam] = useDeletePTeamMutation();
 
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
+  const navigate = useNavigate();
 
   const operationError = (error) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
@@ -99,6 +102,16 @@ export function PTeamGeneralSetting(props) {
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setDeleteConfirmName("");
+  };
+
+  const handleDeletePTeam = async () => {
+    try {
+      await deletePTeam({ path: { pteam_id: pteam.pteam_id } }).unwrap();
+      enqueueSnackbar(t("deleteSucceeded"), { variant: "success" });
+      navigate("/");
+    } catch (error) {
+      operationError(error);
+    }
   };
 
   return (
@@ -201,7 +214,10 @@ export function PTeamGeneralSetting(props) {
           <Button onClick={handleCloseDeleteDialog}>{t("deleteDialogCancel")}</Button>
           <Button
             disabled={deleteConfirmName !== pteam.pteam_name}
-            onClick={handleCloseDeleteDialog}
+            onClick={async () => {
+              await handleDeletePTeam();
+              handleCloseDeleteDialog();
+            }}
             color="error"
             variant="contained"
           >

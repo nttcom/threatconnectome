@@ -15,6 +15,7 @@
     "contactInfo": "連絡先情報",
     "contactInfoPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "save": "保存",
+    "deleteSucceeded": "チームを削除しました",
     "deleteSectionTitle": "このチームを削除",
     "deleteSectionDescription": "削除すると、全サービス・チケット・データが完全に失われます。",
     "deleteButton": "削除",
