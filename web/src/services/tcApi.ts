@@ -609,11 +609,13 @@ export const tcApi = createApi({
       providesTags: (_result, _error, _arg) => [
         { type: "Vuln", id: "ALL" },
         { type: "Service", id: "ALL" },
-        { type: "PTeam", id: "ALL" },
         ...(_result?.vulns.reduce<Array<{ type: AllowedTagTypes; id: string }>>(
           (ret, vuln) => [...ret, { type: "Vuln", id: vuln.vuln_id }],
           [],
         ) ?? []),
+        ...(_arg.query?.pteam_id
+          ? [{ type: "PTeam" as AllowedTagTypes, id: _arg.query.pteam_id }]
+          : [{ type: "PTeam" as AllowedTagTypes, id: "ALL" }]),
       ],
     }),
     getVuln: builder.query<VulnResponse, GetVulnVulnsVulnIdGetData>({
