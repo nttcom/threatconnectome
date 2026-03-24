@@ -17,7 +17,7 @@
     "save": "Save",
     "deleteSucceeded": "Delete team succeeded",
     "deleteSectionTitle": "Delete this team",
-    "deleteSectionDescription": "Deleting this team will permanently remove all services, tickets, and data.",
+    "deleteSectionDescription": "Deleting this team will permanently delete all associated services, tickets, and data.",
     "deleteButton": "Delete",
     "deleteDialogTitle": "Delete team",
     "deleteDialogDescription": "This action cannot be undone. All services, tickets, and data associated with \"{{teamName}}\" will be permanently deleted.",
