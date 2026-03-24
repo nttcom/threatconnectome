@@ -5,18 +5,6 @@
     "experience_years_other": "{{count}}+ years experience",
     "tabMembers": "Members"
   },
-  "PTeamInviteModal": {
-    "createNewInvitationLink": "Create New Invitation Link",
-    "pleaseShareLink": "Please share the invitation link below:",
-    "linkAvailableUntil": "This link is available until {{date}}",
-    "close": "Close",
-    "expirationDate": "Expiration Date (future date)",
-    "maxUses": "Max uses: {{count}}",
-    "unlimited": "unlimited",
-    "create": "Create",
-    "createInvitationFailed": "Creating invitation failed: {{error}}",
-    "createInvitationSucceeded": "Create new invitation succeeded"
-  },
   "PTeamMemberRemoveModal": {
     "confirm": "Confirm",
     "confirmRemove": "Are you sure you want to remove {{userName}} from the pteam {{pteamName}}?",

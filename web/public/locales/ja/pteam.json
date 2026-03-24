@@ -5,18 +5,6 @@
     "experience_years_other": "経験年数: {{count}}年以上",
     "tabMembers": "メンバー"
   },
-  "PTeamInviteModal": {
-    "createNewInvitationLink": "新しい招待リンクを作成",
-    "pleaseShareLink": "以下の招待リンクを共有してください:",
-    "linkAvailableUntil": "このリンクは {{date}} まで有効です",
-    "close": "閉じる",
-    "expirationDate": "有効期限",
-    "maxUses": "最大使用回数: {{count}}",
-    "unlimited": "無制限",
-    "create": "作成する",
-    "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}。",
-    "createInvitationSucceeded": "招待リンクを作成しました。"
-  },
   "PTeamMemberRemoveModal": {
     "confirm": "確認",
     "confirmRemove": "{{pteamName}} から {{userName}} を削除してもよろしいですか？",
