@@ -211,8 +211,8 @@ export const tcApi = createApi({
         url: `pteams/${arg.path.pteam_id}`,
         method: "DELETE",
       }),
-      invalidatesTags: (_result, _error, arg) => [
-        { type: "PTeam", id: arg.path.pteam_id },
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "PTeam", id: _arg.path.pteam_id },
         { type: "PTeam", id: "ALL" },
         { type: "PTeamAccountRole", id: "ALL" },
       ],
