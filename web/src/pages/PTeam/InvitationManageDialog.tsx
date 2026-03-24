@@ -58,13 +58,13 @@ type Invitation = {
 
 type UsageMode = "unlimited" | "limited";
 
-const formatExpiration = (date: Date | null): string => {
-  if (!date) return "無期限";
+const formatExpiration = (date: Date | null, t: TFunction): string => {
+  if (!date) return t("unlimitedExpiration");
   const m = date.getMonth() + 1;
   const d = date.getDate();
   const hh = String(date.getHours()).padStart(2, "0");
   const mm = String(date.getMinutes()).padStart(2, "0");
-  return `${m}月${d}日 ${hh}:${mm}まで`;
+  return t("expirationFormat", { m, d, hh, mm });
 };
 
 const tokenToLink = (token: string) =>
@@ -100,10 +100,10 @@ function InvitationItem({
 
   const handleDelete = async (invitationId: string) => {
     const onSuccess = () => {
-      enqueueSnackbar(t("createInvitationSucceeded"), { variant: "success" });
+      enqueueSnackbar(t("deleteInvitationSucceeded"), { variant: "success" });
     };
     const onError = (error: string | SerializedError | FetchBaseQueryError) => {
-      enqueueSnackbar(t("createInvitationFailed", { error: errorToString(error) }), {
+      enqueueSnackbar(t("deleteInvitationFailed", { error: errorToString(error) }), {
         variant: "error",
       });
     };
@@ -131,25 +131,27 @@ function InvitationItem({
         <Box display="flex" alignItems="center" gap={0.5}>
           <PersonIcon fontSize="small" color="action" />
           <Typography variant="caption" color="text.secondary">
-            {inv.limit_count == null ? "無制限" : `${inv.used_count}/${inv.limit_count}回`}
+            {inv.limit_count == null
+              ? t("unlimited")
+              : t("usageCount", { used: inv.used_count, limit: inv.limit_count })}
           </Typography>
         </Box>
         <Box display="flex" alignItems="center" gap={0.5}>
           <ScheduleIcon fontSize="small" color="action" />
           <Typography variant="caption" color="text.secondary">
-            {formatExpiration(new Date(inv.expiration))}
+            {formatExpiration(new Date(inv.expiration), t)}
           </Typography>
         </Box>
       </Box>
       <Box display="flex" justifyContent="flex-end" gap={1}>
-        <Tooltip open={copied} title="コピーしました！" placement="top">
+        <Tooltip open={copied} title={t("copied")} placement="top">
           <Button
             size="small"
             variant="outlined"
             startIcon={<ContentCopyIcon />}
             onClick={handleCopy}
           >
-            コピー
+            {t("copy")}
           </Button>
         </Tooltip>
         <Button
@@ -158,7 +160,7 @@ function InvitationItem({
           color="error"
           onClick={() => handleDelete(inv.invitation_id)}
         >
-          無効化
+          {t("deactivate")}
         </Button>
       </Box>
     </Paper>
@@ -186,7 +188,7 @@ function InvitationListView({ pteamId, onCreateClick, onClose, t }: InvitationLi
         <Box display="flex" alignItems="center" gap={1}>
           <LinkIcon fontSize="small" color="primary" />
           <Typography variant="h6" fontWeight="bold">
-            招待リンク管理
+            {t("invitationLinkManagement")}
           </Typography>
           <Box flexGrow={1} />
           <IconButton size="small" onClick={onClose}>
@@ -204,15 +206,15 @@ function InvitationListView({ pteamId, onCreateClick, onClose, t }: InvitationLi
           mb={2}
         >
           <Typography variant="body2" color="text.secondary">
-            発行済みのリンクを管理できます
+            {t("manageSentLinksDescription")}
           </Typography>
           <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={onCreateClick}>
-            新規作成
+            {t("createNew")}
           </Button>
         </Box>
         {invitationsData && invitationsData.length === 0 ? (
           <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>
-            有効な招待リンクはありません
+            {t("noActiveInvitations")}
           </Typography>
         ) : (
           invitationsData?.map((inv) => (
@@ -287,7 +289,7 @@ function InvitationCreateForm({
             <ArrowBackIcon fontSize="small" />
           </IconButton>
           <Typography variant="h6" fontWeight="bold">
-            新しいリンクの作成
+            {t("createNewLink")}
           </Typography>
           <Box flexGrow={1} />
           <IconButton size="small" onClick={onClose}>
@@ -302,7 +304,7 @@ function InvitationCreateForm({
             <Box display="flex" alignItems="center" gap={0.5} mb={1}>
               <PersonIcon fontSize="small" color="action" />
               <Typography variant="body2" fontWeight="medium">
-                使用回数制限
+                {t("usageLimit")}
               </Typography>
             </Box>
             <ToggleButtonGroup
@@ -312,8 +314,8 @@ function InvitationCreateForm({
               fullWidth
               size="small"
             >
-              <ToggleButton value="unlimited">無制限</ToggleButton>
-              <ToggleButton value="limited">回数を指定</ToggleButton>
+              <ToggleButton value="unlimited">{t("unlimited")}</ToggleButton>
+              <ToggleButton value="limited">{t("specifyCount")}</ToggleButton>
             </ToggleButtonGroup>
             {usageMode === "limited" && (
               <Box display="flex" alignItems="center" gap={1} mt={1.5}>
@@ -326,7 +328,7 @@ function InvitationCreateForm({
                   sx={{ width: 100 }}
                 />
                 <Typography variant="body2" color="text.secondary">
-                  回まで使用可能
+                  {t("usageCountSuffix")}
                 </Typography>
               </Box>
             )}
@@ -337,7 +339,7 @@ function InvitationCreateForm({
             <Box display="flex" alignItems="center" gap={0.5}>
               <ScheduleIcon fontSize="small" color="action" />
               <Typography variant="body2" fontWeight="medium">
-                有効期限
+                {t("expirationDate")}
               </Typography>
               <Box flexGrow={1} />
             </Box>
@@ -353,7 +355,7 @@ function InvitationCreateForm({
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button variant="contained" onClick={handleCreate} disabled={isCreateDisabled}>
-          リンクを作成
+          {t("createLink")}
         </Button>
       </DialogActions>
     </LocalizationProvider>
@@ -364,9 +366,10 @@ type InvitationSuccessViewProps = {
   invitation: Invitation;
   onBack: () => void;
   onClose: () => void;
+  t: TFunction;
 };
 
-function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSuccessViewProps) {
+function InvitationSuccessView({ invitation, onBack, onClose, t }: InvitationSuccessViewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -381,7 +384,7 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
         <Box display="flex" alignItems="center" gap={1}>
           <CheckCircleIcon fontSize="small" color="success" />
           <Typography variant="h6" fontWeight="bold">
-            リンクを作成しました
+            {t("linkCreatedSuccessfully")}
           </Typography>
           <Box flexGrow={1} />
           <IconButton size="small" onClick={onClose}>
@@ -405,7 +408,7 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
             <LinkIcon sx={{ color: "success.dark", fontSize: 32 }} />
           </Box>
           <Typography variant="body2" color="text.secondary">
-            以下のリンクをコピーして共有してください
+            {t("copyAndShareDescription")}
           </Typography>
           <OutlinedInput
             value={invitation.link}
@@ -437,7 +440,7 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
                       onClick={handleCopy}
                       sx={{ display: { xs: "none", sm: "inline-flex" } }}
                     >
-                      コピー
+                      {t("copy")}
                     </Button>
                   </Box>
                 </Tooltip>
@@ -449,12 +452,16 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
               <Box display="flex" alignItems="center" gap={0.5}>
                 <PersonIcon fontSize="small" color="action" />
                 <Typography variant="body2">
-                  {invitation.limitCount == null ? "無制限" : `${invitation.limitCount}回まで`}
+                  {invitation.limitCount == null
+                    ? t("unlimited")
+                    : t("upToCount", { count: invitation.limitCount })}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={0.5}>
                 <ScheduleIcon fontSize="small" color="action" />
-                <Typography variant="body2">{formatExpiration(invitation.expiration)}</Typography>
+                <Typography variant="body2">
+                  {formatExpiration(invitation.expiration, t)}
+                </Typography>
               </Box>
             </Box>
           </Paper>
@@ -462,7 +469,7 @@ function InvitationSuccessView({ invitation, onBack, onClose }: InvitationSucces
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2, justifyContent: "center" }}>
         <Button variant="outlined" onClick={onBack}>
-          管理リストに戻る
+          {t("backToList")}
         </Button>
       </DialogActions>
     </>
@@ -489,7 +496,7 @@ export function InvitationManageDialog({ pteamId }: Props) {
   return (
     <>
       <Button variant="contained" color="success" onClick={handleOpen}>
-        招待管理
+        {t("invitationManagement")}
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {view === "list" && (
@@ -515,6 +522,7 @@ export function InvitationManageDialog({ pteamId }: Props) {
             invitation={createdInv}
             onBack={() => setView("list")}
             onClose={handleClose}
+            t={t}
           />
         )}
       </Dialog>
