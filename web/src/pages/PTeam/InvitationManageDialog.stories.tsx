@@ -1,7 +1,10 @@
+import { http, HttpResponse } from "msw";
 import { addHours } from "date-fns";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { InvitationManageDialog } from "./InvitationManageDialog";
+
+const pteamId = "team-123";
 
 const meta = {
   component: InvitationManageDialog,
@@ -24,12 +27,14 @@ A dialog component for issuing and managing invitation links to a team.
     },
   },
   argTypes: {
-    initialInvitations: {
-      description: "List of invitation links to display initially (for mocking)",
-      control: false,
+    pteamId: {
+      description: "Team ID to display",
+      control: "text",
     },
   },
-  args: {},
+  args: {
+    pteamId: pteamId,
+  },
 } satisfies Meta<typeof InvitationManageDialog>;
 
 export default meta;
@@ -41,30 +46,34 @@ type Story = StoryObj<typeof meta>;
  */
 export const ListWithInvitations: Story = {
   name: "List: Normal (multiple links)",
-  args: {
-    initialInvitations: [
-      {
-        id: "1",
-        link: "https://example.com/pteam/join?token=xt7k9p2m",
-        limitCount: null,
-        expiration: null,
-        usedCount: 0,
-      },
-      {
-        id: "2",
-        link: "https://example.com/pteam/join?token=b4v9m1zq",
-        limitCount: 5,
-        expiration: addHours(new Date(), 24),
-        usedCount: 2,
-      },
-    ],
-  },
   parameters: {
     docs: {
       description: {
         story:
           "State with 2 active links. An unlimited/no-expiration link and a usage-limited/expiring link are shown side by side. The 'Revoke' button removes a link from the list.",
       },
+    },
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/invitation`, () => {
+          return HttpResponse.json([
+            {
+              invitation_id: "1",
+              pteam_id: pteamId,
+              expiration: addHours(new Date(), 1),
+              limitCount: null,
+              usedCount: 0,
+            },
+            {
+              invitation_id: "2",
+              pteam_id: pteamId,
+              expiration: addHours(new Date(), 24),
+              limitCount: 5,
+              usedCount: 0,
+            },
+          ]);
+        }),
+      ],
     },
   },
 };
@@ -75,15 +84,19 @@ export const ListWithInvitations: Story = {
  */
 export const ListEmpty: Story = {
   name: "List: Empty (0 links)",
-  args: {
-    initialInvitations: [],
-  },
   parameters: {
     docs: {
       description: {
         story:
           "Initial state with no invitation links. A message saying 'No active invitation links' is displayed. The 'Create New' button navigates to the creation form.",
       },
+    },
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/invitation`, () => {
+          return HttpResponse.json([]);
+        }),
+      ],
     },
   },
 };
@@ -94,21 +107,26 @@ export const ListEmpty: Story = {
  */
 export const ListManyInvitations: Story = {
   name: "List: Many links (8 items)",
-  args: {
-    initialInvitations: Array.from({ length: 8 }, (_, i) => ({
-      id: String(i + 1),
-      link: `https://example.com/pteam/join?token=token${String(i + 1).padStart(4, "0")}`,
-      limitCount: i % 3 === 0 ? null : (i + 1) * 2,
-      expiration: i % 3 === 0 ? null : addHours(new Date(), (i + 1) * 12),
-      usedCount: i,
-    })),
-  },
   parameters: {
     docs: {
       description: {
         story:
           "State with 8 links — a mix of active, expired, unlimited, and usage-limited. Verifies dialog scroll behavior and layout integrity.",
       },
+    },
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/invitation`, () => {
+          const responseDate = Array.from({ length: 8 }, (_, i) => ({
+            invitation_id: String(i + 1),
+            pteam_id: pteamId,
+            expiration: i % 3 === 0 ? null : addHours(new Date(), (i + 1) * 12),
+            limitCount: i % 3 === 0 ? null : (i + 1) * 2,
+            usedCount: i,
+          }));
+          return HttpResponse.json(responseDate);
+        }),
+      ],
     },
   },
 };
@@ -119,23 +137,27 @@ export const ListManyInvitations: Story = {
  */
 export const ListLongUrl: Story = {
   name: "List: Long URL",
-  args: {
-    initialInvitations: [
-      {
-        id: "1",
-        link: "https://very-long-hostname.example.com/pteam/join?token=averylongtokenvaluethatmightoverflowtheuiifnothandledproperly",
-        limitCount: null,
-        expiration: addHours(new Date(), 24),
-        usedCount: 0,
-      },
-    ],
-  },
   parameters: {
     docs: {
       description: {
         story:
           "Checks display of a URL with a very long token segment. Verifies that `text-overflow: ellipsis` works correctly and the layout does not break.",
       },
+    },
+    msw: {
+      handlers: [
+        http.get(`*/pteams/${pteamId}/invitation`, () => {
+          return HttpResponse.json([
+            {
+              invitation_id: "averylongtokenvaluethatmightoverflowtheuiifnothandledproperly",
+              pteam_id: pteamId,
+              expiration: addHours(new Date(), 1),
+              limitCount: null,
+              usedCount: 0,
+            },
+          ]);
+        }),
+      ],
     },
   },
 };
