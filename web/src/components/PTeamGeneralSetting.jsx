@@ -216,7 +216,6 @@ export function PTeamGeneralSetting(props) {
             disabled={deleteConfirmName !== pteam.pteam_name}
             onClick={async () => {
               await handleDeletePTeam();
-              handleCloseDeleteDialog();
             }}
             color="error"
             variant="contained"
