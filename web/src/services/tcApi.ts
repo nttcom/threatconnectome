@@ -301,7 +301,10 @@ export const tcApi = createApi({
       query: (arg) => ({
         url: `pteams/${arg.pteam_id}/invitation`,
       }),
-      providesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
+      providesTags: (_result, _error, _arg) => [
+        { type: "PTeamInvitation", id: "ALL" },
+        { type: "PTeam", id: _arg.pteam_id },
+      ],
     }),
 
     /* PTeam Member */
