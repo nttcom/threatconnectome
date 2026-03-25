@@ -14,7 +14,16 @@
     "teamNamePlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
     "contactInfo": "連絡先情報",
     "contactInfoPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "save": "保存"
+    "save": "保存",
+    "deleteSucceeded": "チームを削除しました",
+    "deleteSectionTitle": "このチームを削除",
+    "deleteSectionDescription": "削除すると、このチームに関連するすべてのサービス・チケット・データが完全に失われます。",
+    "deleteButton": "削除",
+    "deleteDialogTitle": "チームの削除",
+    "deleteDialogDescription": "この操作は取り消せません。「{{teamName}}」に関連する全サービス・チケット・データが完全に削除されます。",
+    "deleteDialogConfirmLabel": "確認のため「{{teamName}}」と入力してください:",
+    "deleteDialogCancel": "キャンセル",
+    "deleteDialogConfirm": "このチームを削除"
   },
   "PTeamNotificationSetting": {
     "operationFailed": "操作に失敗しました: {{error}}。",
