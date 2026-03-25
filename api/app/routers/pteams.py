@@ -1472,8 +1472,9 @@ def get_sbom_progress(
     command.delete_old_sbom_upload_progress(db)
     db.commit()
 
-    sorted_progresses = sorted(pteam.sbom_upload_progresses,
-                               key=lambda progress: progress.created_at)
+    sorted_progresses = sorted(
+        pteam.sbom_upload_progresses, key=lambda progress: progress.created_at
+    )
 
     progress_response = []
     for progress_model in sorted_progresses:
