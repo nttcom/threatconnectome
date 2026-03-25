@@ -1472,8 +1472,11 @@ def get_sbom_progress(
     command.delete_old_sbom_upload_progress(db)
     db.commit()
 
+    sorted_progresses = sorted(pteam.sbom_upload_progresses,
+                               key=lambda progress: progress.created_at)
+
     progress_response = []
-    for progress_model in pteam.sbom_upload_progresses:
+    for progress_model in sorted_progresses:
         expected_finish_time = progress_business.predict_completion_time(
             progress_model.created_at, progress_model.progress_rate
         )
