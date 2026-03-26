@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Sequence
 from uuid import UUID
 
@@ -17,6 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 def missing_pteam_admin(db: Session, pteam: models.PTeam) -> bool:
@@ -713,3 +714,12 @@ def get_eol_products_associated_with_pteam_id(db: Session, pteam_id: UUID | str)
         "total": len(results),
         "products": results,
     }
+
+
+def delete_old_sbom_upload_progress(db: Session) -> None:
+    threshold_interval_minutes = TimeBasedProgressLogger.INTERVAL_DB_SECONDS * 2 / 60
+    threshold = datetime.now(timezone.utc) - timedelta(minutes=threshold_interval_minutes)
+    db.execute(
+        delete(models.SbomUploadProgress).where(models.SbomUploadProgress.updated_at < threshold)
+    )
+    db.flush()

@@ -114,6 +114,21 @@
           "textField": "Enter the reason for changing Safety Impact...",
           "save": "Saving...",
           "saveReason": "Save Reason"
+        },
+        "CompletionEvidenceSection": {
+          "title": "Evidence of completion",
+          "notProvided": "Not entered",
+          "save": "Save",
+          "updateSuccess": "Updated successfully",
+          "updateError": "Failed to update",
+          "placeholder": "Report URL, event log, file hash, etc. Evidence that the action was completed."
+        },
+        "VersionUpdateCard": {
+          "failedToLoad": "Failed to load",
+          "versionStatus": "Version status",
+          "currentVersion": "Current version",
+          "fixedVersion": "Fixed version",
+          "noFixedVersions": "No fixed versions available"
         }
       }
     }

@@ -4,7 +4,11 @@ import { Provider } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../../services/tcApi";
+import {
+  useGetPTeamQuery,
+  useGetPTeamPackagesSummaryQuery,
+  useGetSbomUploadProgressQuery,
+} from "../../../services/tcApi";
 import store from "../../../store";
 import { Status } from "../StatusPage";
 
@@ -39,6 +43,12 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     }),
     useGetPTeamQuery: vi.fn(),
     useGetPTeamPackagesSummaryQuery: vi.fn(),
+    useGetSbomUploadProgressQuery: vi.fn().mockReturnValue({
+      data: [],
+      error: undefined,
+      isLoading: false,
+      refetch: vi.fn(),
+    }),
   };
 });
 
@@ -130,6 +140,22 @@ const testPackagesData = {
 
 describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
+    beforeEach(() => {
+      const progresses = {
+        currentData: [
+          {
+            sbom_upload_progress_id: testPTeamData["pteam_id"],
+            service_name: "frontend",
+            progress_rate: 0.45,
+            expected_finish_time: "2026-03-17T06:24:27.776117Z",
+          },
+        ],
+        error: false,
+        isFetching: false,
+      };
+      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
+    });
+
     it("Show SBOMDropArea component when the service is an unregistered", () => {
       const testLocation = {
         pathname: "/",

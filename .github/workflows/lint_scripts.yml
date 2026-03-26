@@ -28,10 +28,10 @@ jobs:
         working-directory: ${{ env.SCRIPTS_DIRS }}
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Set up Python ${{ env.DEFAULT_PYTHON }}
         id: python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
       - name: Setup pipenv
@@ -51,7 +51,7 @@ jobs:
           pipenv run ruff check ${{ env.PYTHON_ROOT_DIRS }}
           pipenv run mypy ${{ env.PYTHON_ROOT_DIRS }} --show-error-codes --no-error-summary
       - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: "fs"
           scan-ref: ${{ env.SCRIPTS_DIRS }}

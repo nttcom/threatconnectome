@@ -24,16 +24,16 @@ jobs:
       run:
         working-directory: ./web
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
           cache-dependency-path: ./web/package-lock.json
       - run: npm ci --omit=dev
       - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: "fs"
           scan-ref: "./web"

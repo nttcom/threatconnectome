@@ -114,6 +114,21 @@
           "textField": "Safety Impactを変更する理由を入力してください...",
           "save": "保存中...",
           "saveReason": "変更理由を保存する"
+        },
+        "CompletionEvidenceSection": {
+          "title": "完了の証拠",
+          "notProvided": "（未入力）",
+          "save": "保存",
+          "updateSuccess": "更新しました",
+          "updateError": "更新に失敗しました",
+          "placeholder": "レポートURL、イベントログ、ファイルハッシュなど、アクションを完了したことを証明するもの。"
+        },
+        "VersionUpdateCard": {
+          "failedToLoad": "読み込みに失敗しました",
+          "versionStatus": "バージョン状況",
+          "currentVersion": "現在のバージョン",
+          "fixedVersion": "修正バージョン",
+          "noFixedVersions": "利用可能な修正バージョンはありません"
         }
       }
     }

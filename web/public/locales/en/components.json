@@ -14,7 +14,17 @@
     "teamNamePlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "contactInfo": "Contact Info",
     "contactInfoPlaceholder": "Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
-    "save": "Save"
+    "save": "Save",
+    "deleteSucceeded": "Delete team succeeded",
+    "deleteSectionTitle": "Delete this team",
+    "deleteSectionDescription": "Deleting this team will permanently delete all associated services, tickets, and data.",
+    "deleteButton": "Delete",
+    "deleteDialogTitle": "Delete team",
+    "deleteDialogDescription": "This action cannot be undone. All services, tickets, and data associated with \"{{teamName}}\" will be permanently deleted.",
+    "deleteDialogConfirmLabel": "Please type \"{{teamName}}\" to confirm:",
+    "deleteDialogCancel": "Cancel",
+    "deleteDialogConfirm": "Delete this team",
+    "loadingUserInfo": "Now loading UserInfo..."
   },
   "PTeamNotificationSetting": {
     "operationFailed": "Operation failed: {{error}}",
