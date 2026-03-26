@@ -41,12 +41,10 @@ def handle_db_once():
 
 @pytest.fixture(autouse=True)
 def clean_db(handle_db_once):
-    with engine.connect() as connect:
-        connect.execute(text("SET session_replication_role = 'replica';"))
+    with engine.begin() as connect:
+        connect.execute(text("SET LOCAL session_replication_role = 'replica';"))
         table_names = ", ".join([table.name for table in Base.metadata.sorted_tables])
         connect.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
-        connect.execute(text("SET session_replication_role = 'origin';"))
-        connect.commit()
 
     yield
 
