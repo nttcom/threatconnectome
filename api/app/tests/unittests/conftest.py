@@ -50,11 +50,10 @@ def clean_db(handle_db_once):
 
     yield
 
+
 @pytest.fixture(scope="function", autouse=True, name="testdb")
 def handle_testdb():
-    testing_session_local = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = testing_session_local()
 
     def override_get_db():
