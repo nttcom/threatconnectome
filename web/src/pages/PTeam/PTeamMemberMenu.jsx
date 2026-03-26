@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetPTeamQuery, useGetUserMeQuery } from "../../services/tcApi";
+import { useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString, checkAdmin } from "../../utils/func";
 
@@ -17,7 +17,7 @@ import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
 export function PTeamMemberMenu(props) {
-  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin } = props;
+  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, userMe } = props;
   const { t } = useTranslation("pteam", { keyPrefix: "PTeamMemberMenu" });
 
   const [openAuth, setOpenAuth] = useState(false);
@@ -27,22 +27,12 @@ export function PTeamMemberMenu(props) {
 
   const skip = useSkipUntilAuthUserIsReady() || !pteamId;
   const {
-    data: userMe,
-    error: userMeError,
-    isLoading: userMeIsLoading,
-  } = useGetUserMeQuery(undefined, { skip });
-  const {
     data: pteam,
     error: pteamError,
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip });
 
   if (skip) return <></>;
-  if (userMeError)
-    throw new APIError(errorToString(userMeError), {
-      api: "getUserMe",
-    });
-  if (userMeIsLoading) return <>{t("nowLoadingUserInfo")}</>;
   if (pteamError)
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
@@ -125,4 +115,5 @@ PTeamMemberMenu.propTypes = {
   memberUserId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
   isTargetMemberAdmin: PropTypes.bool.isRequired,
+  userMe: PropTypes.object.isRequired,
 };

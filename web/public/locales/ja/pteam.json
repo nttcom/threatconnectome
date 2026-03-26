@@ -5,17 +5,35 @@
     "experience_years_other": "経験年数: {{count}}年以上",
     "tabMembers": "メンバー"
   },
-  "PTeamInviteModal": {
-    "createNewInvitationLink": "新しい招待リンクを作成",
-    "pleaseShareLink": "以下の招待リンクを共有してください:",
-    "linkAvailableUntil": "このリンクは {{date}} まで有効です",
-    "close": "閉じる",
-    "expirationDate": "有効期限",
-    "maxUses": "最大使用回数: {{count}}",
-    "unlimited": "無制限",
-    "create": "作成する",
+  "InvitationManageDialog": {
+    "unlimitedExpiration": "無期限",
+    "expirationFormat": "{{m}}月{{d}}日 {{hh}}:{{mm}}まで",
+    "loading": "読み込んでいます...",
+    "createInvitationSucceeded": "招待リンクを作成しました。",
     "createInvitationFailed": "招待リンクの作成に失敗しました: {{error}}。",
-    "createInvitationSucceeded": "招待リンクを作成しました。"
+    "deleteInvitationSucceeded": "招待リンクを削除しました",
+    "deleteInvitationFailed": "招待リンクの削除に失敗しました: {{error}}",
+    "invitationManagement": "招待管理",
+    "invitationLinkManagement": "招待リンク管理",
+    "createNewLink": "新しいリンクの作成",
+    "linkCreatedSuccessfully": "リンクを作成しました",
+    "manageSentLinksDescription": "発行済みのリンクを管理できます",
+    "createNew": "新規作成",
+    "noActiveInvitations": "有効な招待リンクはありません",
+    "unlimited": "無制限",
+    "usageCount": "{{used}} / {{limit}} 回",
+    "copied": "コピーしました！",
+    "copy": "コピー",
+    "deactivate": "無効化",
+    "usageLimit": "使用回数制限",
+    "specifyCount": "回数を指定",
+    "usageCountSuffix": "回まで使用可能",
+    "expirationDate": "有効期限",
+    "createLink": "リンクを作成",
+    "invitationReady": "招待準備が完了しました",
+    "copyAndShareDescription": "以下のリンクをコピーして共有してください",
+    "upToCount": "{{count}}回まで",
+    "backToList": "管理リストに戻る"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "確認",
@@ -25,6 +43,7 @@
     "removeMemberFailed": "メンバーの削除に失敗しました: {{error}}。"
   },
   "PTeamMember": {
+    "loadingUserInfo": "ユーザー情報を読み込んでいます...",
     "addMember": "メンバーを追加",
     "userEmail": "ユーザー（メール）",
     "experienceInSecOps": "セキュリティ運用の経験年数",
@@ -33,7 +52,6 @@
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
-    "nowLoadingUserInfo": "ユーザー情報を読み込んでいます...",
     "nowLoadingTeam": "チーム情報を読み込んでいます...",
     "authorities": "権限",
     "removeFromTeam": "チームから削除"

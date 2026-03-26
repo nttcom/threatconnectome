@@ -5,17 +5,35 @@
     "experience_years_other": "{{count}}+ years experience",
     "tabMembers": "Members"
   },
-  "PTeamInviteModal": {
-    "createNewInvitationLink": "Create New Invitation Link",
-    "pleaseShareLink": "Please share the invitation link below:",
-    "linkAvailableUntil": "This link is available until {{date}}",
-    "close": "Close",
-    "expirationDate": "Expiration Date (future date)",
-    "maxUses": "Max uses: {{count}}",
-    "unlimited": "unlimited",
-    "create": "Create",
+  "InvitationManageDialog": {
+    "unlimitedExpiration": "No Expiration",
+    "expirationFormat": "Until {{m}}/{{d}} {{hh}}:{{mm}}",
+    "loading": "Loading...",
+    "createInvitationSucceeded": "Create new invitation succeeded",
     "createInvitationFailed": "Creating invitation failed: {{error}}",
-    "createInvitationSucceeded": "Create new invitation succeeded"
+    "deleteInvitationSucceeded": "Delete invitation succeeded",
+    "deleteInvitationFailed": "Delete invitation failed: {{error}}",
+    "invitationManagement": "Invitation management",
+    "invitationLinkManagement": "Invitation link management",
+    "createNewLink": "Create new link",
+    "linkCreatedSuccessfully": "Link Created",
+    "manageSentLinksDescription": "Manage active team invitation links.",
+    "createNew": "Create New",
+    "noActiveInvitations": "No active invitation links.",
+    "unlimited": "Unlimited",
+    "usageCount": "{{used}} / {{limit}} uses",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "deactivate": "Deactivate",
+    "usageLimit": "Usage Limit",
+    "specifyCount": "Limit Count",
+    "usageCountSuffix": "times",
+    "expirationDate": "Expiration Date",
+    "createLink": "Create Link",
+    "invitationReady": "Invitation link is ready",
+    "copyAndShareDescription": "Copy the link below to share with others.",
+    "upToCount": "Up to {{count}} times",
+    "backToList": "Back to Management List"
   },
   "PTeamMemberRemoveModal": {
     "confirm": "Confirm",
@@ -25,6 +43,7 @@
     "removeMemberFailed": "Remove member failed: {{error}}"
   },
   "PTeamMember": {
+    "loadingUserInfo": "Now loading user info...",
     "addMember": "Add member",
     "userEmail": "USER(EMAIL)",
     "experienceInSecOps": "EXPERIENCE in SecOps",
@@ -33,7 +52,6 @@
     "yearsPlus": "{{years}}+"
   },
   "PTeamMemberMenu": {
-    "nowLoadingUserInfo": "Now loading UserInfo...",
     "nowLoadingTeam": "Now loading Team...",
     "authorities": "Authorities",
     "removeFromTeam": "Remove from Team"
