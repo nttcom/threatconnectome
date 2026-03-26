@@ -2,6 +2,8 @@ import logging
 import threading
 from datetime import datetime, timezone
 
+from sqlalchemy.orm import sessionmaker
+
 from app import models, persistence
 from app.database import create_session
 
@@ -31,6 +33,8 @@ class TimeBasedProgressLogger:
         self.count = 0
 
         self._db_enabled = self.pteam_id is not None and self.service_name is not None
+        self._SessionLocal: sessionmaker | None
+
         if self._db_enabled:
             self._SessionLocal = create_session()
             self.sbom_upload_progress_id: str | None = None
