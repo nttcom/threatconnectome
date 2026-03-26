@@ -23,7 +23,8 @@
     "deleteDialogDescription": "この操作は取り消せません。「{{teamName}}」に関連する全サービス・チケット・データが完全に削除されます。",
     "deleteDialogConfirmLabel": "確認のため「{{teamName}}」と入力してください:",
     "deleteDialogCancel": "キャンセル",
-    "deleteDialogConfirm": "このチームを削除"
+    "deleteDialogConfirm": "このチームを削除",
+    "loadingUserInfo": "ユーザー情報を読み込んでいます..."
   },
   "PTeamNotificationSetting": {
     "operationFailed": "操作に失敗しました: {{error}}。",
