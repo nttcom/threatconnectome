@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormLabel,
   TextField,
   Typography,
 } from "@mui/material";
@@ -141,36 +142,32 @@ export function PTeamGeneralSetting(props) {
 
   return (
     <Box>
-      <Box mb={4}>
-        <Typography sx={{ fontWeight: 900 }} mb={1}>
-          {t("teamName")}
-        </Typography>
+      <Box mb={2}>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("teamName")}</FormLabel>
         <TextField
           size="small"
           value={pteamName}
           onChange={(event) => handlePTeamNameSetting(event.target.value)}
           variant="outlined"
-          placeholder={t("teamNamePlaceholder", {
+          helperText={t("teamNamePlaceholder", {
             maxHalf: maxPTeamNameLengthInHalf,
             maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
           })}
-          sx={{ marginRight: "10px", minWidth: "800px" }}
+          fullWidth
         />
       </Box>
-      <Box mb={4}>
-        <Typography sx={{ fontWeight: 900 }} mb={1}>
-          {t("contactInfo")}
-        </Typography>
+      <Box mb={2}>
+        <FormLabel sx={{ fontWeight: "medium" }}>{t("contactInfo")}</FormLabel>
         <TextField
           size="small"
           value={contactInfo}
           onChange={(event) => handleContactInfoSetting(event.target.value)}
           variant="outlined"
-          placeholder={t("contactInfoPlaceholder", {
+          helperText={t("contactInfoPlaceholder", {
             maxHalf: maxContactInfoLengthInHalf,
             maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
           })}
-          sx={{ marginRight: "10px", minWidth: "800px" }}
+          fullWidth
         />
       </Box>
       <Divider />

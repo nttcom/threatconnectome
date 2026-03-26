@@ -49,7 +49,7 @@ export function PTeamSettingsModal(props) {
   const handleChangeTab = (_, newTab) => setTab(newTab);
 
   return (
-    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={show} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
         <Box alignItems="center" display="flex" flexDirection="row">
           <Typography flexGrow={1} className={dialogStyle.dialog_title}>
@@ -60,17 +60,24 @@ export function PTeamSettingsModal(props) {
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent>
-        <Box borderBottom={1} borderBottomColor="divider">
+      <DialogContent sx={{ px: 2 }}>
+        <Box
+          borderBottom={1}
+          borderBottomColor="divider"
+          position="sticky"
+          top={0}
+          bgcolor="background.paper"
+          zIndex={1}
+        >
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label={t("tabGeneral")} {...a11yProps(0)} />
             <Tab label={t("tabNotification")} {...a11yProps(1)} />
           </Tabs>
         </Box>
-        <TabPanel index={0} value={tab}>
+        <TabPanel index={0} value={tab} mx={1}>
           <PTeamGeneralSetting pteam={pteam} />
         </TabPanel>
-        <TabPanel index={1} value={tab}>
+        <TabPanel index={1} value={tab} mx={1}>
           <PTeamNotificationSetting pteam={pteam} />
         </TabPanel>
       </DialogContent>
