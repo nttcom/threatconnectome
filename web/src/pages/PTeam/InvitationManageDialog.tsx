@@ -70,15 +70,13 @@ const formatExpiration = (date: Date | null, t: TFunction): string => {
 const tokenToLink = (token: string) =>
   `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/pteam/join?token=${token}`;
 
-function InvitationItem({
-  inv,
-  pteamId,
-  t,
-}: {
+type InvitationItemProps = {
   inv: PTeamInvitationResponse;
   pteamId: string;
   t: TFunction;
-}) {
+};
+
+function InvitationItem({ inv, pteamId, t }: InvitationItemProps) {
   const [copied, setCopied] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
