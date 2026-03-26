@@ -54,6 +54,9 @@ def handle_testdb():
     testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = testing_session_local()
 
+    def override_create_session():
+        return testing_session_local
+
     def override_get_db():
         try:
             yield db
@@ -62,8 +65,12 @@ def handle_testdb():
             db.rollback()
 
     app.dependency_overrides[get_db] = override_get_db
-    with patch("app.database.get_db") as mock:  # for open_db_session called from background tasks
-        mock.side_effect = override_get_db
-        yield db
+
+    with patch("app.utility.progress_logger.create_session") as mock_create_session:
+        mock_create_session.side_effect = override_create_session
+
+        with patch("app.database.get_db") as mock_get_db:
+            mock_get_db.side_effect = override_get_db
+            yield db
 
     db.close()
