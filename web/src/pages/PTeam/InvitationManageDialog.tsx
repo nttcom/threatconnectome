@@ -70,13 +70,6 @@ const formatExpiration = (date: Date | null, t: TFunction): string => {
 const tokenToLink = (token: string) =>
   `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/pteam/join?token=${token}`;
 
-type InvitationListViewProps = {
-  pteamId: string;
-  onCreateClick: () => void;
-  onClose: () => void;
-  t: TFunction;
-};
-
 function InvitationItem({
   inv,
   pteamId,
@@ -166,6 +159,13 @@ function InvitationItem({
     </Paper>
   );
 }
+
+type InvitationListViewProps = {
+  pteamId: string;
+  onCreateClick: () => void;
+  onClose: () => void;
+  t: TFunction;
+};
 
 function InvitationListView({ pteamId, onCreateClick, onClose, t }: InvitationListViewProps) {
   const skip = useSkipUntilAuthUserIsReady() || !pteamId;
