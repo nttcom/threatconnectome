@@ -57,6 +57,7 @@ type Invitation = {
 };
 
 type UsageMode = "unlimited" | "limited";
+type ViewType = "list" | "create" | "success";
 
 const formatExpiration = (date: Date | null, t: TFunction): string => {
   if (!date) return t("unlimitedExpiration");
@@ -482,7 +483,7 @@ export function InvitationManageDialog({ pteamId }: Props) {
   const { t } = useTranslation("pteam", { keyPrefix: "InvitationManageDialog" });
 
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState<"list" | "create" | "success">("list");
+  const [view, setView] = useState<ViewType>("list");
   const [createdInv, setCreatedInv] = useState<Invitation | null>(null);
 
   const handleOpen = () => {
