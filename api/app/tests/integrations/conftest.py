@@ -3,12 +3,13 @@ from unittest.mock import patch
 
 import alembic.config
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.database import get_db
 from app.main import app
+from app.models import Base
 
 db_user = os.getenv("DB_USER")
 db_pass = os.getenv("DB_PASSWORD")
@@ -38,17 +39,21 @@ def handle_db_once():
     # os.chdir(cwd)
 
 
-class TestingSession(Session):
-    def commit(self):
-        # Not persistence because of testing
-        self.flush()
-        self.expire_all()
+@pytest.fixture(autouse=True)
+def clean_db(handle_db_once):
+    with engine.connect() as connect:
+        connect.execute(text("SET session_replication_role = 'replica';"))
+        table_names = ", ".join([table.name for table in Base.metadata.sorted_tables])
+        connect.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
+        connect.execute(text("SET session_replication_role = 'origin';"))
+        connect.commit()
 
+    yield
 
 @pytest.fixture(scope="function", autouse=True, name="testdb")
 def handle_testdb():
     testing_session_local = sessionmaker(
-        class_=TestingSession, autocommit=False, autoflush=False, bind=engine
+        autocommit=False, autoflush=False, bind=engine
     )
     db = testing_session_local()
 
@@ -64,5 +69,4 @@ def handle_testdb():
         mock.side_effect = override_get_db
         yield db
 
-    db.rollback()
     db.close()
