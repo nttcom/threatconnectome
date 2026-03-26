@@ -69,7 +69,6 @@ def handle_testdb():
     with patch("app.utility.progress_logger.create_session") as mock_create_session:
         mock_create_session.side_effect = override_create_session
 
-
         with patch("app.database.get_db") as mock_get_db:
             mock_get_db.side_effect = override_get_db
             yield db

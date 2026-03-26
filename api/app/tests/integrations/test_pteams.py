@@ -714,7 +714,6 @@ class TestPostUploadSBOMFileCycloneDX:
             self.user1 = create_user(USER1)
             self.pteam1 = create_pteam(USER1, PTEAM1)
 
-
         @dataclass(frozen=True, kw_only=True)
         class LibraryParam:
             purl: str | None
