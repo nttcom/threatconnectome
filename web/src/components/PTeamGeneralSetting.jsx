@@ -15,8 +15,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useViewportOffset } from "../hooks/useViewportOffset";
-import { useUpdatePTeamMutation, useDeletePTeamMutation } from "../services/tcApi";
+import {
+  useUpdatePTeamMutation,
+  useDeletePTeamMutation,
+  useGetUserMeQuery,
+} from "../services/tcApi";
+import { APIError } from "../utils/APIError";
 import {
   modalCommonButtonStyle,
   maxPTeamNameLengthInHalf,
@@ -33,12 +39,31 @@ export function PTeamGeneralSetting(props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
 
-  const [updatePTeam] = useUpdatePTeamMutation();
-  const [deletePTeam] = useDeletePTeamMutation();
-
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
   const navigate = useNavigate();
+
+  const [updatePTeam] = useUpdatePTeamMutation();
+  const [deletePTeam] = useDeletePTeamMutation();
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
+  if (skip) return <></>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
+
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+
+  const user = userMe.pteam_roles.find(
+    (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
+  );
 
   const operationError = (error) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
@@ -156,40 +181,42 @@ export function PTeamGeneralSetting(props) {
         </Button>
       </Box>
 
-      <Box
-        mt={4}
-        p={2}
-        sx={{
-          border: "1px solid",
-          borderColor: "error.main",
-          borderRadius: 1,
-        }}
-      >
+      {user.is_admin && (
         <Box
-          display="flex"
-          alignItems={{ xs: "flex-start", sm: "center" }}
-          justifyContent="space-between"
-          flexDirection={{ xs: "column", sm: "row" }}
-          gap={2}
+          mt={4}
+          p={2}
+          sx={{
+            border: "1px solid",
+            borderColor: "error.main",
+            borderRadius: 1,
+          }}
         >
-          <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600 }} color="error">
-              {t("deleteSectionTitle")}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t("deleteSectionDescription")}
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleOpenDeleteDialog}
-            sx={{ width: { xs: "100%", sm: "auto" } }}
+          <Box
+            display="flex"
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            justifyContent="space-between"
+            flexDirection={{ xs: "column", sm: "row" }}
+            gap={2}
           >
-            {t("deleteButton")}
-          </Button>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} color="error">
+                {t("deleteSectionTitle")}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t("deleteSectionDescription")}
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleOpenDeleteDialog}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+            >
+              {t("deleteButton")}
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      )}
 
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog} maxWidth="sm" fullWidth>
         <DialogTitle>

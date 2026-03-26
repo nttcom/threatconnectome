@@ -23,7 +23,8 @@
     "deleteDialogDescription": "This action cannot be undone. All services, tickets, and data associated with \"{{teamName}}\" will be permanently deleted.",
     "deleteDialogConfirmLabel": "Please type \"{{teamName}}\" to confirm:",
     "deleteDialogCancel": "Cancel",
-    "deleteDialogConfirm": "Delete this team"
+    "deleteDialogConfirm": "Delete this team",
+    "loadingUserInfo": "Now loading UserInfo..."
   },
   "PTeamNotificationSetting": {
     "operationFailed": "Operation failed: {{error}}",
