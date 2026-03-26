@@ -71,6 +71,15 @@ const formatExpiration = (date: Date | null, t: TFunction): string => {
 const tokenToLink = (token: string) =>
   `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}/pteam/join?token=${token}`;
 
+const handleCopy = async (
+  link: string,
+  setCopied: React.Dispatch<React.SetStateAction<boolean>>,
+) => {
+  await navigator.clipboard.writeText(link).catch(console.error);
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+};
+
 type InvitationItemProps = {
   inv: PTeamInvitationResponse;
   pteamId: string;
@@ -83,12 +92,6 @@ function InvitationItem({ inv, pteamId, t }: InvitationItemProps) {
   const { enqueueSnackbar } = useSnackbar();
 
   const [deleteInvitation] = useDeleteInvitationMutation();
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(tokenToLink(inv.invitation_id)).catch(console.error);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleDelete = async (invitationId: string) => {
     const onSuccess = () => {
@@ -141,7 +144,7 @@ function InvitationItem({ inv, pteamId, t }: InvitationItemProps) {
             size="small"
             variant="outlined"
             startIcon={<ContentCopyIcon />}
-            onClick={handleCopy}
+            onClick={() => handleCopy(tokenToLink(inv.invitation_id), setCopied)}
           >
             {t("copy")}
           </Button>
@@ -371,12 +374,6 @@ type InvitationSuccessViewProps = {
 function InvitationSuccessView({ invitation, onBack, onClose, t }: InvitationSuccessViewProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(tokenToLink(invitation.link)).catch(console.error);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <>
       <DialogTitle sx={{ pb: 1 }}>
@@ -427,7 +424,7 @@ function InvitationSuccessView({ invitation, onBack, onClose, t }: InvitationSuc
                   <Box>
                     <IconButton
                       size="small"
-                      onClick={handleCopy}
+                      onClick={() => handleCopy(invitation.link, setCopied)}
                       sx={{ display: { xs: "inline-flex", sm: "none" } }}
                     >
                       <ContentCopyIcon fontSize="small" />
@@ -436,7 +433,7 @@ function InvitationSuccessView({ invitation, onBack, onClose, t }: InvitationSuc
                       variant="contained"
                       size="small"
                       startIcon={<ContentCopyIcon />}
-                      onClick={handleCopy}
+                      onClick={() => handleCopy(invitation.link, setCopied)}
                       sx={{ display: { xs: "none", sm: "inline-flex" } }}
                     >
                       {t("copy")}
