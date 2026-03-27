@@ -62,8 +62,11 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
         setSbomFile(null);
       })
       .catch((error) => {
-        const msg = errorToString(error);
-        enqueueSnackbar(t("uploadFailed", { message: msg }), { variant: "error" });
+        const msg =
+          error.status == 409
+            ? t("uploadFailedBecauseDuplicate")
+            : t("uploadFailed", { message: errorToString(error) });
+        enqueueSnackbar(msg, { variant: "error" });
       })
       .finally(() => {
         setIsOpenWaitingModal(false);
