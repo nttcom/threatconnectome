@@ -1,26 +1,17 @@
 import logging
 import time
 
-from app.database import get_db
-from app.models import PTeam, SSVCDeployerPriorityEnum
+from app.tests.medium.constants import PTEAM1, USER1
+from app.tests.medium.utils import create_pteam, create_user
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
 class TestTimeBasedProgressLogger:
 
     def test_it_should_output_log_when_add_progress(self, mocker):
-
         # Given
-        db = next(get_db())
-        db.add(
-            PTeam(
-                pteam_id="dummy",
-                pteam_name="dummy team",
-                contact_info="dummy@example.com",
-                alert_ssvc_priority=SSVCDeployerPriorityEnum.IMMEDIATE,
-            )
-        )
-        db.commit()
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
         original_interval = TimeBasedProgressLogger.INTERVAL_DB_SECONDS
         original_trigger = TimeBasedProgressLogger.LOG_TRIGGER_COUNT
@@ -29,8 +20,8 @@ class TestTimeBasedProgressLogger:
 
         logger = TimeBasedProgressLogger(
             title="Test Task",
-            pteam_id="dummy",
-            service_name="dummy",
+            pteam_id=pteam1.pteam_id,
+            service_name="test_service1",
             logger=logging.getLogger("app.utility.progress_logger"),
         )
 
@@ -52,16 +43,8 @@ class TestTimeBasedProgressLogger:
 
     def test_it_should_return_100_when_progress_overflows(self, mocker):
         # Given
-        db = next(get_db())
-        db.add(
-            PTeam(
-                pteam_id="dummy",
-                pteam_name="dummy team",
-                contact_info="dummy@example.com",
-                alert_ssvc_priority=SSVCDeployerPriorityEnum.IMMEDIATE,
-            )
-        )
-        db.commit()
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
         original_interval = TimeBasedProgressLogger.INTERVAL_DB_SECONDS
         original_trigger = TimeBasedProgressLogger.LOG_TRIGGER_COUNT
@@ -70,8 +53,8 @@ class TestTimeBasedProgressLogger:
 
         logger = TimeBasedProgressLogger(
             title="Test Task",
-            pteam_id="dummy",
-            service_name="dummy",
+            pteam_id=pteam1.pteam_id,
+            service_name="test_service1",
             logger=logging.getLogger("app.utility.progress_logger"),
         )
 
