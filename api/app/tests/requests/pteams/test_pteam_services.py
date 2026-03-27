@@ -1,11 +1,13 @@
 import io
 import json
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageChops
+from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.main import app
@@ -444,6 +446,41 @@ class TestPostUploadPTeamSbomFile:
                         files={"file": tags},
                     )
                 )
+
+    def test_it_should_return_409_when_exist_progress_data_with_duplicate_servicename(
+        self, testdb: Session
+    ):
+        # Given
+        service_name = "test service"
+        sbom_upload_progress = models.SbomUploadProgress(
+            pteam_id=self.pteam1.pteam_id,
+            service_name=service_name,
+            progress_rate=0.5,
+            created_at=datetime.now(timezone.utc),
+        )
+        testdb.add(sbom_upload_progress)
+        testdb.flush()
+
+        # When
+        params = {"service": service_name}
+        sbom_file = (
+            Path(__file__).resolve().parent.parent.parent
+            / "common"
+            / "upload_test"
+            / "trivy-ubuntu2004.cdx.json"
+        )
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        # Then
+        assert response.status_code == 409
+        data = response.json()
+        assert data["detail"] == "An SBOM upload for this service is already in progress"
 
 
 class TestPostUploadPackagesFile:
