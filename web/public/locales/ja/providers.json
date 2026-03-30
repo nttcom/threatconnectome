@@ -18,7 +18,11 @@
       "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください。（例: +818012345678）"
     },
     "SupabaseProvider": {
-      "unsupportedProvider": "未定義のプロバイダーです: {{provider}}"
+      "unsupportedProvider": "未定義のプロバイダーです: {{provider}}",
+      "user_already_exists": "このメールアドレスは既に使用されています。",
+      "invalid_credentials": "メールアドレスまたはパスワードが正しくありません。",
+      "over_email_send_rate_limit": "リクエストが多すぎます。しばらく時間を置いてから再度お試しください。",
+      "user_banned": "このユーザーアカウントは無効化されています。"
     }
   }
 }

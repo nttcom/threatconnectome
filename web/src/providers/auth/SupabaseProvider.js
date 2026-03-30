@@ -2,6 +2,7 @@ import i18n from "../../i18n/config";
 import Supabase from "../../utils/Supabase";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
+import { getAuthErrorMessage } from "../../utils/authErrorUtils";
 
 const supabase =
   import.meta.env.VITE_AUTH_SERVICE === "supabase" ? Supabase.getClient() : undefined;
@@ -15,9 +16,19 @@ const _immediateEmitEvent = async (signInCallback, signOutCallback) => {
   }
 };
 
+function _errorToMessage(error) {
+  const message = getAuthErrorMessage(error, {
+    namespace: "providers",
+    keyPrefix: "auth.SupabaseProvider",
+    defaultMessage: "An internal error occurred.",
+  });
+  return message;
+}
+
 class SupabaseAuthError extends AuthError {
   constructor(error) {
-    super(error, error.code, error.message);
+    super(error, error.code, _errorToMessage(error));
+    console.log("Authentication error:", error.message);
   }
 }
 
