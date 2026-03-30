@@ -149,7 +149,8 @@ export const ListLongUrl: Story = {
         http.get(`*/pteams/${pteamId}/invitation`, () => {
           return HttpResponse.json([
             {
-              invitation_id: "averylongtokenvaluethatmightoverflowtheuiifnothandledproperly",
+              invitation_id:
+                "a_very_long_token_value_that_might_overflow_the_ui_if_not_handled_properly",
               pteam_id: pteamId,
               expiration: addHours(new Date(), 1),
               limitCount: null,

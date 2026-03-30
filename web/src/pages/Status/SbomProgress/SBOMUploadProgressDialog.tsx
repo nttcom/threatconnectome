@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import type { SbomUploadProgressResponse } from "../../../../types/types.gen";
 import { utcStringToLocalDate } from "../../../utils/func";
 
-const toPercentvalue = (progress: SbomUploadProgressResponse): number => {
+const toPercentValue = (progress: SbomUploadProgressResponse): number => {
   return Math.round(progress.progress_rate * 100);
 };
 
@@ -35,7 +35,7 @@ const toPercentString = (progress: SbomUploadProgressResponse): string => {
   if (progress.progress_rate <= 0.001) {
     return "";
   }
-  return `${toPercentvalue(progress)}%`;
+  return `${toPercentValue(progress)}%`;
 };
 
 const toFinishTimeString = (
@@ -140,7 +140,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             <Box sx={{ flex: 1 }}>
                               <LinearProgress
                                 variant="determinate"
-                                value={toPercentvalue(progress)}
+                                value={toPercentValue(progress)}
                                 sx={{ borderRadius: 4, height: 8 }}
                               />
                             </Box>
@@ -197,7 +197,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                         <Box sx={{ flex: 1 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={toPercentvalue(progress)}
+                            value={toPercentValue(progress)}
                             sx={{ borderRadius: 3, height: 6 }}
                           />
                         </Box>
