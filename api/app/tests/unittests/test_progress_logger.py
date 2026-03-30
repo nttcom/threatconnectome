@@ -1,6 +1,9 @@
 import logging
 import time
 
+import pytest
+
+from app import models
 from app.tests.medium.constants import PTEAM1, USER1
 from app.tests.medium.utils import create_pteam, create_user
 from app.utility.progress_logger import TimeBasedProgressLogger
@@ -8,21 +11,46 @@ from app.utility.progress_logger import TimeBasedProgressLogger
 
 class TestTimeBasedProgressLogger:
 
-    def test_it_should_output_log_when_add_progress(self, mocker):
-        # Given
+    @pytest.fixture(scope="function", name="setup_pteam")
+    def setup_pteam(self):
         create_user(USER1)
-        pteam1 = create_pteam(USER1, PTEAM1)
+        self.pteam1 = create_pteam(USER1, PTEAM1)
 
+    def _refresh_and_get_progress(self, testdb, pteam_id, service_name):
+        testdb.expire_all()
+        return (
+            testdb.query(models.SbomUploadProgress)
+            .filter_by(pteam_id=str(pteam_id), service_name=service_name)
+            .one_or_none()
+        )
+
+    def _create_logger(self, title, pteam_id, service_name, interval, trigger):
         original_interval = TimeBasedProgressLogger.INTERVAL_DB_SECONDS
         original_trigger = TimeBasedProgressLogger.LOG_TRIGGER_COUNT
-        TimeBasedProgressLogger.INTERVAL_DB_SECONDS = 0.5
-        TimeBasedProgressLogger.LOG_TRIGGER_COUNT = 1
+        TimeBasedProgressLogger.INTERVAL_DB_SECONDS = interval
+        TimeBasedProgressLogger.LOG_TRIGGER_COUNT = trigger
 
         logger = TimeBasedProgressLogger(
-            title="Test Task",
-            pteam_id=pteam1.pteam_id,
-            service_name="test_service1",
+            title=title,
+            pteam_id=pteam_id,
+            service_name=service_name,
             logger=logging.getLogger("app.utility.progress_logger"),
+        )
+        return logger, original_interval, original_trigger
+
+    def _restore_logger_settings(self, original_interval, original_trigger):
+        TimeBasedProgressLogger.INTERVAL_DB_SECONDS = original_interval
+        TimeBasedProgressLogger.LOG_TRIGGER_COUNT = original_trigger
+
+    def test_it_should_output_log_when_add_progress(self, mocker, setup_pteam):
+        # Given
+
+        logger, original_interval, original_trigger = self._create_logger(
+            title="Test Task",
+            pteam_id=self.pteam1.pteam_id,
+            service_name="test_service1",
+            interval=0.5,
+            trigger=1,
         )
 
         mock_info = mocker.patch.object(logger.logger, "info")
@@ -33,29 +61,22 @@ class TestTimeBasedProgressLogger:
                 time.sleep(1.0)
         finally:
             logger.stop()
-            TimeBasedProgressLogger.INTERVAL_DB_SECONDS = original_interval
-            TimeBasedProgressLogger.LOG_TRIGGER_COUNT = original_trigger
+            self._restore_logger_settings(original_interval, original_trigger)
 
         # Then
         log_messages = [args[0] for args, _ in mock_info.call_args_list]
         assert "[Test Task] Progress: 40.0%" in log_messages
         assert 7 < mock_info.call_count < 11
 
-    def test_it_should_return_100_when_progress_overflows(self, mocker):
+    def test_it_should_return_100_when_progress_overflows(self, mocker, setup_pteam):
         # Given
-        create_user(USER1)
-        pteam1 = create_pteam(USER1, PTEAM1)
 
-        original_interval = TimeBasedProgressLogger.INTERVAL_DB_SECONDS
-        original_trigger = TimeBasedProgressLogger.LOG_TRIGGER_COUNT
-        TimeBasedProgressLogger.INTERVAL_DB_SECONDS = 0.5
-        TimeBasedProgressLogger.LOG_TRIGGER_COUNT = 1
-
-        logger = TimeBasedProgressLogger(
+        logger, original_interval, original_trigger = self._create_logger(
             title="Test Task",
-            pteam_id=pteam1.pteam_id,
+            pteam_id=self.pteam1.pteam_id,
             service_name="test_service1",
-            logger=logging.getLogger("app.utility.progress_logger"),
+            interval=0.5,
+            trigger=1,
         )
 
         mock_info = mocker.patch.object(logger.logger, "info")
@@ -65,9 +86,50 @@ class TestTimeBasedProgressLogger:
             time.sleep(1.0)
         finally:
             logger.stop()
-            TimeBasedProgressLogger.INTERVAL_DB_SECONDS = original_interval
-            TimeBasedProgressLogger.LOG_TRIGGER_COUNT = original_trigger
+            self._restore_logger_settings(original_interval, original_trigger)
 
         # Then
         log_messages = [args[0] for args, _ in mock_info.call_args_list]
         assert "[Test Task] Progress: 100.0%" in log_messages
+
+    # test_progress_logger実行時にDBに進捗状況が格納される
+    def test_it_should_store_progress_in_db(self, mocker, testdb, setup_pteam):
+        # Given
+
+        logger, original_interval, original_trigger = self._create_logger(
+            title="DB Test Task",
+            pteam_id=self.pteam1.pteam_id,
+            service_name="test_service",
+            interval=0.5,
+            trigger=999,
+        )
+
+        try:
+            # Allow initial insert to complete
+            time.sleep(0.1)
+
+            # Then: initial record exists with 0.0
+
+            initial = (
+                testdb.query(models.SbomUploadProgress)
+                .filter_by(pteam_id=str(self.pteam1.pteam_id), service_name="test_service")
+                .one_or_none()
+            )
+            assert initial is not None
+            assert initial.progress_rate == 0.0
+
+            # When: update progress and allow periodic update to run
+            logger.add_progress(50.0)
+            time.sleep(1.0)
+
+            updated = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
+            assert updated is not None
+            assert updated.progress_rate == 0.5
+        finally:
+            logger.stop()
+            self._restore_logger_settings(original_interval, original_trigger)
+
+        # After stop, record should be deleted
+
+        after = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
+        assert after is None
