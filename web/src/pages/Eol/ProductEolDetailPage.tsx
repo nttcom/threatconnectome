@@ -39,7 +39,6 @@ import {
   getStatusLabel,
   getEolStatus,
 } from "../../utils/eolUtils";
-// @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 
 export function ProductEolDetail() {

@@ -1,38 +1,41 @@
+import { NavigateFunction } from "react-router-dom";
 import { preserveKeys } from "./const";
 
-export const preserveParams = (currentParams) => {
+export const preserveParams = (currentParams: string) => {
   const newParams = new URLSearchParams();
   const currentUrlParams = new URLSearchParams(currentParams);
 
   // Retained Parameters Related to Toggle Buttons
   for (let key of preserveKeys) {
-    if (currentUrlParams.has(key)) {
-      newParams.set(key, currentUrlParams.get(key));
+    const value = currentUrlParams.get(key);
+    if (value !== null) {
+      newParams.set(key, value);
     }
   }
 
   return newParams;
 };
 
-export const preserveMyTasksParam = (currentParams) => {
+export const preserveMyTasksParam = (currentParams: string) => {
   const newParams = new URLSearchParams();
   const currentUrlParams = new URLSearchParams(currentParams);
 
-  if (currentUrlParams.has("mytasks")) {
-    newParams.set("mytasks", currentUrlParams.get("mytasks"));
+  const value = currentUrlParams.get("mytasks");
+  if (value !== null) {
+    newParams.set("mytasks", value);
   }
 
   return newParams;
 };
 
-export const createUpdateParamsFunction = (location, navigate) => {
-  return (newParams) => {
+export const createUpdateParamsFunction = (location: Location, navigate: NavigateFunction) => {
+  return (newParams: Record<string, string | number | null | undefined>) => {
     const updatedParams = new URLSearchParams(location.search);
     Object.entries(newParams).forEach(([key, value]) => {
       if (value === null || value === undefined || value === "") {
         updatedParams.delete(key);
       } else {
-        updatedParams.set(key, value);
+        updatedParams.set(key, String(value));
       }
     });
     navigate(location.pathname + "?" + updatedParams.toString());
