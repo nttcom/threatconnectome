@@ -32,7 +32,6 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import { getLatestUpdateDate, getEolStatus } from "../../utils/eolUtils";
-// @ts-expect-error TS7016
 import { preserveParams } from "../../utils/urlUtils";
 import { useGetPTeamEoLsQuery } from "../../services/tcApi";
 
