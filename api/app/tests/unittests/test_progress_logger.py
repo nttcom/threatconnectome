@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import datetime, timezone
 
 import pytest
 
@@ -94,6 +95,7 @@ class TestTimeBasedProgressLogger:
 
     def test_it_should_store_progress_in_db(self, testdb, setup_pteam):
         # Given
+        created_time = datetime.now(timezone.utc)
 
         logger, original_interval, original_trigger = self._create_logger(
             title="DB Test Task",
@@ -114,6 +116,7 @@ class TestTimeBasedProgressLogger:
             )
             assert initial is not None
             assert initial.progress_rate == 0.0
+            assert initial.created_at <= initial.updated_at
 
             logger.add_progress(50.0)
             time.sleep(1.0)
@@ -121,6 +124,10 @@ class TestTimeBasedProgressLogger:
             updated = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
             assert updated is not None
             assert updated.progress_rate == 0.5
+
+            assert updated.created_at == initial.created_at
+            assert updated.updated_at >= initial.updated_at
+
         finally:
             logger.stop()
             self._restore_logger_settings(original_interval, original_trigger)
