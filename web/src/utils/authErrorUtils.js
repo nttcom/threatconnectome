@@ -19,5 +19,5 @@ export function getAuthErrorMessage(error, options = {}) {
     return i18n.t(key, { ns: namespace });
   }
 
-  return error?.message || defaultMessage;
+  return defaultMessage;
 }
