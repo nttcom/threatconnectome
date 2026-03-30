@@ -28,7 +28,7 @@ import {
   useUpdateTicketMutation,
   useGetUserMeQuery,
 } from "../../services/tcApi.js";
-import { APIError } from "../../utils/APIError.js";
+import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func.js";
 import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
 import { ActionTypeIcon } from "../ActionTypeIcon.jsx";

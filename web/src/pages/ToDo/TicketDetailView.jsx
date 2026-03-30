@@ -24,7 +24,7 @@ import {
   useGetPTeamServicesQuery,
   useGetVulnQuery,
 } from "../../services/tcApi";
-import { APIError } from "../../utils/APIError.js";
+import { APIError } from "../../utils/APIError";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";

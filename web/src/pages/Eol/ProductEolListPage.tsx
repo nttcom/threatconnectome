@@ -28,7 +28,6 @@ import {
 // @ts-expect-error TS7016
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetEoLsQuery } from "../../services/tcApi";
-// @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import {

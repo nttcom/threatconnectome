@@ -43,7 +43,6 @@ import {
   useGetInvitationListQuery,
 } from "../../services/tcApi";
 import { errorToString } from "../../utils/func";
-// @ts-expect-error TS7016
 import { APIError } from "../../utils/APIError";
 
 import type { PTeamInvitationResponse } from "../../../types/types.gen";

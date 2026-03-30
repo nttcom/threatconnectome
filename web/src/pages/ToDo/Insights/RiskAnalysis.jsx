@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth.js";
 import { useGetInsightQuery } from "../../../services/tcApi.js";
-import { APIError } from "../../../utils/APIError.js";
+import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
 
 import { RiskAnalysisView } from "./RiskAnalysisView.jsx";
