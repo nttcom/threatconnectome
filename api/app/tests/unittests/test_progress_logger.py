@@ -92,8 +92,7 @@ class TestTimeBasedProgressLogger:
         log_messages = [args[0] for args, _ in mock_info.call_args_list]
         assert "[Test Task] Progress: 100.0%" in log_messages
 
-    # test_progress_logger実行時にDBに進捗状況が格納される
-    def test_it_should_store_progress_in_db(self, mocker, testdb, setup_pteam):
+    def test_it_should_store_progress_in_db(self, testdb, setup_pteam):
         # Given
 
         logger, original_interval, original_trigger = self._create_logger(
@@ -101,14 +100,12 @@ class TestTimeBasedProgressLogger:
             pteam_id=self.pteam1.pteam_id,
             service_name="test_service",
             interval=0.5,
-            trigger=999,
+            trigger=10,
         )
 
+        # When
         try:
-            # Allow initial insert to complete
             time.sleep(0.1)
-
-            # Then: initial record exists with 0.0
 
             initial = (
                 testdb.query(models.SbomUploadProgress)
@@ -118,7 +115,6 @@ class TestTimeBasedProgressLogger:
             assert initial is not None
             assert initial.progress_rate == 0.0
 
-            # When: update progress and allow periodic update to run
             logger.add_progress(50.0)
             time.sleep(1.0)
 
@@ -129,7 +125,6 @@ class TestTimeBasedProgressLogger:
             logger.stop()
             self._restore_logger_settings(original_interval, original_trigger)
 
-        # After stop, record should be deleted
-
+        # Then
         after = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
         assert after is None
