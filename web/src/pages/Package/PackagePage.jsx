@@ -23,7 +23,7 @@ import {
 } from "../../hooks/Package/useApiForPackage";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import { usePageParams } from "../../hooks/usePageParams";
-import { APIError } from "../../utils/APIError.js";
+import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const.js";
 import { a11yProps, errorToString } from "../../utils/func";
 

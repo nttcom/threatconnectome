@@ -1,5 +1,6 @@
 export class APIError extends Error {
-  constructor(message, customProps) {
+  public readonly api: string;
+  constructor(message: string, customProps: { api: string }) {
     super(message);
     this.api = customProps.api;
   }
