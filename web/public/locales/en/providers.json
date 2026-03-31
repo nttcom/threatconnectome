@@ -15,10 +15,16 @@
       "auth.requires-recent-login": "Please log out and sign in again before trying.",
       "auth.internal-error": "An internal error occurred.",
       "samlNotSupported": "SAML is not supported.",
-      "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678)."
+      "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
+      "internal-error": "An internal error occurred."
     },
     "SupabaseProvider": {
-      "unsupportedProvider": "Unsupported provider: {{provider}}"
+      "unsupportedProvider": "Unsupported provider: {{provider}}",
+      "user_already_exists": "Email already in use",
+      "invalid_credentials": "Invalid email or password.",
+      "over_email_send_rate_limit": "Too many requests. Please try again later.",
+      "user_banned": "This user account is banned.",
+      "internal-error": "An internal error occurred."
     }
   }
 }

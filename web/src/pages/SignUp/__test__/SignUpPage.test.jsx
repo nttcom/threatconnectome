@@ -194,6 +194,7 @@ describe("TestSignUpPage", () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const errorCode = "auth/unknown-error";
       const errorMessage = "This is a provider-translated error message.";
+      const defaultMessage = "An internal error occurred. Please try again later."; //See web/src/pages/SignUp/SignUpPage.jsx::getAuthErrorMessage
 
       const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
         code: errorCode,
@@ -225,7 +226,7 @@ describe("TestSignUpPage", () => {
         code: errorCode,
         message: errorMessage,
       });
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      expect(screen.getByText(defaultMessage)).toBeInTheDocument();
     });
 
     it("shows internal error message when error.code is missing", async () => {
