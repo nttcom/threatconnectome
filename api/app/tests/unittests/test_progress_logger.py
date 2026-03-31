@@ -118,7 +118,7 @@ class TestTimeBasedProgressLogger:
 
         # When
         try:
-            time.sleep(0.05)
+            time.sleep(0.02)
 
             initial = (
                 testdb.query(models.SbomUploadProgress)
@@ -131,7 +131,7 @@ class TestTimeBasedProgressLogger:
 
             logger.add_progress(50.0)
             logger._do_update_event.set()
-            time.sleep(0.05)
+            time.sleep(0.02)
 
             updated = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
             assert updated is not None
