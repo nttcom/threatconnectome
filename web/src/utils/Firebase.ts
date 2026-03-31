@@ -1,13 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { connectAuthEmulator, getAuth, SAMLAuthProvider } from "firebase/auth";
+import {
+  connectAuthEmulator,
+  getAuth,
+  SAMLAuthProvider,
+  Auth,
+  RecaptchaVerifier,
+} from "firebase/auth";
 
 class Firebase {
-  constructor() {
-    this.auth = null;
-    this.providerId = null;
-    this.samlProvider = null;
-    this.recaptchaForResend = null;
-  }
+  private auth: Auth | null = null;
+  private providerId: string | undefined = undefined;
+  private samlProvider: SAMLAuthProvider | null = null;
+  private recaptchaForResend: RecaptchaVerifier | null = null;
 
   getAuth() {
     if (this.auth == null) {
@@ -56,7 +60,7 @@ class Firebase {
     return this.recaptchaForResend;
   }
 
-  setRecaptchaForResend(element) {
+  setRecaptchaForResend(element: RecaptchaVerifier) {
     this.recaptchaForResend = element;
   }
 }
