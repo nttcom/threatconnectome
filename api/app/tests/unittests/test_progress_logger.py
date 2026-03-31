@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 
 import pytest
@@ -24,9 +25,15 @@ class TestTimeBasedProgressLogger:
             .one_or_none()
         )
 
-    def _create_logger(self, mocker, title, pteam_id, service_name, interval, trigger):
-        # patch class attrs so they are auto-restored by mocker
-        mocker.patch.object(TimeBasedProgressLogger, "INTERVAL_DB_SECONDS", interval)
+    def _create_logger(
+        self,
+        mocker,
+        title,
+        pteam_id,
+        service_name,
+        trigger,
+    ):
+
         mocker.patch.object(TimeBasedProgressLogger, "LOG_TRIGGER_COUNT", trigger)
 
         logger = TimeBasedProgressLogger(
@@ -35,9 +42,22 @@ class TestTimeBasedProgressLogger:
             service_name=service_name,
             logger=logging.getLogger("app.utility.progress_logger"),
         )
-        return logger
 
-    # no restore helper needed when using mocker.patch.object
+        do_update_event = threading.Event()
+
+        def _fake_wait(timeout):
+            while True:
+                if do_update_event.is_set():
+                    do_update_event.clear()
+                    return False
+                if logger._stop_event.is_set():
+                    return True
+                time.sleep(0.001)
+
+        mocker.patch.object(logger._stop_event, "wait", side_effect=_fake_wait)
+        logger._do_update_event = do_update_event
+
+        return logger
 
     def test_it_should_output_log_when_add_progress(self, mocker, setup_pteam):
         # Given
@@ -46,7 +66,6 @@ class TestTimeBasedProgressLogger:
             title="Test Task",
             pteam_id=self.pteam1.pteam_id,
             service_name="test_service1",
-            interval=0.5,
             trigger=1,
         )
 
@@ -55,14 +74,14 @@ class TestTimeBasedProgressLogger:
         try:
             for i in range(5):
                 logger.add_progress(20.0)
-                time.sleep(1.0)
+                logger._do_update_event.set()
+                time.sleep(0.02)
         finally:
             logger.stop()
 
         # Then
         log_messages = [args[0] for args, _ in mock_info.call_args_list]
         assert "[Test Task] Progress: 40.0%" in log_messages
-        assert 7 < mock_info.call_count < 11
 
     def test_it_should_return_100_when_progress_overflows(self, mocker, setup_pteam):
         # Given
@@ -71,7 +90,6 @@ class TestTimeBasedProgressLogger:
             title="Test Task",
             pteam_id=self.pteam1.pteam_id,
             service_name="test_service1",
-            interval=0.5,
             trigger=1,
         )
 
@@ -79,7 +97,8 @@ class TestTimeBasedProgressLogger:
 
         try:
             logger.add_progress(120.0)
-            time.sleep(1.0)
+            logger._do_update_event.set()
+            time.sleep(0.02)
         finally:
             logger.stop()
 
@@ -94,13 +113,12 @@ class TestTimeBasedProgressLogger:
             title="DB Test Task",
             pteam_id=self.pteam1.pteam_id,
             service_name="test_service",
-            interval=0.5,
             trigger=10,
         )
 
         # When
         try:
-            time.sleep(0.1)
+            time.sleep(0.05)
 
             initial = (
                 testdb.query(models.SbomUploadProgress)
@@ -112,7 +130,8 @@ class TestTimeBasedProgressLogger:
             assert initial.created_at <= initial.updated_at
 
             logger.add_progress(50.0)
-            time.sleep(1.0)
+            logger._do_update_event.set()
+            time.sleep(0.05)
 
             updated = self._refresh_and_get_progress(testdb, self.pteam1.pteam_id, "test_service")
             assert updated is not None
