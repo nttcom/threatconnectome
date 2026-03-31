@@ -20,7 +20,7 @@ function _errorToMessage(error) {
   const message = getAuthErrorMessage(error, {
     namespace: "providers",
     keyPrefix: "auth.SupabaseProvider",
-    defaultMessage: "An internal error occurred.",
+    defaultMessage: i18n.t("auth.SupabaseProvider.internal-error", { ns: "providers" }),
   });
   return message;
 }
