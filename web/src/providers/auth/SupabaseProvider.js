@@ -28,7 +28,7 @@ function _errorToMessage(error) {
 class SupabaseAuthError extends AuthError {
   constructor(error) {
     super(error, error.code, _errorToMessage(error));
-    console.log("Authentication error:", error.message);
+    console.error("Authentication error:", error.message);
   }
 }
 
