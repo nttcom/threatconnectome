@@ -1,9 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-// @ts-expect-error TS7016
-import Firebase from "../utils/Firebase.js";
-// @ts-expect-error TS7016
-import Supabase from "../utils/Supabase.js";
+import Firebase from "../utils/Firebase";
+import Supabase from "../utils/Supabase";
 import { blobToDataURL } from "../utils/func";
 
 import type {
@@ -112,10 +110,11 @@ type GetSbomProgressRequestQuery = Pick<
   "path"
 >["path"];
 
-export const getBearerToken = {
-  supabase: Supabase.getBearerToken.bind(Supabase),
-  firebase: Firebase.getBearerToken.bind(Firebase),
-}[import.meta.env.VITE_AUTH_SERVICE];
+export const getBearerToken =
+  {
+    supabase: Supabase.getBearerToken.bind(Supabase),
+    firebase: Firebase.getBearerToken.bind(Firebase),
+  }[import.meta.env.VITE_AUTH_SERVICE] ?? (() => Promise.resolve(null));
 
 export const tcApi = createApi({
   reducerPath: "tcApi",
