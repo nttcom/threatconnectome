@@ -104,6 +104,7 @@ export function TicketHandlingStatusSelector(props) {
           serviceId={serviceId}
           packageId={packageId}
           ticketId={ticketId}
+          originalNote={currentStatus.note || ""}
           onClose={() => setCompleteDialogOpen(false)}
           show={completeDialogOpen}
         />

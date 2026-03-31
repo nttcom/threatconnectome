@@ -14,7 +14,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
@@ -35,17 +35,21 @@ import { ActionTypeIcon } from "../ActionTypeIcon.jsx";
 import { useVulnDialogContext } from "../VulnDialogContext.js";
 
 export function CompleteTicketDialog(props) {
-  const { pteamId, serviceId, packageId, ticketId, onClose, show } = props;
+  const { pteamId, serviceId, packageId, ticketId, originalNote, onClose, show } = props;
   const { vulnId } = useVulnDialogContext();
   const { t } = useTranslation("components", { keyPrefix: "Ticket.CompleteTicketDialog" });
 
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(originalNote);
   const [selectedUpdateAction, setSelectedUpdateAction] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
 
   const { enqueueSnackbar } = useSnackbar();
   const [createActionLog, { isLoading: isCreatingActionLog }] = useCreateActionLogMutation();
   const [updateTicket, { isLoading: isUpdatingTicket }] = useUpdateTicketMutation();
+
+  useEffect(() => {
+    setNote(originalNote);
+  }, [originalNote]);
 
   // Get ticket info
   const {
@@ -263,6 +267,7 @@ CompleteTicketDialog.propTypes = {
   serviceId: PropTypes.string.isRequired,
   packageId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
+  originalNote: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
   show: PropTypes.bool.isRequired,
 };
