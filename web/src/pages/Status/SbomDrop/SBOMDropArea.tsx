@@ -158,8 +158,11 @@ export function SBOMDropArea(props: SBOMDropAreaProps) {
         onUploaded();
       })
       .catch((error) => {
-        const msg = errorToString(error);
-        enqueueSnackbar(t("uploadFailed", { message: msg }), { variant: "error" });
+        const msg =
+          error.status == 409
+            ? t("uploadFailedBecauseDuplicate")
+            : t("uploadFailed", { message: errorToString(error) });
+        enqueueSnackbar(msg, { variant: "error" });
       })
       .finally(() => {
         setSbomFile(null);

@@ -32,6 +32,7 @@
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
+    "uploadFailedBecauseDuplicate": "重複したサービス名です: このサービス名のSBOMアップロードはすでに実行中です。",
     "estimatedTime": "予測実行時間:",
     "sbomWarning": "重要: 誤ったSBOMをアップロードすると、関連チケットが削除される可能性があります。アップロード前にSBOMが正しいか確認してください。"
   },
@@ -53,6 +54,7 @@
     "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
     "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
     "uploadFailed": "操作に失敗しました: {{message}}。",
+    "uploadFailedBecauseDuplicate": "重複したサービス名です: このサービス名のSBOMアップロードはすでに実行中です。",
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "estimatedTime": "予測実行時間:"
   },
