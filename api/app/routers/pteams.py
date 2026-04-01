@@ -1254,7 +1254,12 @@ async def upload_pteam_sbom_file(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing service_name")
 
     command.delete_old_sbom_upload_progress(db)
-    if len(persistence.get_sbom_upload_progress_by_service_name(db, pteam_id, service)) > 0:
+    if (
+        len(
+            persistence.get_sbom_upload_progress_by_pteam_id_and_service_name(db, pteam_id, service)
+        )
+        > 0
+    ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="An SBOM upload for this service is already in progress",

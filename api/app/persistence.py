@@ -570,7 +570,7 @@ def delete_sbom_upload_progress_by_id(db: Session, sbom_upload_progress_id: str)
     db.commit()
 
 
-def get_sbom_upload_progress_by_service_name(
+def get_sbom_upload_progress_by_pteam_id_and_service_name(
     db: Session, pteam_id: UUID | str, service_name: str
 ) -> Sequence[models.SbomUploadProgress]:
     return db.scalars(
