@@ -66,6 +66,12 @@ export function PTeamGeneralSetting(props) {
     (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
   );
 
+  if (!user) {
+    throw new APIError("PTeam role not found for current user", {
+      api: "getUserMe",
+    });
+  }
+
   const operationError = (error) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
@@ -154,6 +160,7 @@ export function PTeamGeneralSetting(props) {
             maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
           })}
           fullWidth
+          disabled={!user.is_admin}
         />
       </Box>
       <Box mb={2}>
@@ -168,12 +175,17 @@ export function PTeamGeneralSetting(props) {
             maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
           })}
           fullWidth
+          disabled={!user.is_admin}
         />
       </Box>
       <Divider />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
-        <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
+        <Button
+          onClick={() => handleUpdatePTeam()}
+          sx={{ ...modalCommonButtonStyle, ml: 1 }}
+          disabled={!user.is_admin}
+        >
           {t("save")}
         </Button>
       </Box>

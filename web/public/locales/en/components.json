@@ -27,6 +27,7 @@
     "loadingUserInfo": "Now loading UserInfo..."
   },
   "PTeamNotificationSetting": {
+    "loadingUserInfo": "Now loading UserInfo...",
     "operationFailed": "Operation failed: {{error}}",
     "emailTooLong": "Too long email address. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "slackUrlTooLong": "Too long Slack webhook URL. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
