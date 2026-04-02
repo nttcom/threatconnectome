@@ -27,10 +27,12 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useViewportOffset } from "../hooks/useViewportOffset";
 import {
   useCheckMailMutation,
   useCheckSlackMutation,
+  useGetUserMeQuery,
   useUpdatePTeamMutation,
 } from "../services/tcApi";
 import {
@@ -62,6 +64,25 @@ export function PTeamNotificationSetting(props) {
   const [postCheckMail] = useCheckMailMutation();
   const [postCheckSlack] = useCheckSlackMutation();
   const [updatePTeam] = useUpdatePTeamMutation();
+
+  const skip = useSkipUntilAuthUserIsReady();
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+
+  if (skip) return <></>;
+  if (userMeError)
+    throw new APIError(errorToString(userMeError), {
+      api: "getUserMe",
+    });
+
+  if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+
+  const user = userMe.pteam_roles.find(
+    (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
+  );
 
   const operationError = (error) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
@@ -209,6 +230,7 @@ export function PTeamNotificationSetting(props) {
           // use String() to prevent undefined from setting alertimpact
           size="small"
           fullWidth
+          disabled={!user.is_admin}
         >
           {sortedSSVCPriorities.map((ssvcPriority) => (
             <MenuItem key={ssvcPriority} value={ssvcPriority}>
@@ -225,7 +247,7 @@ export function PTeamNotificationSetting(props) {
           alignItems={{ sm: "center" }}
           gap={1}
         >
-          <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
+          <FormControl variant="outlined" size="small" sx={{ flex: 1 }} disabled={!user.is_admin}>
             <OutlinedInput
               id="pteam-mail-address-field"
               type="text"
@@ -239,6 +261,7 @@ export function PTeamNotificationSetting(props) {
             variant="contained"
             onClick={handleCheckMail}
             sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap", px: 2 }}
+            disabled={!user.is_admin}
           >
             {checkEmail ? (
               <CircularProgress size="1.6rem" sx={{ color: "#fff" }} />
@@ -263,7 +286,7 @@ export function PTeamNotificationSetting(props) {
           alignItems={{ sm: "center" }}
           gap={1}
         >
-          <FormControl variant="outlined" size="small" sx={{ flex: 1 }}>
+          <FormControl variant="outlined" size="small" sx={{ flex: 1 }} disabled={!user.is_admin}>
             <OutlinedInput
               id="pteam-slack-url-field"
               type={editingSlackUrl ? "text" : "password"}
@@ -288,6 +311,7 @@ export function PTeamNotificationSetting(props) {
             variant="contained"
             onClick={handleCheckSlack}
             sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap", px: 2 }}
+            disabled={!user.is_admin}
           >
             {checkSlack ? (
               <CircularProgress size="1.6rem" sx={{ color: "#fff" }} />
@@ -309,14 +333,22 @@ export function PTeamNotificationSetting(props) {
         <Typography sx={{ fontWeight: 400 }}>{t("sendBy")}</Typography>
         <FormControlLabel
           control={
-            <AndroidSwitch checked={slackEnable} onChange={() => setSlackEnable(!slackEnable)} />
+            <AndroidSwitch
+              checked={slackEnable}
+              onChange={() => setSlackEnable(!slackEnable)}
+              disabled={!user.is_admin}
+            />
           }
           labelPlacement="start"
           label={t("slack")}
         />
         <FormControlLabel
           control={
-            <AndroidSwitch checked={mailEnable} onChange={() => setMailEnable(!mailEnable)} />
+            <AndroidSwitch
+              checked={mailEnable}
+              onChange={() => setMailEnable(!mailEnable)}
+              disabled={!user.is_admin}
+            />
           }
           labelPlacement="start"
           label={t("email")}
@@ -325,7 +357,11 @@ export function PTeamNotificationSetting(props) {
       <Divider />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
-        <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
+        <Button
+          onClick={() => handleUpdatePTeam()}
+          sx={{ ...modalCommonButtonStyle, ml: 1 }}
+          disabled={!user.is_admin}
+        >
           {t("save")}
         </Button>
       </Box>

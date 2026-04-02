@@ -154,6 +154,7 @@ export function PTeamGeneralSetting(props) {
             maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
           })}
           fullWidth
+          disabled={!user.is_admin}
         />
       </Box>
       <Box mb={2}>
@@ -168,12 +169,17 @@ export function PTeamGeneralSetting(props) {
             maxFull: Math.floor(maxContactInfoLengthInHalf / 2),
           })}
           fullWidth
+          disabled={!user.is_admin}
         />
       </Box>
       <Divider />
       <Box display="flex" mt={2}>
         <Box flexGrow={1} />
-        <Button onClick={() => handleUpdatePTeam()} sx={{ ...modalCommonButtonStyle, ml: 1 }}>
+        <Button
+          onClick={() => handleUpdatePTeam()}
+          sx={{ ...modalCommonButtonStyle, ml: 1 }}
+          disabled={!user.is_admin}
+        >
           {t("save")}
         </Button>
       </Box>
