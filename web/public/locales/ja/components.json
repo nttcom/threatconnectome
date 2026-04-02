@@ -27,6 +27,7 @@
     "loadingUserInfo": "ユーザー情報を読み込んでいます..."
   },
   "PTeamNotificationSetting": {
+    "loadingUserInfo": "ユーザー情報を読み込んでいます...",
     "operationFailed": "操作に失敗しました: {{error}}。",
     "emailTooLong": "メールアドレスが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "slackUrlTooLong": "Slack Webhook URLが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
