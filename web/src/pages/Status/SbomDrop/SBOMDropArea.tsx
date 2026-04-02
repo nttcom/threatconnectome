@@ -27,11 +27,7 @@ export function SBOMDropArea({ pteamId, onUploaded, existingServiceNames }: SBOM
 
   return (
     <>
-      <FileDropZone
-        onFileSelected={handleFileSelected}
-        selectedFile={null}
-        showFileName={false}
-      />
+      <FileDropZone onFileSelected={handleFileSelected} selectedFile={null} showFileName={false} />
       <SBOMUpdateDialog
         open={dialogOpen}
         onClose={handleDialogClose}

@@ -144,7 +144,6 @@ export function SBOMUpdateDialog({
             <FileDropZone
               onFileSelected={setSbomFile}
               selectedFile={sbomFile}
-
               showFileName={true}
             />
           </Box>
