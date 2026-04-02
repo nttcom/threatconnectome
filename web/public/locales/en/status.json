@@ -20,8 +20,7 @@
   "FileDropZone": {
     "alertOnlyOneFile": "Please select only 1 file",
     "alertOnlyJson": "Only *.json is supported",
-    "dropOrClickToSelect": "Drop or click to select",
-    "dropFileHere": "Drop SBOM file here"
+    "dropOrClickToSelect": "Drop or click to select"
   },
   "SBOMUpdateDialog": {
     "updateSBOM": "Update SBOM",
