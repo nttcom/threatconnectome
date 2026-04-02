@@ -66,6 +66,12 @@ export function PTeamGeneralSetting(props) {
     (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
   );
 
+  if (!user) {
+    throw new APIError("PTeam role not found for current user", {
+      api: "getUserMe",
+    });
+  }
+
   const operationError = (error) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
