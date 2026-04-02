@@ -600,7 +600,11 @@ export function Status() {
         {targetPackages.length > 3 && filterRow}
       </CustomTabPanel>
       <CustomTabPanel value={isActiveUploadMode} index={1}>
-        <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+        <SBOMDropArea
+          pteamId={pteamId}
+          onUploaded={handleSBOMUploaded}
+          existingServiceNames={pteam.services.map((s) => s.service_name)}
+        />
       </CustomTabPanel>
       <PTeamServicesListModal
         onSetShow={setPTeamServicesListModalOpen}

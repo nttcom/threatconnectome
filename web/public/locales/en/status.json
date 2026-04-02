@@ -33,6 +33,7 @@
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
     "uploadFailedBecauseDuplicate": "Duplicate service name: an SBOM upload for this service is already running.",
+    "duplicateServiceName": "This service name already exists.",
     "estimatedTime": "Predicted execution time:",
     "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
   },
