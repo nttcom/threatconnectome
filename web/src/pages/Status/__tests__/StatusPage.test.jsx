@@ -183,7 +183,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(packagesSummary);
 
       renderStatusPage();
-      expect(screen.getByText("Drop SBOM file here")).toBeInTheDocument();
+      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
     });
 
     it("Do not show SBOMDropArea component when the service is registered", () => {
@@ -212,7 +212,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       renderStatusPage();
-      expect(screen.queryByText("Drop SBOM file here")).toBeNull();
+      expect(screen.queryByText("Drop or click to select")).toBeNull();
     });
 
     it("show SBOMDropArea component when the upload button is clicked", async () => {
@@ -244,7 +244,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getByLabelText("sbom file upload area button"));
-      expect(screen.getByText("Drop SBOM file here")).toBeInTheDocument();
+      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
     });
   });
 });
