@@ -31,6 +31,7 @@ type Props = {
   initialFile?: File | null;
   onUploaded?: () => void;
   existingServiceNames?: string[];
+  showWarning?: boolean;
 };
 
 export function SBOMUpdateDialog({
@@ -41,6 +42,7 @@ export function SBOMUpdateDialog({
   initialFile,
   onUploaded,
   existingServiceNames,
+  showWarning = true,
 }: Props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMUpdateDialog" });
   const { enqueueSnackbar } = useSnackbar();
@@ -138,9 +140,11 @@ export function SBOMUpdateDialog({
                 },
               }}
             />
-            <Alert severity="warning" sx={{ fontWeight: "medium" }}>
-              {t("sbomWarning")}
-            </Alert>
+            {showWarning && (
+              <Alert severity="warning" sx={{ fontWeight: "medium" }}>
+                {t("sbomWarning")}
+              </Alert>
+            )}
             <FileDropZone
               onFileSelected={setSbomFile}
               selectedFile={sbomFile}

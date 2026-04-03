@@ -287,6 +287,7 @@ export function Status() {
             pteamId={pteamId}
             initialFile={selectedFile}
             onUploaded={handleSBOMUploaded}
+            showWarning={false}
           />
         </>
       );
@@ -637,6 +638,7 @@ export function Status() {
           initialFile={selectedFile}
           onUploaded={handleSBOMUploaded}
           existingServiceNames={pteam.services.map((s) => s.service_name)}
+          showWarning={false}
         />
       </CustomTabPanel>
       <PTeamServicesListModal
