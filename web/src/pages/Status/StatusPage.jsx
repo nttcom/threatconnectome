@@ -50,7 +50,8 @@ import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
-import { SBOMDropArea } from "./SbomDrop/SBOMDropArea";
+import { FileDropZone } from "./SbomDrop/FileDropZone";
+import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 const ssvcPriorityCountMax = 99999;
@@ -144,6 +145,19 @@ export function Status() {
     packageName: "",
     serviceIds: [],
   });
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [sbomUpdateDialogOpen, setSbomUpdateDialogOpen] = useState(false);
+
+  const handleFileSelected = (file) => {
+    setSelectedFile(file);
+    setSbomUpdateDialogOpen(true);
+  };
+
+  const handleSbomUpdateDialogClose = () => {
+    setSelectedFile(null);
+    setSbomUpdateDialogOpen(false);
+  };
 
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
@@ -262,7 +276,18 @@ export function Status() {
           <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
             <SBOMUploadProgressButton pteamId={pteamId} />
           </Box>
-          <SBOMDropArea pteamId={pteamId} onUploaded={handleSBOMUploaded} />
+          <FileDropZone
+            onFileSelected={handleFileSelected}
+            selectedFile={null}
+            showFileName={false}
+          />
+          <SBOMUpdateDialog
+            open={sbomUpdateDialogOpen}
+            onClose={handleSbomUpdateDialogClose}
+            pteamId={pteamId}
+            initialFile={selectedFile}
+            onUploaded={handleSBOMUploaded}
+          />
         </>
       );
     }
@@ -600,8 +625,16 @@ export function Status() {
         {targetPackages.length > 3 && filterRow}
       </CustomTabPanel>
       <CustomTabPanel value={isActiveUploadMode} index={1}>
-        <SBOMDropArea
+        <FileDropZone
+          onFileSelected={handleFileSelected}
+          selectedFile={null}
+          showFileName={false}
+        />
+        <SBOMUpdateDialog
+          open={sbomUpdateDialogOpen}
+          onClose={handleSbomUpdateDialogClose}
           pteamId={pteamId}
+          initialFile={selectedFile}
           onUploaded={handleSBOMUploaded}
           existingServiceNames={pteam.services.map((s) => s.service_name)}
         />
