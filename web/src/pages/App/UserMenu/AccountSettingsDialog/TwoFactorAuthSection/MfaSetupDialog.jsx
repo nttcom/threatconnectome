@@ -27,11 +27,11 @@ import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 import { normalizePhoneNumberToE164 } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
-  { code: "+81", country: "JP", label: "JP (+81)" },
-  { code: "+1", country: "US", label: "US (+1)" },
-  { code: "+44", country: "GB", label: "UK (+44)" },
-  { code: "+86", country: "CN", label: "CN (+86)" },
-  { code: "+82", country: "KR", label: "KR (+82)" },
+  { code: "+81", country: "JP", label: "JP (+81)", placeholder: "09012345678" },
+  { code: "+1", country: "US", label: "US (+1)", placeholder: "2125550191" },
+  { code: "+44", country: "GB", label: "UK (+44)", placeholder: "07911123456" },
+  { code: "+86", country: "CN", label: "CN (+86)", placeholder: "01012345678" },
+  { code: "+82", country: "KR", label: "KR (+82)", placeholder: "01098765432" },
 ];
 
 const getCountryOption = (countryCode) => {
@@ -44,6 +44,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   });
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
+  const selectedCountryOption = getCountryOption(countryCode);
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -94,7 +95,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const handleSendCode = async () => {
     const normalizedPhoneNumber = normalizePhoneNumberToE164(
       phoneNumber,
-      getCountryOption(countryCode).country,
+      selectedCountryOption.country,
     );
 
     if (!normalizedPhoneNumber) {
@@ -235,7 +236,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 variant="outlined"
                 value={phoneNumber}
                 onChange={handlePhoneNumberChange}
-                placeholder="9012345678"
+                placeholder={selectedCountryOption.placeholder}
                 disabled={loading}
                 error={!!error}
                 helperText={error}
@@ -363,7 +364,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 disabled={
                   loading ||
                   !phoneNumber ||
-                  !normalizePhoneNumberToE164(phoneNumber, getCountryOption(countryCode).country)
+                  !normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country)
                 }
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
