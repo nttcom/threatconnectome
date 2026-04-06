@@ -195,7 +195,7 @@ def __handle_update_vuln(
 
     vuln.updated_at = datetime.now(timezone.utc)
     db.flush()
-    db.refresh(vuln)
+    db.refresh(vuln, attribute_names=["affects", "threats"])
 
     new_threats: list[models.Threat] = threat_business.fix_threat_by_vuln(db, vuln)
     for threat in new_threats:
