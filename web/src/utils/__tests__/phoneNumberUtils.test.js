@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { isE164Format } from "../phoneNumberUtils";
+import { isE164Format, normalizePhoneNumberToE164 } from "../phoneNumberUtils";
 
 describe("isValidE164", () => {
   it("should return true for valid E.164 numbers", () => {
@@ -22,5 +22,24 @@ describe("isValidE164", () => {
     expect(isE164Format("+81abcde")).toBe(false);
     expect(isE164Format("")).toBe(false);
     expect(isE164Format("+81090123456789")).toBe(false);
+  });
+});
+
+describe("normalizePhoneNumberToE164", () => {
+  it("should normalize domestic phone numbers to E.164", () => {
+    expect(normalizePhoneNumberToE164("09012345678", "JP")).toBe("+819012345678");
+    expect(normalizePhoneNumberToE164("2125550191", "US")).toBe("+12125550191");
+    expect(normalizePhoneNumberToE164("07911123456", "GB")).toBe("+447911123456");
+    expect(normalizePhoneNumberToE164("01012345678", "CN")).toBe("+861012345678");
+    expect(normalizePhoneNumberToE164("01098765432", "KR")).toBe("+821098765432");
+  });
+
+  it("should keep valid E.164 phone numbers unchanged", () => {
+    expect(normalizePhoneNumberToE164("+819012345678", "JP")).toBe("+819012345678");
+  });
+
+  it("should return null for invalid phone numbers", () => {
+    expect(normalizePhoneNumberToE164("123", "JP")).toBe(null);
+    expect(normalizePhoneNumberToE164("", "JP")).toBe(null);
   });
 });

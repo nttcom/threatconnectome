@@ -24,15 +24,19 @@ import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTro
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
-import { isE164Format } from "../../../../../utils/phoneNumberUtils";
+import { normalizePhoneNumberToE164 } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
-  { code: "+81", label: "JP (+81)" },
-  { code: "+1", label: "US (+1)" },
-  { code: "+44", label: "UK (+44)" },
-  { code: "+86", label: "CN (+86)" },
-  { code: "+82", label: "KR (+82)" },
+  { code: "+81", country: "JP", label: "JP (+81)" },
+  { code: "+1", country: "US", label: "US (+1)" },
+  { code: "+44", country: "GB", label: "UK (+44)" },
+  { code: "+86", country: "CN", label: "CN (+86)" },
+  { code: "+82", country: "KR", label: "KR (+82)" },
 ];
+
+const getCountryOption = (countryCode) => {
+  return COUNTRY_CODES.find((option) => option.code === countryCode) ?? COUNTRY_CODES[0];
+};
 
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const { t } = useTranslation("app", {
@@ -88,10 +92,20 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   const handleSendCode = async () => {
+    const normalizedPhoneNumber = normalizePhoneNumberToE164(
+      phoneNumber,
+      getCountryOption(countryCode).country,
+    );
+
+    if (!normalizedPhoneNumber) {
+      setError(t("invalidPhoneE164Example"));
+      return;
+    }
+
     setLoading(true);
     setError("");
     unlockAction();
-    registerPhoneNumber(countryCode + phoneNumber, recaptchaIdForRegisterPhoneNumber)
+    registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber)
       .then((mfa) => {
         setMfaData(mfa);
         setLoading(false);
@@ -128,7 +142,12 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   const validatePhoneNumber = (newCountryCode, newPhoneNumber) => {
-    if (!isE164Format(newCountryCode + newPhoneNumber)) {
+    const normalizedPhoneNumber = normalizePhoneNumberToE164(
+      newPhoneNumber,
+      getCountryOption(newCountryCode).country,
+    );
+
+    if (!normalizedPhoneNumber) {
       setError(t("invalidPhoneE164Example"));
     } else if (error) {
       setError("");
@@ -341,7 +360,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
+                disabled={
+                  loading ||
+                  !phoneNumber ||
+                  !normalizePhoneNumberToE164(phoneNumber, getCountryOption(countryCode).country)
+                }
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}

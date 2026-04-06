@@ -22,3 +22,13 @@ export const isE164Format = (inputPhoneNumber) => {
     return false;
   }
 };
+
+export const normalizePhoneNumberToE164 = (inputPhoneNumber, defaultCountry) => {
+  const phoneNumber = parsePhoneNumber(inputPhoneNumber, defaultCountry);
+
+  if (phoneNumber && phoneNumber.isValid()) {
+    return phoneNumber.format("E.164");
+  }
+
+  return null;
+};
