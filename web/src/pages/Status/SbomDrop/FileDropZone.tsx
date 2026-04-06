@@ -6,14 +6,12 @@ import { useTranslation } from "react-i18next";
 type FileDropZoneProps = {
   onFileSelected: (file: File) => void;
   selectedFile?: File | null;
-  allowClick?: boolean;
   showFileName?: boolean;
 };
 
 export function FileDropZone({
   onFileSelected,
   selectedFile = null,
-  allowClick = true,
   showFileName = true,
 }: FileDropZoneProps) {
   const { t } = useTranslation("status", { keyPrefix: "FileDropZone" });
@@ -46,21 +44,12 @@ export function FileDropZone({
   };
 
   const handleClick = () => {
-    if (allowClick) {
-      fileInputRef.current?.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     validateAndSetFile(event.target.files);
     event.target.value = "";
-  };
-
-  const getDisplayText = () => {
-    if (allowClick) {
-      return <Typography variant="body2">{t("dropOrClickToSelect")}</Typography>;
-    }
-    return <Typography variant="body2">{t("dropFileHere")}</Typography>;
   };
 
   return (
@@ -77,25 +66,23 @@ export function FileDropZone({
         width: "100%",
         minHeight: "300px",
         border: "4px dotted #888",
-        cursor: allowClick ? "pointer" : "default",
+        cursor: "pointer",
       }}
     >
-      {allowClick && (
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
       <UploadFileIcon sx={{ fontSize: 50, mb: 3 }} />
       {showFileName && selectedFile ? (
         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
           {selectedFile.name}
         </Typography>
       ) : (
-        getDisplayText()
+        t("dropOrClickToSelect")
       )}
     </Box>
   );

@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useUploadSBOMFileMutation } from "../../../services/tcApi";
@@ -27,22 +27,50 @@ type Props = {
   open: boolean;
   onClose: () => void;
   pteamId: string;
-  serviceName: string;
+  serviceName?: string;
+  initialFile?: File | null;
+  onUploaded?: () => void;
+  existingServiceNames?: string[];
+  showWarning?: boolean;
 };
 
-export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props) {
+export function SBOMUpdateDialog({
+  open,
+  onClose,
+  pteamId,
+  serviceName,
+  initialFile,
+  onUploaded,
+  existingServiceNames,
+  showWarning = true,
+}: Props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMUpdateDialog" });
   const { enqueueSnackbar } = useSnackbar();
 
   const [sbomFile, setSbomFile] = useState<File | null>(null);
   const [isOpenWaitingModal, setIsOpenWaitingModal] = useState(false);
+  const [serviceNameInput, setServiceNameInput] = useState("");
+
+  const effectiveServiceName = serviceName ?? serviceNameInput;
+
+  const isDuplicateServiceName =
+    !!existingServiceNames &&
+    !!effectiveServiceName &&
+    existingServiceNames.includes(effectiveServiceName);
+
+  useEffect(() => {
+    if (open) {
+      setSbomFile(initialFile ?? null);
+      setServiceNameInput("");
+    }
+  }, [open, initialFile]);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
   const estimateTime = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
 
   const handleUpload = () => {
-    if (!sbomFile || !serviceName) {
+    if (!sbomFile || !effectiveServiceName) {
       alert(t("alertMissingFile"));
       return;
     }
@@ -51,7 +79,7 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
     enqueueSnackbar(t("uploadingFile", { fileName: sbomFile.name }), { variant: "info" });
     uploadSBOMFile({
       path: { pteam_id: pteamId },
-      query: { service: serviceName },
+      query: { service: effectiveServiceName },
       body: { file: sbomFile },
     })
       .unwrap()
@@ -60,6 +88,7 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
           variant: "success",
         });
         setSbomFile(null);
+        onUploaded?.();
       })
       .catch((error) => {
         const msg =
@@ -96,25 +125,29 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
             <TextField
               label={t("serviceName")}
               size="small"
-              value={serviceName}
-              disabled
+              value={effectiveServiceName}
+              disabled={!!serviceName}
+              onChange={serviceName ? undefined : (e) => setServiceNameInput(e.target.value)}
+              error={isDuplicateServiceName}
+              helperText={isDuplicateServiceName ? t("duplicateServiceName") : undefined}
               slotProps={{
                 input: {
-                  endAdornment: (
+                  endAdornment: serviceName ? (
                     <InputAdornment position="end">
                       <LockIcon fontSize="small" />
                     </InputAdornment>
-                  ),
+                  ) : undefined,
                 },
               }}
             />
-            <Alert severity="warning" sx={{ fontWeight: "medium" }}>
-              {t("sbomWarning")}
-            </Alert>
+            {showWarning && (
+              <Alert severity="warning" sx={{ fontWeight: "medium" }}>
+                {t("sbomWarning")}
+              </Alert>
+            )}
             <FileDropZone
               onFileSelected={setSbomFile}
               selectedFile={sbomFile}
-              allowClick={true}
               showFileName={true}
             />
           </Box>
@@ -134,7 +167,11 @@ export function SBOMUpdateDialog({ open, onClose, pteamId, serviceName }: Props)
               <Typography variant="body2">{estimateTime}</Typography>
             </Box>
           )}
-          <Button variant="contained" onClick={handleUpload} disabled={!sbomFile}>
+          <Button
+            variant="contained"
+            onClick={handleUpload}
+            disabled={!sbomFile || !effectiveServiceName || isDuplicateServiceName}
+          >
             {t("upload")}
           </Button>
         </DialogActions>

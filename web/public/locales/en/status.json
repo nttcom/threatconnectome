@@ -20,8 +20,7 @@
   "FileDropZone": {
     "alertOnlyOneFile": "Please select only 1 file",
     "alertOnlyJson": "Only *.json is supported",
-    "dropOrClickToSelect": "Drop or click to select",
-    "dropFileHere": "Drop SBOM file here"
+    "dropOrClickToSelect": "Drop or click to select"
   },
   "SBOMUpdateDialog": {
     "updateSBOM": "Update SBOM",
@@ -33,6 +32,7 @@
     "uploadSuccess": "SBOM Update Request was accepted. Please reload later",
     "uploadFailed": "Operation failed: {{message}}",
     "uploadFailedBecauseDuplicate": "Duplicate service name: an SBOM upload for this service is already running.",
+    "duplicateServiceName": "This service name already exists.",
     "estimatedTime": "Predicted execution time:",
     "sbomWarning": "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading."
   },
