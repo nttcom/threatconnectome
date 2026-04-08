@@ -32,3 +32,13 @@ export const normalizePhoneNumberToE164 = (inputPhoneNumber, defaultCountry) => 
 
   return null;
 };
+
+export const getNationalPhoneNumber = (inputPhoneNumber, defaultCountry) => {
+  const phoneNumber = parsePhoneNumber(inputPhoneNumber, defaultCountry);
+
+  if (phoneNumber && phoneNumber.isValid()) {
+    return phoneNumber.nationalNumber;
+  }
+
+  return null;
+};

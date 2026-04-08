@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 
-import { isE164Format, normalizePhoneNumberToE164 } from "../phoneNumberUtils";
+import {
+  getNationalPhoneNumber,
+  isE164Format,
+  normalizePhoneNumberToE164,
+} from "../phoneNumberUtils";
 
 describe("isValidE164", () => {
   it("should return true for valid E.164 numbers", () => {
@@ -41,5 +45,20 @@ describe("normalizePhoneNumberToE164", () => {
   it("should return null for invalid phone numbers", () => {
     expect(normalizePhoneNumberToE164("123", "JP")).toBe(null);
     expect(normalizePhoneNumberToE164("", "JP")).toBe(null);
+  });
+});
+
+describe("getNationalPhoneNumber", () => {
+  it("should return national numbers without the country calling code", () => {
+    expect(getNationalPhoneNumber("+819012345678")).toBe("9012345678");
+    expect(getNationalPhoneNumber("+12125550191")).toBe("2125550191");
+  });
+
+  it("should parse domestic input using the default country", () => {
+    expect(getNationalPhoneNumber("09012345678", "JP")).toBe("9012345678");
+  });
+
+  it("should return null for invalid phone numbers", () => {
+    expect(getNationalPhoneNumber("123", "JP")).toBe(null);
   });
 });

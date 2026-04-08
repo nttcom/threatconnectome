@@ -24,7 +24,10 @@ import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTro
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
-import { normalizePhoneNumberToE164 } from "../../../../../utils/phoneNumberUtils";
+import {
+  getNationalPhoneNumber,
+  normalizePhoneNumberToE164,
+} from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
   { code: "+81", country: "JP", label: "JP (+81)", placeholder: "9012345678" },
@@ -57,6 +60,9 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const normalizedPhoneNumber = useMemo(() => {
     return normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country);
   }, [phoneNumber, selectedCountryOption.country]);
+  const displayPhoneNumber = useMemo(() => {
+    return getNationalPhoneNumber(normalizedPhoneNumber) ?? phoneNumber;
+  }, [normalizedPhoneNumber, phoneNumber]);
   const phoneValidationError =
     phoneNumber && !normalizedPhoneNumber ? t("invalidPhoneNumberExample") : "";
 
@@ -240,7 +246,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Trans
                 ns="app"
                 i18nKey="UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog.codeSentTo"
-                values={{ countryCode, phoneNumber }}
+                values={{ countryCode, displayPhoneNumber }}
                 components={[
                   <Box component="span" sx={{ fontWeight: "bold" }} key="cc" />,
                   <Box component="span" sx={{ fontWeight: "bold" }} key="pn" />,
