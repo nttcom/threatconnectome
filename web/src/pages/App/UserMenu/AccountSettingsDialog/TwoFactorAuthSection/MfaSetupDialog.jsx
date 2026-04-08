@@ -358,7 +358,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber || !normalizedPhoneNumber}
+                disabled={loading || !normalizedPhoneNumber}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}
