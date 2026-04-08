@@ -27,11 +27,11 @@ import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 import { normalizePhoneNumberToE164 } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
-  { code: "+81", country: "JP", label: "JP (+81)", placeholder: "09012345678" },
+  { code: "+81", country: "JP", label: "JP (+81)", placeholder: "9012345678" },
   { code: "+1", country: "US", label: "US (+1)", placeholder: "2125550191" },
-  { code: "+44", country: "GB", label: "UK (+44)", placeholder: "07911123456" },
-  { code: "+86", country: "CN", label: "CN (+86)", placeholder: "01012345678" },
-  { code: "+82", country: "KR", label: "KR (+82)", placeholder: "01098765432" },
+  { code: "+44", country: "GB", label: "UK (+44)", placeholder: "7911123456" },
+  { code: "+86", country: "CN", label: "CN (+86)", placeholder: "1012345678" },
+  { code: "+82", country: "KR", label: "KR (+82)", placeholder: "1098765432" },
 ];
 
 const getCountryOption = (countryCode) => {
