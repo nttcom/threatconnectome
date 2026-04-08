@@ -194,7 +194,7 @@ export class FirebaseProvider extends AuthProvider {
     if (!isE164Format(phoneNumber)) {
       throw new FirebaseAuthError({
         code: "auth/invalid-phone-number",
-        message: i18n.t("auth.FirebaseProvider.invalidPhoneE164Example", { ns: "providers" }),
+        message: i18n.t("auth.FirebaseProvider.invalidPhoneNumberExample", { ns: "providers" }),
       });
     }
 

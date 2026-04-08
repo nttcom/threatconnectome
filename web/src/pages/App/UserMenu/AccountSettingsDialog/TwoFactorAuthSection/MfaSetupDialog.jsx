@@ -99,7 +99,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     );
 
     if (!normalizedPhoneNumber) {
-      setError(t("invalidPhoneE164Example"));
+      setError(t("invalidPhoneNumberExample"));
       return;
     }
 
@@ -149,7 +149,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     );
 
     if (!normalizedPhoneNumber) {
-      setError(t("invalidPhoneE164Example"));
+      setError(t("invalidPhoneNumberExample"));
     } else if (error) {
       setError("");
     }

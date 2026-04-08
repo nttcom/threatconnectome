@@ -95,7 +95,7 @@
           "processing": "処理中...",
           "verifyEnable": "確認して有効化",
           "codeResent": "認証コードが再送信されました。",
-          "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください。（例: +818012345678）"
+          "invalidPhoneNumberExample": "電話番号の形式が正しくありません。国番号を選択し、国内形式または国番号付きで入力してください。（例: 09012345678 または +819012345678）"
         },
         "DisabledMfaConfirmDialog": {
           "title": "電話番号{{phoneNumber}}のSMS認証を無効にしますか？",

@@ -11,11 +11,11 @@
       "auth.invalid-verification-code": "The code is incorrect. Please try again.",
       "auth.code-expired": "Session is invalid or has expired. Please try again.",
       "auth.invalid-multi-factor-session": "Session is invalid or has expired. Please try again.",
-      "auth.invalid-phone-number": "Invalid phone number format: Must be in E.164 format.",
+      "auth.invalid-phone-number": "Invalid phone number format. Enter either a domestic number or an international number.",
       "auth.requires-recent-login": "Please log out and sign in again before trying.",
       "auth.internal-error": "An internal error occurred.",
       "samlNotSupported": "SAML is not supported.",
-      "invalidPhoneE164Example": "Invalid phone number format: Must be in E.164 format (e.g., +818012345678).",
+      "invalidPhoneNumberExample": "Invalid phone number format. Enter either a domestic number or an international number (for example, 09012345678 or +819012345678).",
       "internal-error": "An internal error occurred."
     },
     "SupabaseProvider": {
