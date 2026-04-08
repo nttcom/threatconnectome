@@ -286,6 +286,87 @@ class TestUpdateVuln:
         assert updated_ticket is not None
         assert previous_ticket.ssvc_deployer_priority != updated_ticket.ssvc_deployer_priority
 
+    def test_delete_ticket_when_delete_matched_affect(self, testdb: Session, update_setup):
+        # Given
+        request = {
+            "vulnerable_packages": [
+                {
+                    "affected_name": "unmatched-package",
+                    "ecosystem": "golang",
+                    "affected_versions": ["<1.0.0"],
+                    "fixed_versions": ["1.0.0"],
+                }
+            ],
+        }
+
+        previous_ticket = copy.deepcopy(
+            persistence.get_ticket_by_threat_id_and_dependency_id(
+                testdb, self.threat1.threat_id, self.dependency1.dependency_id
+            )
+        )
+
+        if previous_ticket is None:
+            raise Exception("previous_ticket is None")
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request
+        )
+
+        # Then
+        updated_ticket = persistence.get_ticket_by_id(testdb, previous_ticket.ticket_id)
+
+        assert response.status_code == 200
+        assert updated_ticket is None
+
+    def test_add_ticket_when_adding_matched_affect(self, testdb: Session, update_setup):
+        # Given
+        request1 = {
+            "vulnerable_packages": [
+                {
+                    "affected_name": "unmatched-package",
+                    "ecosystem": "golang",
+                    "affected_versions": ["<1.0.0"],
+                    "fixed_versions": ["1.0.0"],
+                }
+            ],
+        }
+        client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request1
+        )
+        request2 = {
+            "vulnerable_packages": [
+                {
+                    "affected_name": "unmatched-package",
+                    "ecosystem": "golang",
+                    "affected_versions": ["<1.0.0"],
+                    "fixed_versions": ["1.0.0"],
+                },
+                {
+                    "affected_name": self.package1.name,
+                    "ecosystem": self.package1.ecosystem,
+                    "affected_versions": ["<2.0.0"],
+                    "fixed_versions": ["2.0.0"],
+                },
+            ],
+        }
+
+        # When
+        response = client.put(
+            f"/vulns/{self.vuln1.vuln_id}", headers=headers_with_api_key(USER1), json=request2
+        )
+
+        # Then
+        assert response.status_code == 200
+        result1 = testdb.scalars(
+            select(models.Threat).where(models.Threat.vuln_id == str(self.vuln1.vuln_id))
+        ).one_or_none()
+        assert result1 is not None
+        result2 = testdb.scalars(
+            select(models.Ticket).where(models.Ticket.threat_id == str(result1.threat_id))
+        ).one_or_none()
+        assert result2 is not None
+
     def test_send_alert_if_vulnerabilities_are_found_when_updating_vuln(
         self, testdb: Session, mocker, update_setup
     ):
