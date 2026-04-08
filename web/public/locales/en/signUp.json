@@ -9,6 +9,6 @@
     "verificationEmailSent": "An email for verification was sent to your address.",
     "signUpSuccess": "Signed up successfully.",
     "betaNotice": "This service is in closed beta. Sign up is only available for email addresses of authorized organizations.",
-    "passwordsDoNotMatch": "Passwords do not match.",
+    "passwordsDoNotMatch": "Passwords do not match."
   }
 }
