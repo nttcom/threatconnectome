@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 
 import { SmsResendButton } from "../../../../../components/SmsResendButton";
@@ -54,6 +54,11 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
   const [isHelpExpanded, setIsHelpExpanded] = useState(false);
+  const normalizedPhoneNumber = useMemo(() => {
+    return normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country);
+  }, [phoneNumber, selectedCountryOption.country]);
+  const phoneValidationError =
+    phoneNumber && !normalizedPhoneNumber ? t("invalidPhoneNumberExample") : "";
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -93,11 +98,6 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   };
 
   const handleSendCode = async () => {
-    const normalizedPhoneNumber = normalizePhoneNumberToE164(
-      phoneNumber,
-      selectedCountryOption.country,
-    );
-
     if (!normalizedPhoneNumber) {
       setError(t("invalidPhoneNumberExample"));
       return;
@@ -142,30 +142,21 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     }
   };
 
-  const validatePhoneNumber = (newCountryCode, newPhoneNumber) => {
-    const normalizedPhoneNumber = normalizePhoneNumberToE164(
-      newPhoneNumber,
-      getCountryOption(newCountryCode).country,
-    );
-
-    if (!normalizedPhoneNumber) {
-      setError(t("invalidPhoneNumberExample"));
-    } else if (error) {
-      setError("");
-    }
-  };
-
   const handlePhoneNumberChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "");
     setPhoneNumber(sanitized);
-    validatePhoneNumber(countryCode, sanitized);
+    if (error) {
+      setError("");
+    }
   };
 
   const handleCountryCodeChange = (e) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
-    validatePhoneNumber(newCode, phoneNumber);
+    if (error) {
+      setError("");
+    }
   };
 
   const handleResend = () => {
@@ -238,8 +229,8 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 onChange={handlePhoneNumberChange}
                 placeholder={selectedCountryOption.placeholder}
                 disabled={loading}
-                error={!!error}
-                helperText={error}
+                error={!!(error || phoneValidationError)}
+                helperText={error || phoneValidationError}
               />
             </Stack>
           </>
@@ -361,11 +352,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={
-                  loading ||
-                  !phoneNumber ||
-                  !normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country)
-                }
+                disabled={loading || !phoneNumber || !normalizedPhoneNumber}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}
