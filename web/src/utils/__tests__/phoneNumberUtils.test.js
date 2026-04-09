@@ -27,6 +27,11 @@ describe("isValidE164", () => {
     expect(isE164Format("")).toBe(false);
     expect(isE164Format("+81090123456789")).toBe(false);
   });
+
+  it("should return false for nullish input", () => {
+    expect(isE164Format(null)).toBe(false);
+    expect(isE164Format(undefined)).toBe(false);
+  });
 });
 
 describe("normalizePhoneNumberToE164", () => {
@@ -46,6 +51,11 @@ describe("normalizePhoneNumberToE164", () => {
     expect(normalizePhoneNumberToE164("123", "JP")).toBe(null);
     expect(normalizePhoneNumberToE164("", "JP")).toBe(null);
   });
+
+  it("should return null for nullish input", () => {
+    expect(normalizePhoneNumberToE164(null, "JP")).toBe(null);
+    expect(normalizePhoneNumberToE164(undefined, "JP")).toBe(null);
+  });
 });
 
 describe("getNationalPhoneNumber", () => {
@@ -60,5 +70,10 @@ describe("getNationalPhoneNumber", () => {
 
   it("should return null for invalid phone numbers", () => {
     expect(getNationalPhoneNumber("123", "JP")).toBe(null);
+  });
+
+  it("should return null for nullish input", () => {
+    expect(getNationalPhoneNumber(null)).toBe(null);
+    expect(getNationalPhoneNumber(undefined)).toBe(null);
   });
 });
