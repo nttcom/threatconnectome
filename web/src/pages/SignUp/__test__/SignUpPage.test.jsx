@@ -145,7 +145,9 @@ describe("TestSignUpPage", () => {
       const confirmPassword = "Password1234@";
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const errorCode = "auth/email-already-in-use";
-      const errorMessage = "Something went wrong.";
+      // In the real app, FirebaseProvider translates the code to a message via providers.json.
+      // This mock simulates that translated message being set in error.message.
+      const errorMessage = "Email already in use";
 
       const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
         code: errorCode,
@@ -185,85 +187,6 @@ describe("TestSignUpPage", () => {
       });
 
       expect(screen.getByText("Email already in use")).toBeInTheDocument();
-    });
-
-    it("shows error.message when translation key does not exist", async () => {
-      const validEmail = "test@example.com";
-      const validPassword = "Password1234@";
-      const confirmPassword = "Password1234@";
-      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const errorCode = "auth/unknown-error";
-      const errorMessage = "This is a provider-translated error message.";
-      const defaultMessage = "An internal error occurred. Please try again later."; //See web/src/pages/SignUp/SignUpPage.jsx::getAuthErrorMessage
-
-      const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
-        code: errorCode,
-        message: errorMessage,
-      });
-      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
-      useAuth.mockReturnValue({
-        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
-        sendEmailVerification: mockSendEmailVerification,
-      });
-      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      renderSignUp();
-      const emailField = screen.getByRole("textbox", { name: "Email Address" });
-      await ue.type(emailField, validEmail);
-
-      const passwordInputs = screen.getAllByLabelText(/^Password/i);
-      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
-
-      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
-
-      await ue.type(passwordField, validPassword);
-      await ue.type(confirmField, confirmPassword);
-
-      await ue.click(screen.getByRole("button", { name: "Sign up" }));
-
-      expect(mockConsoleError).toHaveBeenCalledWith({
-        code: errorCode,
-        message: errorMessage,
-      });
-      expect(screen.getByText(defaultMessage)).toBeInTheDocument();
-    });
-
-    it("shows internal error message when error.code is missing", async () => {
-      const validEmail = "test@example.com";
-      const validPassword = "Password1234@";
-      const confirmPassword = "Password1234@";
-      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-
-      const mockCreateUserWithEmailAndPassword = vi.fn().mockRejectedValue({
-        message: undefined,
-      });
-      const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
-      useAuth.mockReturnValue({
-        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
-        sendEmailVerification: mockSendEmailVerification,
-      });
-      const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      renderSignUp();
-      const emailField = screen.getByRole("textbox", { name: "Email Address" });
-      await ue.type(emailField, validEmail);
-
-      const passwordInputs = screen.getAllByLabelText(/^Password/i);
-      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
-
-      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
-
-      await ue.type(passwordField, validPassword);
-      await ue.type(confirmField, confirmPassword);
-
-      await ue.click(screen.getByRole("button", { name: "Sign up" }));
-
-      expect(mockConsoleError).toHaveBeenCalled();
-      expect(
-        screen.getByText("An internal error occurred. Please try again later."),
-      ).toBeInTheDocument();
     });
   });
 

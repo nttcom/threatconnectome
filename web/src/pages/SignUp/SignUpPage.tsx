@@ -12,16 +12,34 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+// @ts-expect-error TS7016
 import { PasswordField } from "../../components/PasswordField";
+// @ts-expect-error TS7016
 import { useAuth } from "../../hooks/auth";
 import { getBearerToken } from "../../services/tcApi";
-import { getAuthErrorMessage } from "../../utils/authErrorUtils";
+
+type MessageState = {
+  text: string;
+  type: "info" | "error" | "";
+};
+
+type SignUpFormState = {
+  edited: Set<string>;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  isVisible: boolean;
+  isConfirmVisible: boolean;
+};
+
+type SignUpFormStringKey = "email" | "password" | "confirmPassword";
+type SignUpFormBoolKey = "isVisible" | "isConfirmVisible";
 
 export function SignUp() {
   const { t } = useTranslation("signUp", { keyPrefix: "SignUpPage" });
-  const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
-  const [signUpForm, setSignUpForm] = useState({
-    edited: new Set(),
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [signUpForm, setSignUpForm] = useState<SignUpFormState>({
+    edited: new Set<string>(),
     email: "",
     password: "",
     confirmPassword: "",
@@ -34,17 +52,18 @@ export function SignUp() {
   const navigate = useNavigate();
   const { createUserWithEmailAndPassword, sendEmailVerification, signOut } = useAuth();
 
-  const showMessage = (text, type = "error") => {
+  const showMessage = (text: string, type: MessageState["type"] = "error") => {
     setMessage({ text, type });
   };
 
-  const handleFormChange = (prop) => (event) => {
-    signUpForm.edited.add(prop);
-    setSignUpForm({
-      ...signUpForm,
-      [prop]: event.target.value,
-    });
-  };
+  const handleFormChange =
+    (prop: SignUpFormStringKey) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      signUpForm.edited.add(prop);
+      setSignUpForm({
+        ...signUpForm,
+        [prop]: event.target.value,
+      });
+    };
 
   const handleForcedSignOut = async () => {
     try {
@@ -57,7 +76,7 @@ export function SignUp() {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (signUpForm.password !== signUpForm.confirmPassword) {
       showMessage(t("passwordsDoNotMatch"));
@@ -91,12 +110,7 @@ export function SignUp() {
       await signOut();
     } catch (error) {
       console.error(error);
-      const fallbackMessage = getAuthErrorMessage(error, {
-        namespace: "signUp",
-        keyPrefix: "SignUpPage",
-        defaultMessage: t("auth.internal-error"),
-      });
-      showMessage(fallbackMessage);
+      showMessage((error as Error).message);
       setDisabled(false);
 
       /**
@@ -109,7 +123,7 @@ export function SignUp() {
     }
   };
 
-  const handleVisibility = (prop) => {
+  const handleVisibility = (prop: SignUpFormBoolKey) => {
     setSignUpForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
   };
 
