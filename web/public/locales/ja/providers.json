@@ -30,7 +30,7 @@
       "auth.admin-restricted-operation": "この操作は管理者のみに制限されています。",
       "auth.invalid-credential": "認証情報が無効です。メールアドレスとパスワードを確認してください。",
       "samlNotSupported": "SAMLはサポートされていません。",
-      "invalidPhoneNumberExample": "電話番号の形式が正しくありません。国内形式または国番号付きで入力してください。（例: 09012345678 または +819012345678）",
+      "invalidPhoneNumberExample": "電話番号の形式が正しくありません。国内形式または国番号付きで入力してください。（例: {{nationalExample}} または {{internationalExample}}）",
       "internal-error": "内部エラーが発生しました。"
     },
     "SupabaseProvider": {

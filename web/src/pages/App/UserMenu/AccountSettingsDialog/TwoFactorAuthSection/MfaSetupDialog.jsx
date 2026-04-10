@@ -30,11 +30,46 @@ import {
 } from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
-  { code: "+81", country: "JP", label: "JP (+81)", placeholder: "9012345678" },
-  { code: "+1", country: "US", label: "US (+1)", placeholder: "2125550191" },
-  { code: "+44", country: "GB", label: "UK (+44)", placeholder: "7911123456" },
-  { code: "+86", country: "CN", label: "CN (+86)", placeholder: "13812345678" },
-  { code: "+82", country: "KR", label: "KR (+82)", placeholder: "1098765432" },
+  {
+    code: "+81",
+    country: "JP",
+    label: "JP (+81)",
+    placeholder: "9012345678",
+    nationalExample: "09012345678",
+    internationalExample: "+819012345678",
+  },
+  {
+    code: "+1",
+    country: "US",
+    label: "US (+1)",
+    placeholder: "2125550191",
+    nationalExample: "2125550191",
+    internationalExample: "+12125550191",
+  },
+  {
+    code: "+44",
+    country: "GB",
+    label: "UK (+44)",
+    placeholder: "7911123456",
+    nationalExample: "07911123456",
+    internationalExample: "+447911123456",
+  },
+  {
+    code: "+86",
+    country: "CN",
+    label: "CN (+86)",
+    placeholder: "13812345678",
+    nationalExample: "13812345678",
+    internationalExample: "+8613812345678",
+  },
+  {
+    code: "+82",
+    country: "KR",
+    label: "KR (+82)",
+    placeholder: "1098765432",
+    nationalExample: "01098765432",
+    internationalExample: "+821098765432",
+  },
 ];
 
 const getCountryOption = (countryCode) => {
@@ -64,7 +99,12 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     return getNationalPhoneNumber(normalizedPhoneNumber) ?? phoneNumber;
   }, [normalizedPhoneNumber, phoneNumber]);
   const phoneValidationError =
-    phoneNumber && !normalizedPhoneNumber ? t("invalidPhoneNumberExample") : "";
+    phoneNumber && !normalizedPhoneNumber
+      ? t("invalidPhoneNumberExample", {
+          nationalExample: selectedCountryOption.nationalExample,
+          internationalExample: selectedCountryOption.internationalExample,
+        })
+      : "";
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -107,7 +147,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     setLoading(true);
     setError("");
     unlockAction();
-    registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber)
+    registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber, {
+      nationalExample: selectedCountryOption.nationalExample,
+      internationalExample: selectedCountryOption.internationalExample,
+    })
       .then((mfa) => {
         setMfaData(mfa);
         setLoading(false);

@@ -30,7 +30,7 @@
       "auth.admin-restricted-operation": "This operation is restricted to administrators only.",
       "auth.invalid-credential": "Invalid credentials. Please check your email and password.",
       "samlNotSupported": "SAML is not supported.",
-      "invalidPhoneNumberExample": "Invalid phone number format. Enter either a domestic number or an international number (for example, 09012345678 or +819012345678).",
+      "invalidPhoneNumberExample": "Invalid phone number format. Enter either a domestic number or an international number (for example, {{nationalExample}} or {{internationalExample}}).",
       "internal-error": "An internal error occurred."
     },
     "SupabaseProvider": {
