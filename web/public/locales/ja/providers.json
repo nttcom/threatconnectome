@@ -11,7 +11,7 @@
       "auth.invalid-verification-code": "コードが正しくありません。もう一度お試しください。",
       "auth.code-expired": "セッションが無効または期限切れです。もう一度お試しください。",
       "auth.invalid-multi-factor-session": "セッションが無効または期限切れです。もう一度お試しください。",
-      "auth.invalid-phone-number": "電話番号の形式が正しくありません。E.164形式で入力してください。",
+      "auth.invalid-phone-number": "電話番号の形式が正しくありません。国内形式または国番号付きで入力してください。",
       "auth.requires-recent-login": "再ログインが必要です。いったんサインアウトしてから再度サインインしてください。",
       "auth.internal-error": "内部エラーが発生しました。",
       "auth.missing-email": "メールアドレスを入力してください。",
@@ -30,7 +30,7 @@
       "auth.admin-restricted-operation": "この操作は管理者のみに制限されています。",
       "auth.invalid-credential": "認証情報が無効です。メールアドレスとパスワードを確認してください。",
       "samlNotSupported": "SAMLはサポートされていません。",
-      "invalidPhoneE164Example": "電話番号の形式が正しくありません。E.164形式で入力してください。（例: +818012345678）",
+      "invalidPhoneNumberExample": "電話番号の形式が正しくありません。国内形式または国番号付きで入力してください。（例: {{nationalExample}} または {{internationalExample}}）",
       "internal-error": "内部エラーが発生しました。"
     },
     "SupabaseProvider": {

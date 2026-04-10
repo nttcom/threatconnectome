@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 
 import { SmsResendButton } from "../../../../../components/SmsResendButton";
@@ -24,15 +24,57 @@ import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTro
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
-import { isE164Format } from "../../../../../utils/phoneNumberUtils";
+import {
+  getNationalPhoneNumber,
+  normalizePhoneNumberToE164,
+} from "../../../../../utils/phoneNumberUtils";
 
 const COUNTRY_CODES = [
-  { code: "+81", label: "JP (+81)" },
-  { code: "+1", label: "US (+1)" },
-  { code: "+44", label: "UK (+44)" },
-  { code: "+86", label: "CN (+86)" },
-  { code: "+82", label: "KR (+82)" },
+  {
+    code: "+81",
+    country: "JP",
+    label: "JP (+81)",
+    placeholder: "9012345678",
+    nationalExample: "09012345678",
+    internationalExample: "+819012345678",
+  },
+  {
+    code: "+1",
+    country: "US",
+    label: "US (+1)",
+    placeholder: "2125550191",
+    nationalExample: "2125550191",
+    internationalExample: "+12125550191",
+  },
+  {
+    code: "+44",
+    country: "GB",
+    label: "UK (+44)",
+    placeholder: "7911123456",
+    nationalExample: "07911123456",
+    internationalExample: "+447911123456",
+  },
+  {
+    code: "+86",
+    country: "CN",
+    label: "CN (+86)",
+    placeholder: "13812345678",
+    nationalExample: "13812345678",
+    internationalExample: "+8613812345678",
+  },
+  {
+    code: "+82",
+    country: "KR",
+    label: "KR (+82)",
+    placeholder: "1098765432",
+    nationalExample: "01098765432",
+    internationalExample: "+821098765432",
+  },
 ];
+
+const getCountryOption = (countryCode) => {
+  return COUNTRY_CODES.find((option) => option.code === countryCode) ?? COUNTRY_CODES[0];
+};
 
 export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const { t } = useTranslation("app", {
@@ -40,6 +82,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   });
   const [step, setStep] = useState(0);
   const [countryCode, setCountryCode] = useState("+81");
+  const selectedCountryOption = getCountryOption(countryCode);
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -49,6 +92,19 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
   const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
   const [isHelpExpanded, setIsHelpExpanded] = useState(false);
+  const normalizedPhoneNumber = useMemo(() => {
+    return normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country);
+  }, [phoneNumber, selectedCountryOption.country]);
+  const displayPhoneNumber = useMemo(() => {
+    return getNationalPhoneNumber(normalizedPhoneNumber) ?? phoneNumber;
+  }, [normalizedPhoneNumber, phoneNumber]);
+  const phoneValidationError =
+    phoneNumber && !normalizedPhoneNumber
+      ? t("invalidPhoneNumberExample", {
+          nationalExample: selectedCountryOption.nationalExample,
+          internationalExample: selectedCountryOption.internationalExample,
+        })
+      : "";
 
   const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
 
@@ -87,11 +143,14 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     onClose();
   };
 
-  const handleSendCode = async () => {
+  const handleSendCode = () => {
     setLoading(true);
     setError("");
     unlockAction();
-    registerPhoneNumber(countryCode + phoneNumber, recaptchaIdForRegisterPhoneNumber)
+    registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber, {
+      nationalExample: selectedCountryOption.nationalExample,
+      internationalExample: selectedCountryOption.internationalExample,
+    })
       .then((mfa) => {
         setMfaData(mfa);
         setLoading(false);
@@ -127,25 +186,21 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     }
   };
 
-  const validatePhoneNumber = (newCountryCode, newPhoneNumber) => {
-    if (!isE164Format(newCountryCode + newPhoneNumber)) {
-      setError(t("invalidPhoneE164Example"));
-    } else if (error) {
-      setError("");
-    }
-  };
-
   const handlePhoneNumberChange = (e) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "");
     setPhoneNumber(sanitized);
-    validatePhoneNumber(countryCode, sanitized);
+    if (error) {
+      setError("");
+    }
   };
 
   const handleCountryCodeChange = (e) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
-    validatePhoneNumber(newCode, phoneNumber);
+    if (error) {
+      setError("");
+    }
   };
 
   const handleResend = () => {
@@ -216,10 +271,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
                 variant="outlined"
                 value={phoneNumber}
                 onChange={handlePhoneNumberChange}
-                placeholder="9012345678"
+                placeholder={selectedCountryOption.placeholder}
                 disabled={loading}
-                error={!!error}
-                helperText={error}
+                error={!!(error || phoneValidationError)}
+                helperText={error || phoneValidationError}
               />
             </Stack>
           </>
@@ -229,7 +284,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Trans
                 ns="app"
                 i18nKey="UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog.codeSentTo"
-                values={{ countryCode, phoneNumber }}
+                values={{ countryCode, displayPhoneNumber }}
                 components={[
                   <Box component="span" sx={{ fontWeight: "bold" }} key="cc" />,
                   <Box component="span" sx={{ fontWeight: "bold" }} key="pn" />,
@@ -341,7 +396,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
               <Button
                 onClick={handleSendCode}
                 variant="contained"
-                disabled={loading || !phoneNumber || !isE164Format(countryCode + phoneNumber)}
+                disabled={loading || !normalizedPhoneNumber}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
                 {loading ? t("processing") : t("sendCode")}
