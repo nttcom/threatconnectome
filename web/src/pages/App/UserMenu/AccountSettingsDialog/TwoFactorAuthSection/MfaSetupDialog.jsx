@@ -103,12 +103,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
     onClose();
   };
 
-  const handleSendCode = async () => {
-    if (!normalizedPhoneNumber) {
-      setError(t("invalidPhoneNumberExample"));
-      return;
-    }
-
+  const handleSendCode = () => {
     setLoading(true);
     setError("");
     unlockAction();
