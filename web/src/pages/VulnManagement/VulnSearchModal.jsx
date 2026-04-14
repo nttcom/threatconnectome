@@ -146,7 +146,7 @@ export function VulnSearchModal(props) {
   const isValidUserInput = isValidCvssScore(minCvssScore) && isValidCvssScore(maxCvssScore);
 
   const titleForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("titleLabel")}</Typography>
       </Grid>
@@ -163,7 +163,7 @@ export function VulnSearchModal(props) {
   );
 
   const cveIdForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("cveIdLabel")}</Typography>
       </Grid>
