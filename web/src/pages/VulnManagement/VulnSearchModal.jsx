@@ -146,7 +146,7 @@ export function VulnSearchModal(props) {
   const isValidUserInput = isValidCvssScore(minCvssScore) && isValidCvssScore(maxCvssScore);
 
   const titleForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("titleLabel")}</Typography>
       </Grid>
@@ -163,7 +163,7 @@ export function VulnSearchModal(props) {
   );
 
   const cveIdForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("cveIdLabel")}</Typography>
       </Grid>
@@ -180,7 +180,7 @@ export function VulnSearchModal(props) {
   );
 
   const cvssForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }} alignItems={"center"}>
+    <Grid container sx={{ p: 1.5, width: "100%" }} alignItems={"center"}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("cvssV3Label")}</Typography>
       </Grid>
@@ -223,7 +223,7 @@ export function VulnSearchModal(props) {
   );
 
   const dateForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("lastUpdateLabel")}</Typography>
       </Grid>
@@ -285,7 +285,7 @@ export function VulnSearchModal(props) {
   );
 
   const creatorForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("creatorIdLabel")}</Typography>
       </Grid>
@@ -302,7 +302,7 @@ export function VulnSearchModal(props) {
   );
 
   const uuidForm = (
-    <Grid container sx={{ margin: 1.5, width: "100%" }}>
+    <Grid container sx={{ p: 1.5, width: "100%" }}>
       <Grid size={{ xs: 2, md: 2 }}>
         <Typography sx={{ marginTop: "10px" }}>{t("vulnIdLabel")}</Typography>
       </Grid>
