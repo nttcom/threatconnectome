@@ -13,7 +13,7 @@ from app.constants import (
 )
 from app.main import app
 from app.tests.common import ticket_utils
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
     USER1,
@@ -21,7 +21,7 @@ from app.tests.medium.constants import (
     USER3,
     VULN1,
 )
-from app.tests.medium.utils import (
+from app.tests.common.utils import (
     accept_pteam_invitation,
     create_pteam,
     create_user,

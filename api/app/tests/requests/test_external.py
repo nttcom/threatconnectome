@@ -2,8 +2,8 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.notification.sendgrid import SendgridFailStatusError, SendgridHttpError
-from app.tests.medium.constants import USER1
-from app.tests.medium.utils import create_user, headers
+from app.tests.common.constants import USER1
+from app.tests.common.utils import create_user, headers
 
 client = TestClient(app)
 

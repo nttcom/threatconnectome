@@ -15,7 +15,7 @@ from app.auth.firebase_auth_module import FirebaseAuthModule
 from app.auth.supabase_auth_module import SupabaseAuthModule
 from app.main import app
 from app.tests.common.auth_utils import get_access_token_headers, get_file_upload_headers
-from app.tests.medium.exceptions import HTTPError
+from app.tests.common.exceptions import HTTPError
 
 client = TestClient(app)
 

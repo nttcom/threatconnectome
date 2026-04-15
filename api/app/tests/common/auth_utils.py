@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.tests.medium.exceptions import HTTPError
+from app.tests.common.exceptions import HTTPError
 
 client = TestClient(app)
 

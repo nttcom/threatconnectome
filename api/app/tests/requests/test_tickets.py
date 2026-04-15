@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import persistence
 from app.main import app
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
     USER1,
@@ -18,7 +18,7 @@ from app.tests.medium.constants import (
     VULN2,
     VULN3,
 )
-from app.tests.medium.utils import (
+from app.tests.common.utils import (
     accept_pteam_invitation,
     create_pteam,
     create_user,

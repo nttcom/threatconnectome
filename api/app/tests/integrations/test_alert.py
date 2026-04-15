@@ -22,14 +22,14 @@ from app.notification.slack import (
 )
 from app.routers.eols import _bg_check_eol_notification
 from app.routers.pteams import bg_create_tags_from_sbom_json
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     SAMPLE_SLACK_WEBHOOK_URL,
     SERVICE1,
     USER1,
     VULN1,
 )
-from app.tests.medium.utils import (
+from app.tests.common.utils import (
     create_pteam,
     create_user,
     create_vuln,

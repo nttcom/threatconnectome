@@ -6,15 +6,15 @@ from fastapi.testclient import TestClient
 
 from app import models, schemas
 from app.main import app
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
     USER1,
     USER2,
     USER3,
 )
-from app.tests.medium.exceptions import HTTPError
-from app.tests.medium.utils import (
+from app.tests.common.exceptions import HTTPError
+from app.tests.common.utils import (
     accept_pteam_invitation,
     create_pteam,
     create_user,

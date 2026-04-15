@@ -13,8 +13,8 @@ from app import models, persistence
 from app.business import ticket_business
 from app.main import app
 from app.routers.pteams import bg_create_tags_from_sbom_json
-from app.tests.medium.constants import PTEAM1, USER1
-from app.tests.medium.utils import (
+from app.tests.common.constants import PTEAM1, USER1
+from app.tests.common.utils import (
     create_pteam,
     create_user,
     headers_with_api_key,
