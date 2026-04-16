@@ -487,9 +487,9 @@ class Asset(Base):
 
     asset_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     service_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True, unique=True
     )
-    ip_addresses: Mapped[list[Str255] | None] = mapped_column(default=[], nullable=True)
+    ip_addresses: Mapped[list[Str255] | None] = mapped_column(nullable=True)
     description: Mapped[Str255 | None] = mapped_column(nullable=True)
 
     service = relationship("Service", back_populates="asset")
