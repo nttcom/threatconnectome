@@ -468,14 +468,15 @@ class Service(Base):
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
-    asset = relationship("Asset", uselist=False, back_populates="service", cascade="all, delete-orphan")
+    asset = relationship(
+        "Asset", uselist=False, back_populates="service", cascade="all, delete-orphan"
+    )
     thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
     ecosystem_eol_dependencies = relationship(
         "EcosystemEoLDependency", back_populates="service", cascade="all, delete-orphan"
     )
 
 
-# アセットのクラスを作る
 class Asset(Base):
     __tablename__ = "asset"
 
