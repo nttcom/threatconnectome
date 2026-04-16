@@ -11,14 +11,14 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.main import app
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
     USER1,
     USER2,
 )
-from app.tests.medium.exceptions import HTTPError
-from app.tests.medium.utils import (
+from app.tests.common.exceptions import HTTPError
+from app.tests.common.utils import (
     assert_200,
     calc_file_sha256,
     compare_references,

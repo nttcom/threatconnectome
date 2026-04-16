@@ -5,8 +5,8 @@ import time
 import pytest
 
 from app import models
-from app.tests.medium.constants import PTEAM1, USER1
-from app.tests.medium.utils import create_pteam, create_user
+from app.tests.common.constants import PTEAM1, USER1
+from app.tests.common.utils import create_pteam, create_user
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 

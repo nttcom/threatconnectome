@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.tests.common.auth_utils import get_access_token, refresh_access_token
-from app.tests.medium.constants import USER1
+from app.tests.common.constants import USER1
 
 client = TestClient(app)
 

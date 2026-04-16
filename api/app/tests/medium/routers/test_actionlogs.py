@@ -10,7 +10,7 @@ from app import models
 from app.constants import ZERO_FILLED_UUID
 from app.main import app
 from app.routers.pteams import bg_create_tags_from_sbom_json
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
     SERVICE1,
@@ -21,8 +21,8 @@ from app.tests.medium.constants import (
     VULN1,
     VULN2,
 )
-from app.tests.medium.exceptions import HTTPError
-from app.tests.medium.utils import (
+from app.tests.common.exceptions import HTTPError
+from app.tests.common.utils import (
     accept_pteam_invitation,
     create_actionlog,
     create_pteam,

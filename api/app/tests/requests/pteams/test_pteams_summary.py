@@ -7,14 +7,14 @@ from sqlalchemy import select
 from app import models, persistence
 from app.main import app
 from app.ssvc.ssvc_calculator import calculate_ssvc_priority_by_ticket
-from app.tests.medium.constants import (
+from app.tests.common.constants import (
     PACKAGE1,
     PTEAM1,
     USER1,
     VULN1,
 )
-from app.tests.medium.exceptions import HTTPError
-from app.tests.medium.utils import (
+from app.tests.common.exceptions import HTTPError
+from app.tests.common.utils import (
     create_pteam,
     create_user,
     create_vuln,
