@@ -468,10 +468,30 @@ class Service(Base):
     dependencies = relationship(
         "Dependency", back_populates="service", cascade="all, delete-orphan"
     )
+    asset = relationship("Asset", uselist=False, back_populates="service", cascade="all, delete-orphan")
     thumbnail = relationship("ServiceThumbnail", uselist=False, cascade="all, delete-orphan")
     ecosystem_eol_dependencies = relationship(
         "EcosystemEoLDependency", back_populates="service", cascade="all, delete-orphan"
     )
+
+
+# アセットのクラスを作る
+class Asset(Base):
+    __tablename__ = "asset"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.asset_id:
+            self.asset_id = str(uuid.uuid4())
+
+    asset_id: Mapped[StrUUID] = mapped_column(primary_key=True)
+    service_id: Mapped[StrUUID] = mapped_column(
+        ForeignKey("service.service_id", ondelete="CASCADE"), index=True
+    )
+    ip_addresses: Mapped[list[Str255] | None] = mapped_column(default=[], nullable=True)
+    description: Mapped[Str255 | None] = mapped_column(nullable=True)
+
+    service = relationship("Service", back_populates="asset")
 
 
 class ServiceThumbnail(Base):
