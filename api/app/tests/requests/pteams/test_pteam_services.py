@@ -1629,7 +1629,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["asset"]["ip_addresses"] == []
 
-        def test_it_should_return_400_with_invalid_ip_addresses(self):
+        def test_it_should_return_422_with_invalid_ip_addresses(self):
             # Given
             request = {"asset": {"ip_addresses": ["invalid_ip"]}}
 
