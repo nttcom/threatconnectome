@@ -2,6 +2,7 @@ import io
 import json
 import tempfile
 from datetime import datetime, timezone
+from ipaddress import ip_network
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import models, persistence
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.common.constants import (
     PTEAM1,
     PTEAM2,
@@ -34,129 +36,184 @@ from app.tests.common.utils import (
 client = TestClient(app)
 
 
-def test_get_pteam_services_register_multiple_services():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    pteam2 = create_pteam(USER1, PTEAM2)
+class TestGetPTeamServices:
+    def test_get_pteam_services_register_multiple_services(self):
+        create_user(USER1)
+        create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        pteam2 = create_pteam(USER1, PTEAM2)
 
-    # no services at created pteam
-    services1 = get_pteam_services(USER1, pteam1.pteam_id)
-    services2 = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1 == services2 == []
+        # no services at created pteam
+        services1 = get_pteam_services(USER1, pteam1.pteam_id)
+        services2 = get_pteam_services(USER1, pteam2.pteam_id)
+        assert services1 == services2 == []
 
-    # add service x to pteam1
-    service_x = "service_x"
-    ext_packages = [
-        {
-            "package_name": "test_package_name1",
-            "ecosystem": "test_ecosystem1",
-            "package_manager": "test_package_manager1",
-            "references": [{"target": "target1", "version": "1.0"}],
-        }
-    ]
-    upload_pteam_packages(USER1, pteam1.pteam_id, service_x, ext_packages)
-
-    services1a = get_pteam_services(USER1, pteam1.pteam_id)
-    services2a = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1a[0].service_name == service_x
-    assert services2a == []
-
-    # add service_y to pteam2
-    service_y = "service_y"
-    upload_pteam_packages(USER1, pteam2.pteam_id, service_y, ext_packages)
-
-    services1b = get_pteam_services(USER1, pteam1.pteam_id)
-    services2b = get_pteam_services(USER1, pteam2.pteam_id)
-    assert services1b[0].service_name == service_x
-    assert services2b[0].service_name == service_y
-
-    # add service y to pteam1
-    upload_pteam_packages(USER1, pteam1.pteam_id, service_y, ext_packages)
-
-    services1c = get_pteam_services(USER1, pteam1.pteam_id)
-    services2c = get_pteam_services(USER1, pteam2.pteam_id)
-
-    assert services1c[0].service_name == service_x or service_y
-    assert services1c[1].service_name == service_x or service_y
-    assert services2c[0].service_name == service_y
-
-    # only members get services
-    with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
-        get_pteam_services(USER2, pteam1.pteam_id)
-
-
-@pytest.mark.parametrize(
-    "service_request, expected",
-    [
-        (
+        # add service x to pteam1
+        service_x = "service_x"
+        ext_packages = [
             {
-                "keywords": ["test_keywords"],
-                "description": "test_description",
-                "system_exposure": models.SystemExposureEnum.SMALL.value,
-                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
-            },
-            {
-                "keywords": ["test_keywords"],
-                "description": "test_description",
-                "system_exposure": models.SystemExposureEnum.SMALL.value,
-                "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
-                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
-            },
-        ),
-        (
-            {
-                "keywords": ["test_keywords"],
-                "description": "test_description",
-            },
-            {
-                "keywords": ["test_keywords"],
-                "description": "test_description",
-                "system_exposure": models.SystemExposureEnum.OPEN.value,
-                "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
-                "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
-            },
-        ),
-    ],
-)
-def test_get_pteam_services_verify_if_all_responses_are_filled(service_request, expected):
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [{"target": "target1", "version": "1.0"}],
+            }
+        ]
+        upload_pteam_packages(USER1, pteam1.pteam_id, service_x, ext_packages)
 
-    service_name = "service_x"
-    ext_packages = [
-        {
-            "package_name": "test_package_name1",
-            "ecosystem": "test_ecosystem1",
-            "package_manager": "test_package_manager1",
-            "references": [{"target": "fake target", "version": "fake version"}],
-        }
-    ]
-    upload_pteam_packages(USER1, pteam1.pteam_id, service_name, ext_packages)
+        services1a = get_pteam_services(USER1, pteam1.pteam_id)
+        services2a = get_pteam_services(USER1, pteam2.pteam_id)
+        assert services1a[0].service_name == service_x
+        assert services2a == []
 
-    service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)["service_id"]
+        # add service_y to pteam2
+        service_y = "service_y"
+        upload_pteam_packages(USER1, pteam2.pteam_id, service_y, ext_packages)
 
-    client.put(
-        f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
-        headers=headers(USER1),
-        json=service_request,
+        services1b = get_pteam_services(USER1, pteam1.pteam_id)
+        services2b = get_pteam_services(USER1, pteam2.pteam_id)
+        assert services1b[0].service_name == service_x
+        assert services2b[0].service_name == service_y
+
+        # add service y to pteam1
+        upload_pteam_packages(USER1, pteam1.pteam_id, service_y, ext_packages)
+
+        services1c = get_pteam_services(USER1, pteam1.pteam_id)
+        services2c = get_pteam_services(USER1, pteam2.pteam_id)
+
+        assert services1c[0].service_name == service_x or service_y
+        assert services1c[1].service_name == service_x or service_y
+        assert services2c[0].service_name == service_y
+
+        # only members get services
+        with pytest.raises(HTTPError, match=r"403: Forbidden: Not a pteam member"):
+            get_pteam_services(USER2, pteam1.pteam_id)
+
+    @pytest.mark.parametrize(
+        "service_request, expected",
+        [
+            (
+                {
+                    "keywords": ["test_keywords"],
+                    "description": "test_description",
+                    "system_exposure": models.SystemExposureEnum.SMALL.value,
+                    "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                    "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                },
+                {
+                    "keywords": ["test_keywords"],
+                    "description": "test_description",
+                    "system_exposure": models.SystemExposureEnum.SMALL.value,
+                    "service_mission_impact": models.MissionImpactEnum.DEGRADED.value,
+                    "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                },
+            ),
+            (
+                {
+                    "keywords": ["test_keywords"],
+                    "description": "test_description",
+                },
+                {
+                    "keywords": ["test_keywords"],
+                    "description": "test_description",
+                    "system_exposure": models.SystemExposureEnum.OPEN.value,
+                    "service_mission_impact": models.MissionImpactEnum.MISSION_FAILURE.value,
+                    "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE.value,
+                },
+            ),
+        ],
     )
+    def test_get_pteam_services_verify_if_all_responses_are_filled(self, service_request, expected):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get(
-        f"/pteams/{pteam1.pteam_id}/services",
-        headers=headers(USER1),
-    )
+        service_name = "service_x"
+        ext_packages = [
+            {
+                "package_name": "test_package_name1",
+                "ecosystem": "test_ecosystem1",
+                "package_manager": "test_package_manager1",
+                "references": [{"target": "fake target", "version": "fake version"}],
+            }
+        ]
+        upload_pteam_packages(USER1, pteam1.pteam_id, service_name, ext_packages)
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data[0]["service_name"] == service_name
-    assert data[0]["service_id"] == service_id1
-    assert data[0]["description"] == expected["description"]
-    assert data[0]["keywords"] == expected["keywords"]
-    assert data[0]["system_exposure"] == expected["system_exposure"]
-    assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
-    assert data[0]["service_safety_impact"] == expected["service_safety_impact"]
+        service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name)[
+            "service_id"
+        ]
+
+        client.put(
+            f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
+            headers=headers(USER1),
+            json=service_request,
+        )
+
+        response = client.get(
+            f"/pteams/{pteam1.pteam_id}/services",
+            headers=headers(USER1),
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data[0]["service_name"] == service_name
+        assert data[0]["service_id"] == service_id1
+        assert data[0]["description"] == expected["description"]
+        assert data[0]["keywords"] == expected["keywords"]
+        assert data[0]["system_exposure"] == expected["system_exposure"]
+        assert data[0]["service_mission_impact"] == expected["service_mission_impact"]
+        assert data[0]["service_safety_impact"] == expected["service_safety_impact"]
+
+    def test_it_should_return_asset_ip_when_set_asset(self):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        service_name1 = "test_service1"
+        upload_file_name = "trivy-ubuntu2004.cdx.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent.parent
+            / "common"
+            / "upload_test"
+            / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = sbom.read()
+            bg_create_tags_from_sbom_json(
+                sbom_json, pteam1.pteam_id, service_name1, upload_file_name
+            )
+
+        service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name1)[
+            "service_id"
+        ]
+        request = {
+            "asset": {
+                "ip_addresses": ["192.168.0.1"],
+                "description": "test asset description",
+            }
+        }
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
+            headers=headers(USER1),
+            json=request,
+        )
+
+        # When
+        response = client.get(
+            f"/pteams/{pteam1.pteam_id}/services",
+            headers=headers(USER1),
+        )
+
+        # Then
+
+        assert response.status_code == 200
+        data = response.json()
+        expected_ip_addresses = [
+            str(ip_network(ip_address, strict=False))
+            for ip_address in request["asset"]["ip_addresses"]
+        ]
+        expected_asset = {
+            **request["asset"],
+            "ip_addresses": expected_ip_addresses,
+        }
+        assert data[0]["asset"] == expected_asset
 
 
 def test_success_upload_service_thumbnail():
@@ -1531,3 +1588,99 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 422
             assert response.json()["detail"][0]["msg"] == expected
+
+    class TestIpAddresses(Common):
+        def test_it_should_return_200_with_valid_ip_addresses(self):
+            # Given
+            request = {
+                "asset": {
+                    "ip_addresses": ["192.168.0.1", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"]
+                }
+            }
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+
+            expected_ip_addresses = [
+                str(ip_network(ip_address, strict=False))
+                for ip_address in request["asset"]["ip_addresses"]
+            ]
+            assert response.json()["asset"]["ip_addresses"] == expected_ip_addresses
+
+        def test_it_should_return_200_with_empty_ip_addresses(self):
+            # Given
+            request = {"asset": {"ip_addresses": []}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["ip_addresses"] == []
+
+        def test_it_should_return_400_with_invalid_ip_addresses(self):
+            # Given
+            request = {"asset": {"ip_addresses": ["invalid_ip"]}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 422
+            detail = response.json()["detail"]
+            assert detail[0]["msg"] == "value is not a valid IPv4 or IPv6 network"
+
+    class TestAssetDescription(Common):
+        def test_it_should_return_200_with_valid_asset_description(self):
+            # Given
+            request = {"asset": {"description": "test asset description"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["description"] == request["asset"]["description"]
+
+        def test_it_should_return_400_with_asset_description_exceeding_limit(self):
+            # Given
+            request = {
+                "asset": {
+                    "description": "a"
+                    * 256,  # 256 characters in half-width, which exceeds the limit
+                }
+            }
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 400
+            detail = response.json()["detail"]
+            assert (
+                detail == "Too long asset description. "
+                "Max length is 255 in half-width or 127 in full-width"
+            )
