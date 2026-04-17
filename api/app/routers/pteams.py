@@ -387,7 +387,7 @@ def update_pteam_service(
     if data.asset is not None:
         asset_update_data = data.asset.model_dump(exclude_unset=True)
 
-        if service.asset is None:
+        if service.asset is None and asset_update_data:
             service.asset = models.Asset(service_id=str(service_id))
 
         if "ip_addresses" in asset_update_data:
