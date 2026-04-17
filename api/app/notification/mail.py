@@ -38,6 +38,8 @@ def create_mail_alert_for_new_vuln(
     package_id: UUID | str,
     service_id: UUID | str,
     services: list[str],
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ) -> tuple[str, str]:  # subject, body
     ssvc_priority_label = {
         models.SSVCDeployerPriorityEnum.IMMEDIATE: "Immediate",
@@ -45,6 +47,8 @@ def create_mail_alert_for_new_vuln(
         models.SSVCDeployerPriorityEnum.SCHEDULED: "Scheduled",
         models.SSVCDeployerPriorityEnum.DEFER: "Defer",
     }.get(ssvc_priority) or "Defer"
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     subject = f"[Tc Alert] {ssvc_priority_label}: {vuln_title}"
     body = "<br>".join(
         [
@@ -58,6 +62,8 @@ def create_mail_alert_for_new_vuln(
             f"Package: {package_name}",
             f"Ecosystem: {ecosystem}",
             f"Package Manager: {package_manager}",
+            f"Asset IP: {ip_str}",
+            f"Asset Description: {desc_str}",
             "",
             (
                 f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"

@@ -117,6 +117,8 @@ class TestAlert:
                 self.package_version1.package_id,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
+                None,
+                None,
             )
             send_email.assert_called_with(address, SYSTEM_EMAIL, exp_subject, exp_body)
 
@@ -155,8 +157,121 @@ class TestAlert:
                 models.SSVCDeployerPriorityEnum.IMMEDIATE,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
+                None,
+                None,
             )
             send_slack.assert_called_with(webhook_url, slack_message_blocks)
+
+        def test_it_should_include_asset_info_in_slack_when_asset_exists(self, testdb, mocker):
+            # Given
+            address = "account0@example.com"
+            webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
+            pteam_request = {
+                "alert_slack": {
+                    "enable": True,
+                    "webhook_url": webhook_url,
+                },
+                "alert_mail": {
+                    "enable": False,
+                    "address": address,
+                },
+            }
+            client.put(
+                f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=pteam_request
+            )
+
+            service = testdb.scalars(
+                select(models.Service).where(
+                    models.Service.service_id == self.service1["service_id"]
+                )
+            ).one()
+            asset = models.Asset(
+                service_id=service.service_id,
+                ip_addresses=["192.168.1.1", "10.0.0.1"],
+                description="test server",
+            )
+            testdb.add(asset)
+            testdb.commit()
+
+            # When
+            send_slack = mocker.patch("app.notification.alert.send_slack")
+            vuln1 = create_vuln(USER1, VULN1)
+
+            # Then
+            send_slack.assert_called_once()
+            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
+                self.pteam1.pteam_id,
+                PTEAM1["pteam_name"],
+                self.package_version1.package_id,
+                self.package_version1.package.name,
+                vuln1.vuln_id,
+                vuln1.title,
+                models.SSVCDeployerPriorityEnum.IMMEDIATE,
+                self.service1["service_id"],
+                [self.service1["service_name"]],
+                ["192.168.1.1", "10.0.0.1"],
+                "test server",
+            )
+            send_slack.assert_called_with(webhook_url, slack_message_blocks)
+
+        def test_it_should_include_asset_info_in_mail_when_asset_exists(self, testdb, mocker):
+            # Given
+            address = "account0@example.com"
+            webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
+            pteam_request = {
+                "alert_slack": {
+                    "enable": False,
+                    "webhook_url": webhook_url,
+                },
+                "alert_mail": {
+                    "enable": True,
+                    "address": address,
+                },
+            }
+            client.put(
+                f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=pteam_request
+            )
+
+            dependencies = persistence.get_dependencies_from_service_id_and_package_id(
+                testdb, self.service1["service_id"], self.package_version1.package_id
+            )
+            if len(dependencies) == 0:
+                raise Exception("Dependency not found")
+
+            service = testdb.scalars(
+                select(models.Service).where(
+                    models.Service.service_id == self.service1["service_id"]
+                )
+            ).one()
+            asset = models.Asset(
+                service_id=service.service_id,
+                ip_addresses=["192.168.1.1", "10.0.0.1"],
+                description="test server",
+            )
+            testdb.add(asset)
+            testdb.commit()
+
+            # When
+            send_email = mocker.patch("app.notification.alert.send_email")
+            vuln1 = create_vuln(USER1, VULN1)
+
+            # Then
+            send_email.assert_called_once()
+            exp_subject, exp_body = create_mail_alert_for_new_vuln(
+                vuln1.title,
+                models.SSVCDeployerPriorityEnum.IMMEDIATE,
+                PTEAM1["pteam_name"],
+                self.pteam1.pteam_id,
+                self.package_version1.package.name,
+                self.package_version1.package.ecosystem,
+                dependencies[0].package_manager,
+                self.package_version1.package_id,
+                self.service1["service_id"],
+                [self.service1["service_name"]],
+                ["192.168.1.1", "10.0.0.1"],
+                "test server",
+            )
+            send_email.assert_called_with(address, SYSTEM_EMAIL, exp_subject, exp_body)
 
         def test_it_should_not_alert_by_mail_and_slack_when_alert_enable_is_false(self, mocker):
             # Given
@@ -277,6 +392,8 @@ class TestAlert:
                 models.SSVCDeployerPriorityEnum.IMMEDIATE,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
+                None,
+                None,
             )
             send_slack.assert_called_with(self.webhook_url, slack_message_blocks)
 

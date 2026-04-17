@@ -60,10 +60,14 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
     ssvc_priority: models.SSVCDeployerPriorityEnum,
     service_id: str,
     services: list[str],
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     services_name = ",".join(services)
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     blocks.extend(
         [
             {
@@ -76,6 +80,8 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                             f"*{title}*",
                             f"*{services_name}*",
                             SSVC_PRIORITY_LABEL[ssvc_priority],
+                            f"Asset IP: {ip_str}",
+                            f"Asset Description: {desc_str}",
                         ]
                     ),
                 },

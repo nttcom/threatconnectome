@@ -49,6 +49,10 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
     if not alert_by_slack and not alert_by_mail:
         return None
 
+    asset = service.asset
+    asset_ip_addresses = asset.ip_addresses if asset else None
+    asset_description = asset.description if asset else None
+
     if alert_by_slack:
         try:
             slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
@@ -61,6 +65,8 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 ticket.ssvc_deployer_priority,
                 service.service_id,
                 [service.service_name],  # WORKAROUND
+                asset_ip_addresses,
+                asset_description,
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
         except Exception:
@@ -79,6 +85,8 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 package.package_id,
                 service.service_id,
                 [service.service_name],  # WORKAROUND
+                asset_ip_addresses,
+                asset_description,
             )
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
         except Exception:
