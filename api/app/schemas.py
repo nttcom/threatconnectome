@@ -4,6 +4,7 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic.networks import IPvAnyNetwork
 
 from app.constants import DEFAULT_ALERT_SSVC_PRIORITY
 from app.models import (
@@ -111,6 +112,11 @@ class PackageFileResponse(ORMModel):
     references: list[Reference] = []
 
 
+class AssetInfo(ORMModel):
+    ip_addresses: list[IPvAnyNetwork] | None = None
+    description: str | None = None
+
+
 class PTeamServiceResponse(ORMModel):
     service_name: str
     service_id: UUID
@@ -120,6 +126,7 @@ class PTeamServiceResponse(ORMModel):
     system_exposure: SystemExposureEnum
     service_mission_impact: MissionImpactEnum
     service_safety_impact: SafetyImpactEnum
+    asset: AssetInfo | None = None
 
 
 class PTeamServiceUpdateRequest(ORMModel):
@@ -129,6 +136,7 @@ class PTeamServiceUpdateRequest(ORMModel):
     system_exposure: SystemExposureEnum | None = None
     service_mission_impact: MissionImpactEnum | None = None
     service_safety_impact: SafetyImpactEnum | None = None
+    asset: AssetInfo | None = None
 
 
 class PTeamServiceUpdateResponse(ORMModel):
@@ -138,6 +146,7 @@ class PTeamServiceUpdateResponse(ORMModel):
     system_exposure: SystemExposureEnum | None
     service_mission_impact: MissionImpactEnum | None
     service_safety_impact: SafetyImpactEnum | None
+    asset: AssetInfo | None = None
 
 
 CVE_PATTERN = r"^CVE-\d{4}-\d{4,}$"

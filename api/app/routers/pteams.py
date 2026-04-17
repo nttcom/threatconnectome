@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timezone
 from hashlib import sha256
 from io import DEFAULT_BUFFER_SIZE, BytesIO
+from typing import cast
 from uuid import UUID
 
 from fastapi import (
@@ -18,6 +19,7 @@ from fastapi import (
 )
 from fastapi.responses import Response
 from PIL import Image
+from pydantic.networks import IPvAnyNetwork
 from sqlalchemy.orm import Session
 
 from app import command, models, persistence, schemas
@@ -94,6 +96,49 @@ NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="N
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
 
+def _to_asset_info(asset: models.Asset | None) -> schemas.AssetInfo | None:
+    if asset is None:
+        return None
+
+    return schemas.AssetInfo(
+        ip_addresses=cast(list[IPvAnyNetwork] | None, asset.ip_addresses),
+        description=asset.description,
+    )
+
+
+def _to_pteam_service_response(service: models.Service) -> schemas.PTeamServiceResponse:
+    return schemas.PTeamServiceResponse(
+        service_name=service.service_name,
+        service_id=UUID(service.service_id),
+        sbom_uploaded_at=service.sbom_uploaded_at,
+        description=service.description,
+        keywords=service.keywords,
+        system_exposure=service.system_exposure,
+        service_mission_impact=service.service_mission_impact,
+        service_safety_impact=service.service_safety_impact,
+        asset=_to_asset_info(service.asset),
+    )
+
+
+def _to_pteam_info_response(pteam: models.PTeam) -> schemas.PTeamInfo:
+    sorted_services = sorted(pteam.services, key=lambda x: x.service_name)
+    return schemas.PTeamInfo(
+        pteam_id=UUID(pteam.pteam_id),
+        pteam_name=pteam.pteam_name,
+        contact_info=pteam.contact_info,
+        alert_slack=schemas.Slack(
+            enable=pteam.alert_slack.enable,
+            webhook_url=pteam.alert_slack.webhook_url,
+        ),
+        alert_ssvc_priority=pteam.alert_ssvc_priority,
+        services=[_to_pteam_service_response(service) for service in sorted_services],
+        alert_mail=schemas.Mail(
+            enable=pteam.alert_mail.enable,
+            address=pteam.alert_mail.address,
+        ),
+    )
+
+
 @router.post("/apply_invitation", response_model=schemas.PTeamInfo)
 def apply_invitation(
     request: schemas.ApplyInvitationRequest,
@@ -125,7 +170,7 @@ def apply_invitation(
 
     db.commit()
 
-    return pteam
+    return _to_pteam_info_response(pteam)
 
 
 @router.get("/invitation/{invitation_id}", response_model=schemas.PTeamInviterResponse)
@@ -160,7 +205,7 @@ def get_pteam(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return pteam
+    return _to_pteam_info_response(pteam)
 
 
 @router.post("/{pteam_id}/fix_ssvc_priorities")
@@ -200,7 +245,8 @@ def get_pteam_services(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    return sorted(pteam.services, key=lambda x: x.service_name)
+    sorted_services = sorted(pteam.services, key=lambda x: x.service_name)
+    return [_to_pteam_service_response(service) for service in sorted_services]
 
 
 @router.put("/{pteam_id}/services/{service_id}", response_model=schemas.PTeamServiceUpdateResponse)
@@ -225,6 +271,7 @@ def update_pteam_service(
     max_keywords = 5
     max_keyword_length_in_half = 20
     max_description_length_in_half = 300
+    max_asset_description_length_in_half = 255
     error_too_long_service_name = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
@@ -248,6 +295,13 @@ def update_pteam_service(
         detail=(
             f"Too long description. Max length is {max_description_length_in_half} in half-width "
             f"or {int(max_description_length_in_half / 2)} in full-width"
+        ),
+    )
+    error_too_long_asset_description = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long asset description. Max length is {max_asset_description_length_in_half} in "
+            f"half-width or {int(max_asset_description_length_in_half / 2)} in full-width"
         ),
     )
 
@@ -327,6 +381,38 @@ def update_pteam_service(
                 )
             service.service_name = update_service_name
 
+    if "asset" in update_data.keys() and data.asset is None:
+        service.asset = None
+
+    if data.asset is not None:
+        asset_update_data = data.asset.model_dump(exclude_unset=True)
+
+        if service.asset is None and asset_update_data:
+            service.asset = models.Asset(service_id=str(service_id))
+
+        if "ip_addresses" in asset_update_data:
+            service.asset.ip_addresses = (
+                [
+                    str(ip_address)
+                    for ip_address in data.asset.ip_addresses
+                    if ip_address is not None
+                ]
+                if data.asset.ip_addresses is not None
+                else None
+            )
+        if "description" in asset_update_data:
+            if data.asset.description is None:
+                service.asset.description = None
+            elif asset_description := data.asset.description.strip():
+                if (
+                    unicode_tool.count_full_width_and_half_width_characters(asset_description)
+                    > max_asset_description_length_in_half
+                ):
+                    raise error_too_long_asset_description
+                service.asset.description = asset_description
+            else:
+                service.asset.description = None
+
     need_fix_tickets = False
 
     if data.system_exposure not in {None, service.system_exposure}:
@@ -349,7 +435,15 @@ def update_pteam_service(
 
     db.commit()
 
-    return service
+    return schemas.PTeamServiceUpdateResponse(
+        service_name=service.service_name,
+        description=service.description,
+        keywords=service.keywords,
+        system_exposure=service.system_exposure,
+        service_mission_impact=service.service_mission_impact,
+        service_safety_impact=service.service_safety_impact,
+        asset=_to_asset_info(service.asset),
+    )
 
 
 @router.post("/{pteam_id}/services/{service_id}/thumbnail")
@@ -1132,7 +1226,7 @@ def create_pteam(
 
     db.commit()
 
-    return pteam
+    return _to_pteam_info_response(pteam)
 
 
 def _check_file_extension(file: UploadFile, extension: str):
@@ -1642,7 +1736,7 @@ def update_pteam(
 
     db.commit()
 
-    return pteam
+    return _to_pteam_info_response(pteam)
 
 
 @router.get("/{pteam_id}/members", response_model=list[schemas.PteamMemberGetResponse])
