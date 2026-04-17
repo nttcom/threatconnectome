@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['service_id'], ['service.service_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('asset_id')
     )
-    op.create_index(op.f('ix_asset_service_id'), 'asset', ['service_id'], unique=False)
+    op.create_index(op.f('ix_asset_service_id'), 'asset', ['service_id'], unique=True)
     # ### end Alembic commands ###
 
 
