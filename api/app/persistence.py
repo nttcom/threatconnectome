@@ -186,7 +186,9 @@ def get_all_pteams(db: Session) -> Sequence[models.PTeam]:
 
 def get_pteam_by_id(db: Session, pteam_id: UUID | str) -> models.PTeam | None:
     return db.scalars(
-        select(models.PTeam).where(models.PTeam.pteam_id == str(pteam_id))
+        select(models.PTeam)
+        .where(models.PTeam.pteam_id == str(pteam_id))
+        .options(selectinload(models.PTeam.services).selectinload(models.Service.asset))
     ).one_or_none()
 
 
