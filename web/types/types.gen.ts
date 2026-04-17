@@ -110,6 +110,20 @@ export type ApplyInvitationRequest = {
 };
 
 /**
+ * AssetInfo
+ */
+export type AssetInfo = {
+    /**
+     * Ip Addresses
+     */
+    ip_addresses?: Array<string> | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+};
+
+/**
  * AutomatableEnum
  */
 export type AutomatableEnum = 'yes' | 'no';
@@ -727,6 +741,7 @@ export type PTeamServiceResponse = {
     system_exposure: SystemExposureEnum;
     service_mission_impact: MissionImpactEnum;
     service_safety_impact: SafetyImpactEnum;
+    asset?: AssetInfo | null;
 };
 
 /**
@@ -748,6 +763,7 @@ export type PTeamServiceUpdateRequest = {
     system_exposure?: SystemExposureEnum | null;
     service_mission_impact?: MissionImpactEnum | null;
     service_safety_impact?: SafetyImpactEnum | null;
+    asset?: AssetInfo | null;
 };
 
 /**
@@ -769,6 +785,7 @@ export type PTeamServiceUpdateResponse = {
     system_exposure: SystemExposureEnum | null;
     service_mission_impact: MissionImpactEnum | null;
     service_safety_impact: SafetyImpactEnum | null;
+    asset?: AssetInfo | null;
 };
 
 /**

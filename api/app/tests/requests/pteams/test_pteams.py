@@ -1,3 +1,4 @@
+from ipaddress import ip_network
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -12,6 +13,7 @@ from app.constants import (
     ZERO_FILLED_UUID,
 )
 from app.main import app
+from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.common import ticket_utils
 from app.tests.common.constants import (
     PTEAM1,
@@ -26,6 +28,7 @@ from app.tests.common.utils import (
     create_pteam,
     create_user,
     file_upload_headers,
+    get_service_by_service_name,
     headers,
     invite_to_pteam,
 )
@@ -33,56 +36,103 @@ from app.tests.common.utils import (
 client = TestClient(app)
 
 
-def test_get_pteam():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+class TestGetPteam:
+    def test_get_pteam(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_id"] == str(pteam1.pteam_id)
-    assert data["contact_info"] == PTEAM1["contact_info"]
-    assert data["pteam_name"] == PTEAM1["pteam_name"]
-    assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
-    assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
-    assert data["alert_mail"]["enable"] == PTEAM1["alert_mail"]["enable"]
-    assert data["alert_mail"]["address"] == PTEAM1["alert_mail"]["address"]
+        response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_id"] == str(pteam1.pteam_id)
+        assert data["contact_info"] == PTEAM1["contact_info"]
+        assert data["pteam_name"] == PTEAM1["pteam_name"]
+        assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
+        assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
+        assert data["alert_mail"]["enable"] == PTEAM1["alert_mail"]["enable"]
+        assert data["alert_mail"]["address"] == PTEAM1["alert_mail"]["address"]
 
+    def test_get_pteam__without_auth(self):
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-def test_get_pteam__without_auth():
-    create_user(USER1)
-    pteam1 = create_pteam(USER1, PTEAM1)
+        response = client.get(f"/pteams/{pteam1.pteam_id}")  # no headers
+        assert response.status_code == 401
+        assert response.reason_phrase == "Unauthorized"
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}")  # no headers
-    assert response.status_code == 401
-    assert response.reason_phrase == "Unauthorized"
+    def test_get_pteam__by_member(self):
+        create_user(USER1)
+        create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        invitation = invite_to_pteam(USER1, pteam1.pteam_id)
+        accept_pteam_invitation(USER2, invitation.invitation_id)
 
+        response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_id"] == str(pteam1.pteam_id)
+        assert data["contact_info"] == PTEAM1["contact_info"]
+        assert data["pteam_name"] == PTEAM1["pteam_name"]
+        assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
+        assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
 
-def test_get_pteam__by_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
-    invitation = invite_to_pteam(USER1, pteam1.pteam_id)
-    accept_pteam_invitation(USER2, invitation.invitation_id)
+    def test_it_should_return_403_when_get_pteam_by_not_member(self):
+        create_user(USER1)
+        create_user(USER2)
+        pteam1 = create_pteam(USER1, PTEAM1)
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2))
-    assert response.status_code == 200
-    data = response.json()
-    assert data["pteam_id"] == str(pteam1.pteam_id)
-    assert data["contact_info"] == PTEAM1["contact_info"]
-    assert data["pteam_name"] == PTEAM1["pteam_name"]
-    assert data["alert_slack"]["enable"] == PTEAM1["alert_slack"]["enable"]
-    assert data["alert_slack"]["webhook_url"] == PTEAM1["alert_slack"]["webhook_url"]
+        response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2))  # not a member
+        assert response.status_code == 403
+        assert response.reason_phrase == "Forbidden"
 
+    def test_it_should_return_asset_when_set_asset(self):
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+        service_name1 = "test_service1"
+        upload_file_name = "trivy-ubuntu2004.cdx.json"
+        sbom_file = (
+            Path(__file__).resolve().parent.parent.parent
+            / "common"
+            / "upload_test"
+            / upload_file_name
+        )
+        with open(sbom_file, "r") as sbom:
+            sbom_json = sbom.read()
+            bg_create_tags_from_sbom_json(
+                sbom_json, pteam1.pteam_id, service_name1, upload_file_name
+            )
 
-def test_it_should_return_403_when_get_pteam_by_not_member():
-    create_user(USER1)
-    create_user(USER2)
-    pteam1 = create_pteam(USER1, PTEAM1)
+        service_id1 = get_service_by_service_name(USER1, pteam1.pteam_id, service_name1)[
+            "service_id"
+        ]
+        request = {
+            "asset": {
+                "ip_addresses": ["192.168.0.1"],
+                "description": "test asset description",
+            }
+        }
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}/services/{service_id1}",
+            headers=headers(USER1),
+            json=request,
+        )
 
-    response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER2))  # not a member
-    assert response.status_code == 403
-    assert response.reason_phrase == "Forbidden"
+        # When
+        response = client.get(f"/pteams/{pteam1.pteam_id}", headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        data = response.json()
+        expected_ip_addresses = [
+            str(ip_network(ip_address, strict=False))
+            for ip_address in request["asset"]["ip_addresses"]
+        ]
+        expected_asset = {
+            **request["asset"],
+            "ip_addresses": expected_ip_addresses,
+        }
+        assert data["services"][0]["asset"] == expected_asset
 
 
 class TestCreatePteam:
