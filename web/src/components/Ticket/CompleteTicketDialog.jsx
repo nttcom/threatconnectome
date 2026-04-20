@@ -207,7 +207,7 @@ export function CompleteTicketDialog(props) {
                 }}
               >
                 <ActionTypeIcon />
-                <Box display="flex" flexDirection="column" sx={{ ml: 1 }}>
+                <Box display="flex" flexDirection="column" sx={{ ml: 1, minWidth: 0 }}>
                   <Typography
                     variant="body2"
                     sx={{
