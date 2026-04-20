@@ -17,7 +17,7 @@ def test_create_blocks_for_pteam():
         "ssvc_priority": models.SSVCDeployerPriorityEnum.IMMEDIATE,
         "service_id": "4e74fbde-82fe-4d0a-a2bf-3c405c3b0814",
         "services": ["test1_service", "test2_service"],
-        "asset_ip_addresses": ["192.168.0.1", "10.0.0.1"],
+        "asset_ip_addresses": ["192.168.0.1/32", "10.0.0.1/32"],
         "asset_description": "test asset",
     }
 

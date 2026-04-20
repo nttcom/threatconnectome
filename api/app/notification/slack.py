@@ -80,8 +80,9 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                             f"*{title}*",
                             f"*{services_name}*",
                             SSVC_PRIORITY_LABEL[ssvc_priority],
-                            f"Asset IP: {ip_str}",
-                            f"Asset Description: {desc_str}",
+                            "Asset:",
+                            f"  IP Addresses: {ip_str}",
+                            f"  Description: {desc_str}",
                         ]
                     ),
                 },

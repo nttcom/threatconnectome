@@ -76,7 +76,7 @@ class TestAlert:
             package_version = testdb.scalars(select(models.PackageVersion)).one()
             self.package_version1 = package_version
 
-            self.ASSET_IP_ADDRESSES = ["192.168.1.1", "10.0.0.1"]
+            self.ASSET_IP_ADDRESSES = ["192.168.1.1/32", "10.0.0.1/32"]
             self.ASSET_DESCRIPTION = "test server"
 
             update_service_request = {
