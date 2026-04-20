@@ -43,8 +43,6 @@ client = TestClient(app)
 
 class TestAlert:
     class TestAlertByPutVuln:
-        ASSET_IP_ADDRESSES = ["192.168.1.1", "10.0.0.1"]
-        ASSET_DESCRIPTION = "test server"
 
         @pytest.fixture(scope="function", autouse=True)
         def common_setup(self, testdb):
@@ -81,14 +79,18 @@ class TestAlert:
             self.ASSET_IP_ADDRESSES = ["192.168.1.1", "10.0.0.1"]
             self.ASSET_DESCRIPTION = "test server"
 
-            ## put apiを取り込んで修正する
-            asset = models.Asset(
-                service_id=service_id,
-                ip_addresses=self.ASSET_IP_ADDRESSES,
-                description=self.ASSET_DESCRIPTION,
+            update_service_request = {
+                "asset": {
+                    "ip_addresses": self.ASSET_IP_ADDRESSES,
+                    "description": self.ASSET_DESCRIPTION,
+                }
+            }
+
+            client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{service_id}",
+                headers=headers(USER1),
+                json=update_service_request,
             )
-            testdb.add(asset)
-            testdb.commit()
 
         def test_it_should_alert_by_mail_when_put_matched_vuln(self, testdb, mocker):
             # Given
