@@ -62,9 +62,7 @@ def create_mail_alert_for_new_vuln(
             f"Package: {package_name}",
             f"Ecosystem: {ecosystem}",
             f"Package Manager: {package_manager}",
-            "Asset:",
-            f"  IP Addresses: {ip_str}",
-            f"  Description: {desc_str}",
+            f"Asset:<ul><li>IP Addresses: {ip_str}</li><li>Description: {desc_str}</li></ul>",
             "",
             (
                 f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
