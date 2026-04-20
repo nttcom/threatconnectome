@@ -139,7 +139,7 @@ class TestAlert:
             )
             send_email.assert_called_with(address, SYSTEM_EMAIL, exp_subject, exp_body)
 
-        def test_it_should_alert_by_slack_when_put_matched_vuln(self, testdb, mocker):
+        def test_it_should_alert_by_slack_when_put_matched_vuln(self, mocker):
             # Given
             address = "account0@example.com"
             webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
