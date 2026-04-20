@@ -76,13 +76,13 @@ class TestAlert:
             package_version = testdb.scalars(select(models.PackageVersion)).one()
             self.package_version1 = package_version
 
-            self.ASSET_IP_ADDRESSES = ["192.168.1.1/32", "10.0.0.1/32"]
-            self.ASSET_DESCRIPTION = "test server"
+            self.asset_ip_addresses = ["192.168.1.1/32", "10.0.0.1/32"]
+            self.asset_description = "test server"
 
             update_service_request = {
                 "asset": {
-                    "ip_addresses": self.ASSET_IP_ADDRESSES,
-                    "description": self.ASSET_DESCRIPTION,
+                    "ip_addresses": self.asset_ip_addresses,
+                    "description": self.asset_description,
                 }
             }
 
@@ -134,8 +134,8 @@ class TestAlert:
                 self.package_version1.package_id,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
-                self.ASSET_IP_ADDRESSES,
-                self.ASSET_DESCRIPTION,
+                self.asset_ip_addresses,
+                self.asset_description,
             )
             send_email.assert_called_with(address, SYSTEM_EMAIL, exp_subject, exp_body)
 
@@ -174,8 +174,8 @@ class TestAlert:
                 models.SSVCDeployerPriorityEnum.IMMEDIATE,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
-                self.ASSET_IP_ADDRESSES,
-                self.ASSET_DESCRIPTION,
+                self.asset_ip_addresses,
+                self.asset_description,
             )
             send_slack.assert_called_with(webhook_url, slack_message_blocks)
 
