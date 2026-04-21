@@ -126,21 +126,19 @@ def create_mail_to_notify_eol(
     url = _eol_page_link(pteam_id)
     ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
     desc_str = asset_description if asset_description else "-"
-    body = "".join(
+    body = "<br>".join(
         [
-            f"EOL (End of Life) reached on <b>{eol_from}</b> (no more security fixes)<br>",
-            "<ul>",
-            f"<li><b>Service:</b> {service_name}</li>",
-            f"<li><b>Team:</b> {pteam_name}</li>",
-            f"<li><b>Product:</b> {product_name}</li>",
-            f"<li><b>Current Version:</b> {version}</li>",
+            f"EOL (End of Life) reached on <b>{eol_from}</b> (no more security fixes)",
+            f"<b>Service:</b> {service_name}",
+            f"<b>Team:</b> {pteam_name}",
+            f"<b>Product:</b> {product_name}",
+            f"<b>Current Version:</b> {version}",
             (
-                f"<li><b>Asset:</b><ul><li>IP Addresses: {ip_str}</li>"
-                f"<li>Description: {desc_str}</li></ul></li>"
+                f"<b>Asset:</b><ul><li>IP Addresses: {ip_str}</li>"
+                f"<li>Description: {desc_str}</li></ul>"
             ),
-            f"<li><b>EOL Date:</b> {eol_from}</li>",
-            f"<li><b>Reference:</b> <a href='{url}'>{url}</a></li>",
-            "</ul>",
+            f"<b>EOL Date:</b> {eol_from}",
+            f"<b>Reference:</b> <a href='{url}'>{url}</a>",
         ]
     )
     return subject, body
