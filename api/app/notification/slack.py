@@ -180,15 +180,15 @@ def create_slack_blocks_to_notify_eol(
                     "type": "mrkdwn",
                     "text": (
                         f"EOL (End of Life) reached on *<{eol_from}>* (no more security fixes)\n\n"
-                        f"• *Service:* {service_name}\n"
-                        f"• *Team:* {pteam_name}\n"
-                        f"• *Product:* {product_name}\n"
-                        f"• *Current Version:* {version}\n"
-                        f"• *Asset:*\n"
-                        f"  • IP Addresses: {ip_str}\n"
-                        f"  • Description: {desc_str}\n"
-                        f"• *EOL Date:* {eol_from}\n"
-                        f"• *Reference:* {url}"
+                        f"*Service:* {service_name}\n"
+                        f"*Team:* {pteam_name}\n"
+                        f"*Product:* {product_name}\n"
+                        f"*Current Version:* {version}\n"
+                        f"*Asset:*\n"
+                        f" • IP Addresses: {ip_str}\n"
+                        f" • Description: {desc_str}\n"
+                        f"*EOL Date:* {eol_from}\n"
+                        f"*Reference:* {url}"
                     ),
                 },
             },
