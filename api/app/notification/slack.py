@@ -76,7 +76,10 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*Package URL*:<{PACKAGE_URL}{str(package_id)}?pteamId={pteam_id}&serviceId={service_id}|{package_name}>",
+                            (
+                                f"*Package URL*:<{PACKAGE_URL}{str(package_id)}"
+                                f"?pteamId={pteam_id}&serviceId={service_id}|{package_name}>"
+                            ),
                             f"*Title*:{title}",
                             f"*Services*:{services_name}",
                             f"*SSVC Priority*:{SSVC_PRIORITY_LABEL[ssvc_priority]}",
