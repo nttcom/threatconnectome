@@ -403,6 +403,46 @@ class TestAlert:
                 sbom_json2, self.pteam.pteam_id, service_name2, upload_file_name2
             )
 
+            service_id_1 = testdb.scalars(
+                select(models.Service.service_id).where(
+                    models.Service.pteam_id == str(self.pteam.pteam_id),
+                    models.Service.service_name == self.service_name1,
+                )
+            ).one()
+            self.asset_ip_addresses_1 = ["192.168.1.1/32", "10.0.0.1/32"]
+            self.asset_description_1 = "asset for service1"
+            update_service_request_1 = {
+                "asset": {
+                    "ip_addresses": self.asset_ip_addresses_1,
+                    "description": self.asset_description_1,
+                }
+            }
+            client.put(
+                f"/pteams/{self.pteam.pteam_id}/services/{service_id_1}",
+                headers=headers(USER1),
+                json=update_service_request_1,
+            )
+
+            service_id_2 = testdb.scalars(
+                select(models.Service.service_id).where(
+                    models.Service.pteam_id == str(self.pteam.pteam_id),
+                    models.Service.service_name == service_name2,
+                )
+            ).one()
+            self.asset_ip_addresses_2 = ["172.16.1.1/32", "172.16.1.2/32"]
+            self.asset_description_2 = "asset for service2"
+            update_service_request_2 = {
+                "asset": {
+                    "ip_addresses": self.asset_ip_addresses_2,
+                    "description": self.asset_description_2,
+                }
+            }
+            client.put(
+                f"/pteams/{self.pteam.pteam_id}/services/{service_id_2}",
+                headers=headers(USER1),
+                json=update_service_request_2,
+            )
+
         def test_it_should_alert_when_eol_from_within_six_months(self, testdb, mocker):
             # Given
 
@@ -496,6 +536,44 @@ class TestAlert:
             # Then
             assert send_slack.call_count == 2
             assert send_mail.call_count == 2
+            slack_texts_by_call = [
+                "\n".join(
+                    block["text"]["text"]
+                    for block in call_args.args[1]
+                    if block.get("type") == "section"
+                )
+                for call_args in send_slack.call_args_list
+            ]
+            mail_bodies_by_call = [call_args.args[3] for call_args in send_mail.call_args_list]
+            expected_notifications = [
+                (
+                    eol_product_1_request["name"],
+                    self.asset_ip_addresses_1,
+                    self.asset_description_1,
+                ),
+                (
+                    eol_product_2_request["name"],
+                    self.asset_ip_addresses_2,
+                    self.asset_description_2,
+                ),
+            ]
+
+            for product_name, ip_addresses, description in expected_notifications:
+                matched_slack_texts = [
+                    text for text in slack_texts_by_call if f"• *Product:* {product_name}" in text
+                ]
+                assert len(matched_slack_texts) == 1
+                assert f"IP Addresses: {', '.join(ip_addresses)}" in matched_slack_texts[0]
+                assert f"Description: {description}" in matched_slack_texts[0]
+
+                matched_mail_bodies = [
+                    body
+                    for body in mail_bodies_by_call
+                    if f"<b>Product:</b> {product_name}" in body
+                ]
+                assert len(matched_mail_bodies) == 1
+                assert f"IP Addresses: {', '.join(ip_addresses)}" in matched_mail_bodies[0]
+                assert f"Description: {description}" in matched_mail_bodies[0]
             assert ecosystem_eol_dependency.eol_notification_sent is True
             assert package_eol_dependency.eol_notification_sent is True
 

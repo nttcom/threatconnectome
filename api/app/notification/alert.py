@@ -150,6 +150,8 @@ def _send_eol_notifications(
     product_name: str,
     version: str,
     eol_from: str,
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ) -> bool:
     # check alert settings
     send_by_slack = pteam.alert_slack.enable and pteam.alert_slack.webhook_url
@@ -172,6 +174,8 @@ def _send_eol_notifications(
                 product_name,
                 version,
                 eol_from,
+                asset_ip_addresses,
+                asset_description,
             )
             send_slack(pteam.alert_slack.webhook_url, slack_message_blocks)
             success = True
@@ -187,6 +191,8 @@ def _send_eol_notifications(
                 product_name,
                 version,
                 eol_from,
+                asset_ip_addresses,
+                asset_description,
             )
             send_email(pteam.alert_mail.address, SYSTEM_EMAIL, mail_subject, mail_body)
             success = True
@@ -208,6 +214,7 @@ def notify_eol_ecosystem(
     service = ecosystem_eol_dependency.service
     pteam = service.pteam
     eol_version = ecosystem_eol_dependency.eol_version
+    asset = service.asset
 
     return _send_eol_notifications(
         pteam=pteam,
@@ -216,6 +223,8 @@ def notify_eol_ecosystem(
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
         eol_from=eol_version.eol_from.isoformat(),
+        asset_ip_addresses=asset.ip_addresses if asset else None,
+        asset_description=asset.description if asset else None,
     )
 
 
@@ -225,6 +234,7 @@ def notify_eol_package(
     service = package_eol_dependency.dependency.service
     pteam = service.pteam
     eol_version = package_eol_dependency.eol_version
+    asset = service.asset
 
     return _send_eol_notifications(
         pteam=pteam,
@@ -233,4 +243,6 @@ def notify_eol_package(
         product_name=eol_version.eol_product.name,
         version=eol_version.version,
         eol_from=eol_version.eol_from.isoformat(),
+        asset_ip_addresses=asset.ip_addresses if asset else None,
+        asset_description=asset.description if asset else None,
     )

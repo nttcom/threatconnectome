@@ -119,9 +119,13 @@ def create_mail_to_notify_eol(
     product_name: str,
     version: str,
     eol_from: str,
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ) -> tuple[str, str]:
     subject = "[Tc Warning] Action Required: migrate/upgrade to a supported version"
     url = _eol_page_link(pteam_id)
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     body = "".join(
         [
             f"EOL (End of Life) reached on <b>{eol_from}</b> (no more security fixes)<br>",
@@ -130,6 +134,10 @@ def create_mail_to_notify_eol(
             f"<li><b>Team:</b> {pteam_name}</li>",
             f"<li><b>Product:</b> {product_name}</li>",
             f"<li><b>Current Version:</b> {version}</li>",
+            (
+                f"<li><b>Asset:</b><ul><li>IP Addresses: {ip_str}</li>"
+                f"<li>Description: {desc_str}</li></ul></li>"
+            ),
             f"<li><b>EOL Date:</b> {eol_from}</li>",
             f"<li><b>Reference:</b> <a href='{url}'>{url}</a></li>",
             "</ul>",

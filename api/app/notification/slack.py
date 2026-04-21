@@ -159,12 +159,16 @@ def create_slack_blocks_to_notify_eol(
     product_name: str,
     version: str,
     eol_from: str,
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ):
     blocks: list[dict[str, str | dict | list]] = _block_header(
         text=":warning: Action Required: migrate/upgrade to a supported version"
     )
 
     url = urljoin(EOL_URL, f"?pteamId={pteam_id}")
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     blocks.extend(
         [
             {
@@ -177,6 +181,9 @@ def create_slack_blocks_to_notify_eol(
                         f"• *Team:* {pteam_name}\n"
                         f"• *Product:* {product_name}\n"
                         f"• *Current Version:* {version}\n"
+                        f"• *Asset:*\n"
+                        f"  • IP Addresses: {ip_str}\n"
+                        f"  • Description: {desc_str}\n"
                         f"• *EOL Date:* {eol_from}\n"
                         f"• *Reference:* {url}"
                     ),
