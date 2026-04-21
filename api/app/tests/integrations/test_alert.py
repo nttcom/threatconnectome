@@ -560,7 +560,7 @@ class TestAlert:
 
             for product_name, ip_addresses, description in expected_notifications:
                 matched_slack_texts = [
-                    text for text in slack_texts_by_call if f"• *Product:* {product_name}" in text
+                    text for text in slack_texts_by_call if f"*Product:* {product_name}" in text
                 ]
                 assert len(matched_slack_texts) == 1
                 assert f"IP Addresses: {', '.join(ip_addresses)}" in matched_slack_texts[0]
