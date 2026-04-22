@@ -17,6 +17,8 @@ def test_create_blocks_for_pteam():
         "ssvc_priority": models.SSVCDeployerPriorityEnum.IMMEDIATE,
         "service_id": "4e74fbde-82fe-4d0a-a2bf-3c405c3b0814",
         "services": ["test1_service", "test2_service"],
+        "asset_ip_addresses": ["192.168.0.1/32", "10.0.0.1/32"],
+        "asset_description": "test asset",
     }
 
     blocks = create_slack_pteam_alert_blocks_for_new_vuln(**notification_data)
@@ -29,3 +31,6 @@ def test_create_blocks_for_pteam():
     assert notification_data["title"] in blocks[2]["text"]["text"]
     assert SSVC_PRIORITY_LABEL[notification_data["ssvc_priority"]] in blocks[2]["text"]["text"]
     assert notification_data["services"][0] in blocks[2]["text"]["text"]
+    assert notification_data["asset_ip_addresses"][0] in blocks[2]["text"]["text"]
+    assert notification_data["asset_ip_addresses"][1] in blocks[2]["text"]["text"]
+    assert notification_data["asset_description"] in blocks[2]["text"]["text"]
