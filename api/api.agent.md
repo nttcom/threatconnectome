@@ -77,7 +77,7 @@ If any of the following change:
 - Wait for API to be fully running:
 
   ```bash
-  docker compose logs api | grep -q "Application startup complete"
+  docker compose -f docker-compose-firebase-local.yml logs api | grep -q "Application startup complete"
   ```
 
 - Under this common condition (API running), always run:
