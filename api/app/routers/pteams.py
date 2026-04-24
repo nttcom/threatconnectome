@@ -576,14 +576,15 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(packages_summary: list[dict]):
-    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
+def _count_ssvc_priority_from_summary(packages_summary: list[dict]) -> dict[str, int]:
+    ssvc_priority_count: dict[str, int] = {
         priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
     }
+    ssvc_priority_count["no_known_vulnerability"] = 0
+
     for package_summary in packages_summary:
-        ssvc_priority_count[
-            package_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
-        ] += 1
+        priority = package_summary.get("ssvc_priority") or "no_known_vulnerability"
+        ssvc_priority_count[priority] += 1
     return ssvc_priority_count
 
 
@@ -1114,7 +1115,6 @@ def update_ticket(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):

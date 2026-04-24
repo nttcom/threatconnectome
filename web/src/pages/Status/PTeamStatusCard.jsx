@@ -69,7 +69,7 @@ LineWithTooltip.propTypes = {
 function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
 
-  if (displaySSVCPriority === "empty") return "";
+  if (displaySSVCPriority === "no_known_vulnerability") return "";
   const keys = ["completed", "scheduled", "acknowledged", "alerted"];
   const total = keys.reduce((ret, key) => ret + (counts[key] ?? 0), 0);
   const ratios = keys.reduce((ret, key) => {
@@ -101,15 +101,13 @@ export function PTeamStatusCard(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusCard" });
 
   let displaySSVCPriority = "";
-  if (!packageInfo.ssvc_priority && packageInfo.status_count["completed"] > 0) {
-    displaySSVCPriority = "safe"; // solved all and at least 1 tickets
-  } else if (
+  if (
     !packageInfo.ssvc_priority &&
     sortedTicketHandlingStatus.every(
       (ticketHandlingStatus) => packageInfo.status_count[ticketHandlingStatus] === 0,
     )
   ) {
-    displaySSVCPriority = "empty";
+    displaySSVCPriority = "no_known_vulnerability";
   } else {
     displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
   }
@@ -171,10 +169,7 @@ export function PTeamStatusCard(props) {
             <Typography
               variant="body2"
               sx={{
-                visibility:
-                  displaySSVCPriority === "safe" || displaySSVCPriority === "empty"
-                    ? "hidden"
-                    : "visible",
+                visibility: displaySSVCPriority === "no_known_vulnerability" ? "hidden" : "visible",
               }}
             >
               {t("updated", { timeDiff: calcTimestampDiff(packageInfo.updated_at) })}
@@ -182,7 +177,7 @@ export function PTeamStatusCard(props) {
           </Box>
           <StatusRatioGraph
             counts={packageInfo.status_count}
-            displaySSVCPriority={packageInfo.ssvc_priority}
+            displaySSVCPriority={displaySSVCPriority}
           />
         </Box>
       </TableCell>

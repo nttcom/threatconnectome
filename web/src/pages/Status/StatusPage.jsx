@@ -309,7 +309,7 @@ export function Status() {
       (priorityFilters.length === 0
         ? true // show all if selected none
         : priorityFilters.includes(
-            ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
+            ssvcPriorityProps[packageInfo.ssvc_priority || "no_known_vulnerability"].displayName,
           )) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
@@ -458,11 +458,17 @@ export function Status() {
           const summary = isActiveAllServicesMode
             ? pteamAllServicesPackagesSummary
             : pteamServicePackagesSummary;
-          const ssvcPriorityCount = summary.ssvc_priority_count[priorityApiKey];
+          const ssvcPriorityCount = summary.ssvc_priority_count[priorityApiKey] ?? 0;
 
           const fixedSx = {
             ...(checked && {
               bgcolor: grey[200],
+            }),
+            ...(priorityApiKey === "no_known_vulnerability" && {
+              borderTop: 1,
+              borderColor: "divider",
+              mt: 0.5,
+              pt: 0.5,
             }),
           };
 

@@ -25,9 +25,12 @@ client = TestClient(app)
 
 
 class TestGetPTeamPackagesSummary:
-    ssvc_priority_count_zero: dict[str, int] = {
-        ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)
-    }
+    @staticmethod
+    def _get_ssvc_priority_count_zero() -> dict[str, int]:
+        return {
+            **{ssvc_priority.value: 0 for ssvc_priority in list(models.SSVCDeployerPriorityEnum)},
+            "no_known_vulnerability": 0,
+        }
 
     @staticmethod
     def _get_access_token(user: dict) -> str:
@@ -108,8 +111,8 @@ class TestGetPTeamPackagesSummary:
         assert response.status_code == 200
         summary = response.json()
         assert summary["ssvc_priority_count"] == {
-            **self.ssvc_priority_count_zero,
-            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+            **self._get_ssvc_priority_count_zero(),
+            "no_known_vulnerability": 1,
         }
         assert summary["packages"] == [
             {
@@ -152,8 +155,8 @@ class TestGetPTeamPackagesSummary:
         assert response.status_code == 200
         summary = response.json()
         assert summary["ssvc_priority_count"] == {
-            **self.ssvc_priority_count_zero,
-            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+            **self._get_ssvc_priority_count_zero(),
+            "no_known_vulnerability": 1,
         }
         assert summary["packages"] == [
             {
@@ -201,7 +204,7 @@ class TestGetPTeamPackagesSummary:
         summary = response.json()
         expected_ssvc_priority = calculate_ssvc_priority_by_ticket(db_ticket1)
         assert summary["ssvc_priority_count"] == {
-            **self.ssvc_priority_count_zero,
+            **self._get_ssvc_priority_count_zero(),
             expected_ssvc_priority.value: 1,
         }
         summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
@@ -298,7 +301,7 @@ class TestGetPTeamPackagesSummary:
             calculate_ssvc_priority_by_ticket(db_threat) for db_threat in db_ticket1
         )
         assert summary["ssvc_priority_count"] == {
-            **self.ssvc_priority_count_zero,
+            **self._get_ssvc_priority_count_zero(),
             expected_ssvc_priority: 1,
         }
 
@@ -369,8 +372,8 @@ class TestGetPTeamPackagesSummary:
         assert response.status_code == 200
         summary = response.json()
         assert summary["ssvc_priority_count"] == {
-            **self.ssvc_priority_count_zero,
-            models.SSVCDeployerPriorityEnum.DEFER.value: 1,
+            **self._get_ssvc_priority_count_zero(),
+            "no_known_vulnerability": 1,
         }
 
         assert summary["packages"] == [
@@ -384,6 +387,76 @@ class TestGetPTeamPackagesSummary:
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
+                },
+            }
+        ]
+
+    def test_returns_summary_if_having_defer_ticket(self, testdb):
+        # Given
+        test_service = "test_service"
+        test_target = "test target"
+        vulnerable_version = "1.2"
+
+        self.package_setup_with_single_service(
+            testdb, test_service, test_target, vulnerable_version
+        )
+
+        vuln1 = VULN1.copy()
+        vuln1["exploitation"] = "none"
+        vuln1["automatable"] = "no"
+        create_vuln(USER1, vuln1)  # PACKAGE1
+        db_ticket1 = testdb.scalars(select(models.Ticket)).one()
+
+        request = {
+            "system_exposure": models.SystemExposureEnum.SMALL,
+            "service_mission_impact": models.MissionImpactEnum.DEGRADED,
+            "service_safety_impact": models.SafetyImpactEnum.NEGLIGIBLE,
+        }
+        user1_access_token = self._get_access_token(USER1)
+        _headers = {
+            "Authorization": f"Bearer {user1_access_token}",
+            "Content-Type": "application/json",
+            "accept": "application/json",
+        }
+        response = client.put(
+            f"/pteams/{self.pteam1.pteam_id}/services/{self.service1.service_id}",
+            headers=_headers,
+            json=request,
+        )
+
+        # When
+        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        response = client.get(url, headers=_headers)
+
+        # Then
+        assert response.status_code == 200
+        summary = response.json()
+
+        expected_ssvc_priority = calculate_ssvc_priority_by_ticket(db_ticket1)
+
+        assert summary["ssvc_priority_count"] == {
+            **self._get_ssvc_priority_count_zero(),
+            expected_ssvc_priority.value: 1,
+        }
+        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
+            "Z", "+00:00"
+        )
+
+        assert summary["packages"] == [
+            {
+                "package_id": str(self.package1.package_id),
+                "package_name": PACKAGE1["package_name"],
+                "ecosystem": PACKAGE1["ecosystem"],
+                "package_managers": [PACKAGE1["package_manager"]],
+                "service_ids": [self.service1.service_id],
+                "ssvc_priority": expected_ssvc_priority.value,
+                "updated_at": datetime.isoformat(db_ticket1.ticket_status.updated_at),
+                "status_count": {
+                    **{
+                        status_type.value: 0
+                        for status_type in list(models.TicketHandlingStatusType)
+                    },
+                    models.TicketHandlingStatusType.alerted.value: 1,  # default status is ALERTED
                 },
             }
         ]

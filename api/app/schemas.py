@@ -391,7 +391,7 @@ class PTeamPackagesSummary(ORMModel):
         updated_at: datetime | None
         status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
 
-    ssvc_priority_count: dict[SSVCDeployerPriorityEnum, int]  # priority: packages count
+    ssvc_priority_count: dict[str, int]  # priority: packages count
     packages: list[PTeamPackageSummary]
 
 
