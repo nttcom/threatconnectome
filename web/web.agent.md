@@ -1,0 +1,152 @@
+## Local Web Rule
+
+This rule applies to all changes under `./web`.
+This file is located in `./web`.
+
+---
+
+## Command Safety Policy
+
+The agent may run the following commands **without user confirmation**:
+
+- Read-only commands and inspection tools  
+  (e.g. grep, rg, cat, ls)
+
+- Any commands that modify files **only within this repository**
+
+- Project-scoped `npm` and `npx` commands executed inside this repository
+  for **local formatting, linting, validation, or test execution only**, including:
+  - `npm run check`
+  - `npm run test`
+  - `npm test`
+  - `npx vitest`
+  - `npx vitest run`
+  - `npx prettier --write`
+  - `npx eslint --fix`
+
+  These commands are always considered safe when they:
+  - operate only on files within this repository
+  - do not modify external systems, services, or global environments
+
+- Test runners and related tooling executed locally  
+  (e.g. vitest, jest)
+
+- Commands that start, stop, or exec local containers defined in this repository
+
+- File rename commands used for TypeScript migration purposes only, including:
+  - `mv *.js *.ts`
+  - `mv *.jsx *.tsx`
+  - Equivalent rename operations that strictly change file extensions
+    as part of an active JavaScript → TypeScript migration
+
+---
+
+## Mandatory Actions (Agent)
+
+Whenever code under `./web` is modified, you MUST do the following automatically.
+
+---
+
+### 1. Update / Create Tests
+
+If you modify any of the following:
+
+- React components
+- Hooks
+- Utils / helpers
+- State management (context, store, etc.)
+
+You MUST:
+
+- Identify the affected files
+- Create or update tests that cover **only the modified behavior**
+- Prefer minimal, focused tests over broad integration tests
+
+Test locations:
+
+- `web/src/**/__tests__/*`
+
+Use existing testing tools and patterns already used in the project
+(e.g. React Testing Library, Jest / Vitest).
+
+---
+
+### 2. Run Static Checks
+
+Always execute:
+
+```bash
+cd web
+npm run check
+```
+
+This must pass with no errors.
+
+---
+
+### 3. Run Web Tests
+
+Always execute:
+
+```bash
+cd web
+npm run test
+```
+
+- All newly added or modified tests must pass
+
+---
+
+## TypeScript Migration Rules (IMPORTANT)
+
+This project is currently **in the middle of migrating from JavaScript to TypeScript**.
+The following rules MUST be strictly followed.
+
+### Files You Modify or Add
+
+- All newly created files MUST be written in **TypeScript** (`.ts` / `.tsx`)
+- When modifying an existing file:
+  - Convert the file to TypeScript **before** making changes
+  - Rename `.js` → `.ts`, `.jsx` → `.tsx`
+  - Add explicit type definitions whenever reasonably possible
+
+### Files You Do NOT Modify
+
+- Existing files that are unrelated to the change MUST:
+  - Remain in JavaScript (`.js` / `.jsx`)
+  - NOT be converted to TypeScript unnecessarily
+
+### Prohibited Actions
+
+- Changes made solely for TypeScript migration purposes
+- Large-scale or blanket JS → TS conversions
+- Adding large numbers of type-only changes that do not affect behavior
+
+TypeScript migration must be done **incrementally and only where changes are required**.
+
+---
+
+## Localization Cleanup Rules (IMPORTANT)
+
+Localization strings are defined under `./web/public/locales`.
+
+- If code changes cause localization keys to become unused, those unused keys SHOULD be deleted
+- Deletion MUST be limited to keys that are clearly unreferenced by the codebase
+- Do NOT delete localization keys speculatively or preemptively
+
+---
+
+## External Specification Confirmation Rule (IMPORTANT)
+
+If a requested change depends on external specifications
+(e.g. user-visible behavior, UX meaning, or product requirements)
+and those specifications are not clearly defined:
+
+- The agent MUST propose the assumed external specification first
+- The agent MUST obtain explicit user confirmation before making any code changes
+- Until confirmation, the agent MUST NOT modify files or run modifying commands
+- If confirmation is not given, the agent MUST stop and ask for clarification
+
+Do NOT infer or assume external behavior without explicit confirmation.
+
+---
