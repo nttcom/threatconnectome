@@ -135,7 +135,7 @@ class SSVCDeployerPackagePriorityEnum(ComparableStringEnum):
     OUT_OF_CYCLE = "out_of_cycle"
     SCHEDULED = "scheduled"
     DEFER = "defer"
-    NO_KNOWN_VULNERABILITIES = "no_known_vulnerabilities"
+    NO_KNOWN_VULNERABILITIES = "no_known_vulnerability"
 
 
 class ImpactCategoryEnum(str, enum.Enum):

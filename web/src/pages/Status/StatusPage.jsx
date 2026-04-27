@@ -263,7 +263,7 @@ export function Status() {
       ? undefined
       : pteam.services.find((service) => service.service_id === serviceId);
 
-  const handleSBOMUploaded = () => { };
+  const handleSBOMUploaded = () => {};
 
   if (!serviceId) {
     if (pteam.services.length === 0) {
@@ -309,8 +309,8 @@ export function Status() {
       (priorityFilters.length === 0
         ? true // show all if selected none
         : priorityFilters.includes(
-          ssvcPriorityProps[packageInfo.ssvc_priority || "no_known_vulnerability"].displayName,
-        )) &&
+            ssvcPriorityProps[packageInfo.ssvc_priority || "no_known_vulnerability"].displayName,
+          )) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
           .toLowerCase()
