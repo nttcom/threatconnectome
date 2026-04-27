@@ -130,6 +130,14 @@ class SSVCDeployerPriorityEnum(ComparableStringEnum):
     DEFER = "defer"
 
 
+class SSVCDeployerPackagePriorityEnum(ComparableStringEnum):
+    IMMEDIATE = "immediate"
+    OUT_OF_CYCLE = "out_of_cycle"
+    SCHEDULED = "scheduled"
+    DEFER = "defer"
+    NO_KNOWN_VULNERABILITIES = "no_known_vulnerabilities"
+
+
 class ImpactCategoryEnum(str, enum.Enum):
     # https://attack.mitre.org/tactics/TA0105/
     DAMAGE_TO_PROPERTY = "damage_to_property"

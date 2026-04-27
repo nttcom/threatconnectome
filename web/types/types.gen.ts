@@ -695,7 +695,7 @@ export type PTeamPackagesSummary = {
      * Ssvc Priority Count
      */
     ssvc_priority_count: {
-        [key in SsvcDeployerPriorityEnum]?: number;
+        [key: string]: number;
     };
     /**
      * Packages

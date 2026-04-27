@@ -13,6 +13,13 @@ export const sortedSSVCPriorities = [
   "out_of_cycle",
   "scheduled",
   "defer",
+];
+
+export const sortedSSVCPackagePriorities = [
+  "immediate",
+  "out_of_cycle",
+  "scheduled",
+  "defer",
   "no_known_vulnerability",
 ];
 
@@ -76,8 +83,7 @@ export const getSsvcPriorityProps = () => {
     Scheduled: prop_scheduled,
     defer: prop_defer,
     Defer: prop_defer,
-    no_known_vulnerability: prop_no_known_vulnerability,
-    No_known_vulnerability: prop_no_known_vulnerability,
+    no_known_vulnerability: prop_no_known_vulnerability
   };
 };
 

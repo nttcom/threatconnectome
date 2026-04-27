@@ -54,7 +54,7 @@
       },
       "no_known_vulnerability": {
         "displayName": "No known vulnerability",
-        "statusLabel": "No known vulnerability:脆弱性は検出されませんでした。"
+        "statusLabel": "No known vulnerability：脆弱性は検出されませんでした。"
       }
     }
   },

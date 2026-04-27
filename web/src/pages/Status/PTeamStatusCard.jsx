@@ -101,12 +101,7 @@ export function PTeamStatusCard(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusCard" });
 
   let displaySSVCPriority = "";
-  if (
-    !packageInfo.ssvc_priority &&
-    sortedTicketHandlingStatus.every(
-      (ticketHandlingStatus) => packageInfo.status_count[ticketHandlingStatus] === 0,
-    )
-  ) {
+  if (!packageInfo.ssvc_priority) {
     displaySSVCPriority = "no_known_vulnerability";
   } else {
     displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
