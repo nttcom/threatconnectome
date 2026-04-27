@@ -172,7 +172,7 @@ export function PTeamStatusSSVCCards(props) {
                       {HighestSSVCPriorityList.valuePairing[item]}
                     </Button>
                   </ToggleButton>
-                )
+                ),
               )}
             </ToggleButtonGroup>
           </Box>

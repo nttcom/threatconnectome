@@ -8,12 +8,7 @@ import { t } from "i18next";
 
 import { TicketResponse } from "../../types/types.gen";
 
-export const sortedSSVCPriorities = [
-  "immediate",
-  "out_of_cycle",
-  "scheduled",
-  "defer",
-];
+export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
 
 export const sortedSSVCPackagePriorities = [
   "immediate",
@@ -83,7 +78,7 @@ export const getSsvcPriorityProps = () => {
     Scheduled: prop_scheduled,
     defer: prop_defer,
     Defer: prop_defer,
-    no_known_vulnerability: prop_no_known_vulnerability
+    no_known_vulnerability: prop_no_known_vulnerability,
   };
 };
 

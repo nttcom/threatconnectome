@@ -40,7 +40,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPackagePriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
@@ -451,7 +451,7 @@ export function Status() {
         }}
         sx={{ left: -55 }}
       >
-        {sortedSSVCPriorities.map((priorityApiKey) => {
+        {sortedSSVCPackagePriorities.map((priorityApiKey) => {
           const priorityProp = ssvcPriorityProps[priorityApiKey];
           const priorityDisplayName = priorityProp.displayName;
           const checked = priorityFilters.includes(priorityDisplayName);

@@ -576,14 +576,21 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(packages_summary: list[dict]) -> dict[str, int]:
-    ssvc_priority_count: dict[str, int] = {
-        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+def _count_ssvc_priority_from_summary(
+    packages_summary: list[dict],
+) -> dict[models.SSVCDeployerPackagePriorityEnum, int]:
+    ssvc_priority_count: dict[models.SSVCDeployerPackagePriorityEnum, int] = {
+        priority: 0 for priority in models.SSVCDeployerPackagePriorityEnum
     }
-    ssvc_priority_count["no_known_vulnerability"] = 0
 
     for package_summary in packages_summary:
-        priority = package_summary.get("ssvc_priority") or "no_known_vulnerability"
+        raw_priority = package_summary.get("ssvc_priority")
+
+        if raw_priority:
+            priority = raw_priority.value
+        else:
+            priority = models.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITIES
+
         ssvc_priority_count[priority] += 1
     return ssvc_priority_count
 
