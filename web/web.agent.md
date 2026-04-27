@@ -12,10 +12,10 @@ The agent may run the following commands **without user confirmation**:
 - Read-only commands and inspection tools  
   (e.g. grep, rg, cat, ls)
 
-- Any commands that modify files **only within this repository**
+- Commands that modify files **only within this repository**
 
 - Project-scoped `npm` and `npx` commands executed inside this repository
-  for **local formatting, linting, validation, or test execution only**, including:
+  for **local formatting, linting, validation, or test execution**, including:
   - `npm run check`
   - `npm run test`
   - `npm test`
@@ -24,20 +24,20 @@ The agent may run the following commands **without user confirmation**:
   - `npx prettier --write`
   - `npx eslint --fix`
 
-  These commands are always considered safe when they:
-  - operate only on files within this repository
-  - do not modify external systems, services, or global environments
-
 - Test runners and related tooling executed locally  
   (e.g. vitest, jest)
 
-- Commands that start, stop, or exec local containers defined in this repository
+- File rename commands that only change extensions
+  as part of JavaScript → TypeScript migration
+  (e.g. `.js` → `.ts`, `.jsx` → `.tsx`)
 
-- File rename commands used for TypeScript migration purposes only, including:
-  - `mv *.js *.ts`
-  - `mv *.jsx *.tsx`
-  - Equivalent rename operations that strictly change file extensions
-    as part of an active JavaScript → TypeScript migration
+The agent MUST ask for user confirmation before running commands that:
+
+- affect files or systems outside this repository
+- install, update, or remove global packages
+- change system or environment configuration
+- access external services or networks
+- delete data outside the repository scope
 
 ---
 
@@ -123,6 +123,18 @@ The following rules MUST be strictly followed.
 - Adding large numbers of type-only changes that do not affect behavior
 
 TypeScript migration must be done **incrementally and only where changes are required**.
+
+---
+
+## UI and Logic Separation Rule (IMPORTANT)
+
+When modifying or implementing UI components (e.g. React components):
+
+- UI components MUST focus on rendering and user interaction only
+- Business logic, data processing, or complex behavior MUST be extracted
+  into separate files (e.g. hooks, utilities, or service modules)
+- UI components MUST NOT contain substantial business logic
+  unless it is strictly presentation-related
 
 ---
 
