@@ -10,8 +10,7 @@ Always operate from the repository root.
 
 The agent may run the following commands **without user confirmation**:
 
-- Read-only commands and inspection tools  
-  (e.g. grep, rg, cat, ls)
+- Read-only commands and inspection tools
 
 - Commands that modify files **only within this repository**
 
@@ -24,13 +23,6 @@ The agent may run the following commands **without user confirmation**:
   - `npm run lint`
   - `npx vitest`
   - `npx vitest run`
-
-- Test runners and related tooling executed locally  
-  (e.g. vitest, jest)
-
-- File rename commands that only change extensions
-  as part of JavaScript → TypeScript migration
-  (e.g. `.js` → `.ts`, `.jsx` → `.tsx`)
 
 The agent MUST ask for user confirmation before running commands that:
 
@@ -49,13 +41,6 @@ Whenever code under `./web` is modified, you MUST do the following automatically
 ---
 
 ### 1. Update / Create Tests
-
-If you modify any of the following:
-
-- React components
-- Hooks
-- Utils / helpers
-- State management (context, store, etc.)
 
 You MUST:
 

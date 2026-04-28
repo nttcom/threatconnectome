@@ -2,8 +2,7 @@
 
 ## Global Coding Rules
 
-These rules apply to **all source code in this repository**
-(API, Web, scripts, and tests).
+These rules apply to **all source code in this repository**.
 
 ---
 
@@ -16,11 +15,5 @@ These rules apply to **all source code in this repository**
   - File-level comments
   - TODO / FIXME comments
 - Do NOT write comments in Japanese or other languages
-
-This rule applies regardless of:
-
-- Programming language
-- Directory (`api`, `web`, etc.)
-- Whether the file is new or modified
 
 ---
