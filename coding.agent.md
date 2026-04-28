@@ -18,9 +18,9 @@ These rules apply to **all source code in this repository**
 - Do NOT write comments in Japanese or other languages
 
 This rule applies regardless of:
+
 - Programming language
 - Directory (`api`, `web`, etc.)
 - Whether the file is new or modified
 
 ---
-``
