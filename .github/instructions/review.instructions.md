@@ -31,11 +31,11 @@ For Python test files:
 When reviewing changes to API schemas, endpoints, or data models, ensure consistency across the frontend and compliance with audit logging requirements using the following guidelines:
 
 1. **UI Types Synchronization**:
-   - **Validation**: Whenever a backend API schema (e.g., in `api/app/routers`, `api/app/models.py`, `api/app/schemas.py`) is modified or added, verify that the corresponding frontend type definitions in `web/types` are updated accordingly.
+   - **Validation**: Whenever a backend API schema (e.g., in ` ./api/app/routers`, `./api/app/models.py`, `./api/app/schemas.py`) is modified or added, verify that the corresponding frontend type definitions in `./web/types` are updated accordingly.
    - **Discrepancy Check**: Pay close attention to field names, data types, and nullability. If the backend marks a field as optional but the UI type marks it as required, flag this to prevent potential runtime errors.
 
-2. **Audit Log Implementation (`api/app/utility/api_logging_middleware.py`)**:
-   - **Requirement**: For any API changes involving data creation, modification, or deletion (POST, PUT, PATCH, DELETE), review whether logging logic in `api/app/utility/api_logging_middleware.py` requires updates or additions.
+2. **Audit Log Implementation (`./api/app/utility/api_logging_middleware.py`)**:
+   - **Requirement**: For any API changes involving data creation, modification, or deletion (POST, PUT, PATCH, DELETE), review whether logging logic in `./api/app/utility/api_logging_middleware.py` requires updates or additions.
    - **Validation**: Ensure the logging captures essential context: `http_status`, `method`, `path`, `query_params`, `request_body`, `uid`.
 
 3. **API Design-Level Review**:
