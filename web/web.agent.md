@@ -2,6 +2,7 @@
 
 This rule applies to all changes under `./web`.
 This file is located in `./web`.
+Always operate from the repository root.
 
 ---
 
