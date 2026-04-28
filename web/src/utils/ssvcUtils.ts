@@ -119,7 +119,7 @@ export const searchWorstSSVC = (tickets: Array<TicketResponse>) => {
   }
 
   const result = tickets.reduce((worstSSVC, ticket) => {
-    const currentPrio = ticket.ssvc_deployer_priority ?? "no_known_vulnerability";
+    const currentPrio = ticket.ssvc_deployer_priority ?? "defer";
     const worstPrio = worstSSVC ?? "no_known_vulnerability";
     if (compareSSVCPriority(worstPrio, currentPrio) === 1) {
       return ticket.ssvc_deployer_priority;

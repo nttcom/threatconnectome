@@ -1,6 +1,6 @@
 import re
 from datetime import date, datetime
-from enum import Enum
+from enum import Enum, StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -380,6 +380,14 @@ class TicketUpdateRequest(ORMModel):
     ticket_status: TicketStatusRequest | None = None
 
 
+class SSVCDeployerPackagePriorityEnum(StrEnum):
+    IMMEDIATE = "immediate"
+    OUT_OF_CYCLE = "out_of_cycle"
+    SCHEDULED = "scheduled"
+    DEFER = "defer"
+    NO_KNOWN_VULNERABILITY = "no_known_vulnerability"
+
+
 class PTeamPackagesSummary(ORMModel):
     class PTeamPackageSummary(ORMModel):
         package_id: UUID
@@ -387,11 +395,11 @@ class PTeamPackagesSummary(ORMModel):
         ecosystem: str
         package_managers: list[str]
         service_ids: list[UUID]
-        ssvc_priority: SSVCDeployerPriorityEnum | None
+        ssvc_priority: SSVCDeployerPackagePriorityEnum | None
         updated_at: datetime | None
         status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
 
-    ssvc_priority_count: dict[str, int]  # priority: packages count
+    ssvc_priority_count: dict[SSVCDeployerPackagePriorityEnum, int]  # priority: packages count
     packages: list[PTeamPackageSummary]
 
 

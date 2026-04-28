@@ -578,18 +578,18 @@ def remove_service_thumbnail(
 
 def _count_ssvc_priority_from_summary(
     packages_summary: list[dict],
-) -> dict[models.SSVCDeployerPackagePriorityEnum, int]:
-    ssvc_priority_count: dict[models.SSVCDeployerPackagePriorityEnum, int] = {
-        priority: 0 for priority in models.SSVCDeployerPackagePriorityEnum
+) -> dict[schemas.SSVCDeployerPackagePriorityEnum, int]:
+    ssvc_priority_count: dict[schemas.SSVCDeployerPackagePriorityEnum, int] = {
+        priority: 0 for priority in schemas.SSVCDeployerPackagePriorityEnum
     }
 
     for package_summary in packages_summary:
         raw_priority = package_summary.get("ssvc_priority")
 
-        if raw_priority:
-            priority = raw_priority.value
+        if raw_priority is None:
+            priority = schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
         else:
-            priority = models.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITIES
+            priority = schemas.SSVCDeployerPackagePriorityEnum(raw_priority.value)
 
         ssvc_priority_count[priority] += 1
     return ssvc_priority_count
@@ -615,6 +615,12 @@ def get_pteam_packages_summary(
         raise NOT_A_PTEAM_MEMBER
 
     packages_summary = command.get_packages_summary(db, pteam_id, service_id)
+
+    for package_summary in packages_summary:
+        if package_summary.get("ssvc_priority") is None:
+            package_summary["ssvc_priority"] = (
+                schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
+            )
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
