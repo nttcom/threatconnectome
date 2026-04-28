@@ -308,9 +308,7 @@ export function Status() {
     (packageInfo) =>
       (priorityFilters.length === 0
         ? true // show all if selected none
-        : priorityFilters.includes(
-            ssvcPriorityProps[packageInfo.ssvc_priority || "no_known_vulnerability"].displayName,
-          )) &&
+        : priorityFilters.includes(ssvcPriorityProps[packageInfo.ssvc_priority].displayName)) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
           .toLowerCase()

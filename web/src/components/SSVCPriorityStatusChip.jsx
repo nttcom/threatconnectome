@@ -11,9 +11,7 @@ export function SSVCPriorityStatusChip(props) {
   useTranslation();
 
   const ssvcPriorityProps = getSsvcPriorityProps();
-  const normalizedPriority = displaySSVCPriority || "no_known_vulnerability";
-  const ssvcPriorityProp =
-    ssvcPriorityProps[normalizedPriority] || ssvcPriorityProps.no_known_vulnerability;
+  const ssvcPriorityProp = ssvcPriorityProps[displaySSVCPriority];
 
   const Icon = ssvcPriorityProp.icon;
   const StyledTooltip = styled((styledProps) => (

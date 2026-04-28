@@ -395,7 +395,7 @@ class PTeamPackagesSummary(ORMModel):
         ecosystem: str
         package_managers: list[str]
         service_ids: list[UUID]
-        ssvc_priority: SSVCDeployerPackagePriorityEnum | None
+        ssvc_priority: SSVCDeployerPackagePriorityEnum
         updated_at: datetime | None
         status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
 

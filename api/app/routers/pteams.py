@@ -623,7 +623,7 @@ def get_pteam_packages_summary(
             )
         else:
             package_summary["ssvc_priority"] = schemas.SSVCDeployerPackagePriorityEnum(
-                package_summary["ssvc_priority"]
+                package_summary["ssvc_priority"].value
             )
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)

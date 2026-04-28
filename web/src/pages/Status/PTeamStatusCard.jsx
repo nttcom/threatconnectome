@@ -100,17 +100,10 @@ export function PTeamStatusCard(props) {
   const { onHandleClick, pteam, packageInfo, serviceIds } = props;
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusCard" });
 
-  let displaySSVCPriority = "";
-  if (!packageInfo.ssvc_priority) {
-    displaySSVCPriority = "no_known_vulnerability";
-  } else {
-    displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
-  }
-
   // Change the background color and border based on the Alert Threshold value set by the team.
   const highlightCard =
     pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
-    compareSSVCPriority(displaySSVCPriority, pteam.alert_ssvc_priority) <= 0;
+    compareSSVCPriority(packageInfo.ssvc_priority, pteam.alert_ssvc_priority) <= 0;
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -131,7 +124,7 @@ export function PTeamStatusCard(props) {
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
+        <SSVCPriorityStatusChip displaySSVCPriority={packageInfo.ssvc_priority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography
@@ -164,7 +157,8 @@ export function PTeamStatusCard(props) {
             <Typography
               variant="body2"
               sx={{
-                visibility: displaySSVCPriority === "no_known_vulnerability" ? "hidden" : "visible",
+                visibility:
+                  packageInfo.ssvc_priority === "no_known_vulnerability" ? "hidden" : "visible",
               }}
             >
               {t("updated", { timeDiff: calcTimestampDiff(packageInfo.updated_at) })}
@@ -172,7 +166,7 @@ export function PTeamStatusCard(props) {
           </Box>
           <StatusRatioGraph
             counts={packageInfo.status_count}
-            displaySSVCPriority={displaySSVCPriority}
+            displaySSVCPriority={packageInfo.ssvc_priority}
           />
         </Box>
       </TableCell>
