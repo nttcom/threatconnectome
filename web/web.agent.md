@@ -64,7 +64,7 @@ You MUST:
 
 Test locations:
 
-- `web/src/**/__tests__/*`
+- `./web/src/**/__tests__/*`
 
 Use existing testing tools and patterns already used in the project
 (e.g. React Testing Library, Jest / Vitest).
@@ -76,7 +76,7 @@ Use existing testing tools and patterns already used in the project
 Always execute:
 
 ```bash
-cd web
+cd ./web
 npm run check
 ```
 
@@ -89,7 +89,7 @@ This must pass with no errors.
 Always execute:
 
 ```bash
-cd web
+cd ./web
 npm run test
 ```
 
