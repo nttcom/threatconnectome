@@ -14,15 +14,15 @@ The agent may run the following commands **without user confirmation**:
 
 - Commands that modify files **only within this repository**
 
-- Project-scoped `npm` and `npx` commands executed inside this repository
+- Project-scoped `npm` commands executed inside this repository
   for **local formatting, linting, validation, or test execution**, including:
   - `npm run check`
   - `npm run test`
   - `npm test`
+  - `npm run format`
+  - `npm run lint`
   - `npx vitest`
   - `npx vitest run`
-  - `npx prettier --write`
-  - `npx eslint --fix`
 
 - Test runners and related tooling executed locally  
   (e.g. vitest, jest)
