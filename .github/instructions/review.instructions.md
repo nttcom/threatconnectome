@@ -20,7 +20,7 @@ For Python test files:
 
 1. **Structure Guidelines**:
    - Encourage Given-When-Then comments if they improve readability.
-   - However, if the test logic is extremely simple or if applying the AAA pattern feels forced or unnatural, do not mandate it.
+   - However, if the test logic is extremely simple or if applying the Given-When-Then structure feels forced or unnatural, do not mandate it.
 
 2. **Validation of Intent**:
    - If you identify that a test is complex but the sections are missing or mixed up, point this out and provide a refactoring suggestion.
