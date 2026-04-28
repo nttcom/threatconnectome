@@ -4,7 +4,7 @@ When performing a code review:
 
 - Respond in Japanese for all review comments, regardless of the directory or file type being reviewed.
 - Go beyond local code improvements and consider the broader architectural intent.
-- **Apply `*.agent.md` rules during review**: For each file being reviewed, locate the nearest `*.agent.md` (from the file's directory up to the repository root). If the changed code deviates from the policies defined in that file, point it out explicitly.
+- **Apply `agent.md` / `*.agent.md` rules during review**: For each file being reviewed, locate the nearest `agent.md` or `*.agent.md` (from the file's directory up to the repository root). If the changed code deviates from the policies defined in that file, point it out explicitly.
 
 ### General Design Review Principles
 
