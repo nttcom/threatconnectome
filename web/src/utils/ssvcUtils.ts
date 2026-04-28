@@ -1,14 +1,22 @@
 import CheckIcon from "@mui/icons-material/Check";
-import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+import RemoveIcon from "@mui/icons-material/Remove";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import WarningIcon from "@mui/icons-material/Warning";
-import { amber, green, grey, orange, red } from "@mui/material/colors";
+import { amber, grey, orange, red } from "@mui/material/colors";
 import { t } from "i18next";
 
 import { TicketResponse } from "../../types/types.gen";
 
 export const sortedSSVCPriorities = ["immediate", "out_of_cycle", "scheduled", "defer"];
+
+export const sortedSSVCPackagePriorities = [
+  "immediate",
+  "out_of_cycle",
+  "scheduled",
+  "defer",
+  "no_known_vulnerability",
+];
 
 export const getSsvcPriorityProps = () => {
   const prop_immediate = {
@@ -51,12 +59,12 @@ export const getSsvcPriorityProps = () => {
       textTransform: "none",
     },
   };
-  const prop_safe = {
-    chipLabel: t("ssvcUtils.priority.safe.chipLabel", { ns: "utils" }),
-    icon: HealthAndSafetyIcon,
-    statusLabel: t("ssvcUtils.priority.safe.statusLabel", { ns: "utils" }),
+  const prop_no_known_vulnerability = {
+    displayName: t("ssvcUtils.priority.no_known_vulnerability.displayName", { ns: "utils" }),
+    icon: RemoveIcon,
+    statusLabel: t("ssvcUtils.priority.no_known_vulnerability.statusLabel", { ns: "utils" }),
     style: {
-      bgcolor: green[600],
+      bgcolor: grey[400],
       color: "white",
       textTransform: "none",
     },
@@ -70,10 +78,7 @@ export const getSsvcPriorityProps = () => {
     Scheduled: prop_scheduled,
     defer: prop_defer,
     Defer: prop_defer,
-    safe: prop_safe,
-    Safe: prop_safe,
-    empty: prop_defer,
-    Empty: prop_defer,
+    no_known_vulnerability: prop_no_known_vulnerability,
   };
 };
 
@@ -86,10 +91,8 @@ type SSVCPriority =
   | "Scheduled"
   | "defer"
   | "Defer"
-  | "safe"
-  | "Safe"
-  | "empty"
-  | "Empty";
+  | "no_known_vulnerability"
+  | "No_known_vulnerability";
 
 export const compareSSVCPriority = (prio1: SSVCPriority, prio2: SSVCPriority) => {
   const toIntDict = {
@@ -101,10 +104,8 @@ export const compareSSVCPriority = (prio1: SSVCPriority, prio2: SSVCPriority) =>
     Scheduled: 3,
     defer: 4,
     Defer: 4,
-    safe: 4,
-    Safe: 4,
-    empty: 4,
-    Empty: 4,
+    no_known_vulnerability: 4,
+    No_known_vulnerability: 4,
   };
   const [int1, int2] = [toIntDict[prio1], toIntDict[prio2]];
   if (int1 === int2) return 0;
@@ -118,8 +119,8 @@ export const searchWorstSSVC = (tickets: Array<TicketResponse>) => {
   }
 
   const result = tickets.reduce((worstSSVC, ticket) => {
-    const currentPrio = ticket.ssvc_deployer_priority ?? "empty";
-    const worstPrio = worstSSVC ?? "empty";
+    const currentPrio = ticket.ssvc_deployer_priority ?? "defer";
+    const worstPrio = worstSSVC ?? "no_known_vulnerability";
     if (compareSSVCPriority(worstPrio, currentPrio) === 1) {
       return ticket.ssvc_deployer_priority;
     }
@@ -143,6 +144,8 @@ export const getSsvcColor = (ssvc: string | null | undefined) => {
     case "scheduled":
       return "info";
     case "defer":
+      return "default";
+    case "no_known_vulnerability":
       return "default";
     default:
       return undefined;

@@ -40,7 +40,7 @@ import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../service
 import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { sortedSSVCPriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
+import { sortedSSVCPackagePriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
@@ -308,9 +308,7 @@ export function Status() {
     (packageInfo) =>
       (priorityFilters.length === 0
         ? true // show all if selected none
-        : priorityFilters.includes(
-            ssvcPriorityProps[packageInfo.ssvc_priority || "defer"].displayName,
-          )) &&
+        : priorityFilters.includes(ssvcPriorityProps[packageInfo.ssvc_priority].displayName)) &&
       (!searchWord?.length > 0 ||
         (packageInfo.package_name + ":" + packageInfo.ecosystem)
           .toLowerCase()
@@ -451,7 +449,7 @@ export function Status() {
         }}
         sx={{ left: -55 }}
       >
-        {sortedSSVCPriorities.map((priorityApiKey) => {
+        {sortedSSVCPackagePriorities.map((priorityApiKey) => {
           const priorityProp = ssvcPriorityProps[priorityApiKey];
           const priorityDisplayName = priorityProp.displayName;
           const checked = priorityFilters.includes(priorityDisplayName);
@@ -463,6 +461,12 @@ export function Status() {
           const fixedSx = {
             ...(checked && {
               bgcolor: grey[200],
+            }),
+            ...(priorityApiKey === "no_known_vulnerability" && {
+              borderTop: 1,
+              borderColor: "divider",
+              mt: 0.5,
+              pt: 0.5,
             }),
           };
 

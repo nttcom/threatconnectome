@@ -576,14 +576,22 @@ def remove_service_thumbnail(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _count_ssvc_priority_from_summary(packages_summary: list[dict]):
-    ssvc_priority_count: dict[models.SSVCDeployerPriorityEnum, int] = {
-        priority: 0 for priority in list(models.SSVCDeployerPriorityEnum)
+def _count_ssvc_priority_from_summary(
+    packages_summary: list[dict],
+) -> dict[schemas.SSVCDeployerPackagePriorityEnum, int]:
+    ssvc_priority_count: dict[schemas.SSVCDeployerPackagePriorityEnum, int] = {
+        priority: 0 for priority in schemas.SSVCDeployerPackagePriorityEnum
     }
+
     for package_summary in packages_summary:
-        ssvc_priority_count[
-            package_summary["ssvc_priority"] or models.SSVCDeployerPriorityEnum.DEFER
-        ] += 1
+        raw_priority = package_summary.get("ssvc_priority")
+
+        if raw_priority is None:
+            priority = schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
+        else:
+            priority = schemas.SSVCDeployerPackagePriorityEnum(raw_priority.value)
+
+        ssvc_priority_count[priority] += 1
     return ssvc_priority_count
 
 
@@ -607,6 +615,16 @@ def get_pteam_packages_summary(
         raise NOT_A_PTEAM_MEMBER
 
     packages_summary = command.get_packages_summary(db, pteam_id, service_id)
+
+    for package_summary in packages_summary:
+        if package_summary.get("ssvc_priority") is None:
+            package_summary["ssvc_priority"] = (
+                schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
+            )
+        else:
+            package_summary["ssvc_priority"] = schemas.SSVCDeployerPackagePriorityEnum(
+                package_summary["ssvc_priority"].value
+            )
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
@@ -1114,7 +1132,6 @@ def update_ticket(
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
