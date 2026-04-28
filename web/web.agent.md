@@ -83,35 +83,6 @@ npm run test
 
 ---
 
-## TypeScript Migration Rules (IMPORTANT)
-
-This project is currently **in the middle of migrating from JavaScript to TypeScript**.
-The following rules MUST be strictly followed.
-
-### Files You Modify or Add
-
-- All newly created files MUST be written in **TypeScript** (`.ts` / `.tsx`)
-- When modifying an existing file:
-  - Convert the file to TypeScript **before** making changes
-  - Rename `.js` → `.ts`, `.jsx` → `.tsx`
-  - Add explicit type definitions whenever reasonably possible
-
-### Files You Do NOT Modify
-
-- Existing files that are unrelated to the change MUST:
-  - Remain in JavaScript (`.js` / `.jsx`)
-  - NOT be converted to TypeScript unnecessarily
-
-### Prohibited Actions
-
-- Changes made solely for TypeScript migration purposes
-- Large-scale or blanket JS → TS conversions
-- Adding large numbers of type-only changes that do not affect behavior
-
-TypeScript migration must be done **incrementally and only where changes are required**.
-
----
-
 ## UI and Logic Separation Rule (IMPORTANT)
 
 When modifying or implementing UI components (e.g. React components):
