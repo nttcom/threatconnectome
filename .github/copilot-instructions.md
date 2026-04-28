@@ -6,19 +6,10 @@ Code review guidance has been separated into:
 
 - `.github/instructions/review.instructions.md`
 
-### Python Test Standards
+### Japanese Terminology Standards
 
-For Python tests, follow the Given-When-Then structure where it improves readability.
+For implementation involving Japanese text, ensure terminology is consistent with IPA (Information-technology Promotion Agency) standard terms.
+Reference URLs:
 
-1. **Preferred Structure (Given/When/Then)**:
-   - Divide test functions into three sections with comments: `# Given`, `# When`, and `# Then`.
-   - `# Given`: Setup phase.
-   - `# When`: The action under test.
-   - `# Then`: Verification phase.
-
-2. **Pragmatic Application**:
-   - If test logic is very simple, do not force this structure unnaturally.
-   - Maintain clear separation between setup, action, and assertion even without comments.
-
-3. **Formatting**:
-   - Keep a single blank line between `# Given`, `# When`, and `# Then` blocks.
+- https://www.ipa.go.jp/shiken/kubun/sc.html
+- https://www.ipa.go.jp/security/index.html

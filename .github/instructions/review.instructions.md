@@ -2,14 +2,6 @@
 
 When performing a code review, respond in Japanese.
 
-When reviewing UI that contains Japanese text, verify terminology consistency with IPA (Information-technology Promotion Agency) standard terms.
-Reference URLs:
-
-- https://www.ipa.go.jp/shiken/kubun/sc.html
-- https://www.ipa.go.jp/security/index.html
-
-If terminology is consistent with the standard, explicitly state that no issues were found.
-
 ### Pytest Code Review Instructions
 
 1. **Flexibility and Suggestions**:
