@@ -121,7 +121,7 @@ class TestGetPTeamPackagesSummary:
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
-                "ssvc_priority": None,
+                "ssvc_priority": "no_known_vulnerability",
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
@@ -165,7 +165,7 @@ class TestGetPTeamPackagesSummary:
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
-                "ssvc_priority": None,
+                "ssvc_priority": "no_known_vulnerability",
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
@@ -383,7 +383,7 @@ class TestGetPTeamPackagesSummary:
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"], "pip"],
                 "service_ids": [self.service1.service_id],
-                "ssvc_priority": None,
+                "ssvc_priority": "no_known_vulnerability",
                 "updated_at": None,
                 "status_count": {
                     status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)

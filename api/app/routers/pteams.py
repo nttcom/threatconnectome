@@ -621,6 +621,10 @@ def get_pteam_packages_summary(
             package_summary["ssvc_priority"] = (
                 schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
             )
+        else:
+            package_summary["ssvc_priority"] = schemas.SSVCDeployerPackagePriorityEnum(
+                package_summary["ssvc_priority"]
+            )
 
     ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
 
