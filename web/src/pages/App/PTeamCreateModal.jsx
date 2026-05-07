@@ -38,7 +38,6 @@ export function PTeamCreateModal(props) {
 
   const [createPTeam] = useCreatePTeamMutation();
   const viewportOffsetTop = useViewportOffset();
-  const normalizedPteamName = pteamName?.trim();
 
   const handlePTeamNameSetting = (string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
@@ -174,11 +173,7 @@ export function PTeamCreateModal(props) {
           </Box>
         </DialogContent>
         <DialogActions className={dialogStyle.action_area}>
-          <Button
-            onClick={handleCreate}
-            disabled={!normalizedPteamName}
-            className={dialogStyle.submit_btn}
-          >
+          <Button onClick={handleCreate} disabled={!pteamName} className={dialogStyle.submit_btn}>
             {t("create")}
           </Button>
         </DialogActions>

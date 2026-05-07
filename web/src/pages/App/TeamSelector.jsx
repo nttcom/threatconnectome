@@ -93,7 +93,7 @@ export function TeamSelector() {
         >
           <Box
             component="span"
-            sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "pre" }}
+            sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
           >
             {currentTeamName}
           </Box>

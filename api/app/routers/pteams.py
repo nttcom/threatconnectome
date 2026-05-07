@@ -1351,8 +1351,6 @@ async def upload_pteam_sbom_file(
         "file_size": file.size,
     }
 
-    service = service.strip()
-
     if len(service) > 255:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

@@ -39,7 +39,7 @@ export function PTeamLabel(props) {
     <>
       <Box display="flex" flexDirection="column" flexGrow={1} my={2}>
         <Box display="flex" alignItems="center">
-          <Typography variant="h5" fontWeight={900} sx={{ whiteSpace: "pre-wrap" }}>
+          <Typography variant="h5" fontWeight={900}>
             {pteamName}
           </Typography>
           <IconButton onClick={() => setPTeamSettingsModalOpen(true)}>
