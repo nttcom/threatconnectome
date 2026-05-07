@@ -232,10 +232,10 @@ export function PTeamGeneralSetting(props) {
           <Typography variant="h6">{t("deleteDialogTitle")}</Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography mb={2}>
+          <Typography mb={2} sx={{ whiteSpace: "pre-wrap" }}>
             {t("deleteDialogDescription", { teamName: pteam.pteam_name })}
           </Typography>
-          <Typography variant="body2" mb={1}>
+          <Typography variant="body2" mb={1} sx={{ whiteSpace: "pre-wrap" }}>
             {t("deleteDialogConfirmLabel", { teamName: pteam.pteam_name })}
           </Typography>
           <TextField

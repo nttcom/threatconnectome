@@ -41,7 +41,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettingsView" });
   const { service, image, onSave, expandService } = props;
 
-  const [serviceName, setServiceName] = useState(service.service_name);
+  const [serviceName, setServiceName] = useState(service.service_name.trim());
   const [imageFileData, setImageFileData] = useState(null);
   const [imageDeleteFlag, setImageDeleteFlag] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -63,7 +63,7 @@ export function PTeamServiceDetailsSettingsView(props) {
 
   useEffect(() => {
     // Reset the state when switching services
-    setServiceName(service.service_name);
+    setServiceName(service.service_name.trim());
     setImageFileData(null);
     setImageDeleteFlag(false);
     setImagePreview(null);
@@ -75,7 +75,7 @@ export function PTeamServiceDetailsSettingsView(props) {
 
   useEffect(() => {
     setIsChanged(
-      serviceName !== service.service_name ||
+      serviceName !== service.service_name.trim() ||
         currentKeywordsList.length !== service.keywords.length ||
         currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
         currentDescription !== service.description ||
@@ -93,7 +93,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   ]);
 
   const handleClose = () => {
-    setServiceName(service.service_name);
+    setServiceName(service.service_name.trim());
     setImageFileData(null);
     setImageDeleteFlag(false);
     setImagePreview(null);
