@@ -61,7 +61,7 @@ export function PTeamServiceDetailsMobile(props) {
           </Typography>
           <Box
             sx={{
-              bgcolor: "grey.100",
+              bgcolor: "background.soft",
               borderRadius: 1,
               mb: 1,
               p: 1,

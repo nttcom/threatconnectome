@@ -158,7 +158,7 @@ export function PTeamServiceDetails(props) {
               </Typography>
               <Box
                 sx={{
-                  bgcolor: "grey.100",
+                  bgcolor: "background.soft",
                   borderRadius: 1,
                   mt: 1,
                   p: 1,
