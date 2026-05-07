@@ -318,6 +318,22 @@ export function PTeamServiceDetailsSettingsView(props) {
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <FormLabel>IPアドレス</FormLabel>
+              <TextField
+                size="small"
+                value="192.168.10.25"
+                placeholder="例: 192.168.10.25"
+              />
+            </Box>
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <FormLabel>ロケーション</FormLabel>
+              <TextField
+                size="small"
+                value="東京都渋谷区"
+                placeholder="例: 東京都渋谷区"
+              />
+            </Box>
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Box
                 sx={{
                   display: "flex",

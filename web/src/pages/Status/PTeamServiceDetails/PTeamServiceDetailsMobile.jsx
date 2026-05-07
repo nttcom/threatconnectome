@@ -59,6 +59,30 @@ export function PTeamServiceDetailsMobile(props) {
           <Typography variant="body2" sx={{ mb: 1, wordBreak: "break-all" }}>
             {description}
           </Typography>
+          <Box
+            sx={{
+              bgcolor: "grey.100",
+              borderRadius: 1,
+              mb: 1,
+              p: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+            }}
+          >
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                IPアドレス
+              </Typography>
+              <Typography variant="body2">192.168.10.25</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                ロケーション
+              </Typography>
+              <Typography variant="body2">東京都渋谷区</Typography>
+            </Box>
+          </Box>
           <List
             dense
             sx={{

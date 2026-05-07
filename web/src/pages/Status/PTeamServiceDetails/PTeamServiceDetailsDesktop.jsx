@@ -105,7 +105,7 @@ export function PTeamServiceDetails(props) {
         }
         onClick={handleCollapseClick}
       >
-        <Card sx={{ display: "flex", height: 200, position: "relative" }}>
+        <Card sx={{ display: "flex", height: 250, position: "relative" }}>
           <Box sx={{ position: { md: "absolute", xs: undefined }, right: "48px", top: 0 }}>
             <SBOMUpdateButton pteamId={pteamId} serviceName={service.service_name} />
           </Box>
@@ -156,6 +156,30 @@ export function PTeamServiceDetails(props) {
               <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
                 {description}
               </Typography>
+              <Box
+                sx={{
+                  bgcolor: "grey.100",
+                  borderRadius: 1,
+                  mt: 1,
+                  p: 1,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 1,
+                }}
+              >
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    IPアドレス
+                  </Typography>
+                  <Typography variant="body2">192.168.10.25</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    ロケーション
+                  </Typography>
+                  <Typography variant="body2">東京都渋谷区</Typography>
+                </Box>
+              </Box>
               <Typography variant="caption" color="textSecondary">
                 {`Default safety impact: ${service.service_safety_impact}`}
               </Typography>
