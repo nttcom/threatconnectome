@@ -24,6 +24,7 @@ cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 sendgrid = "*"
 cryptography = ">=46.0.5"
 python-multipart = "*"
+mako = "*"
 
 [dev-packages]
 mypy = "*"
