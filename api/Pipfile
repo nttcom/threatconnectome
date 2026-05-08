@@ -10,7 +10,6 @@ firebase-admin = "*"
 psycopg2 = "*"
 protobuf = "<7.0"
 pydantic = "*"
-python-multipart = "*"
 requests = "*"
 slack-sdk = "*"
 hypercorn = "*"
@@ -24,6 +23,7 @@ deprecation = "*"
 cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 sendgrid = "*"
 cryptography = ">=46.0.5"
+python-multipart = "*"
 
 [dev-packages]
 mypy = "*"
