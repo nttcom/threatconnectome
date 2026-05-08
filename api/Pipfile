@@ -23,8 +23,8 @@ deprecation = "*"
 cyclonedx-python-lib = {extras = ["validation"], version = "*"}
 sendgrid = "*"
 cryptography = ">=46.0.5"
-python-multipart = "*"
-mako = "*"
+python-multipart = ">=0.0.27"
+mako = ">=1.3.12"
 
 [dev-packages]
 mypy = "*"
