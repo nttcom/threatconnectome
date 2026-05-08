@@ -46,6 +46,8 @@ pipenv run codespell ./app
 
 ### 3. Run API Tests
 
+- If `docker-compose-firebase-local.yml` is running, stop it before running the tests
+
 - Ensure `docker-compose-firebase-test.yml` is running  
   (start it if not running; do NOT restart if already running)
 
