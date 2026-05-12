@@ -22,7 +22,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
@@ -65,11 +65,14 @@ export function PTeamServiceDetailsSettingsView(props) {
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
 
-  const parseIpAddresses = (rawText) =>
-    rawText
-      .split(/[\n,]/)
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0);
+  const parseIpAddresses = useCallback(
+    (rawText) =>
+      rawText
+        .split(/[\n,]/)
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0),
+    [],
+  );
 
   useEffect(() => {
     // Reset the state when switching services
@@ -107,6 +110,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     defaultSafetyImpactValue,
     service,
     isImageChanged,
+    parseIpAddresses,
   ]);
 
   const handleClose = () => {
