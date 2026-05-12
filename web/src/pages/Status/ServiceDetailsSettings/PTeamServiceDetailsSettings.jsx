@@ -31,6 +31,7 @@ export function PTeamServiceDetailsSettings(props) {
     keywordsList,
     description,
     ipAddresses,
+    isIpAddressesChanged,
     defaultSafetyImpactValue,
   ) => {
     const promiseList = [];
@@ -56,11 +57,15 @@ export function PTeamServiceDetailsSettings(props) {
       service_name: serviceName,
       keywords: keywordsList,
       description: description,
-      asset: {
-        ip_addresses: ipAddresses,
-      },
       service_safety_impact: defaultSafetyImpactValue,
     };
+
+    if (isIpAddressesChanged) {
+      requestData.asset = {
+        ip_addresses: ipAddresses,
+      };
+    }
+
     promiseList.push(() =>
       updatePTeamService({
         path: { pteam_id: pteamId, service_id: service.service_id },

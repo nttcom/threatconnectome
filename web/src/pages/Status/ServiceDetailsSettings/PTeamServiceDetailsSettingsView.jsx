@@ -22,7 +22,7 @@ import {
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
 import PropTypes from "prop-types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../../cssModule/dialog.module.css";
@@ -40,7 +40,7 @@ import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDe
 export function PTeamServiceDetailsSettingsView(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettingsView" });
   const { service, image, onSave, expandService } = props;
-  const initialAssetIpAddresses = service.asset?.ip_addresses ?? [];
+  const originalIpAddresses = service.asset?.ip_addresses ?? [];
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
@@ -51,9 +51,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
-  const [assetIpAddressesText, setAssetIpAddressesText] = useState(
-    initialAssetIpAddresses.join(", "),
-  );
+  const [assetIpAddressesText, setAssetIpAddressesText] = useState(originalIpAddresses.join(", "));
   const safetyImpactList = ["negligible", "marginal", "critical", "catastrophic"];
   const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
     service.service_safety_impact,
@@ -73,6 +71,16 @@ export function PTeamServiceDetailsSettingsView(props) {
         .filter((value) => value.length > 0),
     [],
   );
+  const parsedIpAddresses = useMemo(
+    () => parseIpAddresses(assetIpAddressesText),
+    [assetIpAddressesText, parseIpAddresses],
+  );
+  const isIpAddressesChanged = useMemo(
+    () =>
+      parsedIpAddresses.length !== originalIpAddresses.length ||
+      parsedIpAddresses.some((ipAddress, index) => ipAddress !== originalIpAddresses[index]),
+    [parsedIpAddresses, originalIpAddresses],
+  );
 
   useEffect(() => {
     // Reset the state when switching services
@@ -82,22 +90,18 @@ export function PTeamServiceDetailsSettingsView(props) {
     setImagePreview(null);
     setCurrentKeywordsList(service.keywords);
     setCurrentDescription(service.description);
-    setAssetIpAddressesText((service.asset?.ip_addresses ?? []).join(", "));
+    setAssetIpAddressesText(originalIpAddresses.join(", "));
     setDefaultSafetyImpactValue(service.service_safety_impact);
     setIsChanged(false);
-  }, [service]);
+  }, [service, originalIpAddresses]);
 
   useEffect(() => {
-    const parsedIpAddresses = parseIpAddresses(assetIpAddressesText);
-    const originalIpAddresses = service.asset?.ip_addresses ?? [];
-
     setIsChanged(
       serviceName !== service.service_name ||
         currentKeywordsList.length !== service.keywords.length ||
         currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
         currentDescription !== service.description ||
-        parsedIpAddresses.length !== originalIpAddresses.length ||
-        parsedIpAddresses.some((ipAddress, index) => ipAddress !== originalIpAddresses[index]) ||
+        isIpAddressesChanged ||
         defaultSafetyImpactValue !== service.service_safety_impact ||
         isImageChanged,
     );
@@ -106,11 +110,10 @@ export function PTeamServiceDetailsSettingsView(props) {
     imageFileData,
     currentKeywordsList,
     currentDescription,
-    assetIpAddressesText,
+    isIpAddressesChanged,
     defaultSafetyImpactValue,
     service,
     isImageChanged,
-    parseIpAddresses,
   ]);
 
   const handleClose = () => {
@@ -123,7 +126,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     setOpen(false);
     setKeywordAddingMode(false);
     setCurrentDescription(service.description);
-    setAssetIpAddressesText((service.asset?.ip_addresses ?? []).join(", "));
+    setAssetIpAddressesText(originalIpAddresses.join(", "));
     setDefaultSafetyImpactValue(service.service_safety_impact);
     setIsChanged(false);
     setIsImageChanged(false);
@@ -201,7 +204,8 @@ export function PTeamServiceDetailsSettingsView(props) {
       imageDeleteFlag,
       currentKeywordsList,
       currentDescription,
-      parseIpAddresses(assetIpAddressesText),
+      parsedIpAddresses,
+      isIpAddressesChanged,
       defaultSafetyImpactValue,
     );
 
