@@ -10,16 +10,20 @@ import {
   ListItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 export function PTeamServiceDetailsMobile(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetails" });
   const { image, serviceName, description, keywords, statusItems } = usePTeamServiceDetailsData(
     props.pteamId,
     props.service,
     props.highestSsvcPriority,
   );
+  const ipAddressesText = props.service.asset?.ip_addresses?.join(", ") || t("notAvailable");
+  const locationText = t("notAvailable");
 
   return (
     <Box
@@ -72,15 +76,15 @@ export function PTeamServiceDetailsMobile(props) {
           >
             <Box>
               <Typography variant="caption" color="text.secondary">
-                IPアドレス
+                {t("ipAddress")}
               </Typography>
-              <Typography variant="body2">192.168.10.25</Typography>
+              <Typography variant="body2">{ipAddressesText}</Typography>
             </Box>
             <Box>
               <Typography variant="caption" color="text.secondary">
-                ロケーション
+                {t("location")}
               </Typography>
-              <Typography variant="body2">東京都渋谷区</Typography>
+              <Typography variant="body2">{locationText}</Typography>
             </Box>
           </Box>
           <List

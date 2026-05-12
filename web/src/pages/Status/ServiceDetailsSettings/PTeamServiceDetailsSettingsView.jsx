@@ -40,6 +40,7 @@ import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDe
 export function PTeamServiceDetailsSettingsView(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettingsView" });
   const { service, image, onSave, expandService } = props;
+  const initialAssetIpAddresses = service.asset?.ip_addresses ?? [];
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
@@ -50,6 +51,9 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
+  const [assetIpAddressesText, setAssetIpAddressesText] = useState(
+    initialAssetIpAddresses.join(", "),
+  );
   const safetyImpactList = ["negligible", "marginal", "critical", "catastrophic"];
   const [defaultSafetyImpactValue, setDefaultSafetyImpactValue] = useState(
     service.service_safety_impact,
@@ -61,6 +65,12 @@ export function PTeamServiceDetailsSettingsView(props) {
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
 
+  const parseIpAddresses = (rawText) =>
+    rawText
+      .split(/[\n,]/)
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+
   useEffect(() => {
     // Reset the state when switching services
     setServiceName(service.service_name);
@@ -69,16 +79,22 @@ export function PTeamServiceDetailsSettingsView(props) {
     setImagePreview(null);
     setCurrentKeywordsList(service.keywords);
     setCurrentDescription(service.description);
+    setAssetIpAddressesText((service.asset?.ip_addresses ?? []).join(", "));
     setDefaultSafetyImpactValue(service.service_safety_impact);
     setIsChanged(false);
   }, [service]);
 
   useEffect(() => {
+    const parsedIpAddresses = parseIpAddresses(assetIpAddressesText);
+    const originalIpAddresses = service.asset?.ip_addresses ?? [];
+
     setIsChanged(
       serviceName !== service.service_name ||
         currentKeywordsList.length !== service.keywords.length ||
         currentKeywordsList.some((keyword, index) => keyword !== service.keywords[index]) ||
         currentDescription !== service.description ||
+        parsedIpAddresses.length !== originalIpAddresses.length ||
+        parsedIpAddresses.some((ipAddress, index) => ipAddress !== originalIpAddresses[index]) ||
         defaultSafetyImpactValue !== service.service_safety_impact ||
         isImageChanged,
     );
@@ -87,6 +103,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     imageFileData,
     currentKeywordsList,
     currentDescription,
+    assetIpAddressesText,
     defaultSafetyImpactValue,
     service,
     isImageChanged,
@@ -102,6 +119,7 @@ export function PTeamServiceDetailsSettingsView(props) {
     setOpen(false);
     setKeywordAddingMode(false);
     setCurrentDescription(service.description);
+    setAssetIpAddressesText((service.asset?.ip_addresses ?? []).join(", "));
     setDefaultSafetyImpactValue(service.service_safety_impact);
     setIsChanged(false);
     setIsImageChanged(false);
@@ -179,6 +197,7 @@ export function PTeamServiceDetailsSettingsView(props) {
       imageDeleteFlag,
       currentKeywordsList,
       currentDescription,
+      parseIpAddresses(assetIpAddressesText),
       defaultSafetyImpactValue,
     );
 
@@ -318,20 +337,17 @@ export function PTeamServiceDetailsSettingsView(props) {
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>IPアドレス</FormLabel>
+              <FormLabel>{t("ipAddress")}</FormLabel>
               <TextField
                 size="small"
-                value="192.168.10.25"
-                placeholder="例: 192.168.10.25"
+                value={assetIpAddressesText}
+                placeholder={t("ipAddressPlaceholder")}
+                onChange={(e) => setAssetIpAddressesText(e.target.value)}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <FormLabel>ロケーション</FormLabel>
-              <TextField
-                size="small"
-                value="東京都渋谷区"
-                placeholder="例: 東京都渋谷区"
-              />
+              <FormLabel>{t("location")}</FormLabel>
+              <TextField size="small" disabled value="" placeholder={t("locationPlaceholder")} />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <Box

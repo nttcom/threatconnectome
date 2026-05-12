@@ -68,12 +68,15 @@ ServiceIDCopyButton.propTypes = {
 
 export function PTeamServiceDetails(props) {
   const { pteamId, service, expandService, onSwitchExpandService, highestSsvcPriority } = props;
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetails" });
 
   const { image, serviceName, description, keywords } = usePTeamServiceDetailsData(
     props.pteamId,
     props.service,
     props.highestSsvcPriority,
   );
+  const ipAddressesText = service.asset?.ip_addresses?.join(", ") || t("notAvailable");
+  const locationText = t("notAvailable");
 
   const handleCollapseClick = () => {
     if (!expandService) {
@@ -169,15 +172,15 @@ export function PTeamServiceDetails(props) {
               >
                 <Box>
                   <Typography variant="caption" color="text.secondary">
-                    IPアドレス
+                    {t("ipAddress")}
                   </Typography>
-                  <Typography variant="body2">192.168.10.25</Typography>
+                  <Typography variant="body2">{ipAddressesText}</Typography>
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">
-                    ロケーション
+                    {t("location")}
                   </Typography>
-                  <Typography variant="body2">東京都渋谷区</Typography>
+                  <Typography variant="body2">{locationText}</Typography>
                 </Box>
               </Box>
               <Typography variant="caption" color="textSecondary">

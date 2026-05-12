@@ -30,6 +30,7 @@ export function PTeamServiceDetailsSettings(props) {
     imageDeleteFlag,
     keywordsList,
     description,
+    ipAddresses,
     defaultSafetyImpactValue,
   ) => {
     const promiseList = [];
@@ -55,6 +56,9 @@ export function PTeamServiceDetailsSettings(props) {
       service_name: serviceName,
       keywords: keywordsList,
       description: description,
+      asset: {
+        ip_addresses: ipAddresses,
+      },
       service_safety_impact: defaultSafetyImpactValue,
     };
     promiseList.push(() =>
