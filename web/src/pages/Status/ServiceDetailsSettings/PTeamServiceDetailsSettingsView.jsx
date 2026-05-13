@@ -40,7 +40,7 @@ import { PTeamServiceImageUploadDeleteButton } from "./PTeamServiceImageUploadDe
 export function PTeamServiceDetailsSettingsView(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetailsSettingsView" });
   const { service, image, onSave, expandService } = props;
-  const originalIpAddresses = service.asset?.ip_addresses ?? [];
+  const originalIpAddresses = useMemo(() => service.asset?.ip_addresses ?? [], [service.asset]);
 
   const [serviceName, setServiceName] = useState(service.service_name);
   const [imageFileData, setImageFileData] = useState(null);
