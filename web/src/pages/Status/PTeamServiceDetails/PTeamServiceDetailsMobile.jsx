@@ -10,16 +10,20 @@ import {
   ListItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 
 import { usePTeamServiceDetailsData } from "../../../hooks/Status/usePTeamServiceDetailsData";
 import { PTeamServiceDetailsSettings } from "../ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 export function PTeamServiceDetailsMobile(props) {
+  const { t } = useTranslation("status", { keyPrefix: "PTeamServiceDetails" });
   const { image, serviceName, description, keywords, statusItems } = usePTeamServiceDetailsData(
     props.pteamId,
     props.service,
     props.highestSsvcPriority,
   );
+  const ipAddressesText = props.service.asset?.ip_addresses?.join(", ") || t("notAvailable");
+  const locationText = t("notAvailable");
 
   return (
     <Box
@@ -59,6 +63,30 @@ export function PTeamServiceDetailsMobile(props) {
           <Typography variant="body2" sx={{ mb: 1, wordBreak: "break-all" }}>
             {description}
           </Typography>
+          <Box
+            sx={{
+              bgcolor: "background.soft",
+              borderRadius: 1,
+              mb: 1,
+              p: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+            }}
+          >
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t("ipAddress")}
+              </Typography>
+              <Typography variant="body2">{ipAddressesText}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {t("location")}
+              </Typography>
+              <Typography variant="body2">{locationText}</Typography>
+            </Box>
+          </Box>
           <List
             dense
             sx={{
