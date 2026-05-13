@@ -75,9 +75,9 @@ export function ServiceEolDashboard() {
       const matchesFilter = filter === "all" || filter === status;
 
       const matchesSearch =
-        eolVersion.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        eolVersion.product_name.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
         eolVersion.services.some((s) =>
-          s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
+          s.service_name.toLowerCase().includes(searchTerm.trim().toLowerCase()),
         );
 
       return matchesFilter && matchesSearch;

@@ -141,7 +141,10 @@ export function VulnSearchModal(props) {
   const isValidCvssScore = (cvssScore) => {
     const trimmed = String(cvssScore).trim();
     const regex = /^\d+(\.\d{1})?$/; // Regular expression to allow only numbers to one decimal place
-    return (regex.test(trimmed) && 0 <= trimmed && trimmed <= 10) || trimmed === "";
+    return (
+      (regex.test(trimmed) && 0 <= parseFloat(trimmed) && parseFloat(trimmed) <= 10) ||
+      trimmed === ""
+    );
   };
 
   const isValidUserInput = isValidCvssScore(minCvssScore) && isValidCvssScore(maxCvssScore);

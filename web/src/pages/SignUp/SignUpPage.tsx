@@ -88,7 +88,7 @@ export function SignUp() {
 
     try {
       await createUserWithEmailAndPassword({
-        email: signUpForm.email,
+        email: signUpForm.email.trim(),
         password: signUpForm.password,
       });
       if (

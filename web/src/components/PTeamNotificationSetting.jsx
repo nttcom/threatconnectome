@@ -152,8 +152,8 @@ export function PTeamNotificationSetting(props) {
 
   const handleUpdatePTeam = async () => {
     const data = {
-      alert_slack: { enable: slackEnable, webhook_url: slackUrl },
-      alert_mail: { enable: mailEnable, address: mailAddress },
+      alert_slack: { enable: slackEnable, webhook_url: slackUrl.trim() },
+      alert_mail: { enable: mailEnable, address: mailAddress.trim() },
       alert_ssvc_priority: alertThreshold,
     };
     await updatePTeam({ path: { pteam_id: pteam.pteam_id }, body: data })
@@ -167,7 +167,7 @@ export function PTeamNotificationSetting(props) {
   const handleCheckSlack = async () => {
     setCheckSlack(true);
     setSlackMessage();
-    await postCheckSlack({ body: { slack_webhook_url: slackUrl } })
+    await postCheckSlack({ body: { slack_webhook_url: slackUrl.trim() } })
       .unwrap()
       .then(() => {
         setCheckSlack(false);
@@ -182,7 +182,7 @@ export function PTeamNotificationSetting(props) {
   const handleCheckMail = async () => {
     setCheckEmail(true);
     setEmailMessage();
-    await postCheckMail({ body: { email: mailAddress } })
+    await postCheckMail({ body: { email: mailAddress.trim() } })
       .unwrap()
       .then(() => {
         setCheckEmail(false);
