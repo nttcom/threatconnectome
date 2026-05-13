@@ -69,7 +69,7 @@ LineWithTooltip.propTypes = {
 function StatusRatioGraph(props) {
   const { counts, displaySSVCPriority } = props;
 
-  if (displaySSVCPriority === "empty") return "";
+  if (displaySSVCPriority === "no_known_vulnerability") return "";
   const keys = ["completed", "scheduled", "acknowledged", "alerted"];
   const total = keys.reduce((ret, key) => ret + (counts[key] ?? 0), 0);
   const ratios = keys.reduce((ret, key) => {
@@ -100,24 +100,10 @@ export function PTeamStatusCard(props) {
   const { onHandleClick, pteam, packageInfo, serviceIds } = props;
   const { t } = useTranslation("status", { keyPrefix: "PTeamStatusCard" });
 
-  let displaySSVCPriority = "";
-  if (!packageInfo.ssvc_priority && packageInfo.status_count["completed"] > 0) {
-    displaySSVCPriority = "safe"; // solved all and at least 1 tickets
-  } else if (
-    !packageInfo.ssvc_priority &&
-    sortedTicketHandlingStatus.every(
-      (ticketHandlingStatus) => packageInfo.status_count[ticketHandlingStatus] === 0,
-    )
-  ) {
-    displaySSVCPriority = "empty";
-  } else {
-    displaySSVCPriority = packageInfo.ssvc_priority ?? "defer";
-  }
-
   // Change the background color and border based on the Alert Threshold value set by the team.
   const highlightCard =
     pteam.alert_ssvc_priority !== "defer" && // disable highlight if threshold is "defer"
-    compareSSVCPriority(displaySSVCPriority, pteam.alert_ssvc_priority) <= 0;
+    compareSSVCPriority(packageInfo.ssvc_priority, pteam.alert_ssvc_priority) <= 0;
 
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
@@ -138,7 +124,7 @@ export function PTeamStatusCard(props) {
       }}
     >
       <TableCell component="th" scope="row" style={{ width: "5%" }}>
-        <SSVCPriorityStatusChip displaySSVCPriority={displaySSVCPriority} />
+        <SSVCPriorityStatusChip displaySSVCPriority={packageInfo.ssvc_priority} />
       </TableCell>
       <TableCell component="th" scope="row" style={{ maxWidth: 0 }}>
         <Typography
@@ -172,9 +158,7 @@ export function PTeamStatusCard(props) {
               variant="body2"
               sx={{
                 visibility:
-                  displaySSVCPriority === "safe" || displaySSVCPriority === "empty"
-                    ? "hidden"
-                    : "visible",
+                  packageInfo.ssvc_priority === "no_known_vulnerability" ? "hidden" : "visible",
               }}
             >
               {t("updated", { timeDiff: calcTimestampDiff(packageInfo.updated_at) })}

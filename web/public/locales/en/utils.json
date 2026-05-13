@@ -52,9 +52,9 @@
         "displayName": "Defer",
         "statusLabel": "Defer: Do not act at present."
       },
-      "safe": {
-        "chipLabel": "Safe",
-        "statusLabel": "All vulnerabilities have been resolved"
+      "no_known_vulnerability": {
+        "displayName": "No known vulnerability",
+        "statusLabel": "No known vulnerability: No vulnerabilities were detected."
       }
     }
   },

@@ -10,7 +10,8 @@ export function SSVCPriorityStatusChip(props) {
   // Calling useTranslation() ensures this component re-renders when the language changes.
   useTranslation();
 
-  const ssvcPriorityProp = getSsvcPriorityProps()[displaySSVCPriority];
+  const ssvcPriorityProps = getSsvcPriorityProps();
+  const ssvcPriorityProp = ssvcPriorityProps[displaySSVCPriority];
 
   const Icon = ssvcPriorityProp.icon;
   const StyledTooltip = styled((styledProps) => (

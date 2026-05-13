@@ -674,7 +674,7 @@ export type PTeamPackageSummary = {
      * Service Ids
      */
     service_ids: Array<string>;
-    ssvc_priority: SsvcDeployerPriorityEnum | null;
+    ssvc_priority: SsvcDeployerPackagePriorityEnum | null;
     /**
      * Updated At
      */
@@ -695,7 +695,7 @@ export type PTeamPackagesSummary = {
      * Ssvc Priority Count
      */
     ssvc_priority_count: {
-        [key in SsvcDeployerPriorityEnum]?: number;
+        [key in SsvcDeployerPackagePriorityEnum]?: number;
     };
     /**
      * Packages
@@ -898,6 +898,11 @@ export type RefreshTokenRequest = {
  * RelatedTicketStatus
  */
 export type RelatedTicketStatus = 'solved' | 'unsolved';
+
+/**
+ * SSVCDeployerPackagePriorityEnum
+ */
+export type SsvcDeployerPackagePriorityEnum = 'immediate' | 'out_of_cycle' | 'scheduled' | 'defer' | 'no_known_vulnerability';
 
 /**
  * SSVCDeployerPriorityEnum

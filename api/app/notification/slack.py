@@ -60,10 +60,14 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
     ssvc_priority: models.SSVCDeployerPriorityEnum,
     service_id: str,
     services: list[str],
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     services_name = ",".join(services)
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     blocks.extend(
         [
             {
@@ -72,10 +76,16 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*<{PACKAGE_URL}{str(package_id)}?pteamId={pteam_id}&serviceId={service_id}|{package_name}>*",
-                            f"*{title}*",
-                            f"*{services_name}*",
-                            SSVC_PRIORITY_LABEL[ssvc_priority],
+                            (
+                                f"*Package URL*:<{PACKAGE_URL}{str(package_id)}"
+                                f"?pteamId={pteam_id}&serviceId={service_id}|{package_name}>"
+                            ),
+                            f"*Title*:{title}",
+                            f"*Services*:{services_name}",
+                            f"*SSVC Priority*:{SSVC_PRIORITY_LABEL[ssvc_priority]}",
+                            "*Asset*:",
+                            f"• IP Addresses: {ip_str}",
+                            f"• Description: {desc_str}",
                         ]
                     ),
                 },
@@ -152,12 +162,16 @@ def create_slack_blocks_to_notify_eol(
     product_name: str,
     version: str,
     eol_from: str,
+    asset_ip_addresses: list[str] | None,
+    asset_description: str | None,
 ):
     blocks: list[dict[str, str | dict | list]] = _block_header(
         text=":warning: Action Required: migrate/upgrade to a supported version"
     )
 
     url = urljoin(EOL_URL, f"?pteamId={pteam_id}")
+    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
+    desc_str = asset_description if asset_description else "-"
     blocks.extend(
         [
             {
@@ -166,12 +180,15 @@ def create_slack_blocks_to_notify_eol(
                     "type": "mrkdwn",
                     "text": (
                         f"EOL (End of Life) reached on *<{eol_from}>* (no more security fixes)\n\n"
-                        f"• *Service:* {service_name}\n"
-                        f"• *Team:* {pteam_name}\n"
-                        f"• *Product:* {product_name}\n"
-                        f"• *Current Version:* {version}\n"
-                        f"• *EOL Date:* {eol_from}\n"
-                        f"• *Reference:* {url}"
+                        f"*Service:* {service_name}\n"
+                        f"*Team:* {pteam_name}\n"
+                        f"*Product:* {product_name}\n"
+                        f"*Current Version:* {version}\n"
+                        f"*Asset:*\n"
+                        f" • IP Addresses: {ip_str}\n"
+                        f" • Description: {desc_str}\n"
+                        f"*EOL Date:* {eol_from}\n"
+                        f"*Reference:* {url}"
                     ),
                 },
             },
