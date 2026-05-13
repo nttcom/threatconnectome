@@ -156,7 +156,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
 
   const filteredMembers = Object.values(members).filter((member) => {
     const isNotSelected = !(currentAssigneeIds || []).includes(member.user_id);
-    const matchesSearch = member.email.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = member.email.toLowerCase().includes(search.trim().toLowerCase());
     return isNotSelected && matchesSearch;
   });
 

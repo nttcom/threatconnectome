@@ -144,7 +144,7 @@ export function Login() {
     setIsLoggingIn(true);
     showMessage(t("loggingIn"), "info");
     const data = new FormData(event.currentTarget);
-    const authData = await callSignInWithEmailAndPassword(data.get("email"), data.get("password"));
+    const authData = await callSignInWithEmailAndPassword(data.get("email").trim(), data.get("password"));
     if (authData === undefined) {
       setIsLoggingIn(false);
       return;
