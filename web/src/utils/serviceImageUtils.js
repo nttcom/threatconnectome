@@ -51,16 +51,13 @@ function loadImage(dataUrl) {
 
 function canvasToBlob(canvas) {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Failed to convert image"));
-          return;
-        }
-        resolve(blob);
-      },
-      "image/png",
-    );
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Failed to convert image"));
+        return;
+      }
+      resolve(blob);
+    }, "image/png");
   });
 }
 
