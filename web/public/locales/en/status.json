@@ -93,6 +93,11 @@
     "copyServiceId": "Copy the Service ID",
     "copySuccess": "Copied!"
   },
+  "PTeamServiceDetails": {
+    "ipAddress": "IP Address",
+    "location": "Location",
+    "notAvailable": "Not set"
+  },
   "PTeamServiceDetailsSettings": {
     "updateSucceeded": "Update succeeded",
     "updateFailed": "Update failed: {{error}}"
@@ -126,6 +131,10 @@
     "image": "Image",
     "keywords": "Keywords (Max 5)",
     "description": "Description",
+    "ipAddress": "IP Address",
+    "ipAddressPlaceholder": "e.g. 192.168.10.25, 10.0.0.0/24",
+    "location": "Location",
+    "locationPlaceholder": "e.g. Shibuya, Tokyo",
     "defaultSafetyImpact": "Default Safety Impact",
     "defaultSafetyImpactTooltip": "Default Safety Impact is applied automatically during SSVC calculations unless a specific Safety Impact is defined for an individual ticket.",
     "save": "Save",

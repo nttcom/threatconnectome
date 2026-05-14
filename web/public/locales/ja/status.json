@@ -93,6 +93,11 @@
     "copyServiceId": "サービスIDをコピー",
     "copySuccess": "コピーしました！"
   },
+  "PTeamServiceDetails": {
+    "ipAddress": "IPアドレス",
+    "location": "ロケーション",
+    "notAvailable": "未設定"
+  },
   "PTeamServiceDetailsSettings": {
     "updateSucceeded": "更新しました。",
     "updateFailed": "更新に失敗しました: {{error}}。"
@@ -126,6 +131,10 @@
     "image": "画像",
     "keywords": "キーワード (最大5個)",
     "description": "説明",
+    "ipAddress": "IPアドレス",
+    "ipAddressPlaceholder": "例: 192.168.10.25, 10.0.0.0/24",
+    "location": "ロケーション",
+    "locationPlaceholder": "例: 東京都渋谷区",
     "defaultSafetyImpact": "defaultSafetyImpact",
     "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます。",
     "save": "保存",
