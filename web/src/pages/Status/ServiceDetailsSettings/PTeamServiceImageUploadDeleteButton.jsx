@@ -11,11 +11,8 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  serviceImageHeightSize,
-  serviceImageWidthSize,
-  serviceImageMaxSize,
-} from "../../../utils/const";
+import { serviceImageMaxSize } from "../../../utils/const";
+import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
 export function PTeamServiceImageUploadDeleteButton(props) {
   const {
@@ -39,41 +36,33 @@ export function PTeamServiceImageUploadDeleteButton(props) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const handleUploadImage = (event) => {
-    if (event.target.files[0].size >= serviceImageMaxSize) {
+  const handleUploadImage = async (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) {
+      return;
+    }
+
+    if (selectedFile.size >= serviceImageMaxSize) {
       enqueueSnackbar(t("fileSizeExceeds"), { variant: "error" });
       return;
     }
 
-    const reader = new FileReader();
-    const image = new Image();
-    reader.onload = (e) => {
-      image.src = e.target?.result;
-      image.onload = () => {
-        if (
-          image.naturalWidth === serviceImageWidthSize &&
-          image.naturalHeight === serviceImageHeightSize
-        ) {
-          setImageFileData(event.target.files[0]);
-          setImageDeleteFlag(false);
-          setImagePreview(e.target?.result);
-          if (originalImage === e.target?.result) {
-            setIsImageChanged(false);
-          } else {
-            setIsImageChanged(true);
-          }
-        } else {
-          enqueueSnackbar(
-            t("dimensionsMustBe", { width: serviceImageWidthSize, height: serviceImageHeightSize }),
-            {
-              variant: "error",
-            },
-          );
-          return;
-        }
-      };
-    };
-    reader.readAsDataURL(event.target.files[0]);
+    try {
+      const normalizedImage = await normalizeServiceImageToPng(selectedFile);
+
+      if (normalizedImage.file.size >= serviceImageMaxSize) {
+        enqueueSnackbar(t("normalizedFileSizeExceeds"), { variant: "error" });
+        return;
+      }
+
+      setImageFileData(normalizedImage.file);
+      setImageDeleteFlag(false);
+      setImagePreview(normalizedImage.previewDataUrl);
+      setIsImageChanged(originalImage !== normalizedImage.previewDataUrl);
+    } catch {
+      enqueueSnackbar(t("imageProcessingFailed"), { variant: "error" });
+    }
   };
 
   const handleDelete = () => {
