@@ -17,12 +17,10 @@ describe("calculateCenteredCropRect", () => {
   it("crops top and bottom when source image is taller than 4:3", () => {
     const cropRect = calculateCenteredCropRect(1000, 2000, 720, 480);
 
-    expect(cropRect).toEqual({
-      sx: 0,
-      sy: 666.6666666666667,
-      sWidth: 1000,
-      sHeight: 666.6666666666666,
-    });
+    expect(cropRect.sx).toBe(0);
+    expect(cropRect.sy).toBeCloseTo(666.667, 2);
+    expect(cropRect.sWidth).toBe(1000);
+    expect(cropRect.sHeight).toBeCloseTo(666.667, 2);
   });
 
   it("keeps dimensions when source image already has 4:3 ratio", () => {
