@@ -70,14 +70,14 @@ export function VulnSearchModal(props) {
       return;
     }
     const params = {
-      titleWords: titleWords,
+      titleWords: titleWords.trim(),
       cveIds: trimmedCveIds,
-      vulnIds: vulnIds,
-      creatorIds: creatorIds,
+      vulnIds: vulnIds.trim(),
+      creatorIds: creatorIds.trim(),
       updatedAfter: updatedAfter?.toISOString(),
       updatedBefore: updatedBefore?.toISOString(),
-      minCvssV3Score: minCvssScore,
-      maxCvssV3Score: maxCvssScore,
+      minCvssV3Score: minCvssScore.trim(),
+      maxCvssV3Score: maxCvssScore.trim(),
     };
     onSearch(params);
     clearAllParams();
@@ -124,8 +124,8 @@ export function VulnSearchModal(props) {
   const handleCvssName = (event, newCvssName) => {
     setCvssName(newCvssName);
     const score = cvssConvertToScore(newCvssName);
-    setMinCvssScore(score[0]);
-    setMaxCvssScore(score[1]);
+    setMinCvssScore(String(score[0]));
+    setMaxCvssScore(String(score[1]));
   };
 
   const handleMinCvssScore = (event) => {
@@ -139,8 +139,10 @@ export function VulnSearchModal(props) {
   };
 
   const isValidCvssScore = (cvssScore) => {
+    const trimmed = cvssScore.trim();
     const regex = /^\d+(\.\d{1})?$/; // Regular expression to allow only numbers to one decimal place
-    return (regex.test(cvssScore) && 0 <= cvssScore && cvssScore <= 10) || cvssScore === "";
+    const value = parseFloat(trimmed);
+    return (regex.test(trimmed) && 0 <= value && value <= 10) || trimmed === "";
   };
 
   const isValidUserInput = isValidCvssScore(minCvssScore) && isValidCvssScore(maxCvssScore);

@@ -74,11 +74,10 @@ export function ServiceEolDashboard() {
       const status = getEolStatus(eolVersion.eol_from);
       const matchesFilter = filter === "all" || filter === status;
 
+      const normalizedSearch = searchTerm.trim().toLowerCase();
       const matchesSearch =
-        eolVersion.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        eolVersion.services.some((s) =>
-          s.service_name.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
+        eolVersion.product_name.toLowerCase().includes(normalizedSearch) ||
+        eolVersion.services.some((s) => s.service_name.toLowerCase().includes(normalizedSearch));
 
       return matchesFilter && matchesSearch;
     })

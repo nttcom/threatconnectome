@@ -40,7 +40,7 @@ export function ResetPassword() {
       `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}` +
       "/email_verification?mode=resetPassword";
     await sendPasswordResetEmail({
-      email: data.get("email"),
+      email: data.get("email").trim(),
       actionCodeSettings,
       redirectTo,
     })

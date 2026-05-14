@@ -139,6 +139,36 @@ describe("TestSignUpPage", () => {
 
       expect(screen.getByRole("button", { name: "Sign up" })).toBeDisabled();
     });
+    it("trims surrounding whitespace from email before calling createUserWithEmailAndPassword", async () => {
+      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const passwordValue = "Password1234@";
+
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({
+        createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
+        sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+        signOut: vi.fn().mockResolvedValue(undefined),
+      });
+
+      renderSignUp();
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      await ue.type(emailField, "  test@example.com  ");
+
+      const passwordInputs = screen.getAllByLabelText(/^Password/i);
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+      const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+
+      await ue.type(passwordField, passwordValue);
+      await ue.type(confirmField, passwordValue);
+      await ue.click(screen.getByRole("button", { name: "Sign up" }));
+
+      expect(mockCreateUserWithEmailAndPassword).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: passwordValue,
+      });
+    });
+
     it("handles error", async () => {
       const validEmail = "test@example.com";
       const validPassword = "Password1234@";
