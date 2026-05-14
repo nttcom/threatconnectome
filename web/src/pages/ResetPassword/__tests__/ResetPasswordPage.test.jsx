@@ -122,6 +122,28 @@ describe("ResetPassword Component", () => {
     });
   });
 
+  describe("Email trimming", () => {
+    it("should trim surrounding whitespace from email before calling sendPasswordResetEmail", async () => {
+      const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+
+      renderResetPassword();
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const submitButton = screen.getByRole("button", { name: "Reset Password" });
+
+      await ue.type(emailField, "  test@example.com  ");
+      await ue.click(submitButton);
+
+      expect(mockSendPasswordResetEmail).toHaveBeenCalledWith({
+        email: "test@example.com",
+        actionCodeSettings: expect.any(Object),
+        redirectTo: expect.any(String),
+      });
+    });
+  });
+
   describe("Form Validation", () => {
     it("should not call the callback when the Reset Password button is clicked and email is empty", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });

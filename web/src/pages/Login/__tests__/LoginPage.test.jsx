@@ -147,6 +147,43 @@ describe("TestLoginPage", () => {
       });
     });
 
+    it("trims surrounding whitespace from email before calling signInWithEmailAndPassword", async () => {
+      const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue();
+      useAuth.mockReturnValue({
+        ...useAuthReturnValueBase,
+        signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
+      });
+
+      const mockTryLogin = genApiMock();
+      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+
+      const mockCreateUser = genApiMock();
+      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+
+      const mockedNavigator = vi.fn();
+      useNavigate.mockReturnValue(mockedNavigator);
+
+      const testLocation = { state: null };
+      useLocation.mockReturnValue(testLocation);
+
+      const ue = userEvent.setup();
+      renderLogin();
+
+      const emailField = screen.getByRole("textbox", { name: "Email Address" });
+      const passwordField = screen.getByLabelText(/^Password/);
+      const loginButton = screen.getByRole("button", { name: "Log In with Email" });
+      await ue.type(emailField, "  user1@localhost.localdomain  ");
+      await ue.type(passwordField, "secret keyword");
+      await ue.click(loginButton);
+
+      expect(mockSignInWithEmailAndPassword).toBeCalledTimes(1);
+      expect(mockSignInWithEmailAndPassword).toBeCalledWith({
+        email: "user1@localhost.localdomain",
+        password: "secret keyword",
+        recaptchaId: "recaptcha-container-visible-login",
+      });
+    });
+
     it("Not navigate when failed signin)", async () => {
       const errorCode = "test error";
       const errorMessage = "Something went wrong.";

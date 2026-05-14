@@ -152,7 +152,7 @@ export function SignUp() {
           </Typography>
           <TextField
             autoComplete="email"
-            error={signUpForm.edited.has("email") && !signUpForm.email.match(/^.+@.+$/)}
+            error={signUpForm.edited.has("email") && !signUpForm.email.trim().match(/^.+@.+$/)}
             fullWidth
             label={t("emailAddress")}
             margin="normal"
