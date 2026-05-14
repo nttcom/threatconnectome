@@ -60,7 +60,6 @@ function canvasToBlob(canvas) {
         resolve(blob);
       },
       "image/png",
-      0.92,
     );
   });
 }
