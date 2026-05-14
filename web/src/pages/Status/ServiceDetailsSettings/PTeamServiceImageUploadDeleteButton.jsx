@@ -50,6 +50,12 @@ export function PTeamServiceImageUploadDeleteButton(props) {
 
     try {
       const normalizedImage = await normalizeServiceImageToPng(selectedFile);
+
+      if (normalizedImage.file.size >= serviceImageMaxSize) {
+        enqueueSnackbar(t("normalizedFileSizeExceeds"), { variant: "error" });
+        return;
+      }
+
       setImageFileData(normalizedImage.file);
       setImageDeleteFlag(false);
       setImagePreview(normalizedImage.previewDataUrl);
