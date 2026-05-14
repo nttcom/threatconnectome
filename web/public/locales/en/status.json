@@ -104,7 +104,7 @@
   },
   "PTeamServiceImageUploadDeleteButton": {
     "fileSizeExceeds": "Filesize exceeds max(512KiB)",
-    "dimensionsMustBe": "Dimensions must be {{width}}px × {{height}}px",
+    "imageProcessingFailed": "Failed to process image. Please try another image.",
     "uploadImage": "Upload image",
     "deleteImage": "Delete image"
   },
