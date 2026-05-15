@@ -2,11 +2,11 @@
 applyTo: "**"
 ---
 
-# coding.agent.md
+# coding.instructions.md
 
 ## Global Coding Rules
 
-These rules apply to **all source code in this repository**.
+These instructions apply to implementation work across this repository.
 
 ---
 
