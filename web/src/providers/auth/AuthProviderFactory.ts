@@ -1,8 +1,9 @@
+import type { AuthProvider } from "./AuthProvider";
 import { FirebaseProvider } from "./FirebaseProvider";
 import { SupabaseProvider } from "./SupabaseProvider";
 
 export class AuthProviderFactory {
-  static create() {
+  static create(): AuthProvider {
     const provider = import.meta.env.VITE_AUTH_SERVICE;
     switch (provider) {
       case "supabase":

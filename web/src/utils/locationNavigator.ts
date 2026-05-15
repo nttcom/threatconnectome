@@ -1,6 +1,18 @@
+import type { Location, NavigateFunction } from "react-router-dom";
+
+import type { UserResponse } from "../../types/types.gen";
+
 import { LocationReader } from "./LocationReader";
 
-export const navigateSpecifiedPteam = (location, userMe, navigate) => {
+type UserMe = Pick<UserResponse, "pteam_roles"> & {
+  default_pteam_id?: UserResponse["default_pteam_id"];
+};
+
+export const navigateSpecifiedPteam = (
+  location: Pick<Location, "pathname" | "search">,
+  userMe: UserMe,
+  navigate: NavigateFunction,
+): void => {
   const params = new URLSearchParams(location.search);
   const locationReader = new LocationReader(location);
 
@@ -9,7 +21,7 @@ export const navigateSpecifiedPteam = (location, userMe, navigate) => {
     locationReader.isPackagePage() ||
     locationReader.isPTeamPage()
   ) {
-    if (!userMe.pteam_roles.length > 0) {
+    if (userMe.pteam_roles.length === 0) {
       if (params.get("pteamId")) {
         navigate(location.pathname);
       }

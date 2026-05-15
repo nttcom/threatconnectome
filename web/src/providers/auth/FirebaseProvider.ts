@@ -16,8 +16,24 @@ import {
   PhoneAuthProvider,
   PhoneMultiFactorGenerator,
   getMultiFactorResolver,
+  type ActionCodeSettings,
+  type Auth,
+  type MultiFactorError,
+  type MultiFactorResolver,
+  type PhoneInfoOptions,
 } from "firebase/auth";
 
+import type {
+  AuthStateCallbacks,
+  EmailPasswordArgs,
+  PhoneNumberExamples,
+  RegisterPhoneNumberResult,
+  SendEmailVerificationArgs,
+  SendPasswordResetArgs,
+  SignInResult,
+  SignInWithEmailArgs,
+  SmsLoginFlow,
+} from "../../hooks/auth";
 import i18n from "../../i18n/config";
 import Firebase from "../../utils/Firebase";
 import { getAuthErrorMessage } from "../../utils/authErrorUtils";
@@ -25,8 +41,10 @@ import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
-function _errorToMessage(error) {
-  const message = getAuthErrorMessage(error, {
+type ErrorLike = { code?: string; message?: string } | unknown;
+
+function _errorToMessage(error: ErrorLike): string {
+  const message = getAuthErrorMessage(error as never, {
     namespace: "providers",
     keyPrefix: "auth.FirebaseProvider",
     defaultMessage: i18n.t("auth.FirebaseProvider.internal-error", { ns: "providers" }),
@@ -35,17 +53,22 @@ function _errorToMessage(error) {
 }
 
 class FirebaseAuthError extends AuthError {
-  constructor(error) {
-    super(error, error.code, _errorToMessage(error));
+  constructor(error: ErrorLike) {
+    const code = (error as { code?: string })?.code;
+    super(error, code, _errorToMessage(error));
     console.error("Authentication error:", this.message);
   }
 }
 
-async function startSmsLoginFlow(auth, error, recaptchaId) {
-  const resolver = getMultiFactorResolver(auth, error);
+async function startSmsLoginFlow(
+  auth: Auth,
+  error: MultiFactorError,
+  recaptchaId: string,
+): Promise<SmsLoginFlow | undefined> {
+  const resolver: MultiFactorResolver = getMultiFactorResolver(auth, error);
   for (const hint of resolver.hints) {
     if (hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
-      const phoneInfoOptions = {
+      const phoneInfoOptions: PhoneInfoOptions = {
         multiFactorHint: hint,
         session: resolver.session,
       };
@@ -67,16 +90,17 @@ async function startSmsLoginFlow(auth, error, recaptchaId) {
           phoneInfoOptions: phoneInfoOptions,
           auth: auth,
         };
-      } catch (error) {
+      } catch (innerError) {
         recaptchaVerifier.clear();
-        throw new FirebaseAuthError(error);
+        throw new FirebaseAuthError(innerError);
       }
     }
   }
+  return undefined;
 }
 
 export class FirebaseProvider extends AuthProvider {
-  onAuthStateChanged({ signInCallback, signOutCallback }) {
+  override onAuthStateChanged({ signInCallback, signOutCallback }: AuthStateCallbacks): () => void {
     const unsubscribe = onAuthStateChanged(Firebase.getAuth(), (user) => {
       if (user) {
         signInCallback();
@@ -87,7 +111,10 @@ export class FirebaseProvider extends AuthProvider {
     return unsubscribe;
   }
 
-  async createUserWithEmailAndPassword({ email, password }) {
+  override async createUserWithEmailAndPassword({
+    email,
+    password,
+  }: EmailPasswordArgs): Promise<AuthData> {
     return await createUserWithEmailAndPassword(Firebase.getAuth(), email, password)
       .then((result) => {
         return new AuthData(result);
@@ -97,23 +124,30 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async signInWithEmailAndPassword({ email, password, recaptchaId }) {
+  override async signInWithEmailAndPassword({
+    email,
+    password,
+    recaptchaId,
+  }: SignInWithEmailArgs): Promise<SignInResult> {
     const auth = Firebase.getAuth();
     return await setPersistence(auth, browserSessionPersistence)
       .then(() => signInWithEmailAndPassword(auth, email, password))
       .then((result) => {
         return new AuthData(result);
       })
-      .catch(async (error) => {
+      .catch(async (error: { code?: string }) => {
         if (error.code === "auth/multi-factor-auth-required") {
-          return await startSmsLoginFlow(auth, error, recaptchaId);
+          if (!recaptchaId) {
+            throw new FirebaseAuthError(error);
+          }
+          return await startSmsLoginFlow(auth, error as MultiFactorError, recaptchaId);
         } else {
           throw new FirebaseAuthError(error);
         }
       });
   }
 
-  async signInWithSamlPopup() {
+  override async signInWithSamlPopup(): Promise<AuthData> {
     const samlProvider = Firebase.getSamlProvider();
     if (!samlProvider) {
       throw new FirebaseAuthError({
@@ -130,7 +164,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async signOut() {
+  override async signOut(): Promise<AuthData> {
     return await signOut(Firebase.getAuth())
       .then((result) => {
         return new AuthData(result);
@@ -140,8 +174,14 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async sendEmailVerification({ actionCodeSettings }) {
-    return await sendEmailVerification(Firebase.getAuth().currentUser, actionCodeSettings)
+  override async sendEmailVerification({
+    actionCodeSettings,
+  }: SendEmailVerificationArgs): Promise<AuthData> {
+    const currentUser = Firebase.getAuth().currentUser;
+    if (!currentUser) {
+      throw new FirebaseAuthError({ code: "auth/no-current-user" });
+    }
+    return await sendEmailVerification(currentUser, actionCodeSettings as ActionCodeSettings | null)
       .then((result) => {
         return new AuthData(result);
       })
@@ -150,8 +190,15 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async sendPasswordResetEmail({ email, actionCodeSettings }) {
-    return await sendPasswordResetEmail(Firebase.getAuth(), email, actionCodeSettings)
+  override async sendPasswordResetEmail({
+    email,
+    actionCodeSettings,
+  }: SendPasswordResetArgs): Promise<AuthData> {
+    return await sendPasswordResetEmail(
+      Firebase.getAuth(),
+      email,
+      actionCodeSettings as ActionCodeSettings | undefined,
+    )
       .then((result) => {
         return new AuthData(result);
       })
@@ -160,7 +207,11 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async verifyPasswordResetCode({ actionCode }) {
+  override async verifyPasswordResetCode({
+    actionCode,
+  }: {
+    actionCode: string;
+  }): Promise<AuthData> {
     return await verifyPasswordResetCode(Firebase.getAuth(), actionCode)
       .then((result) => {
         return new AuthData(result);
@@ -170,7 +221,13 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async confirmPasswordReset({ actionCode, newPassword }) {
+  override async confirmPasswordReset({
+    actionCode,
+    newPassword,
+  }: {
+    actionCode: string;
+    newPassword: string;
+  }): Promise<AuthData> {
     return await confirmPasswordReset(Firebase.getAuth(), actionCode, newPassword)
       .then((result) => {
         return new AuthData(result);
@@ -180,7 +237,7 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async applyActionCode({ actionCode }) {
+  override async applyActionCode({ actionCode }: { actionCode: string }): Promise<AuthData> {
     return await applyActionCode(Firebase.getAuth(), actionCode)
       .then((result) => {
         return new AuthData(result);
@@ -190,7 +247,11 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  async registerPhoneNumber(phoneNumber, recaptchaId, phoneNumberExamples = {}) {
+  override async registerPhoneNumber(
+    phoneNumber: string,
+    recaptchaId: string,
+    phoneNumberExamples: PhoneNumberExamples = {},
+  ): Promise<RegisterPhoneNumberResult> {
     if (!isE164Format(phoneNumber)) {
       throw new FirebaseAuthError({
         code: "auth/invalid-phone-number",
@@ -204,6 +265,9 @@ export class FirebaseProvider extends AuthProvider {
 
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new FirebaseAuthError({ code: "auth/no-current-user" });
+    }
 
     const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
       size: "normal",
@@ -211,7 +275,7 @@ export class FirebaseProvider extends AuthProvider {
 
     try {
       const multiFactorSession = await multiFactor(currentUser).getSession();
-      const phoneInfoOptions = {
+      const phoneInfoOptions: PhoneInfoOptions = {
         phoneNumber: phoneNumber,
         session: multiFactorSession,
       };
@@ -227,10 +291,13 @@ export class FirebaseProvider extends AuthProvider {
     }
   }
 
-  async deletePhoneNumber() {
+  override async deletePhoneNumber(): Promise<void> {
     try {
       const auth = Firebase.getAuth();
       const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new FirebaseAuthError({ code: "auth/no-current-user" });
+      }
       const multiFactorUser = multiFactor(currentUser);
       for (const factor of multiFactorUser.enrolledFactors) {
         await multiFactorUser.unenroll(factor);
@@ -240,20 +307,32 @@ export class FirebaseProvider extends AuthProvider {
     }
   }
 
-  async verifySmsForLogin(resolver, verificationId, verificationCode) {
+  override async verifySmsForLogin(
+    resolver: unknown,
+    verificationId: string,
+    verificationCode: string,
+  ): Promise<unknown> {
     const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
     // Complete sign-in.
-    return await resolver.resolveSignIn(multiFactorAssertion).catch((error) => {
-      throw new FirebaseAuthError(error);
-    });
+    return await (resolver as MultiFactorResolver)
+      .resolveSignIn(multiFactorAssertion)
+      .catch((error) => {
+        throw new FirebaseAuthError(error);
+      });
   }
 
-  async verifySmsForEnrollment(verificationId, verificationCode) {
+  override async verifySmsForEnrollment(
+    verificationId: string,
+    verificationCode: string,
+  ): Promise<void> {
     try {
       const auth = Firebase.getAuth();
       const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new FirebaseAuthError({ code: "auth/no-current-user" });
+      }
       const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
       const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
@@ -264,7 +343,11 @@ export class FirebaseProvider extends AuthProvider {
     }
   }
 
-  async sendSmsCodeAgain(phoneInfoOptions, auth, recaptchaId) {
+  override async sendSmsCodeAgain(
+    phoneInfoOptions: unknown,
+    auth: unknown,
+    recaptchaId: string,
+  ): Promise<string> {
     const recaptchaForResend = Firebase.getRecaptchaForResend();
 
     if (recaptchaForResend) {
@@ -272,14 +355,15 @@ export class FirebaseProvider extends AuthProvider {
       Firebase.setRecaptchaForResend(null);
     }
 
-    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
+    const typedAuth = auth as Auth;
+    const recaptchaVerifier = new RecaptchaVerifier(typedAuth, recaptchaId, {
       size: "invisible",
     });
     Firebase.setRecaptchaForResend(recaptchaVerifier);
 
-    const phoneAuthProvider = new PhoneAuthProvider(auth);
+    const phoneAuthProvider = new PhoneAuthProvider(typedAuth);
     return await phoneAuthProvider
-      .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
+      .verifyPhoneNumber(phoneInfoOptions as PhoneInfoOptions, recaptchaVerifier)
       .then((verificationId) => {
         return verificationId;
       })
@@ -289,9 +373,10 @@ export class FirebaseProvider extends AuthProvider {
       });
   }
 
-  isSmsAuthenticationEnabled() {
+  override isSmsAuthenticationEnabled(): boolean {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
+    if (!currentUser) return false;
     const multiFactorUser = multiFactor(currentUser);
     for (const factor of multiFactorUser.enrolledFactors) {
       if (factor.factorId === "phone") {
@@ -301,22 +386,25 @@ export class FirebaseProvider extends AuthProvider {
     return false;
   }
 
-  isAuthenticatedWithSaml() {
+  override isAuthenticatedWithSaml(): boolean {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
+    if (!currentUser) return false;
     const isSamlUser = currentUser.providerData.some((provider) =>
       provider.providerId.startsWith("saml."),
     );
     return isSamlUser;
   }
 
-  getPhoneNumber() {
+  override getPhoneNumber(): string | null {
     const auth = Firebase.getAuth();
     const currentUser = auth.currentUser;
+    if (!currentUser) return null;
     const multiFactorUser = multiFactor(currentUser);
     for (const factor of multiFactorUser.enrolledFactors) {
       if (factor.factorId === "phone") {
-        return factor.phoneNumber;
+        // PhoneMultiFactorInfo has phoneNumber
+        return (factor as { phoneNumber?: string }).phoneNumber ?? null;
       }
     }
 

@@ -60,7 +60,7 @@ class Firebase {
     return this.recaptchaForResend;
   }
 
-  setRecaptchaForResend(element: RecaptchaVerifier) {
+  setRecaptchaForResend(element: RecaptchaVerifier | null) {
     this.recaptchaForResend = element;
   }
 }

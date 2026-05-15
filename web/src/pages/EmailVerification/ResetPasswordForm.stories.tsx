@@ -1,7 +1,6 @@
 import type { Meta } from "@storybook/react-vite";
 
-// @ts-expect-error TS7016
-import { AuthContext } from "../../hooks/auth";
+import { AuthContext, type AuthContextValue } from "../../hooks/auth";
 // @ts-expect-error TS7016
 import ResetPasswordForm from "./ResetPasswordForm";
 
@@ -19,7 +18,7 @@ export const Default = () => {
   const mockAuthContext = {
     verifyPasswordResetCode: () => Promise.resolve(),
     confirmPasswordReset: () => Promise.resolve("new-verification-id-67890"),
-  };
+  } as unknown as AuthContextValue;
   const oobCode = "demo-oob-code";
 
   return (

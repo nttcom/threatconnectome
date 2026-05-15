@@ -1,16 +1,44 @@
+import type { ChangeEvent } from "react";
 import { useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export const useTodoState = () => {
+export type SortConfig = {
+  key: string;
+  direction: string;
+};
+
+export type TodoApiParams = {
+  page: number;
+  sortConfig: SortConfig;
+  offset: number;
+  limit: number;
+  sort_keys: string[];
+  assigned_to_me: boolean;
+  exclude_statuses: string[];
+  cve_ids: string[];
+};
+
+type UpdateParamValue = string | number | null | undefined;
+
+export type UseTodoStateReturn = {
+  apiParams: TodoApiParams;
+  onMyTasksChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onCveSearch: (word: string) => void;
+  onSortConfigChange: (newConfig: SortConfig) => void;
+  onItemsPerPageChange: (newValue: number) => void;
+  onPageChange: (event: unknown, newPage: number) => void;
+};
+
+export const useTodoState = (): UseTodoStateReturn => {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
 
   const myTasks = params.get("mytasks") === "on" || !params.has("mytasks");
   const cveId = params.get("cve_id")?.trim() ?? "";
-  const page = parseInt(params.get("page"), 10) || 1;
-  const itemsPerPage = parseInt(params.get("perPage"), 10) || 10;
-  const sortConfig = useMemo(
+  const page = parseInt(params.get("page") ?? "", 10) || 1;
+  const itemsPerPage = parseInt(params.get("perPage") ?? "", 10) || 10;
+  const sortConfig = useMemo<SortConfig>(
     () => ({
       key: params.get("sortKey") || "ssvc_deployer_priority",
       direction: params.get("sortDirection") || "desc",
@@ -19,11 +47,11 @@ export const useTodoState = () => {
   );
 
   const updateParams = useCallback(
-    (newValues) => {
+    (newValues: Record<string, UpdateParamValue>) => {
       const newParams = new URLSearchParams(location.search);
       Object.entries(newValues).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
-          newParams.set(key, value);
+          newParams.set(key, String(value));
         } else {
           newParams.delete(key);
         }
@@ -40,28 +68,33 @@ export const useTodoState = () => {
   );
 
   const onMyTasksChange = useCallback(
-    (event) => updateParams({ mytasks: event.target.checked ? "on" : "off" }),
+    (event: ChangeEvent<HTMLInputElement>) =>
+      updateParams({ mytasks: event.target.checked ? "on" : "off" }),
     [updateParams],
   );
 
-  const onCveSearch = useCallback((word) => updateParams({ cve_id: word }), [updateParams]);
+  const onCveSearch = useCallback((word: string) => updateParams({ cve_id: word }), [updateParams]);
 
   const onSortConfigChange = useCallback(
-    (newConfig) => updateParams({ sortKey: newConfig.key, sortDirection: newConfig.direction }),
+    (newConfig: SortConfig) =>
+      updateParams({ sortKey: newConfig.key, sortDirection: newConfig.direction }),
     [updateParams],
   );
 
   const onItemsPerPageChange = useCallback(
-    (newValue) => updateParams({ perPage: newValue }),
+    (newValue: number) => updateParams({ perPage: newValue }),
     [updateParams],
   );
 
   const onPageChange = useCallback(
-    (event, newPage) => updateParams({ page: newPage }),
+    (event: unknown, newPage: number) => {
+      void event;
+      updateParams({ page: newPage });
+    },
     [updateParams],
   );
 
-  const apiParams = useMemo(
+  const apiParams = useMemo<TodoApiParams>(
     () => ({
       page,
       sortConfig,

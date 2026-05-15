@@ -1,6 +1,18 @@
+import { expect, test, vi } from "vitest";
+
 import { navigateSpecifiedPteam } from "../locationNavigator";
 
-test.each([
+type TestCase = {
+  locationPathname: string;
+  locationSearch: string;
+  pteamRoles: {
+    pteam_roles: Array<{ pteam: { pteam_id: string } }>;
+  };
+  navigateCallCount: number;
+  expectedParam: string;
+};
+
+const cases: TestCase[] = [
   // not navigate
   {
     locationPathname: "/",
@@ -49,7 +61,9 @@ test.each([
     navigateCallCount: 1,
     expectedParam: "pteamId=pteamId1",
   },
-])(
+];
+
+test.each(cases)(
   "navigateSpecifiedPteam test",
   ({ locationPathname, locationSearch, pteamRoles, navigateCallCount, expectedParam }) => {
     const location = {
@@ -58,7 +72,9 @@ test.each([
     };
     const mockNavigate = vi.fn();
 
-    navigateSpecifiedPteam(location, pteamRoles, mockNavigate);
+    // The test's `pteamRoles` shape is a structural subset of UserResponse.
+    // any: test fixtures intentionally omit unrelated UserResponse fields.
+    navigateSpecifiedPteam(location, pteamRoles as never, mockNavigate);
 
     expect(mockNavigate).toBeCalledTimes(navigateCallCount);
     if (navigateCallCount === 1) {

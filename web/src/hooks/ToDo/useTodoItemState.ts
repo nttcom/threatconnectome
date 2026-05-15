@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import type { TicketResponse } from "../../../types/types.gen";
+import { useSkipUntilAuthUserIsReady } from "../auth";
 import {
   useGetDependencyQuery,
   useGetPTeamMembersQuery,
@@ -11,7 +12,7 @@ import {
 import { APIError } from "../../utils/APIError";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
-export const useTodoItemState = (ticket) => {
+export const useTodoItemState = (ticket: TicketResponse) => {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -19,7 +20,7 @@ export const useTodoItemState = (ticket) => {
     isLoading: pteamIsLoading,
     error: pteamError,
   } = useGetPTeamQuery(
-    { path: { pteam_id: ticket.pteam_id } },
+    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}" },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -30,7 +31,7 @@ export const useTodoItemState = (ticket) => {
     isLoading: pteamServicesIsLoading,
     error: pteamServicesError,
   } = useGetPTeamServicesQuery(
-    { path: { pteam_id: ticket.pteam_id } },
+    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}/services" },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -42,7 +43,7 @@ export const useTodoItemState = (ticket) => {
   );
 
   const { data: pteamMembers, error: pteamMembersError } = useGetPTeamMembersQuery(
-    { path: { pteam_id: ticket.pteam_id } },
+    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}/members" },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -53,7 +54,7 @@ export const useTodoItemState = (ticket) => {
     isLoading: vulnIsLoading,
     error: vulnError,
   } = useGetVulnQuery(
-    { path: { vuln_id: ticket.vuln_id } },
+    { path: { vuln_id: ticket.vuln_id }, url: "/vulns/{vuln_id}" },
     {
       skip: skip || !ticket.vuln_id,
     },
@@ -64,7 +65,10 @@ export const useTodoItemState = (ticket) => {
     isLoading: serviceDependencyIsLoading,
     error: serviceDependencyError,
   } = useGetDependencyQuery(
-    { path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id } },
+    {
+      path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id },
+      url: "/pteams/{pteam_id}/dependencies/{dependency_id}",
+    },
     { skip: skip || !ticket.pteam_id || !ticket.dependency_id },
   );
 
@@ -88,7 +92,7 @@ export const useTodoItemState = (ticket) => {
 
     const assigneeData = ticket.ticket_status?.assignees;
     if (!assigneeData || assigneeData.length === 0) return "-";
-    const getUserEmail = (userId) =>
+    const getUserEmail = (userId: string): string =>
       pteamMembers.find((member) => member.user_id == userId)?.email || "";
     const assigneeIds = assigneeData.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));

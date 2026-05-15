@@ -1,33 +1,40 @@
+type LocationLike = {
+  pathname: string;
+  search: string;
+};
+
 export class LocationReader {
-  constructor(location) {
+  private location: LocationLike;
+
+  constructor(location: LocationLike) {
     this.location = location;
   }
 
-  isStatusPage() {
+  isStatusPage(): boolean {
     return this.location.pathname === "/";
   }
 
-  isPackagePage() {
+  isPackagePage(): boolean {
     return /\/packages\//.test(this.location.pathname);
   }
 
-  isPTeamPage() {
+  isPTeamPage(): boolean {
     return this.location.pathname === "/pteam";
   }
 
-  isVulnsPage() {
+  isVulnsPage(): boolean {
     return this.location.pathname.includes("/vulns");
   }
 
-  isEoLPage() {
+  isEoLPage(): boolean {
     return this.location.pathname.includes("/eol");
   }
 
-  isToDoPage() {
+  isToDoPage(): boolean {
     return this.location.pathname === "/todo";
   }
 
-  getPTeamId() {
+  getPTeamId(): string | null {
     const params = new URLSearchParams(this.location.search);
     return params.get("pteamId");
   }
