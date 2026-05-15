@@ -6,11 +6,7 @@ Code review guidance has been separated into:
 
 - `.github/instructions/review.instructions.md`
 
-### Directory-level Agent Rules
-
-Before editing any file, read `.github/instructions/directory-agent.instructions.md`.
-
-### Guidelines for Writing `*.instructions.md` and `agent.md` / `*.agent.md`
+### Guidelines for Writing `*.instructions.md`
 
 - **Avoid ambiguous descriptions**: Vague wording causes inconsistent agent behavior. Write instructions that have only one reasonable interpretation.
 - **Avoid excessive detail**: Overly granular rules are hard to maintain. Focus on principles and key constraints rather than exhaustive step-by-step procedures.

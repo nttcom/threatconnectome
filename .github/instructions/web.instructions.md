@@ -1,3 +1,6 @@
+---
+applyTo: "web/**"
+---
 ## Local Web Rule
 
 This rule applies to all changes under `./web`.
