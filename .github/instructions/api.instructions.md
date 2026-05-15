@@ -1,3 +1,6 @@
+---
+applyTo: "api/**"
+---
 ## Local API Rule
 
 This rule applies to all changes under `./api`.
