@@ -15,7 +15,7 @@ These instructions apply to implementation work across this repository.
 **Before making any file change**, you MUST:
 
 1. Identify every top-level directory you plan to modify.
-2. For each directory, use the `view` tool to explicitly read `.github/instructions/{directory}.instructions.md` if it exists.
+2. For each directory, explicitly read `.github/instructions/{directory}.instructions.md` if it exists.
 3. Only after reading ALL relevant instruction files, proceed with changes.
 
 **This is your first action — not an optional check.**
