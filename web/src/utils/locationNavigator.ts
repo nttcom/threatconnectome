@@ -1,11 +1,10 @@
 import type { Location, NavigateFunction } from "react-router-dom";
 
-import type { UserResponse } from "../../types/types.gen";
-
 import { LocationReader } from "./LocationReader";
 
-type UserMe = Pick<UserResponse, "pteam_roles"> & {
-  default_pteam_id?: UserResponse["default_pteam_id"];
+type UserMe = {
+  pteam_roles: Array<{ pteam: { pteam_id: string } }>;
+  default_pteam_id?: string | null;
 };
 
 export const navigateSpecifiedPteam = (

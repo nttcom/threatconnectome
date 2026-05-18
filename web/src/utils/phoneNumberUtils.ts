@@ -1,8 +1,10 @@
 // eslint-disable-next-line import/no-named-as-default
 import parsePhoneNumber, { type CountryCode, type PhoneNumber } from "libphonenumber-js";
 
+type PhoneNumberInput = string | null | undefined;
+
 const safeParsePhoneNumber = (
-  inputPhoneNumber: unknown,
+  inputPhoneNumber: PhoneNumberInput,
   defaultCountry?: CountryCode,
 ): PhoneNumber | null => {
   if (typeof inputPhoneNumber !== "string") {
@@ -16,7 +18,7 @@ const safeParsePhoneNumber = (
   }
 };
 
-export const maskPhoneNumber = (inputPhoneNumber: unknown): string => {
+export const maskPhoneNumber = (inputPhoneNumber: PhoneNumberInput): string => {
   const phoneNumber = safeParsePhoneNumber(inputPhoneNumber);
 
   if (phoneNumber && phoneNumber.isValid()) {
@@ -29,7 +31,7 @@ export const maskPhoneNumber = (inputPhoneNumber: unknown): string => {
   }
 };
 
-export const isE164Format = (inputPhoneNumber: unknown): boolean => {
+export const isE164Format = (inputPhoneNumber: PhoneNumberInput): boolean => {
   const phoneNumber = safeParsePhoneNumber(inputPhoneNumber);
   if (phoneNumber && phoneNumber.isValid() && phoneNumber.format("E.164") === inputPhoneNumber) {
     return true;
@@ -39,7 +41,7 @@ export const isE164Format = (inputPhoneNumber: unknown): boolean => {
 };
 
 export const normalizePhoneNumberToE164 = (
-  inputPhoneNumber: unknown,
+  inputPhoneNumber: PhoneNumberInput,
   defaultCountry?: CountryCode,
 ): string | null => {
   const phoneNumber = safeParsePhoneNumber(inputPhoneNumber, defaultCountry);
@@ -52,7 +54,7 @@ export const normalizePhoneNumberToE164 = (
 };
 
 export const getNationalPhoneNumber = (
-  inputPhoneNumber: unknown,
+  inputPhoneNumber: PhoneNumberInput,
   defaultCountry?: CountryCode,
 ): string | null => {
   const phoneNumber = safeParsePhoneNumber(inputPhoneNumber, defaultCountry);

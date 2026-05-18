@@ -1,3 +1,10 @@
+import type {
+  ActionCodeSettings,
+  Auth,
+  MultiFactorResolver,
+  PhoneInfoOptions,
+  UserCredential,
+} from "firebase/auth";
 import { createContext, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -24,17 +31,17 @@ export type SignInWithEmailArgs = EmailPasswordArgs & {
 };
 
 export type SendEmailVerificationArgs = {
-  actionCodeSettings: unknown;
+  actionCodeSettings: ActionCodeSettings | null;
 };
 
 export type SendPasswordResetArgs = {
   email: string;
-  actionCodeSettings?: unknown;
+  actionCodeSettings?: ActionCodeSettings;
   redirectTo?: string;
 };
 
 export type SignInWithRedirectArgs = {
-  provider: string;
+  provider: "keycloak";
   redirectTo: string;
 };
 
@@ -45,18 +52,18 @@ export type PhoneNumberExamples = {
 
 export type SmsLoginFlow = {
   mfa: true;
-  resolver: unknown;
+  resolver: MultiFactorResolver;
   verificationId: string;
-  phoneInfoOptions: unknown;
-  auth: unknown;
+  phoneInfoOptions: PhoneInfoOptions;
+  auth: Auth;
 };
 
 export type SignInResult = AuthData | SmsLoginFlow | undefined;
 
 export type RegisterPhoneNumberResult = {
   verificationId: string;
-  phoneInfoOptions: unknown;
-  auth: unknown;
+  phoneInfoOptions: PhoneInfoOptions;
+  auth: Auth;
 };
 
 export interface AuthContextValue {
@@ -78,14 +85,14 @@ export interface AuthContextValue {
   ) => Promise<RegisterPhoneNumberResult>;
   deletePhoneNumber: () => Promise<void>;
   verifySmsForLogin: (
-    resolver: unknown,
+    resolver: MultiFactorResolver,
     verificationId: string,
     verificationCode: string,
-  ) => Promise<unknown>;
+  ) => Promise<UserCredential>;
   verifySmsForEnrollment: (verificationId: string, verificationCode: string) => Promise<void>;
   sendSmsCodeAgain: (
-    phoneInfoOptions: unknown,
-    auth: unknown,
+    phoneInfoOptions: PhoneInfoOptions,
+    auth: Auth,
     recaptchaId: string,
   ) => Promise<string>;
   isSmsAuthenticationEnabled: () => boolean;

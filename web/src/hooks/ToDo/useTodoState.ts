@@ -1,4 +1,4 @@
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, MouseEvent } from "react";
 import { useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -19,6 +19,7 @@ export type TodoApiParams = {
 };
 
 type UpdateParamValue = string | number | null | undefined;
+type PageChangeEvent = ChangeEvent<HTMLElement> | MouseEvent<HTMLButtonElement> | null;
 
 export type UseTodoStateReturn = {
   apiParams: TodoApiParams;
@@ -26,7 +27,7 @@ export type UseTodoStateReturn = {
   onCveSearch: (word: string) => void;
   onSortConfigChange: (newConfig: SortConfig) => void;
   onItemsPerPageChange: (newValue: number) => void;
-  onPageChange: (event: unknown, newPage: number) => void;
+  onPageChange: (event: PageChangeEvent, newPage: number) => void;
 };
 
 export const useTodoState = (): UseTodoStateReturn => {
@@ -87,8 +88,7 @@ export const useTodoState = (): UseTodoStateReturn => {
   );
 
   const onPageChange = useCallback(
-    (event: unknown, newPage: number) => {
-      void event;
+    (_event: PageChangeEvent, newPage: number) => {
       updateParams({ page: newPage });
     },
     [updateParams],

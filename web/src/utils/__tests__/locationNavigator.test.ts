@@ -72,9 +72,7 @@ test.each(cases)(
     };
     const mockNavigate = vi.fn();
 
-    // The test's `pteamRoles` shape is a structural subset of UserResponse.
-    // any: test fixtures intentionally omit unrelated UserResponse fields.
-    navigateSpecifiedPteam(location, pteamRoles as never, mockNavigate);
+    navigateSpecifiedPteam(location, pteamRoles, mockNavigate);
 
     expect(mockNavigate).toBeCalledTimes(navigateCallCount);
     if (navigateCallCount === 1) {

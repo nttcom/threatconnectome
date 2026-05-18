@@ -1,6 +1,14 @@
 import i18n from "../i18n/config";
 
-type AuthErrorLike = { code?: string | unknown } | string | null | undefined;
+export type AuthErrorSource =
+  | Error
+  | string
+  | {
+      code?: string;
+      message?: string;
+    }
+  | null
+  | undefined;
 
 type GetAuthErrorMessageOptions = {
   namespace?: string;
@@ -8,8 +16,45 @@ type GetAuthErrorMessageOptions = {
   defaultMessage?: string;
 };
 
+export function normalizeAuthErrorSource(error: unknown): AuthErrorSource {
+  if (
+    error instanceof Error ||
+    typeof error === "string" ||
+    error === null ||
+    error === undefined
+  ) {
+    return error;
+  }
+
+  if (typeof error === "object") {
+    return {
+      code: "code" in error && typeof error.code === "string" ? error.code : undefined,
+      message: "message" in error && typeof error.message === "string" ? error.message : undefined,
+    };
+  }
+
+  return { message: String(error) };
+}
+
+export function getAuthErrorCode(error: AuthErrorSource): string | undefined {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return typeof error.code === "string" ? error.code : undefined;
+  }
+  return undefined;
+}
+
+export function getAuthErrorLogMessage(error: AuthErrorSource): string | undefined {
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return typeof error.message === "string" ? error.message : undefined;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return undefined;
+}
+
 export function getAuthErrorMessage(
-  error: AuthErrorLike,
+  error: AuthErrorSource,
   options: GetAuthErrorMessageOptions = {},
 ): string {
   const {
@@ -18,11 +63,9 @@ export function getAuthErrorMessage(
     defaultMessage = "An error occurred.",
   } = options;
 
-  const rawCode =
-    (typeof error === "object" && error !== null && "code" in error ? error.code : undefined) ||
-    (typeof error === "string" ? error : "auth/internal-error");
-
-  const code = typeof rawCode === "string" ? rawCode.replace(/\//g, ".") : "auth.internal-error";
+  const codeFromObject = getAuthErrorCode(error);
+  const rawCode = codeFromObject || (typeof error === "string" ? error : "auth/internal-error");
+  const code = rawCode.replace(/\//g, ".");
 
   const key = `${keyPrefix}.${code}`;
 

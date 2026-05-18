@@ -10,7 +10,12 @@ import type {
 } from "../../hooks/auth";
 import i18n from "../../i18n/config";
 import Supabase from "../../utils/Supabase";
-import { getAuthErrorMessage } from "../../utils/authErrorUtils";
+import {
+  getAuthErrorCode,
+  getAuthErrorLogMessage,
+  getAuthErrorMessage,
+  type AuthErrorSource,
+} from "../../utils/authErrorUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
@@ -30,10 +35,8 @@ const _immediateEmitEvent = async (
   }
 };
 
-type ErrorLike = { code?: string; message?: string } | unknown;
-
-function _errorToMessage(error: ErrorLike): string {
-  const message = getAuthErrorMessage(error as never, {
+function _errorToMessage(error: AuthErrorSource): string {
+  const message = getAuthErrorMessage(error, {
     namespace: "providers",
     keyPrefix: "auth.SupabaseProvider",
     defaultMessage: i18n.t("auth.SupabaseProvider.internal-error", { ns: "providers" }),
@@ -42,11 +45,9 @@ function _errorToMessage(error: ErrorLike): string {
 }
 
 class SupabaseAuthError extends AuthError {
-  constructor(error: ErrorLike) {
-    const code = (error as { code?: string })?.code;
-    const message = (error as { message?: string })?.message;
-    super(error, code, _errorToMessage(error));
-    console.error("Authentication error:", message);
+  constructor(error: AuthErrorSource) {
+    super(error, getAuthErrorCode(error), _errorToMessage(error));
+    console.error("Authentication error:", getAuthErrorLogMessage(error) ?? this.message);
   }
 }
 
@@ -85,17 +86,11 @@ export class SupabaseProvider extends AuthProvider {
     password,
   }: EmailPasswordArgs): Promise<AuthData> {
     const client = assertSupabase();
-    return await client.auth
-      .signUp({ email, password })
-      .then((result) => {
-        if (!result.error) {
-          return new AuthData(result);
-        }
-        throw new SupabaseAuthError(result.error);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    const result = await client.auth.signUp({ email, password });
+    if (!result.error) {
+      return new AuthData(result);
+    }
+    throw new SupabaseAuthError(result.error);
   }
 
   override async signInWithEmailAndPassword({
@@ -103,17 +98,11 @@ export class SupabaseProvider extends AuthProvider {
     password,
   }: SignInWithEmailArgs): Promise<SignInResult> {
     const client = assertSupabase();
-    return await client.auth
-      .signInWithPassword({ email, password })
-      .then((result) => {
-        if (!result.error) {
-          return new AuthData(result);
-        }
-        throw new SupabaseAuthError(result.error);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    const result = await client.auth.signInWithPassword({ email, password });
+    if (!result.error) {
+      return new AuthData(result);
+    }
+    throw new SupabaseAuthError(result.error);
   }
 
   override async signInWithRedirect({
@@ -135,18 +124,10 @@ export class SupabaseProvider extends AuthProvider {
           }),
         });
     }
-    await client.auth
-      // Supabase types accept a finite set of providers; cast since validation occurs above.
-      // any: @supabase/supabase-js requires a Provider literal type incompatible with our open string param.
-      .signInWithOAuth({ provider: provider as never, options })
-      .then((result) => {
-        if (result.error) {
-          throw new SupabaseAuthError(result.error);
-        }
-      })
-      .catch((error) => {
-        throw error;
-      });
+    const result = await client.auth.signInWithOAuth({ provider, options });
+    if (result.error) {
+      throw new SupabaseAuthError(result.error);
+    }
   }
 
   override async sendPasswordResetEmail({
@@ -159,17 +140,11 @@ export class SupabaseProvider extends AuthProvider {
      *     - SUCCEED if email is INVALID (not registered email).
      */
     const client = assertSupabase();
-    return await client.auth
-      .resetPasswordForEmail(email, { redirectTo })
-      .then((result) => {
-        if (!result.error) {
-          return new AuthData(result);
-        }
-        throw new SupabaseAuthError(result.error);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    const result = await client.auth.resetPasswordForEmail(email, { redirectTo });
+    if (!result.error) {
+      return new AuthData(result);
+    }
+    throw new SupabaseAuthError(result.error);
   }
 
   override async signOut(): Promise<AuthData> {
@@ -179,16 +154,10 @@ export class SupabaseProvider extends AuthProvider {
       // already signed out. prevent recursive SIGNED_OUT event.
       return new AuthData(undefined);
     }
-    return await client.auth
-      .signOut()
-      .then((signOutResult) => {
-        if (!signOutResult.error) {
-          return new AuthData(signOutResult);
-        }
-        throw new SupabaseAuthError(signOutResult.error);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    const signOutResult = await client.auth.signOut();
+    if (!signOutResult.error) {
+      return new AuthData(signOutResult);
+    }
+    throw new SupabaseAuthError(signOutResult.error);
   }
 }

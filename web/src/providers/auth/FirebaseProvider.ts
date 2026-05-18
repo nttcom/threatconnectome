@@ -16,11 +16,11 @@ import {
   PhoneAuthProvider,
   PhoneMultiFactorGenerator,
   getMultiFactorResolver,
-  type ActionCodeSettings,
   type Auth,
   type MultiFactorError,
   type MultiFactorResolver,
   type PhoneInfoOptions,
+  type UserCredential,
 } from "firebase/auth";
 
 import type {
@@ -36,15 +36,27 @@ import type {
 } from "../../hooks/auth";
 import i18n from "../../i18n/config";
 import Firebase from "../../utils/Firebase";
-import { getAuthErrorMessage } from "../../utils/authErrorUtils";
+import {
+  getAuthErrorCode,
+  getAuthErrorMessage,
+  normalizeAuthErrorSource,
+  type AuthErrorSource,
+} from "../../utils/authErrorUtils";
 import { isE164Format } from "../../utils/phoneNumberUtils";
 
 import { AuthData, AuthError, AuthProvider } from "./AuthProvider";
 
-type ErrorLike = { code?: string; message?: string } | unknown;
+type FirebaseAuthErrorLike = Error & { code?: string };
 
-function _errorToMessage(error: ErrorLike): string {
-  const message = getAuthErrorMessage(error as never, {
+function isFirebaseAuthErrorLike(error: object): error is FirebaseAuthErrorLike {
+  if (error instanceof Error && "code" in error) {
+    return typeof error.code === "string";
+  }
+  return false;
+}
+
+function _errorToMessage(error: AuthErrorSource): string {
+  const message = getAuthErrorMessage(error, {
     namespace: "providers",
     keyPrefix: "auth.FirebaseProvider",
     defaultMessage: i18n.t("auth.FirebaseProvider.internal-error", { ns: "providers" }),
@@ -53,11 +65,14 @@ function _errorToMessage(error: ErrorLike): string {
 }
 
 class FirebaseAuthError extends AuthError {
-  constructor(error: ErrorLike) {
-    const code = (error as { code?: string })?.code;
-    super(error, code, _errorToMessage(error));
+  constructor(error: AuthErrorSource) {
+    super(error, getAuthErrorCode(error), _errorToMessage(error));
     console.error("Authentication error:", this.message);
   }
+}
+
+function isMultiFactorError(error: FirebaseAuthErrorLike): error is MultiFactorError {
+  return error.code === "auth/multi-factor-auth-required";
 }
 
 async function startSmsLoginFlow(
@@ -92,7 +107,7 @@ async function startSmsLoginFlow(
         };
       } catch (innerError) {
         recaptchaVerifier.clear();
-        throw new FirebaseAuthError(innerError);
+        throw new FirebaseAuthError(normalizeAuthErrorSource(innerError));
       }
     }
   }
@@ -115,13 +130,12 @@ export class FirebaseProvider extends AuthProvider {
     email,
     password,
   }: EmailPasswordArgs): Promise<AuthData> {
-    return await createUserWithEmailAndPassword(Firebase.getAuth(), email, password)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await createUserWithEmailAndPassword(Firebase.getAuth(), email, password);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async signInWithEmailAndPassword({
@@ -130,21 +144,24 @@ export class FirebaseProvider extends AuthProvider {
     recaptchaId,
   }: SignInWithEmailArgs): Promise<SignInResult> {
     const auth = Firebase.getAuth();
-    return await setPersistence(auth, browserSessionPersistence)
-      .then(() => signInWithEmailAndPassword(auth, email, password))
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch(async (error: { code?: string }) => {
-        if (error.code === "auth/multi-factor-auth-required") {
-          if (!recaptchaId) {
-            throw new FirebaseAuthError(error);
-          }
-          return await startSmsLoginFlow(auth, error as MultiFactorError, recaptchaId);
-        } else {
+    try {
+      await setPersistence(auth, browserSessionPersistence);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      return new AuthData(result);
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        isFirebaseAuthErrorLike(error) &&
+        isMultiFactorError(error)
+      ) {
+        if (!recaptchaId) {
           throw new FirebaseAuthError(error);
         }
-      });
+        return startSmsLoginFlow(auth, error, recaptchaId);
+      }
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async signInWithSamlPopup(): Promise<AuthData> {
@@ -155,23 +172,21 @@ export class FirebaseProvider extends AuthProvider {
         message: i18n.t("auth.FirebaseProvider.samlNotSupported", { ns: "providers" }),
       });
     }
-    return await signInWithPopup(Firebase.getAuth(), samlProvider)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await signInWithPopup(Firebase.getAuth(), samlProvider);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async signOut(): Promise<AuthData> {
-    return await signOut(Firebase.getAuth())
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await signOut(Firebase.getAuth());
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async sendEmailVerification({
@@ -181,30 +196,24 @@ export class FirebaseProvider extends AuthProvider {
     if (!currentUser) {
       throw new FirebaseAuthError({ code: "auth/no-current-user" });
     }
-    return await sendEmailVerification(currentUser, actionCodeSettings as ActionCodeSettings | null)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await sendEmailVerification(currentUser, actionCodeSettings);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async sendPasswordResetEmail({
     email,
     actionCodeSettings,
   }: SendPasswordResetArgs): Promise<AuthData> {
-    return await sendPasswordResetEmail(
-      Firebase.getAuth(),
-      email,
-      actionCodeSettings as ActionCodeSettings | undefined,
-    )
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await sendPasswordResetEmail(Firebase.getAuth(), email, actionCodeSettings);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async verifyPasswordResetCode({
@@ -212,13 +221,12 @@ export class FirebaseProvider extends AuthProvider {
   }: {
     actionCode: string;
   }): Promise<AuthData> {
-    return await verifyPasswordResetCode(Firebase.getAuth(), actionCode)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await verifyPasswordResetCode(Firebase.getAuth(), actionCode);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async confirmPasswordReset({
@@ -228,23 +236,21 @@ export class FirebaseProvider extends AuthProvider {
     actionCode: string;
     newPassword: string;
   }): Promise<AuthData> {
-    return await confirmPasswordReset(Firebase.getAuth(), actionCode, newPassword)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await confirmPasswordReset(Firebase.getAuth(), actionCode, newPassword);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async applyActionCode({ actionCode }: { actionCode: string }): Promise<AuthData> {
-    return await applyActionCode(Firebase.getAuth(), actionCode)
-      .then((result) => {
-        return new AuthData(result);
-      })
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await applyActionCode(Firebase.getAuth(), actionCode);
+      return new AuthData(result);
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async registerPhoneNumber(
@@ -287,7 +293,7 @@ export class FirebaseProvider extends AuthProvider {
       return { verificationId: verificationId, phoneInfoOptions: phoneInfoOptions, auth: auth };
     } catch (error) {
       recaptchaVerifier.clear();
-      throw new FirebaseAuthError(error);
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
     }
   }
 
@@ -303,24 +309,24 @@ export class FirebaseProvider extends AuthProvider {
         await multiFactorUser.unenroll(factor);
       }
     } catch (error) {
-      throw new FirebaseAuthError(error);
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
     }
   }
 
   override async verifySmsForLogin(
-    resolver: unknown,
+    resolver: MultiFactorResolver,
     verificationId: string,
     verificationCode: string,
-  ): Promise<unknown> {
+  ): Promise<UserCredential> {
     const cred = PhoneAuthProvider.credential(verificationId, verificationCode);
     const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
 
-    // Complete sign-in.
-    return await (resolver as MultiFactorResolver)
-      .resolveSignIn(multiFactorAssertion)
-      .catch((error) => {
-        throw new FirebaseAuthError(error);
-      });
+    try {
+      const result = await resolver.resolveSignIn(multiFactorAssertion);
+      return result;
+    } catch (error) {
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override async verifySmsForEnrollment(
@@ -339,13 +345,13 @@ export class FirebaseProvider extends AuthProvider {
       // Complete enrollment.
       await multiFactor(currentUser).enroll(multiFactorAssertion, "My personal phone number");
     } catch (error) {
-      throw new FirebaseAuthError(error);
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
     }
   }
 
   override async sendSmsCodeAgain(
-    phoneInfoOptions: unknown,
-    auth: unknown,
+    phoneInfoOptions: PhoneInfoOptions,
+    auth: Auth,
     recaptchaId: string,
   ): Promise<string> {
     const recaptchaForResend = Firebase.getRecaptchaForResend();
@@ -355,22 +361,22 @@ export class FirebaseProvider extends AuthProvider {
       Firebase.setRecaptchaForResend(null);
     }
 
-    const typedAuth = auth as Auth;
-    const recaptchaVerifier = new RecaptchaVerifier(typedAuth, recaptchaId, {
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaId, {
       size: "invisible",
     });
     Firebase.setRecaptchaForResend(recaptchaVerifier);
 
-    const phoneAuthProvider = new PhoneAuthProvider(typedAuth);
-    return await phoneAuthProvider
-      .verifyPhoneNumber(phoneInfoOptions as PhoneInfoOptions, recaptchaVerifier)
-      .then((verificationId) => {
-        return verificationId;
-      })
-      .catch((error) => {
-        recaptchaVerifier.clear();
-        throw new FirebaseAuthError(error);
-      });
+    const phoneAuthProvider = new PhoneAuthProvider(auth);
+    try {
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier,
+      );
+      return verificationId;
+    } catch (error) {
+      recaptchaVerifier.clear();
+      throw new FirebaseAuthError(normalizeAuthErrorSource(error));
+    }
   }
 
   override isSmsAuthenticationEnabled(): boolean {

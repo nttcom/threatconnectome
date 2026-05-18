@@ -53,7 +53,7 @@ class Firebase {
   }
 
   async getBearerToken() {
-    return await this.getAuth()?.currentUser?.getIdToken();
+    return this.getAuth()?.currentUser?.getIdToken();
   }
 
   getRecaptchaForResend() {

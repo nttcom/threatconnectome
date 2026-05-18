@@ -1,6 +1,7 @@
 type Comparable = string | null | undefined;
+type MissingCandidate = Comparable | readonly string[];
 
-const missing = (target: unknown): boolean =>
+const missing = (target: MissingCandidate): boolean =>
   target === "" ||
   target === null ||
   target === undefined ||

@@ -1,3 +1,6 @@
+import type { AuthResponse, SupabaseClient } from "@supabase/supabase-js";
+import type { UserCredential } from "firebase/auth";
+
 import type {
   AuthContextValue,
   AuthStateCallbacks,
@@ -9,20 +12,30 @@ import type {
   SignInResult,
   SignInWithEmailArgs,
   SignInWithRedirectArgs,
+  SmsLoginFlow,
 } from "../../hooks/auth";
+import type { AuthErrorSource } from "../../utils/authErrorUtils";
 
-export class AuthData {
-  public readonly originalData: unknown;
-  constructor(originalData: unknown) {
+export type SupabaseSignOutResponse = Awaited<ReturnType<SupabaseClient["auth"]["signOut"]>>;
+export type AuthDataSource =
+  | AuthResponse
+  | SupabaseSignOutResponse
+  | UserCredential
+  | string
+  | void;
+
+export class AuthData<TOriginalData extends AuthDataSource = AuthDataSource> {
+  public readonly originalData: TOriginalData;
+  constructor(originalData: TOriginalData) {
     this.originalData = originalData;
   }
 }
 
-export class AuthError extends Error {
-  public readonly originalData: unknown;
+export class AuthError<TOriginalData extends AuthErrorSource = AuthErrorSource> extends Error {
+  public readonly originalData: TOriginalData;
   public readonly code: string | undefined;
   constructor(
-    originalData: unknown,
+    originalData: TOriginalData,
     code: string | undefined = undefined,
     message = "Something went wrong.",
   ) {
@@ -32,89 +45,68 @@ export class AuthError extends Error {
   }
 }
 
-// Base class methods declare parameters for the AuthContextValue contract.
-// Subclasses (FirebaseProvider, SupabaseProvider) override; the parameters
-// are referenced via `void` to satisfy noUnusedParameters without using
-// an `_` prefix workaround.
 export class AuthProvider implements AuthContextValue {
-  onAuthStateChanged(callbacks: AuthStateCallbacks): () => void {
-    void callbacks;
+  onAuthStateChanged(_callbacks: AuthStateCallbacks): () => void {
     throw new Error("Not implemented");
   }
-  async createUserWithEmailAndPassword(args: EmailPasswordArgs): Promise<AuthData> {
-    void args;
+  async createUserWithEmailAndPassword(_args: EmailPasswordArgs): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async signInWithEmailAndPassword(args: SignInWithEmailArgs): Promise<SignInResult> {
-    void args;
+  async signInWithEmailAndPassword(_args: SignInWithEmailArgs): Promise<SignInResult> {
     throw new Error("Not implemented");
   }
   async signInWithSamlPopup(): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async signInWithRedirect(args: SignInWithRedirectArgs): Promise<void> {
-    void args;
+  async signInWithRedirect(_args: SignInWithRedirectArgs): Promise<void> {
     throw new Error("Not implemented");
   }
   async signOut(): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async sendEmailVerification(args: SendEmailVerificationArgs): Promise<AuthData> {
-    void args;
+  async sendEmailVerification(_args: SendEmailVerificationArgs): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async sendPasswordResetEmail(args: SendPasswordResetArgs): Promise<AuthData> {
-    void args;
+  async sendPasswordResetEmail(_args: SendPasswordResetArgs): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async verifyPasswordResetCode(args: { actionCode: string }): Promise<AuthData> {
-    void args;
+  async verifyPasswordResetCode(_args: { actionCode: string }): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async confirmPasswordReset(args: { actionCode: string; newPassword: string }): Promise<AuthData> {
-    void args;
+  async confirmPasswordReset(_args: {
+    actionCode: string;
+    newPassword: string;
+  }): Promise<AuthData> {
     throw new Error("Not implemented");
   }
-  async applyActionCode(args: { actionCode: string }): Promise<AuthData> {
-    void args;
+  async applyActionCode(_args: { actionCode: string }): Promise<AuthData> {
     throw new Error("Not implemented");
   }
   async registerPhoneNumber(
-    phoneNumber: string,
-    recaptchaId: string,
-    phoneNumberExamples?: PhoneNumberExamples,
+    _phoneNumber: string,
+    _recaptchaId: string,
+    _phoneNumberExamples?: PhoneNumberExamples,
   ): Promise<RegisterPhoneNumberResult> {
-    void phoneNumber;
-    void recaptchaId;
-    void phoneNumberExamples;
     throw new Error("Not implemented");
   }
   async deletePhoneNumber(): Promise<void> {
     throw new Error("Not implemented");
   }
   async verifySmsForLogin(
-    resolver: unknown,
-    verificationId: string,
-    verificationCode: string,
-  ): Promise<unknown> {
-    void resolver;
-    void verificationId;
-    void verificationCode;
+    _resolver: SmsLoginFlow["resolver"],
+    _verificationId: string,
+    _verificationCode: string,
+  ): ReturnType<AuthContextValue["verifySmsForLogin"]> {
     throw new Error("Not implemented");
   }
-  async verifySmsForEnrollment(verificationId: string, verificationCode: string): Promise<void> {
-    void verificationId;
-    void verificationCode;
+  async verifySmsForEnrollment(_verificationId: string, _verificationCode: string): Promise<void> {
     throw new Error("Not implemented");
   }
   async sendSmsCodeAgain(
-    phoneInfoOptions: unknown,
-    auth: unknown,
-    recaptchaId: string,
+    _phoneInfoOptions: RegisterPhoneNumberResult["phoneInfoOptions"],
+    _auth: RegisterPhoneNumberResult["auth"],
+    _recaptchaId: string,
   ): Promise<string> {
-    void phoneInfoOptions;
-    void auth;
-    void recaptchaId;
     throw new Error("Not implemented");
   }
   isSmsAuthenticationEnabled(): boolean {
