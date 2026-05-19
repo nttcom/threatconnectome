@@ -146,7 +146,11 @@ export function AccountSettingsDialog(props) {
                   <em>{t("none")}</em>
                 </MenuItem>
                 {userMe.pteam_roles.map((pteam_role) => (
-                  <MenuItem key={pteam_role.pteam.pteam_id} value={pteam_role.pteam.pteam_id} sx={{ whiteSpace: "pre" }}>
+                  <MenuItem
+                    key={pteam_role.pteam.pteam_id}
+                    value={pteam_role.pteam.pteam_id}
+                    sx={{ whiteSpace: "pre" }}
+                  >
                     {pteam_role.pteam.pteam_name}
                   </MenuItem>
                 ))}
