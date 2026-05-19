@@ -205,11 +205,11 @@ eol_product_list: list[EOLProductItem] = [
         "product": "containerd",
         "threatconnectome": {
             "product_category": ProductCategoryEnum.MIDDLEWARE,
-            "description": "containerd is an industry-standard container runtime with an emphasis on "
-            "simplicity, robustness, and portability. It is available as a daemon for Linux and Windows. "
-            "It manages the complete container lifecycle of its host system, from image transfer and "
-            "storage to container execution and supervision to low-level storage to network attachments "
-            "and beyond.",
+            "description": "containerd is an industry-standard container runtime with an emphasis "
+            "on simplicity, robustness, and portability. It is available as a daemon for Linux and "
+            "Windows. It manages the complete container lifecycle of its host system, from image "
+            "transfer and storage to container execution and supervision to low-level storage to "
+            "network attachments and beyond.",
             "is_ecosystem": False,
         },
     },
