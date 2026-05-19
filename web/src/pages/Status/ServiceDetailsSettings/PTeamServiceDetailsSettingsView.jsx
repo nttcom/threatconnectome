@@ -292,20 +292,20 @@ export function PTeamServiceDetailsSettingsView(props) {
                       value={keywordText}
                       onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
-                      error={currentKeywordsList.includes(keywordText)}
+                      error={currentKeywordsList.includes(keywordText.trim())}
                       helperText={
-                        currentKeywordsList.includes(keywordText) ? t("sameKeywordExists") : ""
+                        currentKeywordsList.includes(keywordText.trim()) ? t("sameKeywordExists") : ""
                       }
                     />
                     <Button
                       variant="contained"
                       onClick={() => {
-                        const updatedKeywordsList = [...currentKeywordsList, keywordText];
+                        const updatedKeywordsList = [...currentKeywordsList, keywordText.trim()];
                         setCurrentKeywordsList(updatedKeywordsList);
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}
-                      disabled={!keywordText.trim() || currentKeywordsList.includes(keywordText)}
+                      disabled={!keywordText.trim() || currentKeywordsList.includes(keywordText.trim())}
                     >
                       {t("add")}
                     </Button>
