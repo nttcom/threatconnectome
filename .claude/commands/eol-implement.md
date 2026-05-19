@@ -12,7 +12,7 @@ argument-hint: <product-name>
 - Package型: `api/app/business/eol/product/<Product>Product.py` 新規 + `eol_product_factory.py` / `eol_version_factory.py` の case 追加
 - Ecosystem型: `api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py` 新規 + `eol_ecosystem_factory.py` の case 追加
 
-を実施する。**`./api` 配下を変更するため AGENTS.md のルールに従う**。
+を実施する。
 
 ## 入力
 
@@ -24,10 +24,8 @@ argument-hint: <product-name>
 
 着手前にこの順で実施 (失敗時はユーザーに通知して中断):
 
-1. **AGENTS.md `./api` ブロックを必ず読む** (AGENTS.md ルール準拠の宣言)。
-   - 応答に「I have read the `api` block of AGENTS.md.」と明記し、`## api — Rules for changes under ./api` の行を引用する。
-2. `eol-work/<product>-report.md` を `Read` で取得。なければ「先に `/eol-investigate <product>` を実行してください」とユーザーに通知して中断。
-3. レポートの「判定」「Package型の場合: マッチング設計」または「Ecosystem型の場合: マッチング設計」「要レビュー / 不明点」を**ユーザーに提示し、以下を1メッセージでまとめて確認**:
+1. `eol-work/<product>-report.md` を `Read` で取得。なければ「先に `/eol-investigate <product>` を実行してください」とユーザーに通知して中断。
+2. レポートの「判定」「Package型の場合: マッチング設計」または「Ecosystem型の場合: マッチング設計」「要レビュー / 不明点」を**ユーザーに提示し、以下を1メッセージでまとめて確認**:
    - product (TC側キー)
    - product_category (`OS` / `RUNTIME` / `MIDDLEWARE` / `PACKAGE`)
    - description (確定文字列)
