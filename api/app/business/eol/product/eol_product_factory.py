@@ -1,6 +1,7 @@
 from app import models
 
 from .AmazonCorrettoProduct import AmazonCorrettoProduct
+from .ApacheHttpServerProduct import ApacheHttpServerProduct
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
 from .NumpyProduct import NumpyProduct
@@ -17,6 +18,8 @@ def gen_product_instance_for_eol(
     ecosystem: str,
 ) -> EoLBaseProduct:
     match eol_product.name:
+        case "apache-http-server":
+            return ApacheHttpServerProduct(ecosystem)
         case "sqlite":
             return SqliteProduct(ecosystem)
         case "postgresql":

@@ -217,6 +217,18 @@ eol_product_list: list[EOLProductItem] = [
             "is_ecosystem": False,
         },
     },
+    {
+        "product": "apache-http-server",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": (
+                "The Apache HTTP Server Project is a collaborative software development effort "
+                "aimed at creating a robust, commercial-grade, feature-rich and freely available "
+                "source code implementation of an HTTP (Web) server."
+            ),
+            "is_ecosystem": False,
+        },
+    },
 ]
 
 
