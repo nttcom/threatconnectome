@@ -56,7 +56,7 @@ export function AcceptPTeamInvitation() {
   return (
     <>
       <Typography variant="h6">{t("title")}</Typography>
-      <Typography>
+      <Typography sx={{ whiteSpace: "pre" }}>
         {t("teamName")}: {detail.pteam_name}
       </Typography>
       <Typography>
