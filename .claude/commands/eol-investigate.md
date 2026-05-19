@@ -90,14 +90,14 @@ docker compose -f docker-compose-firebase-local.yml exec db psql -U postgres -d 
 `eol-work/<product>-report.md` に以下のフォーマットで保存:
 
 ```markdown
-# EOL Investigation Report: <product>
+# EOL Investigation Report: {{product}}
 
 ## endoflife.date 情報
-- product name (API): <result.name>
+- product name (API): {{result.name}}
 - product_category (推定): <OS|RUNTIME|MIDDLEWARE|PACKAGE> — 根拠: ...
 - description: |
     <endoflife.date HTML 先頭段落、または要レビューの旨>
-- releases 例 (上位3件): <name1>, <name2>, <name3>
+- releases 例 (上位3件): {{name1}}, {{name2}}, {{name3}}
 - バージョン形式: <Major のみ | Major.Minor | 混在>
 
 ## TC DB 抽出結果
@@ -115,7 +115,7 @@ docker compose -f docker-compose-firebase-local.yml exec db psql -U postgres -d 
 - product_category: <Enum>
 
 ## Package型の場合: マッチング設計
-- 必要な Product クラス: <product名>Product.py (新規) or EoLBaseProduct (流用)
+- 必要な Product クラス: {{product名}}Product.py (新規) or EoLBaseProduct (流用)
 - ecosystem 別の package_name 対応:
   - DEBIAN: <package_name パターン>
   - RPM: <package_name パターン>
@@ -127,7 +127,7 @@ docker compose -f docker-compose-firebase-local.yml exec db psql -U postgres -d 
 
 ## Ecosystem型の場合: マッチング設計
 - 既存クラス流用可: <yes/no>
-- 新規クラス名: EoL<Product>Ecosystem.py
+- 新規クラス名: EoL{{Product}}Ecosystem.py
 - ecosystem 文字列フォーマット: <例: ubuntu-YY.MM>
 - 前処理: <例: 末尾の `.0` を削除 / major.minor のみ抽出>
 
@@ -142,7 +142,7 @@ docker compose -f docker-compose-firebase-local.yml exec db psql -U postgres -d 
 ユーザーに以下を1回だけ報告:
 
 ```
-レポート出力: eol-work/<product>-report.md
+レポート出力: eol-work/{{product}}-report.md
 endoflife.date 取得: OK (releases <件数>件)
 TC DB ヒット: ecosystem=<件数>件, package=<件数>件
 推定 is_ecosystem: <True|False>

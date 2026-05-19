@@ -206,19 +206,19 @@ pipenv run codespell ./app
 
 ```
 変更ファイル:
-  - scripts/endoflife2tc.py (eol_product_list に <product> 追加)
-  - api/app/business/eol/product/<Product>Product.py (新規) ← Package型のみ
+  - scripts/endoflife2tc.py (eol_product_list に {{product}} 追加)
+  - api/app/business/eol/product/{{Product}}Product.py (新規) ← Package型のみ
   - api/app/business/eol/product/eol_product_factory.py ← Package型のみ
   - api/app/business/eol/version/eol_version_factory.py ← Package型のみ
-  - api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py (新規) ← Ecosystem型のみ
+  - api/app/business/eol/ecosystem/EoL{{Product}}Ecosystem.py (新規) ← Ecosystem型のみ
   - api/app/business/eol/ecosystem/eol_ecosystem_factory.py ← Ecosystem型のみ
 
 静的チェック: black/ruff/mypy/codespell すべて pass
-テスト: pytest app/tests/ → <pass数> passed / <fail数> failed
+テスト: pytest app/tests/ → {{pass数}} passed / {{fail数}} failed
 
 次のステップ (本コマンドの範囲外):
   - scripts/endoflife2tc.py を実行して EoL データを TC に登録
-  - TC UI の EOL ページで <product> がマッチされているか確認
+  - TC UI の EOL ページで {{product}} がマッチされているか確認
 ```
 
 ## 注意
