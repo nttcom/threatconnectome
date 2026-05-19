@@ -48,6 +48,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
+  const trimmedKeywordText = keywordText.trim();
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
@@ -292,9 +293,9 @@ export function PTeamServiceDetailsSettingsView(props) {
                       value={keywordText}
                       onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
-                      error={currentKeywordsList.includes(keywordText.trim())}
+                      error={currentKeywordsList.includes(trimmedKeywordText)}
                       helperText={
-                        currentKeywordsList.includes(keywordText.trim())
+                        currentKeywordsList.includes(trimmedKeywordText)
                           ? t("sameKeywordExists")
                           : ""
                       }
@@ -302,13 +303,13 @@ export function PTeamServiceDetailsSettingsView(props) {
                     <Button
                       variant="contained"
                       onClick={() => {
-                        const updatedKeywordsList = [...currentKeywordsList, keywordText.trim()];
+                        const updatedKeywordsList = [...currentKeywordsList, trimmedKeywordText];
                         setCurrentKeywordsList(updatedKeywordsList);
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}
                       disabled={
-                        !keywordText.trim() || currentKeywordsList.includes(keywordText.trim())
+                        !trimmedKeywordText || currentKeywordsList.includes(trimmedKeywordText)
                       }
                     >
                       {t("add")}
