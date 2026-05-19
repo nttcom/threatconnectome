@@ -294,7 +294,9 @@ export function PTeamServiceDetailsSettingsView(props) {
                       sx={{ mr: 1 }}
                       error={currentKeywordsList.includes(keywordText.trim())}
                       helperText={
-                        currentKeywordsList.includes(keywordText.trim()) ? t("sameKeywordExists") : ""
+                        currentKeywordsList.includes(keywordText.trim())
+                          ? t("sameKeywordExists")
+                          : ""
                       }
                     />
                     <Button
@@ -305,7 +307,9 @@ export function PTeamServiceDetailsSettingsView(props) {
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}
-                      disabled={!keywordText.trim() || currentKeywordsList.includes(keywordText.trim())}
+                      disabled={
+                        !keywordText.trim() || currentKeywordsList.includes(keywordText.trim())
+                      }
                     >
                       {t("add")}
                     </Button>
