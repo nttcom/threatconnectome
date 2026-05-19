@@ -184,7 +184,7 @@ export function PTeamGeneralSetting(props) {
         <Button
           onClick={() => handleUpdatePTeam()}
           sx={{ ...modalCommonButtonStyle, ml: 1 }}
-          disabled={!user.is_admin}
+          disabled={!user.is_admin || !pteamName?.trim()}
         >
           {t("save")}
         </Button>

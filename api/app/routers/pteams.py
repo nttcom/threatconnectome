@@ -366,6 +366,11 @@ def update_pteam_service(
         service.keywords = sorted(fixed_words)
     if data.service_name is not None:
         update_service_name = data.service_name.strip()
+        if not update_service_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Service name cannot be empty",
+            )
         if (
             unicode_tool.count_full_width_and_half_width_characters(update_service_name)
             > max_service_name_length_in_half
@@ -1187,6 +1192,7 @@ def create_pteam(
         data.pteam_name,
         MAX_PTEAM_NAME_LENGTH_IN_HALF,
         PTEAM_NAME_TOO_LONG_MESSAGE,
+        required=True,
     )
 
     # Validate contact_info
@@ -1727,6 +1733,7 @@ def update_pteam(
             data.pteam_name,
             MAX_PTEAM_NAME_LENGTH_IN_HALF,
             PTEAM_NAME_TOO_LONG_MESSAGE,
+            required=True,
         )
         pteam.pteam_name = update_pteam_name
     if data.contact_info is not None:
