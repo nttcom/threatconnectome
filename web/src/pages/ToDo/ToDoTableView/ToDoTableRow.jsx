@@ -51,7 +51,7 @@ export function ToDoTableRow(props) {
     <>
       <TableRow hover sx={{ cursor: "pointer" }} onClick={handleRowClick}>
         <TableCell>{vulnIsLoading ? "..." : cveId}</TableCell>
-        <TableCell>{pteamIsLoading ? "..." : pteamName}</TableCell>
+        <TableCell sx={{ whiteSpace: "pre" }}>{pteamIsLoading ? "..." : pteamName}</TableCell>
         <TableCell>{serviceIsLoading ? "..." : serviceName}</TableCell>
         <TableCell>{serviceDependencyIsLoading ? "..." : packageName}</TableCell>
         <TableCell>

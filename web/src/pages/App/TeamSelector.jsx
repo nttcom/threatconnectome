@@ -114,7 +114,7 @@ export function TeamSelector() {
                   value={pteam_role.pteam.pteam_id}
                   onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
                 >
-                  {textTrim(pteam_role.pteam.pteam_name)}
+                  <span style={{ whiteSpace: "pre" }}>{textTrim(pteam_role.pteam.pteam_name)}</span>
                 </MenuItem>
               ))}
           <MenuItem onClick={() => setOpenPTeamCreationModal(true)}>
