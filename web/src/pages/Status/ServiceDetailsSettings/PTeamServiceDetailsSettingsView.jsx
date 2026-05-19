@@ -248,8 +248,8 @@ export function PTeamServiceDetailsSettingsView(props) {
                   maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
                 })}
                 onChange={(e) => handleServiceNameSetting(e.target.value)}
-                helperText={serviceName ? "" : t("nameRequired")}
-                error={!serviceName}
+                helperText={serviceName?.trim() ? "" : t("nameRequired")}
+                error={!serviceName?.trim()}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -305,7 +305,7 @@ export function PTeamServiceDetailsSettingsView(props) {
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}
-                      disabled={!keywordText || currentKeywordsList.includes(keywordText)}
+                      disabled={!keywordText.trim() || currentKeywordsList.includes(keywordText)}
                     >
                       {t("add")}
                     </Button>
@@ -399,7 +399,7 @@ export function PTeamServiceDetailsSettingsView(props) {
             }}
             variant="contained"
             sx={{ borderRadius: 5, mr: 2, mb: 1 }}
-            disabled={!isChanged}
+            disabled={!isChanged || !serviceName?.trim()}
           >
             {t("save")}
           </Button>
