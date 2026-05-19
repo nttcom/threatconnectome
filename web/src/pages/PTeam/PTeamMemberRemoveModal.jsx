@@ -53,7 +53,9 @@ export function PTeamMemberRemoveModal(props) {
       </DialogTitle>
       <DialogContent>
         <Box display="flex" flexWrap="wrap" alignItems="baseline" sx={{ my: 2 }}>
-          <Typography>{t("confirmRemove", { userName, pteamName })}</Typography>
+          <Typography sx={{ whiteSpace: "pre" }}>
+            {t("confirmRemove", { userName, pteamName })}
+          </Typography>
         </Box>
       </DialogContent>
       <DialogActions className={dialogStyle.action_area}>
