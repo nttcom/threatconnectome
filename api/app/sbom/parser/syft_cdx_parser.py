@@ -18,6 +18,7 @@ from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
+    SBOM,
     SBOMParser,
 )
 from app.utility.progress_logger import TimeBasedProgressLogger
@@ -170,10 +171,12 @@ class SyftCDXParser(SBOMParser):
     @classmethod
     def parse_sbom(
         cls,
-        sbom_bom: Bom,
+        sbom_bom: SBOM,
         sbom_info: SBOMInfo,
         progress: TimeBasedProgressLogger,
     ) -> list[Artifact]:
+        if not isinstance(sbom_bom, Bom):
+            raise ValueError("Not supported file format")
         if (
             sbom_info.spec_name != "CycloneDX"
             or sbom_info.spec_version not in {"1.4", "1.5", "1.6"}

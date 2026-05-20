@@ -1,0 +1,50 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "sample-syft-spdx",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://example.com/spdxdocs/sample-syft-spdx",
+  "creationInfo": {
+    "created": "2026-05-07T00:00:00Z",
+    "creators": [
+      "Tool: syft-1.22.0"
+    ]
+  },
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-ContainerImage-sample",
+      "name": "root-image",
+      "versionInfo": "sha256:abc",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "primaryPackagePurpose": "CONTAINER"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-PyJWT",
+      "name": "PyJWT",
+      "versionInfo": "1.5.3",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "packageFileName": "requirements.txt",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE_MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/PyJWT@1.5.3"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-ContainerImage-sample"
+    },
+    {
+      "spdxElementId": "SPDXRef-ContainerImage-sample",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-PyJWT"
+    }
+  ]
+}

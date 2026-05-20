@@ -1,4 +1,5 @@
 import json
+import re
 from typing import (
     Type,
 )
@@ -10,9 +11,11 @@ from cyclonedx.validation.json import JsonStrictValidator
 
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
+    SBOM,
     SBOMParser,
 )
 from app.sbom.parser.syft_cdx_parser import SyftCDXParser
+from app.sbom.parser.syft_spdx_parser import SyftSPDXParser
 from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 from app.utility.progress_logger import TimeBasedProgressLogger
 
@@ -61,17 +64,40 @@ def _validate_and_get_version(sbom_json: dict, sbom_str: str) -> str:
         if sbom_json.get("bomFormat") == "CycloneDX":
             return _validate_and_get_cyclonedx_version(sbom_json, sbom_str)
         elif sbom_json.get("SPDXID") == "SPDXRef-DOCUMENT":
-            raise ValueError("SPDX is not yet supported")
+            if sbom_json.get("spdxVersion") == "SPDX-2.3":
+                return "2.3"
+            raise ValueError("Not supported SPDX specVersion")
         else:
             raise ValueError("Not supported file format")
     except (IndexError, KeyError, TypeError):
         raise ValueError("Not supported file format")
 
 
+def _inspect_spdx(sbom_json: dict) -> tuple[str, str | None]:  # tool_name, tool_version
+    creators = (
+        sbom_json.get("creationInfo", {}).get("creators", [])
+        if isinstance(sbom_json.get("creationInfo", {}), dict)
+        else []
+    )
+    for creator in creators:
+        if not isinstance(creator, str) or not creator.startswith("Tool:"):
+            continue
+        tool = creator.split(":", 1)[1].strip()
+        if not tool:
+            continue
+
+        if match := re.match(r"([A-Za-z0-9_.-]+)-([0-9].+)$", tool):
+            return (match.group(1).casefold(), match.group(2))
+        return (tool.casefold(), None)
+
+    raise ValueError("Not supported SPDX format")
+
+
 SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
     # (spec_name, spec_version, tool_name) : SBOMParser
     ("CycloneDX", "trivy"): TrivyCDXParser,
     ("CycloneDX", "syft"): SyftCDXParser,
+    ("SPDX", "syft"): SyftSPDXParser,
 }
 
 
@@ -83,15 +109,25 @@ def sbom_json_to_artifact_json_lines(
     progress.add_progress(0.1)
     spec_version = _validate_and_get_version(sbom_json, sbom_str)
     progress.add_progress(8.9)
-    sbom_bom = Bom.from_json(sbom_json)  # type: ignore[attr-defined]
-    progress.add_progress(1.0)
-    tool_name, tool_version = _inspect_cyclonedx(sbom_bom)
-    sbom_info = SBOMInfo("CycloneDX", spec_version, tool_name, tool_version)
+
+    sbom_data: SBOM
+    if sbom_json.get("bomFormat") == "CycloneDX":
+        cdx_bom = Bom.from_json(sbom_json)  # type: ignore[attr-defined]
+        sbom_data = cdx_bom
+        progress.add_progress(1.0)
+        tool_name, tool_version = _inspect_cyclonedx(cdx_bom)
+        sbom_info = SBOMInfo("CycloneDX", spec_version, tool_name, tool_version)
+    else:
+        sbom_data = sbom_json
+        progress.add_progress(1.0)
+        tool_name, tool_version = _inspect_spdx(sbom_json)
+        sbom_info = SBOMInfo("SPDX", spec_version, tool_name, tool_version)
+
     sbom_parser = SBOM_PARSERS.get((sbom_info.spec_name, sbom_info.tool_name))
     if not sbom_parser:
         raise ValueError("Not supported file format")
 
-    artifacts = sbom_parser.parse_sbom(sbom_bom, sbom_info, progress)
+    artifacts = sbom_parser.parse_sbom(sbom_data, sbom_info, progress)
     return [
         artifact.to_json()
         for artifact in sorted(

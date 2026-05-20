@@ -9,7 +9,7 @@ from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.utility.progress_logger import TimeBasedProgressLogger
 
-SBOM: TypeAlias = dict
+SBOM: TypeAlias = Bom | dict
 
 
 class SBOMParser(ABC):
@@ -17,7 +17,7 @@ class SBOMParser(ABC):
     @abstractmethod
     def parse_sbom(
         cls,
-        sbom_bom: Bom,
+        sbom_bom: SBOM,
         sbom_info: SBOMInfo,
         progress: TimeBasedProgressLogger,
     ) -> list[Artifact]:
