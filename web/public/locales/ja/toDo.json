@@ -69,7 +69,7 @@
       "sortBy": "並べ替え",
       "ascending": "昇順",
       "descending": "降順",
-      "cve_id": "CVE",
+      "cve_id": "CVE ID",
       "pteam_name": "チーム",
       "service_name": "サービス",
       "package_name": "パッケージ",
@@ -83,7 +83,7 @@
     },
     "ToDoTable": {
       "loadingTickets": "チケットを読み込んでいます...",
-      "cve": "CVE",
+      "cve": "CVE ID",
       "team": "チーム",
       "service": "サービス",
       "package": "パッケージ",
