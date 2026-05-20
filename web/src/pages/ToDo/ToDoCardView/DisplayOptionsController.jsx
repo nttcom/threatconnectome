@@ -26,7 +26,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const sortableKeys = [
-  { key: "cve_id", label: "CVE", icon: <FingerprintIcon /> },
+  { key: "cve_id", label: "CVE ID", icon: <FingerprintIcon /> },
   { key: "pteam_name", label: "Team", icon: <GroupOutlinedIcon /> },
   { key: "service_name", label: "Service", icon: <DnsOutlinedIcon /> },
   { key: "package_name", label: "Package", icon: <Inventory2OutlinedIcon /> },

@@ -69,7 +69,7 @@
       "sortBy": "Sort By",
       "ascending": "Ascending",
       "descending": "Descending",
-      "cve_id": "CVE",
+      "cve_id": "CVE ID",
       "pteam_name": "Team",
       "service_name": "Service",
       "package_name": "Package",
@@ -83,7 +83,7 @@
     },
     "ToDoTable": {
       "loadingTickets": "Now loading Tickets...",
-      "cve": "CVE",
+      "cve": "CVE ID",
       "team": "Team",
       "service": "Service",
       "package": "Package",
