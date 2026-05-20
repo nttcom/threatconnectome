@@ -28,6 +28,10 @@ class MajorAndMinorVersion(EoLBaseVersion):
                     return
                 case PackageFamily.PYPI:
                     version_parts = str(PypiVersion(version)).split(".")
+                case PackageFamily.GO:
+                    semver_version = SemverVersion(version.lstrip("v"))
+                    self.version = f"{semver_version.major}.{semver_version.minor}"
+                    return
                 case _:
                     self.version = version
                     return

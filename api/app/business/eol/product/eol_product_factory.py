@@ -2,6 +2,7 @@ from app import models
 
 from .AmazonCorrettoProduct import AmazonCorrettoProduct
 from .ApacheHttpServerProduct import ApacheHttpServerProduct
+from .containerd_product import ContainerdProduct
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
 from .NumpyProduct import NumpyProduct
@@ -38,5 +39,7 @@ def gen_product_instance_for_eol(
             return RubyProduct(ecosystem)
         case "amazon-corretto":
             return AmazonCorrettoProduct(ecosystem)
+        case "containerd":
+            return ContainerdProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.name)
