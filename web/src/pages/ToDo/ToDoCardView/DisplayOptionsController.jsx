@@ -26,11 +26,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const sortableKeys = [
-  { key: "cve_id", label: "CVE ID", icon: <FingerprintIcon /> },
-  { key: "pteam_name", label: "Team", icon: <GroupOutlinedIcon /> },
-  { key: "service_name", label: "Service", icon: <DnsOutlinedIcon /> },
-  { key: "package_name", label: "Package", icon: <Inventory2OutlinedIcon /> },
-  { key: "ssvc_deployer_priority", label: "SSVC", icon: <FlagOutlinedIcon /> },
+  { key: "cve_id", icon: <FingerprintIcon /> },
+  { key: "pteam_name", icon: <GroupOutlinedIcon /> },
+  { key: "service_name", icon: <DnsOutlinedIcon /> },
+  { key: "package_name", icon: <Inventory2OutlinedIcon /> },
+  { key: "ssvc_deployer_priority", icon: <FlagOutlinedIcon /> },
 ];
 
 export function DisplayOptionsController({
