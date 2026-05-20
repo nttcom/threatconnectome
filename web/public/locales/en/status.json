@@ -23,7 +23,7 @@
     "dropOrClickToSelect": "Drop or click to select"
   },
   "SBOMUpdateDialog": {
-    "updateSBOM": "Update SBOM",
+    "updateSBOM": "Upload SBOM",
     "serviceName": "Service name",
     "upload": "Upload",
     "uploadingSBOMFile": "Uploading SBOM file",
