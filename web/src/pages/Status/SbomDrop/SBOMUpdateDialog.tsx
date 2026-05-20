@@ -52,11 +52,12 @@ export function SBOMUpdateDialog({
   const [serviceNameInput, setServiceNameInput] = useState("");
 
   const effectiveServiceName = serviceName ?? serviceNameInput;
+  const trimmedServiceName = effectiveServiceName.trim();
 
   const isDuplicateServiceName =
     !!existingServiceNames &&
-    !!effectiveServiceName &&
-    existingServiceNames.includes(effectiveServiceName);
+    !!trimmedServiceName &&
+    existingServiceNames.includes(trimmedServiceName);
 
   useEffect(() => {
     if (open) {
@@ -70,7 +71,7 @@ export function SBOMUpdateDialog({
   const estimateTime = calculateEstimateTimeFromSize(sbomFile?.size ?? 0);
 
   const handleUpload = () => {
-    if (!sbomFile || !effectiveServiceName) {
+    if (!sbomFile || !trimmedServiceName) {
       alert(t("alertMissingFile"));
       return;
     }
@@ -79,7 +80,7 @@ export function SBOMUpdateDialog({
     enqueueSnackbar(t("uploadingFile", { fileName: sbomFile.name }), { variant: "info" });
     uploadSBOMFile({
       path: { pteam_id: pteamId },
-      query: { service: effectiveServiceName },
+      query: { service: trimmedServiceName },
       body: { file: sbomFile },
     })
       .unwrap()
@@ -170,7 +171,7 @@ export function SBOMUpdateDialog({
           <Button
             variant="contained"
             onClick={handleUpload}
-            disabled={!sbomFile || !effectiveServiceName || isDuplicateServiceName}
+            disabled={!sbomFile || !trimmedServiceName || isDuplicateServiceName}
           >
             {t("upload")}
           </Button>
