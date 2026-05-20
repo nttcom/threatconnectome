@@ -113,7 +113,7 @@ export function SBOMUpdateDialog({
         <DialogTitle>
           <Box sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}>
             <Typography variant="h6" flexGrow={1}>
-              {t("updateSBOM")}
+              {t("uploadSBOM")}
             </Typography>
             <IconButton onClick={handleDialogClose}>
               <CloseIcon />

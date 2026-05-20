@@ -23,7 +23,7 @@
     "dropOrClickToSelect": "ドロップまたはクリックして選択"
   },
   "SBOMUpdateDialog": {
-    "updateSBOM": "SBOMをアップロード",
+    "uploadSBOM": "SBOMをアップロード",
     "serviceName": "サービス名",
     "uploadingSBOMFile": "SBOMファイルのアップロード中",
     "upload": "アップロード",
