@@ -2,11 +2,19 @@ import {
   AddCircleOutlineRounded as AddCircleOutlineRoundedIcon,
   Check as CheckIcon,
   Clear as ClearIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon,
+  InfoOutlined as InfoOutlinedIcon,
   RemoveCircleOutline as RemoveCircleOutlineIcon,
+  StorageRounded as StorageRoundedIcon,
 } from "@mui/icons-material";
 import {
   Box,
+  Card,
+  CardContent,
+  CardMedia,
   Chip,
+  Collapse,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -18,9 +26,13 @@ import {
   Pagination,
   Paper,
   Select,
+  Stack,
   Table,
   TableBody,
+  TableCell,
   TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
   useMediaQuery,
@@ -36,7 +48,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
+import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery, useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
@@ -44,17 +56,184 @@ import { sortedSSVCPackagePriorities, getSsvcPriorityProps } from "../../utils/s
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { DeleteServiceIcon } from "./DeleteServiceIcon";
-import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
 import { PTeamServiceSelectDialog } from "./PTeamServiceSelectDialog";
 import { PTeamServiceTabs } from "./PTeamServiceTabs";
 import { PTeamServicesListModal } from "./PTeamServicesListModal";
 import { PTeamStatusCard } from "./PTeamStatusCard";
 import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
+import { PTeamStatusSSVCCards } from "./PTeamStatusSSVCCards";
 import { FileDropZone } from "./SbomDrop/FileDropZone";
+import { SBOMUpdateButton } from "./SbomDrop/SBOMUpdateButton";
 import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
+import { PTeamServiceDetailsSettings } from "./ServiceDetailsSettings/PTeamServiceDetailsSettings";
 
 const ssvcPriorityCountMax = 99999;
+
+const noImageUrl = "images/no-image-available-720x480.png";
+
+function ServiceLeftPane({ pteamId, service, highestSsvcPriority }) {
+  const { data: thumbnail, isError: thumbnailIsError, isLoading: thumbnailIsLoading } =
+    useGetPTeamServiceThumbnailQuery({
+      path: { pteam_id: pteamId, service_id: service.service_id },
+    });
+  const image =
+    thumbnailIsError || thumbnailIsLoading || !thumbnail ? noImageUrl : thumbnail;
+
+  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [deployOpen, setDeployOpen] = useState(false);
+
+  const ipAddresses = service.asset?.ip_addresses || [];
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+      {/* Service Image */}
+      <Card
+        sx={{
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 3,
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        <CardMedia
+          component="img"
+          image={image}
+          alt={service.service_name}
+          sx={{ aspectRatio: "4/3", width: "100%", objectFit: "cover" }}
+        />
+        <Box sx={{ position: "absolute", top: 0, right: 48 }}>
+          <SBOMUpdateButton pteamId={pteamId} serviceName={service.service_name} />
+        </Box>
+        <PTeamServiceDetailsSettings
+          pteamId={pteamId}
+          service={service}
+          expandService={true}
+        />
+      </Card>
+
+      {/* Details Accordion */}
+      <Card sx={{ border: 1, borderColor: "divider", borderRadius: 3 }}>
+        <Box
+          onClick={() => setDetailsOpen(!detailsOpen)}
+          sx={{ display: "flex", alignItems: "center", px: 2, py: 1.5, cursor: "pointer" }}
+        >
+          <InfoOutlinedIcon sx={{ mr: 1, fontSize: 20, color: "text.secondary" }} />
+          <Typography variant="subtitle2">詳細情報</Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          {detailsOpen ? (
+            <ExpandLessIcon sx={{ color: "text.secondary" }} />
+          ) : (
+            <ExpandMoreIcon sx={{ color: "text.secondary" }} />
+          )}
+        </Box>
+        <Collapse in={detailsOpen}>
+          <CardContent sx={{ pt: 0 }}>
+            <Stack spacing={1.5}>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontWeight: 700, textTransform: "uppercase" }}
+                >
+                  サービス名
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.5 }}>
+                  {service.service_name}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontWeight: 700, textTransform: "uppercase" }}
+                >
+                  説明文
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5, wordBreak: "break-all" }}>
+                  {service.description || (
+                    <Box component="span" sx={{ color: "text.secondary" }}>
+                      未設定
+                    </Box>
+                  )}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontWeight: 700, textTransform: "uppercase" }}
+                >
+                  タグ
+                </Typography>
+                {service.keywords?.length > 0 ? (
+                  <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.5, mt: 0.5 }}>
+                    {service.keywords.map((kw) => (
+                      <Chip key={kw} label={kw} size="small" />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    未設定
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          </CardContent>
+        </Collapse>
+      </Card>
+
+      {/* Deployments Accordion */}
+      <Card sx={{ border: 1, borderColor: "divider", borderRadius: 3 }}>
+        <Box
+          onClick={() => setDeployOpen(!deployOpen)}
+          sx={{ display: "flex", alignItems: "center", px: 2, py: 1.5, cursor: "pointer" }}
+        >
+          <StorageRoundedIcon sx={{ mr: 1, fontSize: 20, color: "text.secondary" }} />
+          <Typography variant="subtitle2">デプロイ先</Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Chip label={`${ipAddresses.length}件`} size="small" sx={{ mr: 1 }} />
+          {deployOpen ? (
+            <ExpandLessIcon sx={{ color: "text.secondary" }} />
+          ) : (
+            <ExpandMoreIcon sx={{ color: "text.secondary" }} />
+          )}
+        </Box>
+        <Collapse in={deployOpen}>
+          <CardContent sx={{ pt: 0 }}>
+            {ipAddresses.length > 0 ? (
+              <Stack spacing={0.5}>
+                {ipAddresses.map((ip, i) => (
+                  <Typography key={i} variant="body2">
+                    {ip}
+                  </Typography>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                未設定
+              </Typography>
+            )}
+          </CardContent>
+        </Collapse>
+      </Card>
+
+      {/* SSVC Cards */}
+      <PTeamStatusSSVCCards
+        pteamId={pteamId}
+        service={service}
+        highestSsvcPriority={highestSsvcPriority}
+      />
+    </Box>
+  );
+}
+
+ServiceLeftPane.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+  service: PropTypes.object.isRequired,
+  highestSsvcPriority: PropTypes.string.isRequired,
+};
 
 function SearchField(props) {
   const { word, onApply } = props;
@@ -132,7 +311,6 @@ export function Status() {
   const pteamId = params.get("pteamId");
   const serviceId = params.get("serviceId");
 
-  const [expandService, setExpandService] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const searchMenuOpen = Boolean(anchorEl);
 
@@ -427,8 +605,6 @@ export function Status() {
     }
   };
 
-  const handleSwitchExpandService = () => setExpandService(!expandService);
-
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -545,89 +721,109 @@ export function Status() {
           />
         ))}
       <CustomTabPanel value={isActiveUploadMode} index={0}>
-        {service && (
-          <PTeamServiceDetailsResponsive
-            pteamId={pteamId}
-            service={service}
-            expandService={expandService}
-            onSwitchExpandService={handleSwitchExpandService}
-            highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
-          />
-        )}
         <Box
           sx={{
-            display: "flex",
-            flexDirection: { md: "row", xs: "column" },
-            justifyContent: "space-between",
-            mt: 2,
+            display: "grid",
+            gridTemplateColumns: service
+              ? { xs: "1fr", md: "minmax(280px, 0.7fr) minmax(0, 1.9fr)" }
+              : "1fr",
+            gap: 3,
           }}
         >
-          {filterRow}
-          <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
-            <SearchField word={searchWord} onApply={handleSearchWord} />
-            <IconButton
-              id="basic-button"
-              aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={searchMenuOpen ? "true" : undefined}
-              onClick={handleClick}
-              size="small"
-              sx={{ mt: 1.5 }}
+          {service && (
+            <ServiceLeftPane
+              pteamId={pteamId}
+              service={service}
+              highestSsvcPriority={
+                pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"
+              }
+            />
+          )}
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { md: "row", xs: "column" },
+                justifyContent: "space-between",
+                mt: 2,
+              }}
             >
-              {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-            </IconButton>
-            {SSVCPriorityMenu}
+              {filterRow}
+              <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+                <SearchField word={searchWord} onApply={handleSearchWord} />
+                <IconButton
+                  id="basic-button"
+                  aria-controls={searchMenuOpen ? "basic-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={searchMenuOpen ? "true" : undefined}
+                  onClick={handleClick}
+                  size="small"
+                  sx={{ mt: 1.5 }}
+                >
+                  {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
+                </IconButton>
+                {SSVCPriorityMenu}
+              </Box>
+            </Box>
+            <TableContainer component={Paper} sx={{ mt: 0.5 }}>
+              <Table sx={{ minWidth: 320 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell style={{ width: "5%" }}>SSVC</TableCell>
+                    <TableCell>{t("packageName")}</TableCell>
+                    <TableCell style={{ width: "15%" }}>ecosystem</TableCell>
+                    <TableCell style={{ width: "15%" }}>{t("license")}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isActiveAllServicesMode ? (
+                    <>
+                      {targetPackages.map((packageInfo) => (
+                        <ErrorBoundary
+                          key={packageInfo.package_id}
+                          FallbackComponent={PTeamStatusCardFallback}
+                        >
+                          <PTeamStatusCard
+                            key={packageInfo.package_id}
+                            onHandleClick={() =>
+                              handleNavigateServiceList(
+                                packageInfo.package_id,
+                                packageInfo.package_name,
+                                packageInfo.service_ids,
+                              )
+                            }
+                            pteam={pteam}
+                            packageInfo={packageInfo}
+                            serviceIds={packageInfo.service_ids}
+                          />
+                        </ErrorBoundary>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {targetPackages.map((packageInfo) => (
+                        <ErrorBoundary
+                          key={packageInfo.package_id}
+                          FallbackComponent={PTeamStatusCardFallback}
+                        >
+                          <PTeamStatusCard
+                            key={packageInfo.package_id}
+                            onHandleClick={() =>
+                              handleNavigatePackage(serviceId, packageInfo.package_id)
+                            }
+                            pteam={pteam}
+                            packageInfo={packageInfo}
+                          />
+                        </ErrorBoundary>
+                      ))}
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {targetPackages.length > 3 && filterRow}
           </Box>
         </Box>
-        <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: 320 }} aria-label="simple table">
-            <TableBody>
-              {isActiveAllServicesMode ? (
-                <>
-                  {targetPackages.map((packageInfo) => (
-                    <ErrorBoundary
-                      key={packageInfo.package_id}
-                      FallbackComponent={PTeamStatusCardFallback}
-                    >
-                      <PTeamStatusCard
-                        key={packageInfo.package_id}
-                        onHandleClick={() =>
-                          handleNavigateServiceList(
-                            packageInfo.package_id,
-                            packageInfo.package_name,
-                            packageInfo.service_ids,
-                          )
-                        }
-                        pteam={pteam}
-                        packageInfo={packageInfo}
-                        serviceIds={packageInfo.service_ids}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {targetPackages.map((packageInfo) => (
-                    <ErrorBoundary
-                      key={packageInfo.package_id}
-                      FallbackComponent={PTeamStatusCardFallback}
-                    >
-                      <PTeamStatusCard
-                        key={packageInfo.package_id}
-                        onHandleClick={() =>
-                          handleNavigatePackage(serviceId, packageInfo.package_id)
-                        }
-                        pteam={pteam}
-                        packageInfo={packageInfo}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {targetPackages.length > 3 && filterRow}
       </CustomTabPanel>
       <CustomTabPanel value={isActiveUploadMode} index={1}>
         <FileDropZone

@@ -5,7 +5,9 @@
     "search_enter": "Search (press ENTER to apply)",
     "loading_team": "Now loading Team...",
     "loading_packages_summary": "Now loading PTeamPackagesSummary...",
-    "rows": "Rows"
+    "rows": "Rows",
+    "packageName": "Package Name",
+    "license": "License"
   },
   "PTeamServicesListModal": {
     "loadingTeam": "Now loading Team...",

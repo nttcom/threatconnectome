@@ -5,7 +5,9 @@
     "search_enter": "検索 (ENTERで適用)",
     "loading_team": "チーム情報を読み込んでいます...",
     "loading_packages_summary": "パッケージサマリーを読み込んでいます...",
-    "rows": "行"
+    "rows": "行",
+    "packageName": "パッケージ名",
+    "license": "ライセンス"
   },
   "PTeamServicesListModal": {
     "loadingTeam": "チーム情報を読み込んでいます...",
