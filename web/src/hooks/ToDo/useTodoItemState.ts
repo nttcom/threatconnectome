@@ -20,7 +20,7 @@ export const useTodoItemState = (ticket: TicketResponse) => {
     isLoading: pteamIsLoading,
     error: pteamError,
   } = useGetPTeamQuery(
-    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}" },
+    { path: { pteam_id: ticket.pteam_id } },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -31,7 +31,7 @@ export const useTodoItemState = (ticket: TicketResponse) => {
     isLoading: pteamServicesIsLoading,
     error: pteamServicesError,
   } = useGetPTeamServicesQuery(
-    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}/services" },
+    { path: { pteam_id: ticket.pteam_id } },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -43,7 +43,7 @@ export const useTodoItemState = (ticket: TicketResponse) => {
   );
 
   const { data: pteamMembers, error: pteamMembersError } = useGetPTeamMembersQuery(
-    { path: { pteam_id: ticket.pteam_id }, url: "/pteams/{pteam_id}/members" },
+    { path: { pteam_id: ticket.pteam_id } },
     {
       skip: skip || !ticket.pteam_id,
     },
@@ -54,7 +54,7 @@ export const useTodoItemState = (ticket: TicketResponse) => {
     isLoading: vulnIsLoading,
     error: vulnError,
   } = useGetVulnQuery(
-    { path: { vuln_id: ticket.vuln_id }, url: "/vulns/{vuln_id}" },
+    { path: { vuln_id: ticket.vuln_id } },
     {
       skip: skip || !ticket.vuln_id,
     },
@@ -67,7 +67,6 @@ export const useTodoItemState = (ticket: TicketResponse) => {
   } = useGetDependencyQuery(
     {
       path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id },
-      url: "/pteams/{pteam_id}/dependencies/{dependency_id}",
     },
     { skip: skip || !ticket.pteam_id || !ticket.dependency_id },
   );

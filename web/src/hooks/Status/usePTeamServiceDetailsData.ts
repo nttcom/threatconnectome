@@ -29,7 +29,6 @@ export function usePTeamServiceDetailsData(
     isLoading: thumbnailIsLoading,
   } = useGetPTeamServiceThumbnailQuery({
     path: { pteam_id: pteamId, service_id: service.service_id },
-    url: "/pteams/{pteam_id}/services/{service_id}/thumbnail",
   });
 
   const image =

@@ -94,7 +94,7 @@ export function usePackageService(
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamQuery(
-    { path: { pteam_id: pteamId }, url: "/pteams/{pteam_id}" },
+    { path: { pteam_id: pteamId } },
     {
       ...options,
       skip: skipByAuth || !pteamId || options.skip,
@@ -120,7 +120,6 @@ export function usePackageDependencies(
     {
       path: { pteam_id: pteamId },
       query: { service_id: serviceId, package_id: packageId, offset, limit },
-      url: "/pteams/{pteam_id}/dependencies",
     },
     {
       ...options,
@@ -136,7 +135,7 @@ export function usePackageDependencies(
 export function usePackagePTeam(pteamId: string, options: PackageQueryOptions = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamQuery(
-    { path: { pteam_id: pteamId }, url: "/pteams/{pteam_id}" },
+    { path: { pteam_id: pteamId } },
     {
       ...options,
       skip: skipByAuth || !pteamId || options.skip,
@@ -161,7 +160,6 @@ export function usePackageVulnIds(
         package_id: packageId,
         related_ticket_status: relatedTicketStatus,
       },
-      url: "/pteams/{pteam_id}/vuln_ids",
     },
     {
       ...options,
@@ -187,7 +185,6 @@ export function usePackageTicketCounts(
         package_id: packageId,
         related_ticket_status: relatedTicketStatus,
       },
-      url: "/pteams/{pteam_id}/ticket_counts",
     },
     {
       ...options,
