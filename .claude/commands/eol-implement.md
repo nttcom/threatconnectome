@@ -7,7 +7,7 @@ arguments:
 
 # EOL対応プロダクト追加: 実装フェーズ
 
-このコマンドは `/eol-investigate <product>` の後に実行する。
+このコマンドは `/eol-investigate [product]` の後に実行する。
 レポート `eol-work/<product>-report.md` を基に、
 
 - `scripts/endoflife2tc.py` の `eol_product_list` 追加

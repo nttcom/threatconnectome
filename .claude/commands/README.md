@@ -5,13 +5,13 @@ Claude Code slash commands for adding new products to the EOL (End-of-Life) feat
 ## Workflow Overview
 
 ```
-/eol-sbom <product>
+/eol-sbom [product]
     ↓  Generate SBOM and register it in TC
-/eol-investigate <product>
+/eol-investigate [product]
     ↓  Output investigation report to eol-work/
 (Review report and edit if needed)
     ↓
-/eol-implement <product>
+/eol-implement [product]
     ↓  Implement matching logic and run tests
 Run scripts/endoflife2tc.py
     ↓  Register EoL data in TC
@@ -26,7 +26,7 @@ Verify in TC UI
 
 ## Command Reference
 
-### `/eol-sbom <product>`
+### `/eol-sbom [product]`
 
 Creates Dockerfiles for each ecosystem (rocky / alpine / ubuntu / pypi / golang / npm), generates SBOMs with trivy, and registers them in TC.
 
@@ -52,7 +52,7 @@ Creates Dockerfiles for each ecosystem (rocky / alpine / ubuntu / pypi / golang 
 
 ---
 
-### `/eol-investigate <product>`
+### `/eol-investigate [product]`
 
 Run after `/eol-sbom`. Makes no code changes.
 
@@ -68,7 +68,7 @@ Run after `/eol-sbom`. Makes no code changes.
 
 ---
 
-### `/eol-implement <product>`
+### `/eol-implement [product]`
 
 Run after `/eol-investigate`. Review the report before proceeding.
 
