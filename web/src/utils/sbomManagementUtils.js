@@ -33,6 +33,14 @@ export function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
+const ssvcPriorityCycle = [
+  "immediate",
+  "out_of_cycle",
+  "scheduled",
+  "defer",
+  "no_known_vulnerability",
+];
+
 export function generateDependencies(count, ecosystem) {
   const names = dependencySeeds[ecosystem] || dependencySeeds.maven;
 
@@ -47,6 +55,7 @@ export function generateDependencies(count, ecosystem) {
       version: `${ecosystem === "npm" ? 1 + (index % 18) : 2 + (index % 7)}.${(index * 3) % 20}.${(index * 7) % 30}`,
       type: ecosystem,
       license: licenses[index % licenses.length],
+      ssvcPriority: ssvcPriorityCycle[index % ssvcPriorityCycle.length],
     };
   });
 }

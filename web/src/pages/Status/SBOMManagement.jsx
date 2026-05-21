@@ -32,6 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import {
   createDefaultSboms,
   createId,
@@ -879,11 +880,16 @@ function DependencyTable({ dependencies, pageStartIndex }) {
             borderTop: index === 0 ? 0 : `1px solid ${slate[100]}`,
             display: "grid",
             fontSize: 14,
-            gridTemplateColumns: "1.4fr 0.7fr 0.65fr 0.8fr",
+            gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
             px: 2,
             py: 1.5,
           }}
         >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {dependency.ssvcPriority && (
+              <SSVCPriorityStatusChip displaySSVCPriority={dependency.ssvcPriority} />
+            )}
+          </Box>
           <Typography noWrap sx={{ color: slate[800], fontSize: 14, fontWeight: 700, minWidth: 0 }}>
             {dependency.name}
           </Typography>
@@ -1576,13 +1582,14 @@ export function SBOMManagement({ initialActiveId, initialSboms = createDefaultSb
                           display: "grid",
                           fontSize: 12,
                           fontWeight: 700,
-                          gridTemplateColumns: "1.4fr 0.7fr 0.65fr 0.8fr",
+                          gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
                           letterSpacing: 0,
                           px: 2,
                           py: 1.5,
                           textTransform: "uppercase",
                         }}
                       >
+                        <Box>SSVC</Box>
                         <Box>パッケージ</Box>
                         <Box>バージョン</Box>
                         <Box>種別</Box>
