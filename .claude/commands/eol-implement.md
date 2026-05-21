@@ -1,6 +1,8 @@
 ---
-description: /eol-investigate のレポートに基づき、scripts/endoflife2tc.py への登録と api/app/business/eol/ 配下のマッチングクラスを実装する
-argument-hint: <product-name>
+description: endoflife.date APIが管理するproductを指定する。/eol-investigate のレポートに基づき、scripts/endoflife2tc.py への登録と api/app/business/eol/ 配下のマッチングクラスを実装する
+argument-hint: [product]
+arguments:
+  - product
 ---
 
 # EOL対応プロダクト追加: 実装フェーズ
@@ -9,22 +11,22 @@ argument-hint: <product-name>
 レポート `eol-work/<product>-report.md` を基に、
 
 - `scripts/endoflife2tc.py` の `eol_product_list` 追加
-- Package型: `api/app/business/eol/product/<Product>Product.py` 新規 + `eol_product_factory.py` / `eol_version_factory.py` の case 追加
-- Ecosystem型: `api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py` 新規 + `eol_ecosystem_factory.py` の case 追加
+- Package型: `api/app/business/eol/product/$product_product.py` 新規 + `eol_product_factory.py` / `eol_version_factory.py` の case 追加
+- Ecosystem型: `api/app/business/eol/ecosystem/eoL_$product_ecosystem.py` 新規 + `eol_ecosystem_factory.py` の case 追加
 
 を実施する。
 
 ## 入力
 
-- プロダクト名: `$ARGUMENTS`
+- プロダクト名: `$product`
   - `/eol-investigate` で使ったプロダクト名と一致させる。空なら確認。
-- レポートファイル: `eol-work/<product>-report.md` (必須)
+- レポートファイル: `eol-work/$product-report.md` (必須)
 
 ## 事前確認
 
 着手前にこの順で実施 (失敗時はユーザーに通知して中断):
 
-1. `eol-work/<product>-report.md` を `Read` で取得。なければ「先に `/eol-investigate <product>` を実行してください」とユーザーに通知して中断。
+1. `eol-work/$product-report.md` を `Read` で取得。なければ「先に `/eol-investigate $product` を実行してください」とユーザーに通知して中断。
 2. レポートの「判定」「Package型の場合: マッチング設計」または「Ecosystem型の場合: マッチング設計」「要レビュー / 不明点」を**ユーザーに提示し、以下を1メッセージでまとめて確認**:
    - product (TC側キー)
    - product_category (`OS` / `RUNTIME` / `MIDDLEWARE` / `PACKAGE`)
@@ -45,7 +47,7 @@ argument-hint: <product-name>
 
 ```python
 {
-    "product": "<product>",
+    "product": "$product",
     "threatconnectome": {
         "product_category": ProductCategoryEnum.<CATEGORY>,
         "description": "<確定 description>",
@@ -58,11 +60,11 @@ argument-hint: <product-name>
 
 ### B-1. Package型の場合 (`is_ecosystem: False`)
 
-#### (a) `<Product>Product.py` 新規作成
+#### (a) `<Product>Product` クラスの新規作成
 
-`api/app/business/eol/product/<Product>Product.py` を作成。クラス名は PascalCase + `Product` (例: `apache-http-server` → `ApacheHttpServerProduct`)。
+`api/app/business/eol/product/$product_product.py` を作成。クラス名はproductのPascalCase + `Product` (例: `apache-http-server` → `ApacheHttpServerProduct`)。
 
-テンプレート (DjangoProduct.py / PostgresqlProduct.py を参考):
+テンプレート (DjangoProductクラス / PostgresqlProductクラス を参考):
 
 ```python
 from app.business.eol.version.<VersionClass> import <VersionClass>
@@ -104,7 +106,7 @@ from .<Product>Product import <Product>Product
 `match` 文に case を追加:
 
 ```python
-case "<product>":
+case "$product":
     return <Product>Product(ecosystem)
 ```
 
@@ -113,7 +115,7 @@ case "<product>":
 #### (c) `eol_version_factory.py` への case 追加
 
 ```python
-case "<product>":
+case "$product":
     return <VersionClass>(version_string, ecosystem)
 ```
 
@@ -121,13 +123,13 @@ case "<product>":
 
 ### B-2. Ecosystem型の場合 (`is_ecosystem: True`)
 
-#### (a) `EoL<Product>Ecosystem.py` 新規作成
+#### (a) `EoL<Product>Ecosystem クラスの新規作成
 
-`api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py` を作成。
-シンプルなフォーマットは `EoLAlpineEcosystem.py` を参考に、`_get_matching_ecosystem` で TC 側 ecosystem 文字列から比較用に整形する。
+`api/app/business/eol/ecosystem/eoL_$product_ecosystem.py` を作成。
+シンプルなフォーマットは EoLAlpineEcosystemクラス を参考に、`_get_matching_ecosystem` で TC 側 ecosystem 文字列から比較用に整形する。
 
 ```python
-from .EoLBaseEcosystem import EoLBaseEcosystem
+from .eoL_base_ecosystem import EoLBaseEcosystem
 
 
 class EoL<Product>Ecosystem(EoLBaseEcosystem):
@@ -207,10 +209,10 @@ pipenv run codespell ./app
 ```
 変更ファイル:
   - scripts/endoflife2tc.py (eol_product_list に {{product}} 追加)
-  - api/app/business/eol/product/{{Product}}Product.py (新規) ← Package型のみ
+  - api/app/business/eol/product/$product_product.py (新規) ← Package型のみ
   - api/app/business/eol/product/eol_product_factory.py ← Package型のみ
   - api/app/business/eol/version/eol_version_factory.py ← Package型のみ
-  - api/app/business/eol/ecosystem/EoL{{Product}}Ecosystem.py (新規) ← Ecosystem型のみ
+  - api/app/business/eol/ecosystem/eoL_$product_ecosystem.py (新規) ← Ecosystem型のみ
   - api/app/business/eol/ecosystem/eol_ecosystem_factory.py ← Ecosystem型のみ
 
 静的チェック: black/ruff/mypy/codespell すべて pass
