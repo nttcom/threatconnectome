@@ -241,6 +241,18 @@ eol_product_list: list[EOLProductItem] = [
             "is_ecosystem": False,
         },
     },
+    {
+        "product": "log4j",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": (
+                "Apache Log4j is a Java-based logging utility. "
+                "It is part of the Apache Logging Services, "
+                "a project of the Apache Software Foundation."
+            ),
+            "is_ecosystem": False,
+        },
+    },
 ]
 
 
