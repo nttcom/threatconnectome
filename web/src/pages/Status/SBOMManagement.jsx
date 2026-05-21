@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -1031,6 +1031,10 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
 export function SBOMManagement({ initialActiveId, initialSboms = createDefaultSboms() }) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
+
+  useEffect(() => {
+    setSboms(initialSboms);
+  }, [initialSboms]);
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);

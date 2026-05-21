@@ -115,6 +115,33 @@ export function isDeleteConfirmationValid(input, title) {
   return input.trim() === (title || "Untitled SBOM");
 }
 
+export function buildSbomsFromPTeam(services, packages) {
+  if (!Array.isArray(services)) return [];
+  const allPackages = Array.isArray(packages) ? packages : [];
+
+  return services.map((service) => ({
+    id: service.service_id,
+    title: service.service_name,
+    description: service.description || "",
+    tags: Array.isArray(service.keywords) ? service.keywords : [],
+    imageUrl: "",
+    deployments: (service.asset?.ip_addresses || []).map((ip, index) => ({
+      id: `dep-${service.service_id}-${index}`,
+      ip,
+      location: "",
+    })),
+    dependencies: allPackages
+      .filter((pkg) => Array.isArray(pkg.service_ids) && pkg.service_ids.includes(service.service_id))
+      .map((pkg) => ({
+        name: pkg.package_name,
+        version: "",
+        type: pkg.ecosystem,
+        license: "",
+        ssvcPriority: pkg.ssvc_priority || "no_known_vulnerability",
+      })),
+  }));
+}
+
 export function createDefaultSboms() {
   return [
     {
