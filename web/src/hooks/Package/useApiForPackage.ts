@@ -123,7 +123,7 @@ export function usePackageDependencies(
     },
     {
       ...options,
-      skip: skipByAuth || !pteamId || !serviceId || options.skip,
+      skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
     },
   );
 }
