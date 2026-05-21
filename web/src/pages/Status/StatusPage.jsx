@@ -1,13 +1,10 @@
 import {
-  AddCircleOutlineRounded as AddCircleOutlineRoundedIcon,
   Check as CheckIcon,
   Clear as ClearIcon,
-  RemoveCircleOutline as RemoveCircleOutlineIcon,
 } from "@mui/icons-material";
 import {
   Box,
   Chip,
-  FormControlLabel,
   IconButton,
   InputAdornment,
   ListItemIcon,
@@ -16,11 +13,7 @@ import {
   MenuItem,
   MenuList,
   Pagination,
-  Paper,
   Select,
-  Table,
-  TableBody,
-  TableContainer,
   TextField,
   Typography,
   useMediaQuery,
@@ -29,11 +22,9 @@ import {
 import { grey } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { Android12Switch } from "../../components/Android12Switch";
 import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery, useGetPTeamPackagesSummaryQuery } from "../../services/tcApi";
@@ -43,13 +34,7 @@ import { errorToString } from "../../utils/func";
 import { sortedSSVCPackagePriorities, getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
-import { DeleteServiceIcon } from "./DeleteServiceIcon";
-import { PTeamServiceDetailsResponsive } from "./PTeamServiceDetails/PTeamServiceDetailsResponsive";
-import { PTeamServiceSelectDialog } from "./PTeamServiceSelectDialog";
-import { PTeamServiceTabs } from "./PTeamServiceTabs";
-import { PTeamServicesListModal } from "./PTeamServicesListModal";
-import { PTeamStatusCard } from "./PTeamStatusCard";
-import { PTeamStatusCardFallback } from "./PTeamStatusCardFallback";
+import { SBOMManagement } from "./SBOMManagement";
 import { FileDropZone } from "./SbomDrop/FileDropZone";
 import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
@@ -517,141 +502,7 @@ export function Status() {
         <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
         <Box flexGrow={1} />
       </Box>
-      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <DeleteServiceIcon pteamId={pteamId} onServiceDeleted={handleServiceDeleted} />
-
-        <SBOMUploadProgressButton pteamId={pteamId} />
-        <FormControlLabel
-          control={
-            <Android12Switch checked={isActiveAllServicesMode} onChange={handleAllServices} />
-          }
-          label={t("all_services")}
-        />
-      </Box>
-      {!isActiveAllServicesMode &&
-        (isMdDown ? (
-          <PTeamServiceSelectDialog
-            services={pteam.services}
-            currentServiceId={serviceId}
-            onChangeService={handleChangeService}
-            setIsActiveUploadMode={setIsActiveUploadMode}
-          />
-        ) : (
-          <PTeamServiceTabs
-            services={pteam.services}
-            currentServiceId={serviceId}
-            onChangeService={handleChangeService}
-            setIsActiveUploadMode={setIsActiveUploadMode}
-          />
-        ))}
-      <CustomTabPanel value={isActiveUploadMode} index={0}>
-        {service && (
-          <PTeamServiceDetailsResponsive
-            pteamId={pteamId}
-            service={service}
-            expandService={expandService}
-            onSwitchExpandService={handleSwitchExpandService}
-            highestSsvcPriority={pteamServicePackagesSummary.packages[0]?.ssvc_priority ?? "defer"}
-          />
-        )}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { md: "row", xs: "column" },
-            justifyContent: "space-between",
-            mt: 2,
-          }}
-        >
-          {filterRow}
-          <Box mb={0.5} sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
-            <SearchField word={searchWord} onApply={handleSearchWord} />
-            <IconButton
-              id="basic-button"
-              aria-controls={searchMenuOpen ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={searchMenuOpen ? "true" : undefined}
-              onClick={handleClick}
-              size="small"
-              sx={{ mt: 1.5 }}
-            >
-              {searchMenuOpen ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineRoundedIcon />}
-            </IconButton>
-            {SSVCPriorityMenu}
-          </Box>
-        </Box>
-        <TableContainer component={Paper} sx={{ mt: 0.5 }}>
-          <Table sx={{ minWidth: 320 }} aria-label="simple table">
-            <TableBody>
-              {isActiveAllServicesMode ? (
-                <>
-                  {targetPackages.map((packageInfo) => (
-                    <ErrorBoundary
-                      key={packageInfo.package_id}
-                      FallbackComponent={PTeamStatusCardFallback}
-                    >
-                      <PTeamStatusCard
-                        key={packageInfo.package_id}
-                        onHandleClick={() =>
-                          handleNavigateServiceList(
-                            packageInfo.package_id,
-                            packageInfo.package_name,
-                            packageInfo.service_ids,
-                          )
-                        }
-                        pteam={pteam}
-                        packageInfo={packageInfo}
-                        serviceIds={packageInfo.service_ids}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {targetPackages.map((packageInfo) => (
-                    <ErrorBoundary
-                      key={packageInfo.package_id}
-                      FallbackComponent={PTeamStatusCardFallback}
-                    >
-                      <PTeamStatusCard
-                        key={packageInfo.package_id}
-                        onHandleClick={() =>
-                          handleNavigatePackage(serviceId, packageInfo.package_id)
-                        }
-                        pteam={pteam}
-                        packageInfo={packageInfo}
-                      />
-                    </ErrorBoundary>
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {targetPackages.length > 3 && filterRow}
-      </CustomTabPanel>
-      <CustomTabPanel value={isActiveUploadMode} index={1}>
-        <FileDropZone
-          onFileSelected={handleFileSelected}
-          selectedFile={null}
-          showFileName={false}
-        />
-        <SBOMUpdateDialog
-          open={sbomUpdateDialogOpen}
-          onClose={handleSbomUpdateDialogClose}
-          pteamId={pteamId}
-          initialFile={selectedFile}
-          onUploaded={handleSBOMUploaded}
-          existingServiceNames={pteam.services.map((s) => s.service_name)}
-          showWarning={false}
-        />
-      </CustomTabPanel>
-      <PTeamServicesListModal
-        onSetShow={setPTeamServicesListModalOpen}
-        show={pTeamServicesListModalOpen}
-        packageId={selectedPackageInfo.packageId}
-        packageName={selectedPackageInfo.packageName}
-        serviceIds={selectedPackageInfo.serviceIds}
-      />
+      <SBOMManagement />
     </>
   );
 }
