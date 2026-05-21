@@ -89,6 +89,18 @@ type GetPTeamEoLsRequestQuery = Pick<
   "path"
 >["path"];
 
+type GetDependenciesRequestParams = Pick<
+  GetDependenciesPteamsPteamIdDependenciesGetData,
+  "path" | "query"
+>;
+
+type GetDependencyRequestParams = Pick<
+  GetDependencyPteamsPteamIdDependenciesDependencyIdGetData,
+  "path"
+>;
+
+type GetPTeamRequestParams = Pick<GetPteamPteamsPteamIdGetData, "path">;
+
 type UploadSbomRequestParams = Pick<
   UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
   "body" | "path" | "query"
@@ -105,10 +117,42 @@ type DeleteInvitationRequestParams = Pick<
   DeleteInvitationPteamsPteamIdInvitationInvitationIdDeleteData,
   "body" | "path"
 >;
+
+type GetPTeamMembersRequestParams = Pick<GetPteamMembersPteamsPteamIdMembersGetData, "path">;
+
+type GetPTeamServicesRequestParams = Pick<GetPteamServicesPteamsPteamIdServicesGetData, "path">;
+
+type GetPTeamVulnIdsRequestParams = Pick<
+  GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData,
+  "path" | "query"
+>;
+
+type GetPTeamTicketCountsRequestParams = Pick<
+  GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetData,
+  "path" | "query"
+>;
+
+type GetPTeamServiceThumbnailRequestParams = Pick<
+  GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData,
+  "path"
+>;
+
 type GetSbomProgressRequestQuery = Pick<
   GetSbomProgressPteamsPteamIdSbomUploadProgressGetData,
   "path"
 >["path"];
+
+type GetPteamTicketsRequestParams = Pick<
+  GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
+  "path" | "query"
+>;
+
+type UpdateTicketRequestParams = Pick<
+  UpdateTicketPteamsPteamIdTicketsTicketIdPutData,
+  "body" | "path"
+>;
+
+type GetVulnRequestParams = Pick<GetVulnVulnsVulnIdGetData, "path">;
 
 export const getBearerToken =
   {
@@ -149,10 +193,7 @@ export const tcApi = createApi({
     }),
 
     /* Dependency */
-    getDependencies: builder.query<
-      Array<DependencyResponse>,
-      GetDependenciesPteamsPteamIdDependenciesGetData
-    >({
+    getDependencies: builder.query<Array<DependencyResponse>, GetDependenciesRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/dependencies`,
         method: "GET",
@@ -168,10 +209,7 @@ export const tcApi = createApi({
         { type: "PTeam", id: _arg.path.pteam_id },
       ],
     }),
-    getDependency: builder.query<
-      DependencyResponse,
-      GetDependencyPteamsPteamIdDependenciesDependencyIdGetData
-    >({
+    getDependency: builder.query<DependencyResponse, GetDependencyRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/dependencies/${arg.path.dependency_id}`,
         method: "GET",
@@ -201,7 +239,7 @@ export const tcApi = createApi({
     }),
 
     /* PTeam */
-    getPTeam: builder.query<PTeamInfo, GetPteamPteamsPteamIdGetData>({
+    getPTeam: builder.query<PTeamInfo, GetPTeamRequestParams>({
       query: (arg) => `pteams/${arg.path.pteam_id}`,
       providesTags: (_result, _error, _arg) => [
         { type: "PTeam", id: _arg.path.pteam_id },
@@ -307,10 +345,7 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Member */
-    getPTeamMembers: builder.query<
-      Array<PteamMemberGetResponse>,
-      GetPteamMembersPteamsPteamIdMembersGetData
-    >({
+    getPTeamMembers: builder.query<Array<PteamMemberGetResponse>, GetPTeamMembersRequestParams>({
       query: (arg) => `pteams/${arg.path.pteam_id}/members`,
 
       providesTags: (_result, _error, _arg) => [
@@ -347,10 +382,7 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Service */
-    getPTeamServices: builder.query<
-      Array<PTeamServiceResponse>,
-      GetPteamServicesPteamsPteamIdServicesGetData
-    >({
+    getPTeamServices: builder.query<Array<PTeamServiceResponse>, GetPTeamServicesRequestParams>({
       query: (arg) => `pteams/${arg.path.pteam_id}/services`,
       providesTags: (_result, _error, _arg) => [
         ...(_result?.map((service) => ({
@@ -395,7 +427,7 @@ export const tcApi = createApi({
     /* PTeam */
     getPTeamVulnIdsTiedToServicePackage: builder.query<
       ServicePackageVulnsSolvedUnsolved,
-      GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData
+      GetPTeamVulnIdsRequestParams
     >({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/vuln_ids`,
@@ -417,7 +449,7 @@ export const tcApi = createApi({
 
     getPTeamTicketCountsTiedToServicePackage: builder.query<
       ServicePackageTicketCountsSolvedUnsolved,
-      GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetData
+      GetPTeamTicketCountsRequestParams
     >({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/ticket_counts`,
@@ -438,10 +470,7 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Service Thumbnail */
-    getPTeamServiceThumbnail: builder.query<
-      void,
-      GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData
-    >({
+    getPTeamServiceThumbnail: builder.query<void, GetPTeamServiceThumbnailRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/services/${arg.path.service_id}/thumbnail`,
         responseHandler: async (response) => await blobToDataURL(await response.blob()),
@@ -558,10 +587,7 @@ export const tcApi = createApi({
         { type: "PTeam", id: "ALL" },
       ],
     }),
-    getPteamTickets: builder.query<
-      Array<TicketResponse>,
-      GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData
-    >({
+    getPteamTickets: builder.query<Array<TicketResponse>, GetPteamTicketsRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/tickets`,
         method: "GET",
@@ -585,10 +611,7 @@ export const tcApi = createApi({
       ],
     }),
 
-    updateTicket: builder.mutation<
-      TicketResponse,
-      Omit<UpdateTicketPteamsPteamIdTicketsTicketIdPutData, "url">
-    >({
+    updateTicket: builder.mutation<TicketResponse, UpdateTicketRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/tickets/${arg.path.ticket_id}`,
         method: "PUT",
@@ -665,7 +688,7 @@ export const tcApi = createApi({
           : []),
       ],
     }),
-    getVuln: builder.query<VulnResponse, GetVulnVulnsVulnIdGetData>({
+    getVuln: builder.query<VulnResponse, GetVulnRequestParams>({
       query: (arg) => `/vulns/${arg.path.vuln_id}`,
       providesTags: (_result, _error, _arg) => [{ type: "Vuln", id: `${_arg.path.vuln_id}` }],
     }),

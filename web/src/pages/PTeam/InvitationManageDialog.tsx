@@ -35,7 +35,6 @@ import { TFunction } from "i18next";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { SerializedError } from "@reduxjs/toolkit";
 
-// @ts-expect-error TS7016
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useCreatePTeamInvitationMutation,

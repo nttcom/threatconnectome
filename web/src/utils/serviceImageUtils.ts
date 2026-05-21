@@ -1,6 +1,18 @@
 import { serviceImageHeightSize, serviceImageWidthSize } from "./const";
 
-export function calculateCenteredCropRect(sourceWidth, sourceHeight, targetWidth, targetHeight) {
+export type CropRect = {
+  sx: number;
+  sy: number;
+  sWidth: number;
+  sHeight: number;
+};
+
+export function calculateCenteredCropRect(
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+): CropRect {
   const sourceAspectRatio = sourceWidth / sourceHeight;
   const targetAspectRatio = targetWidth / targetHeight;
 
@@ -23,15 +35,16 @@ export function calculateCenteredCropRect(sourceWidth, sourceHeight, targetWidth
   };
 }
 
-function readFileAsDataUrl(file) {
+function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
-      if (!event.target?.result) {
+      const result = event.target?.result;
+      if (typeof result !== "string") {
         reject(new Error("Failed to read selected file"));
         return;
       }
-      resolve(event.target.result);
+      resolve(result);
     };
     reader.onerror = () => {
       reject(new Error("Failed to read selected file"));
@@ -40,7 +53,7 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function loadImage(dataUrl) {
+function loadImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
@@ -49,7 +62,7 @@ function loadImage(dataUrl) {
   });
 }
 
-function canvasToBlob(canvas) {
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -61,12 +74,17 @@ function canvasToBlob(canvas) {
   });
 }
 
-function toPngFileName(fileName) {
+function toPngFileName(fileName: string): string {
   const normalizedName = fileName.replace(/\.[^/.]+$/, "");
   return `${normalizedName}.png`;
 }
 
-export async function normalizeServiceImageToPng(file) {
+export type NormalizedServiceImage = {
+  file: File;
+  previewDataUrl: string;
+};
+
+export async function normalizeServiceImageToPng(file: File): Promise<NormalizedServiceImage> {
   const sourceDataUrl = await readFileAsDataUrl(file);
   const sourceImage = await loadImage(sourceDataUrl);
   const cropRect = calculateCenteredCropRect(

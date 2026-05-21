@@ -26,7 +26,6 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 
-// @ts-expect-error TS7016
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";

@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 
-export function useActionLock(resendDelay = 5) {
+export type UseActionLockReturn = {
+  canExecute: boolean;
+  timer: number;
+  lockAction: () => void;
+  unlockAction: () => void;
+};
+
+export function useActionLock(resendDelay = 5): UseActionLockReturn {
   const [canExecute, setCanExecute] = useState(true);
   const [timer, setTimer] = useState(0);
 
   useEffect(() => {
     if (!canExecute) {
-      let interval = setInterval(() => {
+      const interval = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
@@ -21,12 +28,12 @@ export function useActionLock(resendDelay = 5) {
     }
   }, [canExecute]);
 
-  const lockAction = () => {
+  const lockAction = (): void => {
     setCanExecute(false);
     setTimer(resendDelay);
   };
 
-  const unlockAction = () => {
+  const unlockAction = (): void => {
     setCanExecute(true);
     setTimer(0);
   };
