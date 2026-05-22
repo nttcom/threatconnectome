@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
-import { useGetUserMeQuery } from "../../services/tcApi";
+import { useGetUserMeQuery, tcApi } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { LocationReader } from "../../utils/LocationReader";
 import { drawerParams } from "../../utils/const";
@@ -44,6 +44,14 @@ export function TeamSelector() {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
+
+  const prefetchPackagesSummary = tcApi.usePrefetch("getPTeamPackagesSummary");
+  useEffect(() => {
+    if (!userMe?.pteam_roles) return;
+    userMe.pteam_roles.forEach((role) => {
+      prefetchPackagesSummary({ path: { pteam_id: role.pteam.pteam_id } });
+    });
+  }, [userMe, prefetchPackagesSummary]);
 
   useEffect(() => {
     if (!userMe) return;
