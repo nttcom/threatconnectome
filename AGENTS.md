@@ -259,6 +259,8 @@ and those specifications are not clearly defined:
 - Until confirmation, the agent MUST NOT modify files or run modifying commands
 - If confirmation is not given, the agent MUST stop and ask for clarification
 
+Do NOT infer or assume external behavior without explicit confirmation.
+
 ### RTK Query API Definition Rule (IMPORTANT)
 
 When using RTK Query endpoints defined in `./web/src/services/tcApi.ts`:
@@ -281,5 +283,3 @@ type ExampleRequestParams = Pick<GeneratedApiDataType, "body" | "path" | "query"
   definition in `tcApi.ts` to the new style using `Pick` (e.g. as done for
   `getInvitationList` / `useGetInvitationListQuery`). Do NOT leave old-style
   definitions in place.
-
-Do NOT infer or assume external behavior without explicit confirmation.
