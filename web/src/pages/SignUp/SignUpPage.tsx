@@ -14,7 +14,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // @ts-expect-error TS7016
 import { PasswordField } from "../../components/PasswordField";
-// @ts-expect-error TS7016
 import { useAuth } from "../../hooks/auth";
 import { getBearerToken } from "../../services/tcApi";
 

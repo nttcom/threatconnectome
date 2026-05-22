@@ -45,6 +45,8 @@ def gen_version_instance_for_eol(
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "ansible":
                 return MajorOrMajorAndMinorVersion(version_string, ecosystem)
+            case "log4j":
+                return MajorOrMajorAndMinorVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
     except InvalidVersion:

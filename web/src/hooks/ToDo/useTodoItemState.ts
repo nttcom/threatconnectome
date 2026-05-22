@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import type { TicketResponse } from "../../../types/types.gen";
+import { useSkipUntilAuthUserIsReady } from "../auth";
 import {
   useGetDependencyQuery,
   useGetPTeamMembersQuery,
@@ -11,7 +12,7 @@ import {
 import { APIError } from "../../utils/APIError";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
 
-export const useTodoItemState = (ticket) => {
+export const useTodoItemState = (ticket: TicketResponse) => {
   const skip = useSkipUntilAuthUserIsReady();
 
   const {
@@ -64,7 +65,9 @@ export const useTodoItemState = (ticket) => {
     isLoading: serviceDependencyIsLoading,
     error: serviceDependencyError,
   } = useGetDependencyQuery(
-    { path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id } },
+    {
+      path: { pteam_id: ticket.pteam_id, dependency_id: ticket.dependency_id },
+    },
     { skip: skip || !ticket.pteam_id || !ticket.dependency_id },
   );
 
@@ -88,7 +91,7 @@ export const useTodoItemState = (ticket) => {
 
     const assigneeData = ticket.ticket_status?.assignees;
     if (!assigneeData || assigneeData.length === 0) return "-";
-    const getUserEmail = (userId) =>
+    const getUserEmail = (userId: string): string =>
       pteamMembers.find((member) => member.user_id == userId)?.email || "";
     const assigneeIds = assigneeData.map((id) => id.trim());
     const emails = assigneeIds.map((userId) => getUserEmail(userId));

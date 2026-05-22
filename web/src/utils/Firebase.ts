@@ -53,14 +53,14 @@ class Firebase {
   }
 
   async getBearerToken() {
-    return await this.getAuth()?.currentUser?.getIdToken();
+    return this.getAuth()?.currentUser?.getIdToken();
   }
 
   getRecaptchaForResend() {
     return this.recaptchaForResend;
   }
 
-  setRecaptchaForResend(element: RecaptchaVerifier) {
+  setRecaptchaForResend(element: RecaptchaVerifier | null) {
     this.recaptchaForResend = element;
   }
 }

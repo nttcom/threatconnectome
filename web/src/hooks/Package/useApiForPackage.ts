@@ -1,15 +1,60 @@
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
+import type { RelatedTicketStatus } from "../../../types/types.gen";
+import { useSkipUntilAuthUserIsReady } from "../auth";
 import {
   useGetDependenciesQuery,
   useGetPTeamQuery,
   useGetPTeamVulnIdsTiedToServicePackageQuery,
   useGetPTeamTicketCountsTiedToServicePackageQuery,
-} from "../../services/tcApi.js";
+} from "../../services/tcApi";
+
+export type PackageVulnCountsArgs = {
+  pteamId: string;
+  serviceId: string;
+  packageId: string;
+  getVulnIdsReady: boolean;
+};
+
+type PackageServiceQueryOptions = Omit<
+  NonNullable<Parameters<typeof useGetPTeamQuery>[1]>,
+  "selectFromResult"
+>;
+
+type PackageDependenciesQueryOptions = NonNullable<Parameters<typeof useGetDependenciesQuery>[1]>;
+
+type PackagePTeamQueryOptions = NonNullable<Parameters<typeof useGetPTeamQuery>[1]>;
+
+type PackageTicketCountsQueryOptions = NonNullable<
+  Parameters<typeof useGetPTeamTicketCountsTiedToServicePackageQuery>[1]
+>;
+
+type PackageVulnIdsQueryOptions = NonNullable<
+  Parameters<typeof useGetPTeamVulnIdsTiedToServicePackageQuery>[1]
+>;
+
+export type VulnIdsArgs = {
+  pteamId: string;
+  serviceId: string;
+  packageId: string;
+  relatedTicketStatus: RelatedTicketStatus;
+};
+
+export type DependenciesArgs = {
+  pteamId: string;
+  serviceId: string;
+  packageId: string;
+  offset?: number;
+  limit?: number;
+};
 
 /**
  * Custom hook to retrieve the total number of solved/unsolved vulnerabilities
  */
-export function usePackageVulnCounts({ pteamId, serviceId, packageId, getVulnIdsReady }) {
+export function usePackageVulnCounts({
+  pteamId,
+  serviceId,
+  packageId,
+  getVulnIdsReady,
+}: PackageVulnCountsArgs) {
   const {
     solvedVulnCount = 0,
     error: solvedError,
@@ -55,7 +100,11 @@ export function usePackageVulnCounts({ pteamId, serviceId, packageId, getVulnIds
  * Custom hook to retrieve service information only
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
-export function usePackageService(pteamId, serviceId, options = {}) {
+export function usePackageService(
+  pteamId: string,
+  serviceId: string,
+  options: PackageServiceQueryOptions = {},
+) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamQuery(
     { path: { pteam_id: pteamId } },
@@ -76,8 +125,8 @@ export function usePackageService(pteamId, serviceId, options = {}) {
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageDependencies(
-  { pteamId, serviceId, packageId, offset = 0, limit = 1000 },
-  options = {},
+  { pteamId, serviceId, packageId, offset = 0, limit = 1000 }: DependenciesArgs,
+  options: PackageDependenciesQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetDependenciesQuery(
@@ -87,7 +136,7 @@ export function usePackageDependencies(
     },
     {
       ...options,
-      skip: skipByAuth || !pteamId || !serviceId || options.skip,
+      skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
     },
   );
 }
@@ -96,7 +145,7 @@ export function usePackageDependencies(
  * PTeam Information Retrieval Custom Hook
  * Pass to the RTK Query hook using the new argument format ({ path: {} })
  */
-export function usePackagePTeam(pteamId, options = {}) {
+export function usePackagePTeam(pteamId: string, options: PackagePTeamQueryOptions = {}) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamQuery(
     { path: { pteam_id: pteamId } },
@@ -112,8 +161,8 @@ export function usePackagePTeam(pteamId, options = {}) {
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageVulnIds(
-  { pteamId, serviceId, packageId, relatedTicketStatus },
-  options = {},
+  { pteamId, serviceId, packageId, relatedTicketStatus }: VulnIdsArgs,
+  options: PackageVulnIdsQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamVulnIdsTiedToServicePackageQuery(
@@ -137,8 +186,8 @@ export function usePackageVulnIds(
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageTicketCounts(
-  { pteamId, serviceId, packageId, relatedTicketStatus },
-  options = {},
+  { pteamId, serviceId, packageId, relatedTicketStatus }: VulnIdsArgs,
+  options: PackageTicketCountsQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetPTeamTicketCountsTiedToServicePackageQuery(
