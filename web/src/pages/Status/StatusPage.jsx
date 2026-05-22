@@ -191,6 +191,7 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
         initialSboms={sboms}
         initialActiveId={initialActiveServiceId}
         onPackageClick={handlePackageClick}
+        pteamId={pteamId}
       />
     </>
   );

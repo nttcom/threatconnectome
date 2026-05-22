@@ -44,6 +44,8 @@ import {
   parseDependenciesFromSbom,
 } from "../../utils/sbomManagementUtils";
 
+import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
+
 const slate = {
   50: "#f8fafc",
   100: "#f1f5f9",
@@ -1055,6 +1057,7 @@ export function SBOMManagement({
   initialActiveId,
   initialSboms = createDefaultSboms(),
   onPackageClick,
+  pteamId,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
@@ -1072,6 +1075,7 @@ export function SBOMManagement({
   const [dangerOpen, setDangerOpen] = useState(false);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
+  const [pendingUpload, setPendingUpload] = useState(null);
 
   const isEmpty = sboms.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -1194,26 +1198,22 @@ export function SBOMManagement({
   const handleFileUpload = async (event) => {
     const input = event.target;
     const file = input.files?.[0];
+    input.value = "";
 
     if (!file || !activeSbom) {
       return;
     }
 
     try {
-      const dependencies = await readSbomFile(file);
-      updateActiveSbom({
-        dependencies,
-        title:
-          activeSbom.title === "新規SBOM" ? file.name.replace(/\.json$/i, "") : activeSbom.title,
-      });
-      setCurrentPage(1);
+      await readSbomFile(file);
     } catch {
       window.alert(
         "SBOM JSONの読み込みに失敗しました。CycloneDX JSONまたはSPDX JSONを確認してください。",
       );
-    } finally {
-      input.value = "";
+      return;
     }
+
+    setPendingUpload({ file, serviceName: activeSbom.title });
   };
 
   const handleImageUpload = (event) => {
@@ -1241,42 +1241,22 @@ export function SBOMManagement({
   const handleCreateFileUpload = async (event) => {
     const input = event.target;
     const file = input.files?.[0];
+    input.value = "";
 
     if (!file) {
       return;
     }
 
     try {
-      const dependencies = await readSbomFile(file);
-      const nextId = createId("sbom");
-      const firstDeploymentId = createId("dep");
-
-      setSboms((current) => [
-        ...current,
-        {
-          dependencies,
-          deployments: [{ id: firstDeploymentId, ip: "", location: "" }],
-          description: "",
-          id: nextId,
-          imageUrl: "",
-          tags: [],
-          title: file.name.replace(/\.json$/i, "") || "新規SBOM",
-        },
-      ]);
-      setActiveId(nextId);
-      setCurrentPage(1);
-      setDeploymentsEditing(false);
-      setDeploymentsOpen(false);
-      setDetailsEditing(true);
-      setDetailsOpen(true);
-      setQuery("");
+      await readSbomFile(file);
     } catch {
       window.alert(
         "SBOM JSONの読み込みに失敗しました。CycloneDX JSONまたはSPDX JSONを確認してください。",
       );
-    } finally {
-      input.value = "";
+      return;
     }
+
+    setPendingUpload({ file });
   };
 
   if (!activeSbom && !isCreatingSbom) {
@@ -1733,6 +1713,19 @@ export function SBOMManagement({
           </Box>
         )}
       </Box>
+      <SBOMUpdateDialog
+        open={!!pendingUpload}
+        onClose={() => setPendingUpload(null)}
+        pteamId={pteamId}
+        initialFile={pendingUpload?.file ?? null}
+        serviceName={pendingUpload?.serviceName}
+        existingServiceNames={
+          pendingUpload && !pendingUpload.serviceName
+            ? sboms.map((sbom) => sbom.title)
+            : undefined
+        }
+        onUploaded={() => setPendingUpload(null)}
+      />
     </Box>
   );
 }
