@@ -916,7 +916,7 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
               {dependency.name}
             </Typography>
             <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
-              {dependency.version}
+              {dependency.version || "-"}
             </Typography>
             <Box>
               <Chip
@@ -926,7 +926,7 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
               />
             </Box>
             <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
-              {dependency.license}
+              {dependency.license || "-"}
             </Typography>
           </Box>
         );
