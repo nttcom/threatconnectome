@@ -142,7 +142,7 @@ describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
     beforeEach(() => {
       const progresses = {
-        currentData: [
+        data: [
           {
             sbom_upload_progress_id: testPTeamData["pteam_id"],
             service_name: "frontend",
@@ -215,7 +215,7 @@ describe("StatusPage", () => {
       expect(screen.queryByText("Drop or click to select")).toBeNull();
     });
 
-    it("show SBOMDropArea component when the upload button is clicked", async () => {
+    it("show new SBOM registration panel when the new registration button is clicked", async () => {
       const testLocation = {
         pathname: "/",
         search:
@@ -243,8 +243,41 @@ describe("StatusPage", () => {
       const ue = userEvent.setup();
       renderStatusPage();
 
-      await ue.click(screen.getByLabelText("sbom file upload area button"));
-      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
+      await ue.click(screen.getByRole("button", { name: "新規登録" }));
+      expect(screen.getByText("最初のSBOMをアップロード")).toBeInTheDocument();
+    });
+
+    it("show SBOM upload progress button when the service is registered", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      };
+
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      const testPackagesSummary = {
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      };
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByLabelText("Upload Progress"));
+      expect(screen.getByRole("dialog", { name: "Upload Progress" })).toBeInTheDocument();
+      expect(screen.getAllByText("frontend").length).toBeGreaterThan(0);
     });
   });
 });

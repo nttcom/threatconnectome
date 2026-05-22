@@ -148,7 +148,9 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
   const [thumbnails, setThumbnails] = useState({});
 
   const handleThumbnailLoaded = useCallback((serviceId, dataUrl) => {
-    setThumbnails((prev) => (prev[serviceId] === dataUrl ? prev : { ...prev, [serviceId]: dataUrl }));
+    setThumbnails((prev) =>
+      prev[serviceId] === dataUrl ? prev : { ...prev, [serviceId]: dataUrl },
+    );
   }, []);
 
   const sboms = useMemo(() => {
@@ -161,6 +163,9 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
       <Box display="flex" flexDirection="row">
         <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
         <Box flexGrow={1} />
+      </Box>
+      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
       {pteam.services.map((service) => (
         <ServiceThumbnailLoader
