@@ -15,7 +15,7 @@ import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import { buildSbomsFromPTeam } from "../../utils/sbomManagementUtils";
-import { preserveMyTasksParam } from "../../utils/urlUtils";
+import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { SBOMManagement } from "./SBOMManagement";
 import { FileDropZone } from "./SbomDrop/FileDropZone";
@@ -145,6 +145,8 @@ export function Status() {
 }
 
 function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [thumbnails, setThumbnails] = useState({});
 
   const handleThumbnailLoaded = useCallback((serviceId, dataUrl) => {
@@ -157,6 +159,16 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
     const base = buildSbomsFromPTeam(pteam.services, packagesSummary.packages);
     return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
   }, [pteam.services, packagesSummary.packages, thumbnails]);
+
+  const handlePackageClick = useCallback(
+    (serviceId, packageId) => {
+      const preservedParams = preserveParams(location.search);
+      preservedParams.set("pteamId", pteamId);
+      preservedParams.set("serviceId", serviceId);
+      navigate(`/packages/${packageId}?${preservedParams.toString()}`);
+    },
+    [location.search, navigate, pteamId],
+  );
 
   return (
     <>
@@ -175,7 +187,11 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
           onLoaded={handleThumbnailLoaded}
         />
       ))}
-      <SBOMManagement initialSboms={sboms} initialActiveId={initialActiveServiceId} />
+      <SBOMManagement
+        initialSboms={sboms}
+        initialActiveId={initialActiveServiceId}
+        onPackageClick={handlePackageClick}
+      />
     </>
   );
 }

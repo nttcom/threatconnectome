@@ -131,8 +131,12 @@ export function buildSbomsFromPTeam(services, packages) {
       location: "",
     })),
     dependencies: allPackages
-      .filter((pkg) => Array.isArray(pkg.service_ids) && pkg.service_ids.includes(service.service_id))
+      .filter(
+        (pkg) => Array.isArray(pkg.service_ids) && pkg.service_ids.includes(service.service_id),
+      )
       .map((pkg) => ({
+        packageId: pkg.package_id,
+        serviceId: service.service_id,
         name: pkg.package_name,
         version: "",
         type: pkg.ecosystem,

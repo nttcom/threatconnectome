@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
@@ -19,6 +19,8 @@ const renderStatusPage = () => {
     </Provider>,
   );
 };
+
+const navigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal();
@@ -141,6 +143,8 @@ const testPackagesData = {
 describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
     beforeEach(() => {
+      navigate.mockClear();
+      useNavigate.mockReturnValue(navigate);
       const progresses = {
         data: [
           {
@@ -278,6 +282,41 @@ describe("StatusPage", () => {
       await ue.click(screen.getByLabelText("Upload Progress"));
       expect(screen.getByRole("dialog", { name: "Upload Progress" })).toBeInTheDocument();
       expect(screen.getAllByText("frontend").length).toBeGreaterThan(0);
+    });
+
+    it("navigate to package detail when a package row is clicked", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      };
+
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      const testPackagesSummary = {
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      };
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByText("sqlparse"));
+
+      expect(navigate).toHaveBeenCalledWith(
+        "/packages/685335c5-c6aa-47ed-87d9-ce1d3eeaf48d?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      );
     });
   });
 });

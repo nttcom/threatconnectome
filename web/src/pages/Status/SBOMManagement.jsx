@@ -854,7 +854,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
   );
 }
 
-function DependencyTable({ dependencies, pageStartIndex }) {
+function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
   if (dependencies.length === 0) {
     return (
       <Box sx={{ p: 5, textAlign: "center" }}>
@@ -871,43 +871,66 @@ function DependencyTable({ dependencies, pageStartIndex }) {
 
   return (
     <Box>
-      {dependencies.map((dependency, index) => (
-        <Box
-          key={`${dependency.name}-${dependency.version}-${pageStartIndex + index}`}
-          sx={{
-            "&:hover": { bgcolor: slate[50] },
-            alignItems: "center",
-            borderTop: index === 0 ? 0 : `1px solid ${slate[100]}`,
-            display: "grid",
-            fontSize: 14,
-            gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
-            px: 2,
-            py: 1.5,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            {dependency.ssvcPriority && (
-              <SSVCPriorityStatusChip displaySSVCPriority={dependency.ssvcPriority} />
-            )}
+      {dependencies.map((dependency, index) => {
+        const canNavigate = Boolean(onPackageClick && dependency.packageId && dependency.serviceId);
+        const handleNavigate = () => {
+          if (!canNavigate) {
+            return;
+          }
+          onPackageClick(dependency.serviceId, dependency.packageId);
+        };
+
+        return (
+          <Box
+            key={`${dependency.name}-${dependency.version}-${pageStartIndex + index}`}
+            onClick={handleNavigate}
+            onKeyDown={(event) => {
+              if (canNavigate && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                handleNavigate();
+              }
+            }}
+            role={canNavigate ? "button" : undefined}
+            tabIndex={canNavigate ? 0 : undefined}
+            sx={{
+              "&:hover": { bgcolor: slate[50] },
+              alignItems: "center",
+              borderTop: index === 0 ? 0 : `1px solid ${slate[100]}`,
+              cursor: canNavigate ? "pointer" : "default",
+              display: "grid",
+              fontSize: 14,
+              gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
+              px: 2,
+              py: 1.5,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {dependency.ssvcPriority && (
+                <SSVCPriorityStatusChip displaySSVCPriority={dependency.ssvcPriority} />
+              )}
+            </Box>
+            <Typography
+              noWrap
+              sx={{ color: slate[800], fontSize: 14, fontWeight: 700, minWidth: 0 }}
+            >
+              {dependency.name}
+            </Typography>
+            <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
+              {dependency.version}
+            </Typography>
+            <Box>
+              <Chip
+                label={dependency.type}
+                size="small"
+                sx={{ bgcolor: slate[100], color: slate[600], fontSize: 12, fontWeight: 600 }}
+              />
+            </Box>
+            <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
+              {dependency.license}
+            </Typography>
           </Box>
-          <Typography noWrap sx={{ color: slate[800], fontSize: 14, fontWeight: 700, minWidth: 0 }}>
-            {dependency.name}
-          </Typography>
-          <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
-            {dependency.version}
-          </Typography>
-          <Box>
-            <Chip
-              label={dependency.type}
-              size="small"
-              sx={{ bgcolor: slate[100], color: slate[600], fontSize: 12, fontWeight: 600 }}
-            />
-          </Box>
-          <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
-            {dependency.license}
-          </Typography>
-        </Box>
-      ))}
+        );
+      })}
     </Box>
   );
 }
@@ -1028,7 +1051,11 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
   );
 }
 
-export function SBOMManagement({ initialActiveId, initialSboms = createDefaultSboms() }) {
+export function SBOMManagement({
+  initialActiveId,
+  initialSboms = createDefaultSboms(),
+  onPackageClick,
+}) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
 
@@ -1601,6 +1628,7 @@ export function SBOMManagement({ initialActiveId, initialSboms = createDefaultSb
                       </Box>
                       <DependencyTable
                         dependencies={paginatedDependencies}
+                        onPackageClick={onPackageClick}
                         pageStartIndex={pageStartIndex}
                       />
                     </Box>
