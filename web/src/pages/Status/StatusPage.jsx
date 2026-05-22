@@ -71,15 +71,6 @@ export function Status() {
     isLoading: pteamIsLoading,
   } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip: skipByAuth || !pteamId });
 
-  const {
-    currentData: packagesSummary,
-    error: packagesSummaryError,
-    isFetching: packagesSummaryIsFetching,
-  } = useGetPTeamPackagesSummaryQuery(
-    { path: { pteam_id: pteamId } },
-    { skip: skipByAuth || !pteamId },
-  );
-
   useEffect(() => {
     if (!pteamId) return;
     if (pteamIsFetching || !pteam) return;
@@ -100,8 +91,6 @@ export function Status() {
   if (skipByAuth) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>{t("loading_team")}</>;
-  if (packagesSummaryError)
-    throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
   if (pteam.services.length === 0) {
     return (
@@ -130,24 +119,35 @@ export function Status() {
     );
   }
 
-  if (packagesSummaryIsFetching || !packagesSummary) {
-    return <>{t("loading_packages_summary")}</>;
-  }
-
   return (
     <StatusBody
       pteamId={pteamId}
       pteam={pteam}
-      packagesSummary={packagesSummary}
       initialActiveServiceId={serviceId}
     />
   );
 }
 
-function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId }) {
+function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const skipByAuth = useSkipUntilAuthUserIsReady();
   const [thumbnails, setThumbnails] = useState({});
+  const [activeServiceId, setActiveServiceId] = useState(
+    initialActiveServiceId || pteam.services[0]?.service_id,
+  );
+
+  const {
+    currentData: packagesSummary,
+    error: packagesSummaryError,
+    isFetching: packagesSummaryIsFetching,
+  } = useGetPTeamPackagesSummaryQuery(
+    { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
+    { skip: skipByAuth || !pteamId || !activeServiceId },
+  );
+
+  if (packagesSummaryError)
+    throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
   const handleThumbnailLoaded = useCallback((serviceId, dataUrl) => {
     setThumbnails((prev) =>
@@ -156,9 +156,9 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
   }, []);
 
   const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(pteam.services, packagesSummary.packages);
+    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? []);
     return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
-  }, [pteam.services, packagesSummary.packages, thumbnails]);
+  }, [pteam.services, packagesSummary, thumbnails]);
 
   const handlePackageClick = useCallback(
     (serviceId, packageId) => {
@@ -190,8 +190,10 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
       <SBOMManagement
         initialSboms={sboms}
         initialActiveId={initialActiveServiceId}
+        onActiveIdChange={setActiveServiceId}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
+        isFetching={packagesSummaryIsFetching}
       />
     </>
   );
@@ -200,6 +202,5 @@ function StatusBody({ pteamId, pteam, packagesSummary, initialActiveServiceId })
 StatusBody.propTypes = {
   pteamId: PropTypes.string.isRequired,
   pteam: PropTypes.object.isRequired,
-  packagesSummary: PropTypes.object.isRequired,
   initialActiveServiceId: PropTypes.string,
 };

@@ -1056,8 +1056,10 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
 export function SBOMManagement({
   initialActiveId,
   initialSboms = createDefaultSboms(),
+  onActiveIdChange,
   onPackageClick,
   pteamId,
+  isFetching = false,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
@@ -1292,6 +1294,7 @@ export function SBOMManagement({
               key={sbom.id}
               onClick={() => {
                 setActiveId(sbom.id);
+                onActiveIdChange?.(sbom.id);
                 resetUiState();
               }}
               sbom={sbom}
