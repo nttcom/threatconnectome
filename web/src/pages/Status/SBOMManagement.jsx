@@ -1724,6 +1724,7 @@ export function SBOMManagement({
             ? sboms.map((sbom) => sbom.title)
             : undefined
         }
+        showWarning={!!pendingUpload?.serviceName}
         onUploaded={() => setPendingUpload(null)}
       />
     </Box>
