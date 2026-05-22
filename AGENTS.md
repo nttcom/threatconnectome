@@ -259,4 +259,27 @@ and those specifications are not clearly defined:
 - Until confirmation, the agent MUST NOT modify files or run modifying commands
 - If confirmation is not given, the agent MUST stop and ask for clarification
 
+### RTK Query API Definition Rule (IMPORTANT)
+
+When using RTK Query endpoints defined in `./web/src/services/tcApi.ts`:
+
+- Do not specify `url` at the call site.
+- Endpoint URLs MUST be defined only inside `tcApi.ts`.
+- If a generated API data type requires `url`, define an API-specific request
+  parameter type in `tcApi.ts` using `Pick`.
+- Prefer the existing request parameter style:
+
+```ts
+type ExampleRequestParams = Pick<GeneratedApiDataType, "body" | "path" | "query">;
+```
+
+- Do not use generic `Omit<T, "url">` or an equivalent shared helper for these
+  request parameter types unless there is a specific reason.
+- When converting a call site from JavaScript to TypeScript, if the existing
+  endpoint definition in `tcApi.ts` still requires `url` (old style; historical
+  examples include `getDependencies` / `useGetDependenciesQuery`), update that
+  definition in `tcApi.ts` to the new style using `Pick` (e.g. as done for
+  `getInvitationList` / `useGetInvitationListQuery`). Do NOT leave old-style
+  definitions in place.
+
 Do NOT infer or assume external behavior without explicit confirmation.
