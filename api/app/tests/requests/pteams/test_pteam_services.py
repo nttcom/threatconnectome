@@ -487,6 +487,40 @@ class TestPostUploadPTeamSbomFile:
         data = response.json()
         assert data["detail"] == "Length of Service name exceeds 255 characters"
 
+    def test_it_should_return_400_when_upload_sbom_with_spaces_only_servicename(self):
+        params = {"service": "   "}
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "upload_test" / "test_trivy_cyclonedx.json"
+        )
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "Missing service_name"
+
+    def test_it_should_trim_spaces_when_upload_sbom_with_padded_servicename(self):
+        params = {"service": "  myservice  "}
+        sbom_file = (
+            Path(__file__).resolve().parent.parent / "upload_test" / "test_trivy_cyclonedx.json"
+        )
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["service_name"] == "myservice"
+
     @pytest.mark.skip(reason="TODO: need api to get background task status")
     def test_upload_pteam_sbom_file_wrong_content_format(self):
         params = {"service": "threatconnectome"}
@@ -993,8 +1027,6 @@ class TestUpdatePTeamService:
         @pytest.mark.parametrize(
             "service_name, expected",
             [
-                ("", ""),
-                ("   ", ""),
                 (chars_255_in_half, chars_255_in_half),
                 (chars_255_in_half + "  ", chars_255_in_half),
                 (chars_127_in_full, chars_127_in_full),
@@ -1073,6 +1105,36 @@ class TestUpdatePTeamService:
 
             assert response.status_code == 400
             assert response.json()["detail"] == expected
+
+        @pytest.mark.parametrize(
+            "service_name",
+            [
+                "",
+                "   ",
+                "\t",
+                "\n",
+            ],
+        )
+        def test_it_should_return_400_when_service_name_is_empty_or_whitespace_only(
+            self, service_name
+        ):
+            """Test that empty or whitespace-only service_name is rejected on update"""
+            user1_access_token = self._get_access_token(USER1)
+            _headers = {
+                "Authorization": f"Bearer {user1_access_token}",
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            }
+            request = {"service_name": service_name}
+
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=_headers,
+                json=request,
+            )
+
+            assert response.status_code == 400
+            assert response.json()["detail"] == "Service name cannot be empty"
 
         def test_it_should_return_200_when_service_name_is_not_specify(self):
             user1_access_token = self._get_access_token(USER1)

@@ -149,7 +149,7 @@ export function PTeamCreateModal(props) {
                 maxFull: Math.floor(maxPTeamNameLengthInHalf / 2),
               })}
               required
-              error={!pteamName}
+              error={!pteamName?.trim()}
               margin="dense"
             ></TextField>
             <TextField
@@ -173,7 +173,11 @@ export function PTeamCreateModal(props) {
           </Box>
         </DialogContent>
         <DialogActions className={dialogStyle.action_area}>
-          <Button onClick={handleCreate} disabled={!pteamName} className={dialogStyle.submit_btn}>
+          <Button
+            onClick={handleCreate}
+            disabled={!pteamName?.trim()}
+            className={dialogStyle.submit_btn}
+          >
             {t("create")}
           </Button>
         </DialogActions>

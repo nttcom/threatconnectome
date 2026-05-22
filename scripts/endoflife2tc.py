@@ -202,6 +202,18 @@ eol_product_list: list[EOLProductItem] = [
         },
     },
     {
+        "product": "containerd",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": "containerd is an industry-standard container runtime with an emphasis "
+            "on simplicity, robustness, and portability. It is available as a daemon for Linux and "
+            "Windows. It manages the complete container lifecycle of its host system, from image "
+            "transfer and storage to container execution and supervision to low-level storage to "
+            "network attachments and beyond.",
+            "is_ecosystem": False,
+        },
+    },
+    {
         "product": "ansible",
         "threatconnectome": {
             "product_category": ProductCategoryEnum.PACKAGE,
@@ -213,6 +225,30 @@ eol_product_list: list[EOLProductItem] = [
                 "package typically gets 2 major releases every year. A new minor version is "
                 "released every 4 weeks. Maintenance fixes are guaranteed for only the latest "
                 "major release.\nSee the Ansible Roadmap for upcoming release details."
+            ),
+            "is_ecosystem": False,
+        },
+    },
+    {
+        "product": "apache-http-server",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.MIDDLEWARE,
+            "description": (
+                "The Apache HTTP Server Project is a collaborative software development effort "
+                "aimed at creating a robust, commercial-grade, feature-rich and freely available "
+                "source code implementation of an HTTP (Web) server."
+            ),
+            "is_ecosystem": False,
+        },
+    },
+    {
+        "product": "log4j",
+        "threatconnectome": {
+            "product_category": ProductCategoryEnum.PACKAGE,
+            "description": (
+                "Apache Log4j is a Java-based logging utility. "
+                "It is part of the Apache Logging Services, "
+                "a project of the Apache Software Foundation."
             ),
             "is_ecosystem": False,
         },

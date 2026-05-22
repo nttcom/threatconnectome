@@ -1,6 +1,18 @@
+import { expect, test, vi } from "vitest";
+
 import { navigateSpecifiedPteam } from "../locationNavigator";
 
-test.each([
+type TestCase = {
+  locationPathname: string;
+  locationSearch: string;
+  pteamRoles: {
+    pteam_roles: Array<{ pteam: { pteam_id: string } }>;
+  };
+  navigateCallCount: number;
+  expectedParam: string;
+};
+
+const cases: TestCase[] = [
   // not navigate
   {
     locationPathname: "/",
@@ -49,7 +61,9 @@ test.each([
     navigateCallCount: 1,
     expectedParam: "pteamId=pteamId1",
   },
-])(
+];
+
+test.each(cases)(
   "navigateSpecifiedPteam test",
   ({ locationPathname, locationSearch, pteamRoles, navigateCallCount, expectedParam }) => {
     const location = {

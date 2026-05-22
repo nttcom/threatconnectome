@@ -1,8 +1,11 @@
 from app import models
 
 from .AmazonCorrettoProduct import AmazonCorrettoProduct
+from .ApacheHttpServerProduct import ApacheHttpServerProduct
+from .containerd_product import ContainerdProduct
 from .DjangoProduct import DjangoProduct
 from .EoLBaseProduct import EoLBaseProduct
+from .log4j_product import Log4jProduct
 from .NumpyProduct import NumpyProduct
 from .PhpProduct import PhpProduct
 from .PostgresqlProduct import PostgresqlProduct
@@ -17,6 +20,8 @@ def gen_product_instance_for_eol(
     ecosystem: str,
 ) -> EoLBaseProduct:
     match eol_product.name:
+        case "apache-http-server":
+            return ApacheHttpServerProduct(ecosystem)
         case "sqlite":
             return SqliteProduct(ecosystem)
         case "postgresql":
@@ -35,5 +40,9 @@ def gen_product_instance_for_eol(
             return RubyProduct(ecosystem)
         case "amazon-corretto":
             return AmazonCorrettoProduct(ecosystem)
+        case "log4j":
+            return Log4jProduct(ecosystem)
+        case "containerd":
+            return ContainerdProduct(ecosystem)
         case _:
             return EoLBaseProduct(eol_product.name)

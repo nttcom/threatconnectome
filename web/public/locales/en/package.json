@@ -116,7 +116,7 @@
           "saveReason": "Save Reason"
         },
         "CompletionEvidenceSection": {
-          "title": "Evidence of completion",
+          "title": "Evidence",
           "notProvided": "Not entered",
           "save": "Save",
           "updateSuccess": "Updated successfully",

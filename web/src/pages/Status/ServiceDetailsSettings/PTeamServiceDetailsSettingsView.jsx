@@ -48,6 +48,7 @@ export function PTeamServiceDetailsSettingsView(props) {
   const [imagePreview, setImagePreview] = useState(null);
   const [currentKeywordsList, setCurrentKeywordsList] = useState(service.keywords);
   const [keywordText, setKeywordText] = useState("");
+  const trimmedKeywordText = keywordText.trim();
   const [open, setOpen] = useState(false);
   const [keywordAddingMode, setKeywordAddingMode] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(service.description);
@@ -248,8 +249,8 @@ export function PTeamServiceDetailsSettingsView(props) {
                   maxFull: Math.floor(maxServiceNameLengthInHalf / 2),
                 })}
                 onChange={(e) => handleServiceNameSetting(e.target.value)}
-                helperText={serviceName ? "" : t("nameRequired")}
-                error={!serviceName}
+                helperText={serviceName?.trim() ? "" : t("nameRequired")}
+                error={!serviceName?.trim()}
               />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -292,20 +293,24 @@ export function PTeamServiceDetailsSettingsView(props) {
                       value={keywordText}
                       onChange={(e) => handleKeywordSetting(e.target.value)}
                       sx={{ mr: 1 }}
-                      error={currentKeywordsList.includes(keywordText)}
+                      error={currentKeywordsList.includes(trimmedKeywordText)}
                       helperText={
-                        currentKeywordsList.includes(keywordText) ? t("sameKeywordExists") : ""
+                        currentKeywordsList.includes(trimmedKeywordText)
+                          ? t("sameKeywordExists")
+                          : ""
                       }
                     />
                     <Button
                       variant="contained"
                       onClick={() => {
-                        const updatedKeywordsList = [...currentKeywordsList, keywordText];
+                        const updatedKeywordsList = [...currentKeywordsList, trimmedKeywordText];
                         setCurrentKeywordsList(updatedKeywordsList);
                         setKeywordText("");
                         setKeywordAddingMode(false);
                       }}
-                      disabled={!keywordText || currentKeywordsList.includes(keywordText)}
+                      disabled={
+                        !trimmedKeywordText || currentKeywordsList.includes(trimmedKeywordText)
+                      }
                     >
                       {t("add")}
                     </Button>
@@ -399,7 +404,7 @@ export function PTeamServiceDetailsSettingsView(props) {
             }}
             variant="contained"
             sx={{ borderRadius: 5, mr: 2, mb: 1 }}
-            disabled={!isChanged}
+            disabled={!isChanged || !serviceName?.trim()}
           >
             {t("save")}
           </Button>

@@ -49,5 +49,5 @@ def _check_matched_package_version_and_eol_version(
     except ValueError:
         return False
 
-    # compare against primary candidate version
-    return eol_version.version == version.get_versions()[0]
+    # match if any candidate version matches the eol cycle
+    return eol_version.version in version.get_versions()

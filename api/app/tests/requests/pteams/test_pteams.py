@@ -295,6 +295,29 @@ class TestCreatePteam:
         del pteam1.pteam_id, pteam2.pteam_id
         assert pteam1 == pteam2
 
+    @pytest.mark.parametrize(
+        "pteam_name",
+        [
+            "",
+            "   ",
+            "\t",
+            "\n",
+        ],
+    )
+    def test_return_400_when_pteam_name_is_empty_or_whitespace_only(self, pteam_name):
+        """Test that empty or whitespace-only pteam_name is rejected on creation"""
+        # Given
+        create_user(USER1)
+
+        # When
+        response = client.post(
+            "/pteams", headers=headers(USER1), json={**PTEAM1, "pteam_name": pteam_name}
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Field cannot be empty"
+
 
 def test_it_should_return_400_when_try_delete_last_admin():
     user1 = create_user(USER1)
@@ -928,7 +951,6 @@ class TestUpdatePteam:
         pteam1 = create_pteam(USER1, PTEAM1)
 
         empty_data = {
-            "pteam_name": "",
             "contact_info": "",
             "alert_slack": {"enable": False, "webhook_url": ""},
         }
@@ -939,7 +961,7 @@ class TestUpdatePteam:
         # Then
         assert response.status_code == 200
         data = response.json()
-        assert data["pteam_name"] == ""
+        assert data["pteam_name"] == PTEAM1["pteam_name"]
         assert data["contact_info"] == ""
         assert data["alert_slack"]["webhook_url"] == ""
         assert data["alert_ssvc_priority"] == PTEAM1["alert_ssvc_priority"]
@@ -967,3 +989,29 @@ class TestUpdatePteam:
         # Then
         assert response.status_code == 400
         assert response.json()["detail"] == expected_response_detail
+
+    @pytest.mark.parametrize(
+        "pteam_name",
+        [
+            "",
+            "   ",
+            "\t",
+            "\n",
+        ],
+    )
+    def test_return_400_when_pteam_name_is_empty_or_whitespace_only(self, pteam_name):
+        """Test that empty or whitespace-only pteam_name is rejected on update"""
+        # Given
+        create_user(USER1)
+        pteam1 = create_pteam(USER1, PTEAM1)
+
+        # When
+        response = client.put(
+            f"/pteams/{pteam1.pteam_id}",
+            headers=headers(USER1),
+            json={"pteam_name": pteam_name},
+        )
+
+        # Then
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Field cannot be empty"

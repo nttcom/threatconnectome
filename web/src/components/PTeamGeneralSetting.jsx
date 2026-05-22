@@ -184,7 +184,7 @@ export function PTeamGeneralSetting(props) {
         <Button
           onClick={() => handleUpdatePTeam()}
           sx={{ ...modalCommonButtonStyle, ml: 1 }}
-          disabled={!user.is_admin}
+          disabled={!user.is_admin || !pteamName?.trim()}
         >
           {t("save")}
         </Button>
@@ -232,10 +232,10 @@ export function PTeamGeneralSetting(props) {
           <Typography variant="h6">{t("deleteDialogTitle")}</Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography mb={2}>
+          <Typography mb={2} sx={{ whiteSpace: "pre" }}>
             {t("deleteDialogDescription", { teamName: pteam.pteam_name })}
           </Typography>
-          <Typography variant="body2" mb={1}>
+          <Typography variant="body2" mb={1} sx={{ whiteSpace: "pre" }}>
             {t("deleteDialogConfirmLabel", { teamName: pteam.pteam_name })}
           </Typography>
           <TextField

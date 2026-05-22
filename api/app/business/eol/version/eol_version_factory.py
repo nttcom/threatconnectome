@@ -27,6 +27,10 @@ def gen_version_instance_for_eol(
                 return MajorOnlyVersion(version_string, ecosystem)
             case "amazon-corretto":
                 return MajorOnlyVersion(version_string, ecosystem)
+            case "apache-http-server":
+                return MajorAndMinorVersion(version_string, ecosystem)
+            case "containerd":
+                return MajorAndMinorVersion(version_string, ecosystem)
             case "redis":
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "django":
@@ -40,6 +44,8 @@ def gen_version_instance_for_eol(
             case "ruby":
                 return MajorAndMinorVersion(version_string, ecosystem)
             case "ansible":
+                return MajorOrMajorAndMinorVersion(version_string, ecosystem)
+            case "log4j":
                 return MajorOrMajorAndMinorVersion(version_string, ecosystem)
             case _:
                 return EoLBaseVersion(version_string)
