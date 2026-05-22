@@ -4,7 +4,7 @@ When performing a code review:
 
 - Respond in Japanese for all review comments, regardless of the directory or file type being reviewed.
 - Go beyond local code improvements and consider the broader architectural intent.
-- **Apply coding rules during review**: For each file being reviewed, check the applicable directory block in `AGENTS.md` (e.g., the `api` block, the `web` block) as well as the global rules in `AGENTS.md`. If the changed code deviates from the policies defined there, point it out explicitly.
+- **Apply coding rules during review**: For each file being reviewed, verify consistency with repository coding policies relevant to the changed area. If the changed code deviates from those policies, point it out explicitly.
 
 ### General Design Review Principles
 
