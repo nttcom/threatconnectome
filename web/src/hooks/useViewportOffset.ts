@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function useViewportOffset() {
+export function useViewportOffset(): number {
   const [offsetTop, setOffsetTop] = useState(0);
 
   useEffect(() => {
@@ -8,7 +8,7 @@ export function useViewportOffset() {
 
     const vv = window.visualViewport;
 
-    const handleViewportChange = () => {
+    const handleViewportChange = (): void => {
       setOffsetTop(vv.offsetTop || 0);
     };
 

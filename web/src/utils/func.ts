@@ -4,6 +4,11 @@ import { SerializedError } from "@reduxjs/toolkit";
 import { UserResponse } from "../../types/types.gen";
 import { t } from "i18next";
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type ErrorDataWithDetail = {
+  detail?: JsonValue;
+};
+
 export const a11yProps = (index: number) => ({
   id: `tab-${index}`,
   "aria-controls": `tabpanel-${index}`,
@@ -53,7 +58,7 @@ export const errorToString = (error: string | SerializedError | FetchBaseQueryEr
   if (typeof error === "string") return error;
   if ("status" in error && error.data && typeof error.data === "object" && "detail" in error.data) {
     // RTKQ
-    const detail = (error.data as Record<string, unknown>).detail;
+    const detail = (error.data as ErrorDataWithDetail).detail;
     if (typeof detail === "string") return `${error.status}: ${detail}`;
     return `${error.status}: ${JSON.stringify(detail)}`; // maybe 422
   }

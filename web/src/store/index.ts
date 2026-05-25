@@ -12,4 +12,6 @@ const store = configureStore({
   devTools: import.meta.env.NODE_ENV !== "production",
 });
 
+export type RootState = ReturnType<typeof store.getState>;
+
 export default store;
