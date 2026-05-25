@@ -1,8 +1,8 @@
 import logging
 
-from .EoLBaseVersion import EoLBaseVersion
-from .MajorAndMinorVersion import MajorAndMinorVersion
-from .MajorOnlyVersion import MajorOnlyVersion
+from .eol_base_version import EoLBaseVersion
+from .major_and_minor_version import MajorAndMinorVersion
+from .major_only_version import MajorOnlyVersion
 
 
 class MajorOrMajorAndMinorVersion(EoLBaseVersion):

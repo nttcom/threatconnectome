@@ -1,9 +1,9 @@
 from univers.versions import InvalidVersion
 
-from .EoLBaseVersion import EoLBaseVersion
-from .MajorAndMinorVersion import MajorAndMinorVersion
-from .MajorOnlyVersion import MajorOnlyVersion
-from .MajorOrMajorAndMinorVersion import MajorOrMajorAndMinorVersion
+from .eol_base_version import EoLBaseVersion
+from .major_and_minor_version import MajorAndMinorVersion
+from .major_only_version import MajorOnlyVersion
+from .major_or_major_and_minor_version import MajorOrMajorAndMinorVersion
 
 
 def gen_version_instance_for_eol(

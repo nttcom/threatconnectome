@@ -78,8 +78,8 @@ Run after `/eol-investigate`. Review the report before proceeding.
 
 | is_ecosystem | Files changed |
 |---|---|
-| False (Package type) | `scripts/endoflife2tc.py`, `api/app/business/eol/product/<Product>Product.py` (new), `eol_product_factory.py`, `eol_version_factory.py` |
-| True (Ecosystem type) | `scripts/endoflife2tc.py`, `api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py` (new), `eol_ecosystem_factory.py` |
+| False (Package type) | `scripts/endoflife2tc.py`, `api/app/business/eol/product/$product_product.py` (new), `eol_product_factory.py`, `eol_version_factory.py` |
+| True (Ecosystem type) | `scripts/endoflife2tc.py`, `api/app/business/eol/ecosystem/eol_$product_ecosystem.py` (new), `eol_ecosystem_factory.py` |
 
 After implementation, black / ruff / mypy / codespell and pytest are run automatically.
 
