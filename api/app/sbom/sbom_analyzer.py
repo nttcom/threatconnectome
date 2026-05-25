@@ -1,5 +1,4 @@
 import json
-import re
 from typing import (
     Type,
 )
@@ -44,6 +43,26 @@ def _inspect_cyclonedx(
         raise ValueError("Not supported CycloneDX format")
 
 
+def _inspect_spdx(sbom_json: dict) -> tuple[str, str | None]:  # tool_name, tool_version
+    creators = (
+        sbom_json.get("creationInfo", {}).get("creators", [])
+        if isinstance(sbom_json.get("creationInfo", {}), dict)
+        else []
+    )
+    for creator in creators:
+        if not isinstance(creator, str) or not creator.startswith("Tool:"):
+            continue
+        tool = creator.split(":", 1)[1].strip()
+        if not tool:
+            continue
+
+        if match := re.match(r"([A-Za-z0-9_.-]+?)-v?([0-9].+)$", tool):
+            return (match.group(1).casefold(), match.group(2))
+        return (tool.casefold(), None)
+
+    raise ValueError("Not supported SPDX format")
+
+
 def _validate_and_get_cyclonedx_version(sbom_json: dict, sbom_str: str) -> str:
     spec_versions = {
         "1.6": SchemaVersion.V1_6,
@@ -73,26 +92,6 @@ def _validate_and_get_version(sbom_json: dict, sbom_str: str) -> str:
             raise ValueError("Not supported file format")
     except (IndexError, KeyError, TypeError):
         raise ValueError("Not supported file format")
-
-
-def _inspect_spdx(sbom_json: dict) -> tuple[str, str | None]:  # tool_name, tool_version
-    creators = (
-        sbom_json.get("creationInfo", {}).get("creators", [])
-        if isinstance(sbom_json.get("creationInfo", {}), dict)
-        else []
-    )
-    for creator in creators:
-        if not isinstance(creator, str) or not creator.startswith("Tool:"):
-            continue
-        tool = creator.split(":", 1)[1].strip()
-        if not tool:
-            continue
-
-        if match := re.match(r"([A-Za-z0-9_.-]+?)-v?([0-9].+)$", tool):
-            return (match.group(1).casefold(), match.group(2))
-        return (tool.casefold(), None)
-
-    raise ValueError("Not supported SPDX format")
 
 
 SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
