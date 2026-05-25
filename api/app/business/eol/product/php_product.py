@@ -1,7 +1,7 @@
-from app.business.eol.version.MajorAndMinorVersion import MajorAndMinorVersion
+from app.business.eol.version.major_and_minor_version import MajorAndMinorVersion
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseProduct import EoLBaseProduct
+from .eol_base_product import EoLBaseProduct
 
 
 class PhpProduct(EoLBaseProduct):

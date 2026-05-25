@@ -1,7 +1,7 @@
-from app.business.eol.version.MajorOnlyVersion import MajorOnlyVersion
+from app.business.eol.version.major_only_version import MajorOnlyVersion
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseProduct import EoLBaseProduct
+from .eol_base_product import EoLBaseProduct
 
 
 class PostgresqlProduct(EoLBaseProduct):

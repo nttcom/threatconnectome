@@ -1,10 +1,10 @@
-from app.business.eol.version.MajorOnlyVersion import MajorOnlyVersion
+from app.business.eol.version.major_only_version import MajorOnlyVersion
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseProduct import EoLBaseProduct
+from .eol_base_product import EoLBaseProduct
 
 
-class AmazonCorrettoProduct(EoLBaseProduct):
+class DjangoProduct(EoLBaseProduct):
     def __init__(self, ecosystem: str):
         self.ecosystem = ecosystem
 
@@ -13,11 +13,13 @@ class AmazonCorrettoProduct(EoLBaseProduct):
         package_family = PackageFamily.from_registry(self.ecosystem)
 
         match package_family:
-            case PackageFamily.RPM:
-                return package_name == f"java-{major_version}-amazon-corretto-devel"
             case PackageFamily.DEBIAN:
-                return package_name == f"java-{major_version}-amazon-corretto-jdk"
+                return package_name == "python3-django"
+            case PackageFamily.RPM:
+                return package_name == f"python3-django{major_version}"
             case PackageFamily.ALPINE:
-                return package_name == f"amazon-corretto-{major_version}"
+                return package_name == "py3-django"
+            case PackageFamily.PYPI:
+                return package_name == "django"
             case _:
                 return False

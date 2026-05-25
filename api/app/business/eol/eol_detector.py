@@ -3,9 +3,9 @@ from app.business.eol.ecosystem import eol_ecosystem_factory
 from app.business.eol.product import eol_product_factory
 from app.business.eol.version import eol_version_factory
 
-from .ecosystem.EoLBaseEcosystem import EoLBaseEcosystem
-from .product.EoLBaseProduct import EoLBaseProduct
-from .version.EoLBaseVersion import EoLBaseVersion
+from .ecosystem.eol_base_ecosystem import EoLBaseEcosystem
+from .product.eol_base_product import EoLBaseProduct
+from .version.eol_base_version import EoLBaseVersion
 
 
 def match_eol_for_ecosystem(
