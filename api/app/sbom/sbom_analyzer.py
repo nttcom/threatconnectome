@@ -97,7 +97,7 @@ def _inspect_spdx(sbom_json: dict) -> tuple[str, str | None]:  # tool_name, tool
 
 
 SBOM_PARSERS: dict[tuple[str, str], Type[SBOMParser]] = {
-    # (spec_name, spec_version, tool_name) : SBOMParser
+    # (spec_name, tool_name) : SBOMParser
     ("CycloneDX", "trivy"): TrivyCDXParser,
     ("CycloneDX", "syft"): SyftCDXParser,
     ("SPDX", "syft"): SyftSPDXParser,
