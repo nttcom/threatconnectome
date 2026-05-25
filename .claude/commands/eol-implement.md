@@ -11,8 +11,8 @@ arguments:
 レポート `eol-work/$product-report.md` を基に、
 
 - `scripts/endoflife2tc.py` の `eol_product_list` 追加
-- Package型: `api/app/business/eol/product/$product_product.py` 新規 + `eol_product_factory.py` / `eol_version_factory.py` の case 追加
-- Ecosystem型: `api/app/business/eol/ecosystem/eol_$product_ecosystem.py` 新規 + `eol_ecosystem_factory.py` の case 追加
+- Package型: `api/app/business/eol/product/<product_snake>_product.py` 新規 + `eol_product_factory.py` / `eol_version_factory.py` の case 追加
+- Ecosystem型: `api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py` 新規 + `eol_ecosystem_factory.py` の case 追加
 
 を実施する。
 
@@ -20,6 +20,9 @@ arguments:
 
 - プロダクト名: `$product`
   - `/eol-investigate` で使ったプロダクト名と一致させる。空なら確認。
+- モジュール/ファイル名用プロダクト名: `<product_snake>`
+  - `$product` を Python モジュール名として有効な snake_case へ変換した派生値。
+  - 例: `apache-http-server` -> `apache_http_server`
 - レポートファイル: `eol-work/$product-report.md` (必須)
 
 ## 事前確認
@@ -62,7 +65,7 @@ arguments:
 
 #### (a) `<Product>Product` クラスの新規作成
 
-`api/app/business/eol/product/$product_product.py` を作成。クラス名はproductのPascalCase + `Product` (例: `apache-http-server` → `ApacheHttpServerProduct`)。
+`api/app/business/eol/product/<product_snake>_product.py` を作成。クラス名はproductのPascalCase + `Product` (例: `apache-http-server` → `ApacheHttpServerProduct`)。
 
 テンプレート (DjangoProductクラス / PostgresqlProductクラス を参考):
 
@@ -100,7 +103,7 @@ class <Product>Product(EoLBaseProduct):
 #### (b) `eol_product_factory.py` への case 追加
 
 ```python
-from .$product_product import <Product>Product
+from .<product_snake>_product import <Product>Product
 ```
 を import 群に追加 (アルファベット順を保つ)。
 `match` 文に case を追加:
@@ -125,7 +128,7 @@ case "$product":
 
 #### (a) `EoL<Product>Ecosystem クラスの新規作成
 
-`api/app/business/eol/ecosystem/eol_$product_ecosystem.py` を作成。
+`api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py` を作成。
 シンプルなフォーマットは EoLAlpineEcosystemクラス を参考に、`_get_matching_ecosystem` で TC 側 ecosystem 文字列から比較用に整形する。
 
 ```python
@@ -152,7 +155,7 @@ ecosystem 文字列のフォーマット (例: `ubuntu-22.04` のように major
 #### (b) `eol_ecosystem_factory.py` への case 追加
 
 ```python
-from .eol_$product_ecosystem import EoL<Product>Ecosystem
+from .eol_<product_snake>_ecosystem import EoL<Product>Ecosystem
 ```
 を import 群に追加。
 `match` 文に case を追加:
@@ -209,10 +212,10 @@ pipenv run codespell ./app
 ```
 変更ファイル:
   - scripts/endoflife2tc.py (eol_product_list に {{product}} 追加)
-  - api/app/business/eol/product/$product_product.py (新規) ← Package型のみ
+  - api/app/business/eol/product/<product_snake>_product.py (新規) ← Package型のみ
   - api/app/business/eol/product/eol_product_factory.py ← Package型のみ
   - api/app/business/eol/version/eol_version_factory.py ← Package型のみ
-    - api/app/business/eol/ecosystem/eol_$product_ecosystem.py (新規) ← Ecosystem型のみ
+    - api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py (新規) ← Ecosystem型のみ
   - api/app/business/eol/ecosystem/eol_ecosystem_factory.py ← Ecosystem型のみ
 
 静的チェック: black/ruff/mypy/codespell すべて pass
