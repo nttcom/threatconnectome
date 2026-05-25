@@ -1,11 +1,5 @@
-import os
-import re
 from dataclasses import field
-from typing import (
-    ClassVar,
-    NamedTuple,
-    Pattern,
-)
+from typing import NamedTuple
 
 from cyclonedx.model import Property
 from cyclonedx.model.bom import Bom
@@ -20,6 +14,11 @@ from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import (
     SBOM,
     SBOMParser,
+)
+from app.sbom.parser.syft_common import (
+    get_ecosystem_from_purl,
+    get_package_manager_from_path,
+    get_source_name_from_rpm_filename,
 )
 from app.utility.progress_logger import TimeBasedProgressLogger
 
@@ -36,36 +35,6 @@ class SyftCDXParser(SBOMParser):
     purl: PackageURL | None
     properties: SortedSet[Property]
     mgr_info: PkgMgrInfo | None = field(init=False, repr=False)
-
-    # https://github.com/anchore/syft/blob/main/syft/pkg/cataloger/ * /cataloger.go
-    # Note: pkg_mgr is not defined in syft. use the same value in trivy (if exists).
-    location_to_pkg_mgr: ClassVar[list[tuple[str, Pattern[str]]]] = [
-        ("conan", re.compile(r"conanfile\.txt$")),  # cpp
-        ("conan", re.compile(r"conan\.lock$")),  # cpp
-        ("pub", re.compile(r"pubspec\.lock$")),  # dart
-        ("dotnet", re.compile(r".+\.deps\.json$")),  # dotnet
-        ("mix", re.compile(r"mix\.lock$")),  # elixir: is this correct??
-        ("rebar", re.compile(r"rebar\.lock$")),  # erlang: is this correct??
-        ("gomod", re.compile(r"go\.mod$")),  # golang
-        ("hackage", re.compile(r"stack\.yaml$")),  # haskell
-        ("hackage", re.compile(r"stack\.yaml\.lock$")),  # haskell
-        ("hackage", re.compile(r"cabal\.project\.freeze$")),  # haskell
-        ("pom", re.compile(r"pom\.xml$")),  # java
-        ("npm", re.compile(r"package-lock\.json$")),  # javascript
-        ("yarn", re.compile(r"yarn\.lock$")),  # javascript
-        ("pnpm", re.compile(r"pnpm-lock\.yaml$")),  # javascript
-        ("composer", re.compile(r"installed\.json$")),  # php
-        ("composer", re.compile(r"composer\.lock$")),  # php
-        ("pip", re.compile(r".*requirements.*\.txt$")),  # python
-        ("pip", re.compile(r"setup\.py$")),  # python
-        ("poetry", re.compile(r"poetry\.lock$")),  # python
-        ("pipenv", re.compile(r"Pipfile\.lock$")),  # python
-        ("rpm", re.compile(r".+\.rpm$")),  # rpm
-        ("gem", re.compile(r"Gemfile\.lock$")),  # ruby
-        ("gemspec", re.compile(r".+\.gemspec$")),  # ruby
-        ("cargo", re.compile(r"Cargo\.lock$")),  # rust
-        ("pod", re.compile(r"Podfile\.lock$")),  # swift
-    ]
 
     @staticmethod
     def _find_location_path(properties: SortedSet[Property], idx: int) -> str | None:
@@ -88,10 +57,10 @@ class SyftCDXParser(SBOMParser):
                 # could not guess type, but no more locations.
                 # return the top of locations as a (hint of) target.
                 return SyftCDXParser.PkgMgrInfo("", location_0_path)
-            filename = os.path.basename(location_path)
-            for mgr_name, pattern in SyftCDXParser.location_to_pkg_mgr:
-                if pattern.match(filename):
-                    return SyftCDXParser.PkgMgrInfo(mgr_name, location_path)  # Eureka!
+            package_manager, _ = get_package_manager_from_path(location_path)
+            if package_manager:
+                return SyftCDXParser.PkgMgrInfo(package_manager, location_path)  # Eureka!
+
             idx += 1
 
     @staticmethod
@@ -111,9 +80,7 @@ class SyftCDXParser(SBOMParser):
                 break
             if property.name == "syft:metadata:sourceRpm":
                 try:
-                    source_name = SyftCDXParser._get_source_name_from_rpm_filename(
-                        property.value
-                    ).casefold()
+                    source_name = get_source_name_from_rpm_filename(property.value).casefold()
                     break
                 except ValueError:
                     continue
@@ -124,20 +91,10 @@ class SyftCDXParser(SBOMParser):
             and isinstance(component.purl.qualifiers, dict)
             and (upstream := component.purl.qualifiers.get("upstream"))
         ):
-            source_name = upstream.casefold()
+            source_name = str(upstream).casefold()
 
-        distro = (
-            component.purl.qualifiers.get("distro")
-            if component.purl and isinstance(component.purl.qualifiers, dict)
-            else None
-        )
-        if distro:
-            if distro.casefold().startswith("wolfi-"):
-                pkg_info = "wolfi"
-            else:
-                pkg_info = str(distro).casefold()
-        else:
-            pkg_info = str(component.purl.type).casefold()
+        pkg_info = get_ecosystem_from_purl(component.purl)
+
         mgr_info = SyftCDXParser._guess_mgr(component.properties)
 
         return {
@@ -146,27 +103,6 @@ class SyftCDXParser(SBOMParser):
             "ecosystem": pkg_info,
             "mgr_info": mgr_info,
         }
-
-    @staticmethod
-    def _get_source_name_from_rpm_filename(filename: str) -> str:
-        """
-        Extracts the source package name from a filename formatted as:
-        <name>-<version>-<release>.src.rpm
-        """
-        suffix_removed_filename = filename.removesuffix(".rpm")
-        architecture_index = suffix_removed_filename.rfind(".")
-        if architecture_index == -1:
-            raise ValueError("Unexpected name format: missing '.'")
-
-        release_index = suffix_removed_filename[:architecture_index].rfind("-")
-        if release_index == -1:
-            raise ValueError("Unexpected name format: missing release delimiter '-'")
-
-        version_index = suffix_removed_filename[:release_index].rfind("-")
-        if version_index == -1:
-            raise ValueError("Unexpected name format: missing version delimiter '-'")
-
-        return suffix_removed_filename[:version_index]
 
     @classmethod
     def parse_sbom(

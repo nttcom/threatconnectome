@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict
 from typing import Any
 
@@ -7,7 +6,11 @@ from packageurl import PackageURL
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import SBOM, SBOMParser
-from app.sbom.parser.syft_cdx_parser import SyftCDXParser
+from app.sbom.parser.syft_common import (
+    get_ecosystem_from_purl,
+    get_package_manager_from_path,
+    get_source_name_from_rpm_filename,
+)
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
@@ -40,23 +43,15 @@ class SyftSPDXParser(SBOMParser):
         if isinstance(purl.qualifiers, dict) and (upstream := purl.qualifiers.get("upstream")):
             if str(upstream).endswith(".rpm"):
                 try:
-                    return SyftCDXParser._get_source_name_from_rpm_filename(
-                        str(upstream)
-                    ).casefold()
+                    return get_source_name_from_rpm_filename(str(upstream)).casefold()
                 except ValueError:
                     pass
             return str(upstream).casefold()
-
         return None
 
     @staticmethod
     def _get_package_manager_from_path(path: str) -> tuple[str, str]:
-        filename = os.path.basename(path)
-        for mgr_name, pattern in SyftCDXParser.location_to_pkg_mgr:
-            if pattern.match(filename):
-                return (mgr_name.casefold(), path)
-
-        return ("", path)
+        return get_package_manager_from_path(path)
 
     @staticmethod
     def _get_package_manager(package: dict[str, Any]) -> tuple[str, str | None]:
@@ -68,12 +63,7 @@ class SyftSPDXParser(SBOMParser):
 
     @staticmethod
     def _get_ecosystem(purl: PackageURL) -> str:
-        distro = purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else None
-        if distro:
-            if str(distro).casefold().startswith("wolfi-"):
-                return "wolfi"
-            return str(distro).casefold()
-        return str(purl.type).casefold()
+        return get_ecosystem_from_purl(purl)
 
     @staticmethod
     def _extract_package_info(package: dict[str, Any]) -> dict[str, Any] | None:
