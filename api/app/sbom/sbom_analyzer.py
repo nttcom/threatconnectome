@@ -20,7 +20,9 @@ from app.sbom.parser.trivy_cdx_parser import TrivyCDXParser
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
-def _inspect_cyclonedx(sbom_bom: Bom) -> tuple[str, str | None]:  # tool_name, tool_version
+def _inspect_cyclonedx(
+    sbom_bom: Bom,
+) -> tuple[str, str | None]:  # tool_name, tool_version
     def _get_tool0(jdata_: Bom) -> Component:
         # https://cyclonedx.org/docs/1.5/json/#metadata_tools
         tools_ = jdata_.metadata.tools
@@ -53,7 +55,8 @@ def _validate_and_get_cyclonedx_version(sbom_json: dict, sbom_str: str) -> str:
             validator = JsonStrictValidator(schema_ver)
             if validation_errors := validator.validate_str(sbom_str):
                 raise ValueError(
-                    "Not supported file format. ValidationError: " + repr(validation_errors)
+                    "Not supported file format. ValidationError: "
+                    + repr(validation_errors)
                 )
             return ver
     raise ValueError("Not supported CycloneDX specVersion")
@@ -86,7 +89,7 @@ def _inspect_spdx(sbom_json: dict) -> tuple[str, str | None]:  # tool_name, tool
         if not tool:
             continue
 
-        if match := re.match(r"([A-Za-z0-9_.-]+)-([0-9].+)$", tool):
+        if match := re.match(r"([A-Za-z0-9_.-]+?)-v?([0-9].+)$", tool):
             return (match.group(1).casefold(), match.group(2))
         return (tool.casefold(), None)
 

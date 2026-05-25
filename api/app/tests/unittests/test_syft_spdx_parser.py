@@ -71,6 +71,26 @@ class TestSyftSPDXParser:
                         }
                     ],
                 },
+                {
+                    "SPDXID": "SPDXRef-Package-attrs",
+                    "name": "attrs",
+                    "versionInfo": "25.4.0",
+                    "downloadLocation": "NOASSERTION",
+                    "filesAnalyzed": False,
+                    "externalRefs": [
+                        {
+                            "referenceCategory": "PACKAGE-MANAGER",
+                            "referenceType": "purl",
+                            "referenceLocator": "pkg:pypi/attrs@25.4.0",
+                        }
+                    ],
+                },
+            ],
+            "files": [
+                {
+                    "SPDXID": "SPDXRef-File-Pipfile.lock",
+                    "fileName": "Pipfile.lock",
+                },
             ],
             "relationships": [
                 {
@@ -88,10 +108,96 @@ class TestSyftSPDXParser:
                     "relationshipType": "DEPENDS_ON",
                     "relatedSpdxElement": "SPDXRef-Package-PyJWT",
                 },
+                {
+                    "spdxElementId": "SPDXRef-DocumentRoot-File-Pipfile.lock",
+                    "relationshipType": "CONTAINS",
+                    "relatedSpdxElement": "SPDXRef-Package-attrs",
+                },
+                {
+                    "spdxElementId": "SPDXRef-Package-attrs",
+                    "relationshipType": "OTHER",
+                    "relatedSpdxElement": "SPDXRef-File-Pipfile.lock",
+                    "comment": (
+                        "evident-by: indicates the package's existence is evident by "
+                        "the given file"
+                    ),
+                },
             ],
         }
 
-    def test_it_should_extract_artifacts_with_same_format(self, progress: TimeBasedProgressLogger):
+    def _make_syft_snapshot_like_sbom(self) -> dict:
+        return {
+            "spdxVersion": "SPDX-2.3",
+            "SPDXID": "SPDXRef-DOCUMENT",
+            "name": "user-image-input",
+            "dataLicense": "CC0-1.0",
+            "documentNamespace": "https://example.com/spdxdocs/user-image-input",
+            "creationInfo": {
+                "created": "2026-05-07T00:00:00Z",
+                "creators": [
+                    "Organization: Anchore, Inc",
+                    "Tool: syft-v0.42.0-bogus",
+                ],
+            },
+            "packages": [
+                {
+                    "SPDXID": "SPDXRef-Package-deb-package-2-4b756c6f6fb127a3",
+                    "name": "package-2",
+                    "versionInfo": "2.0.1",
+                    "downloadLocation": "NOASSERTION",
+                    "filesAnalyzed": False,
+                    "externalRefs": [
+                        {
+                            "referenceCategory": "SECURITY",
+                            "referenceType": "cpe23Type",
+                            "referenceLocator": "cpe:2.3:*:some:package:2:*:*:*:*:*:*:*",
+                        },
+                        {
+                            "referenceCategory": "PACKAGE-MANAGER",
+                            "referenceType": "purl",
+                            "referenceLocator": "pkg:deb/debian/package-2@2.0.1",
+                        },
+                    ],
+                },
+                {
+                    "SPDXID": "SPDXRef-DocumentRoot-Image-user-image-input",
+                    "name": "user-image-input",
+                    "versionInfo": (
+                        "sha256:2731251dc34951c0e50fcc643b4c5f74922dad1a5d98f302"
+                        "b504cf46cd5d9368"
+                    ),
+                    "downloadLocation": "NOASSERTION",
+                    "filesAnalyzed": False,
+                    "externalRefs": [
+                        {
+                            "referenceCategory": "PACKAGE-MANAGER",
+                            "referenceType": "purl",
+                            "referenceLocator": (
+                                "pkg:oci/user-image-input@sha256%3A2731251dc34951c0e50fcc643b4c5f74922dad1a5d98f302"
+                                "b504cf46cd5d9368?arch="
+                            ),
+                        }
+                    ],
+                    "primaryPackagePurpose": "CONTAINER",
+                },
+            ],
+            "relationships": [
+                {
+                    "spdxElementId": "SPDXRef-DocumentRoot-Image-user-image-input",
+                    "relationshipType": "CONTAINS",
+                    "relatedSpdxElement": "SPDXRef-Package-deb-package-2-4b756c6f6fb127a3",
+                },
+                {
+                    "spdxElementId": "SPDXRef-DOCUMENT",
+                    "relationshipType": "DESCRIBES",
+                    "relatedSpdxElement": "SPDXRef-DocumentRoot-Image-user-image-input",
+                },
+            ],
+        }
+
+    def test_it_should_extract_artifacts_with_same_format(
+        self, progress: TimeBasedProgressLogger
+    ):
         # Given
         sbom_info = SBOMInfo(
             spec_name="SPDX",
@@ -104,7 +210,7 @@ class TestSyftSPDXParser:
         artifacts = SyftSPDXParser.parse_sbom(self._make_sbom(), sbom_info, progress)
 
         # Then
-        assert len(artifacts) == 2
+        assert len(artifacts) == 3
         artifact_map = {artifact.package_name: artifact for artifact in artifacts}
 
         assert artifact_map["libcrypto3"].source_name == "openssl"
@@ -117,7 +223,14 @@ class TestSyftSPDXParser:
         assert artifact_map["pyjwt"].package_manager == "pip"
         assert ("root-image", "1.5.3") in artifact_map["pyjwt"].targets
 
-    def test_it_should_parse_through_sbom_analyzer(self, progress: TimeBasedProgressLogger):
+        assert artifact_map["attrs"].source_name is None
+        assert artifact_map["attrs"].ecosystem == "pypi"
+        assert artifact_map["attrs"].package_manager == "pipenv"
+        assert ("Pipfile.lock", "25.4.0") in artifact_map["attrs"].targets
+
+    def test_it_should_parse_through_sbom_analyzer(
+        self, progress: TimeBasedProgressLogger
+    ):
         # Given
         sbom_str = json.dumps(self._make_sbom())
 
@@ -125,7 +238,7 @@ class TestSyftSPDXParser:
         lines = sbom_json_to_artifact_json_lines(sbom_str, progress)
 
         # Then
-        assert len(lines) == 2
+        assert len(lines) == 3
         assert set(lines[0].keys()) == {
             "package_name",
             "source_name",
@@ -134,3 +247,28 @@ class TestSyftSPDXParser:
             "references",
         }
         assert lines[0]["references"]
+
+    def test_it_should_support_syft_snapshot_style_creator_and_ignore_document_root(
+        self, progress: TimeBasedProgressLogger
+    ):
+        # Given
+        sbom_str = json.dumps(self._make_syft_snapshot_like_sbom())
+
+        # When
+        lines = sbom_json_to_artifact_json_lines(sbom_str, progress)
+
+        # Then
+        assert lines == [
+            {
+                "package_name": "package-2",
+                "source_name": None,
+                "ecosystem": "deb",
+                "package_manager": "",
+                "references": [
+                    {
+                        "version": "2.0.1",
+                        "target": "user-image-input",
+                    }
+                ],
+            }
+        ]

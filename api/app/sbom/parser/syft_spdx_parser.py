@@ -37,7 +37,9 @@ class SyftSPDXParser(SBOMParser):
     def _get_source_name(purl: PackageURL) -> str | None:
         # sourceInfo in SPDX is a free-form description, not a source package name.
         # Use the upstream purl qualifier instead, consistent with syft CycloneDX behavior.
-        if isinstance(purl.qualifiers, dict) and (upstream := purl.qualifiers.get("upstream")):
+        if isinstance(purl.qualifiers, dict) and (
+            upstream := purl.qualifiers.get("upstream")
+        ):
             if str(upstream).endswith(".rpm"):
                 try:
                     return SyftCDXParser._get_source_name_from_rpm_filename(
@@ -50,21 +52,27 @@ class SyftSPDXParser(SBOMParser):
         return None
 
     @staticmethod
+    def _get_package_manager_from_path(path: str) -> tuple[str, str]:
+        filename = os.path.basename(path)
+        for mgr_name, pattern in SyftCDXParser.location_to_pkg_mgr:
+            if pattern.match(filename):
+                return (mgr_name.casefold(), path)
+
+        return ("", path)
+
+    @staticmethod
     def _get_package_manager(package: dict[str, Any]) -> tuple[str, str | None]:
         package_filename = package.get("packageFileName")
         if not isinstance(package_filename, str) or not package_filename:
             return ("", None)
 
-        filename = os.path.basename(package_filename)
-        for mgr_name, pattern in SyftCDXParser.location_to_pkg_mgr:
-            if pattern.match(filename):
-                return (mgr_name.casefold(), package_filename)
-
-        return ("", package_filename)
+        return SyftSPDXParser._get_package_manager_from_path(package_filename)
 
     @staticmethod
     def _get_ecosystem(purl: PackageURL) -> str:
-        distro = purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else None
+        distro = (
+            purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else None
+        )
         if distro:
             if str(distro).casefold().startswith("wolfi-"):
                 return "wolfi"
@@ -103,6 +111,12 @@ class SyftSPDXParser(SBOMParser):
             for package in sbom.get("packages", [])
             if isinstance(package, dict) and isinstance(package.get("SPDXID"), str)
         }
+        file_name_map = {
+            file.get("SPDXID"): str(file.get("fileName", ""))
+            for file in sbom.get("files", [])
+            if isinstance(file, dict) and isinstance(file.get("SPDXID"), str)
+        }
+        element_name_map = package_name_map | file_name_map
 
         for relationship in sbom.get("relationships", []):
             if not isinstance(relationship, dict):
@@ -114,11 +128,18 @@ class SyftSPDXParser(SBOMParser):
                 continue
 
             if rel_type in {"DEPENDS_ON", "CONTAINS", "DESCRIBES"}:
-                if source_name := package_name_map.get(source):
+                if source_name := element_name_map.get(source):
                     target_map[target].add(source_name)
             elif rel_type in {"DEPENDENCY_OF", "CONTAINED_BY", "DESCRIBED_BY"}:
-                if target_name := package_name_map.get(target):
+                if target_name := element_name_map.get(target):
                     target_map[source].add(target_name)
+            elif rel_type == "OTHER" and str(
+                relationship.get("comment", "")
+            ).startswith("evident-by:"):
+                if target_name := file_name_map.get(target):
+                    target_map[source].add(target_name)
+                elif source_name := file_name_map.get(source):
+                    target_map[target].add(source_name)
 
         return target_map
 
@@ -146,7 +167,9 @@ class SyftSPDXParser(SBOMParser):
         progress: TimeBasedProgressLogger,
     ) -> list[Artifact]:
         artifacts_map: dict[str, Artifact] = {}
-        packages = [package for package in sbom.get("packages", []) if isinstance(package, dict)]
+        packages = [
+            package for package in sbom.get("packages", []) if isinstance(package, dict)
+        ]
         target_map = cls._build_target_map(sbom)
 
         PROGRESS_ALLOCATION = 20
@@ -161,18 +184,31 @@ class SyftSPDXParser(SBOMParser):
 
             version = package.get("versionInfo")
             spdx_id = package.get("SPDXID")
+            primary_package_purpose = str(
+                package.get("primaryPackagePurpose", "")
+            ).upper()
             if not isinstance(version, str) or not version:
                 continue
             if not isinstance(spdx_id, str) or not spdx_id:
+                continue
+            if primary_package_purpose in {"CONTAINER", "FILE"}:
                 continue
 
             package_info = cls._extract_package_info(package)
             if not package_info:
                 continue
 
+            targets = target_map.get(spdx_id, set())
+            package_manager = package_info["package_manager"]
+            if not package_manager:
+                for target in sorted(targets):
+                    package_manager = cls._get_package_manager_from_path(target)[0]
+                    if package_manager:
+                        break
+
             artifacts_key = (
                 f"{package_info['pkg_name']}:{package_info['ecosystem']}"
-                f":{package_info['package_manager']}"
+                f":{package_manager}"
             )
             artifact = artifacts_map.get(
                 artifacts_key,
@@ -180,12 +216,11 @@ class SyftSPDXParser(SBOMParser):
                     package_name=package_info["pkg_name"],
                     source_name=package_info["source_name"],
                     ecosystem=package_info["ecosystem"],
-                    package_manager=package_info["package_manager"],
+                    package_manager=package_manager,
                 ),
             )
             artifacts_map[artifacts_key] = artifact
 
-            targets = target_map.get(spdx_id, set())
             if targets:
                 for target in targets:
                     artifact.targets.add((target, version))
