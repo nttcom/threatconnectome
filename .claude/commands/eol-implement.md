@@ -215,7 +215,7 @@ pipenv run codespell ./app
   - api/app/business/eol/product/<product_snake>_product.py (新規) ← Package型のみ
   - api/app/business/eol/product/eol_product_factory.py ← Package型のみ
   - api/app/business/eol/version/eol_version_factory.py ← Package型のみ
-    - api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py (新規) ← Ecosystem型のみ
+  - api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py (新規) ← Ecosystem型のみ
   - api/app/business/eol/ecosystem/eol_ecosystem_factory.py ← Ecosystem型のみ
 
 静的チェック: black/ruff/mypy/codespell すべて pass
