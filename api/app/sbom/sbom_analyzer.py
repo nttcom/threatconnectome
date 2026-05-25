@@ -55,8 +55,7 @@ def _validate_and_get_cyclonedx_version(sbom_json: dict, sbom_str: str) -> str:
             validator = JsonStrictValidator(schema_ver)
             if validation_errors := validator.validate_str(sbom_str):
                 raise ValueError(
-                    "Not supported file format. ValidationError: "
-                    + repr(validation_errors)
+                    "Not supported file format. ValidationError: " + repr(validation_errors)
                 )
             return ver
     raise ValueError("Not supported CycloneDX specVersion")

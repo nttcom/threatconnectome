@@ -442,9 +442,7 @@ class TestPostUploadPTeamSbomFile:
         create_pteam(USER1, PTEAM2)
 
         params = {"service": "threatconnectome"}
-        sbom_file = (
-            Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_spdx.json"
-        )
+        sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_spdx.json"
         with open(sbom_file, "rb") as tags:
             response = client.post(
                 f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",

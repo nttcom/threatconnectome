@@ -37,9 +37,7 @@ class SyftSPDXParser(SBOMParser):
     def _get_source_name(purl: PackageURL) -> str | None:
         # sourceInfo in SPDX is a free-form description, not a source package name.
         # Use the upstream purl qualifier instead, consistent with syft CycloneDX behavior.
-        if isinstance(purl.qualifiers, dict) and (
-            upstream := purl.qualifiers.get("upstream")
-        ):
+        if isinstance(purl.qualifiers, dict) and (upstream := purl.qualifiers.get("upstream")):
             if str(upstream).endswith(".rpm"):
                 try:
                     return SyftCDXParser._get_source_name_from_rpm_filename(
@@ -70,9 +68,7 @@ class SyftSPDXParser(SBOMParser):
 
     @staticmethod
     def _get_ecosystem(purl: PackageURL) -> str:
-        distro = (
-            purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else None
-        )
+        distro = purl.qualifiers.get("distro") if isinstance(purl.qualifiers, dict) else None
         if distro:
             if str(distro).casefold().startswith("wolfi-"):
                 return "wolfi"
@@ -133,9 +129,9 @@ class SyftSPDXParser(SBOMParser):
             elif rel_type in {"DEPENDENCY_OF", "CONTAINED_BY", "DESCRIBED_BY"}:
                 if target_name := element_name_map.get(target):
                     target_map[source].add(target_name)
-            elif rel_type == "OTHER" and str(
-                relationship.get("comment", "")
-            ).startswith("evident-by:"):
+            elif rel_type == "OTHER" and str(relationship.get("comment", "")).startswith(
+                "evident-by:"
+            ):
                 if target_name := file_name_map.get(target):
                     target_map[source].add(target_name)
                 elif source_name := file_name_map.get(source):
@@ -167,9 +163,7 @@ class SyftSPDXParser(SBOMParser):
         progress: TimeBasedProgressLogger,
     ) -> list[Artifact]:
         artifacts_map: dict[str, Artifact] = {}
-        packages = [
-            package for package in sbom.get("packages", []) if isinstance(package, dict)
-        ]
+        packages = [package for package in sbom.get("packages", []) if isinstance(package, dict)]
         target_map = cls._build_target_map(sbom)
 
         PROGRESS_ALLOCATION = 20
@@ -184,9 +178,7 @@ class SyftSPDXParser(SBOMParser):
 
             version = package.get("versionInfo")
             spdx_id = package.get("SPDXID")
-            primary_package_purpose = str(
-                package.get("primaryPackagePurpose", "")
-            ).upper()
+            primary_package_purpose = str(package.get("primaryPackagePurpose", "")).upper()
             if not isinstance(version, str) or not version:
                 continue
             if not isinstance(spdx_id, str) or not spdx_id:
@@ -207,8 +199,7 @@ class SyftSPDXParser(SBOMParser):
                         break
 
             artifacts_key = (
-                f"{package_info['pkg_name']}:{package_info['ecosystem']}"
-                f":{package_manager}"
+                f"{package_info['pkg_name']}:{package_info['ecosystem']}" f":{package_manager}"
             )
             artifact = artifacts_map.get(
                 artifacts_key,

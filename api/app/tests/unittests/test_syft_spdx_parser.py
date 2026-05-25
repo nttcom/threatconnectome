@@ -163,8 +163,7 @@ class TestSyftSPDXParser:
                     "SPDXID": "SPDXRef-DocumentRoot-Image-user-image-input",
                     "name": "user-image-input",
                     "versionInfo": (
-                        "sha256:2731251dc34951c0e50fcc643b4c5f74922dad1a5d98f302"
-                        "b504cf46cd5d9368"
+                        "sha256:2731251dc34951c0e50fcc643b4c5f74922dad1a5d98f302" "b504cf46cd5d9368"
                     ),
                     "downloadLocation": "NOASSERTION",
                     "filesAnalyzed": False,
@@ -195,9 +194,7 @@ class TestSyftSPDXParser:
             ],
         }
 
-    def test_it_should_extract_artifacts_with_same_format(
-        self, progress: TimeBasedProgressLogger
-    ):
+    def test_it_should_extract_artifacts_with_same_format(self, progress: TimeBasedProgressLogger):
         # Given
         sbom_info = SBOMInfo(
             spec_name="SPDX",
@@ -228,9 +225,7 @@ class TestSyftSPDXParser:
         assert artifact_map["attrs"].package_manager == "pipenv"
         assert ("Pipfile.lock", "25.4.0") in artifact_map["attrs"].targets
 
-    def test_it_should_parse_through_sbom_analyzer(
-        self, progress: TimeBasedProgressLogger
-    ):
+    def test_it_should_parse_through_sbom_analyzer(self, progress: TimeBasedProgressLogger):
         # Given
         sbom_str = json.dumps(self._make_sbom())
 
