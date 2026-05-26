@@ -43,9 +43,7 @@ import {
 import { serviceImageMaxSize } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import {
-  createDefaultSboms,
   createId,
-  generateDependencies,
   getNextActiveIdAfterRemoval,
   isDeleteConfirmationValid,
   NEW_SBOM_ID,
@@ -1079,7 +1077,7 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
 
 export function SBOMManagement({
   initialActiveId,
-  initialSboms = createDefaultSboms(),
+  initialSboms = [],
   onActiveIdChange,
   onPackageClick,
   pteamId,

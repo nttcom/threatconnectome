@@ -1,4 +1,5 @@
 import { SBOMManagement } from "./SBOMManagement";
+import { createDefaultSboms } from "./SBOMManagement.stories.helpers";
 
 const meta = {
   argTypes: {
@@ -14,7 +15,11 @@ const meta = {
 
 export default meta;
 
-export const Default = {};
+export const Default = {
+  args: {
+    initialSboms: createDefaultSboms(),
+  },
+};
 
 export const EmptyState = {
   args: {
