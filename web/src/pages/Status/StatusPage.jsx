@@ -198,14 +198,14 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
-      {pteam.services.map((service) => (
+      {activeServiceId && isActiveServiceValid && (
         <ServiceThumbnailLoader
-          key={service.service_id}
+          key={activeServiceId}
           pteamId={pteamId}
-          serviceId={service.service_id}
+          serviceId={activeServiceId}
           onLoaded={handleThumbnailLoaded}
         />
-      ))}
+      )}
       <SBOMManagement
         initialSboms={sboms}
         initialActiveId={initialActiveServiceId}
