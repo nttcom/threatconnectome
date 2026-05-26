@@ -32,6 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import {
@@ -213,6 +214,7 @@ function AppButton({ size = "medium", sx, variant = "contained", ...props }) {
 }
 
 function TabButton({ active, onClick, sbom }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   return (
     <Box
       component="button"
@@ -240,7 +242,7 @@ function TabButton({ active, onClick, sbom }) {
       }}
       type="button"
     >
-      {sbom.title || "Untitled SBOM"}
+      {sbom.title || t("untitledSbom")}
     </Box>
   );
 }
@@ -317,6 +319,7 @@ function AccordionHeader({ action, icon: Icon, onToggle, open, title }) {
 }
 
 function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const imageInputRef = useRef(null);
 
@@ -353,7 +356,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
         {imageInput}
         <Box sx={{ textAlign: "center" }}>
           <ImageIcon sx={{ fontSize: 32, mb: 1 }} />
-          <Typography sx={{ fontSize: 14 }}>イメージ画像が未設定です</Typography>
+          <Typography sx={{ fontSize: 14 }}>{t("imageNotSet")}</Typography>
           {editing && (
             <AppButton
               onClick={openImagePicker}
@@ -362,7 +365,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
               sx={{ bgcolor: "white", mt: 1.5 }}
               variant="outlined"
             >
-              画像をアップロード
+              {t("uploadImage")}
             </AppButton>
           )}
         </Box>
@@ -408,7 +411,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
             sx={{ bgcolor: "rgba(255,255,255,0.95)" }}
             variant="outlined"
           >
-            画像を変更
+            {t("changeImage")}
           </AppButton>
           <AppButton
             onClick={() => setConfirmingRemove(true)}
@@ -417,7 +420,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
             sx={{ bgcolor: "rgba(255,255,255,0.95)", color: slate[700] }}
             variant="outlined"
           >
-            削除
+            {t("delete")}
           </AppButton>
         </Stack>
       )}
@@ -438,10 +441,10 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
           }}
         >
           <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 700 }}>
-            画像を削除しますか？
+            {t("confirmRemoveImageTitle")}
           </Typography>
           <Typography sx={{ color: slate[500], fontSize: 12, lineHeight: "20px", mt: 0.5 }}>
-            削除すると未設定の状態に戻ります。
+            {t("confirmRemoveImageBody")}
           </Typography>
           <Stack direction="row" sx={{ gap: 1, mt: 1.5 }}>
             <AppButton
@@ -450,7 +453,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
               sx={{ flex: 1 }}
               variant="outlined"
             >
-              キャンセル
+              {t("cancel")}
             </AppButton>
             <AppButton
               onClick={() => {
@@ -460,7 +463,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
               size="small"
               sx={{ flex: 1 }}
             >
-              削除する
+              {t("confirmDelete")}
             </AppButton>
           </Stack>
         </Box>
@@ -475,10 +478,10 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
             textTransform: "uppercase",
           }}
         >
-          イメージ
+          {t("image")}
         </Typography>
         <Typography noWrap sx={{ color: "white", fontSize: 16, fontWeight: 700, mt: 0.5 }}>
-          {title || "Untitled SBOM"}
+          {title || t("untitledSbom")}
         </Typography>
       </Box>
     </Box>
@@ -486,6 +489,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 }
 
 function DetailsForm({ editing, onUpdate, open, sbom }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
 
   useEffect(() => {
@@ -498,7 +502,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
 
   const emptyText = (
     <Box component="span" sx={{ color: slate[400] }}>
-      未設定
+      {t("notSet")}
     </Box>
   );
   const display = { md: "block", xs: open ? "block" : "none" };
@@ -507,13 +511,13 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
     return (
       <Stack sx={{ display, gap: 2 }}>
         <Box>
-          <Typography sx={labelSx}>タイトル</Typography>
+          <Typography sx={labelSx}>{t("title")}</Typography>
           <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 700, mt: 0.75 }}>
             {sbom.title || emptyText}
           </Typography>
         </Box>
         <Box>
-          <Typography sx={labelSx}>説明文</Typography>
+          <Typography sx={labelSx}>{t("description")}</Typography>
           <Typography
             sx={{
               color: slate[700],
@@ -527,7 +531,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           </Typography>
         </Box>
         <Box>
-          <Typography sx={labelSx}>タグ</Typography>
+          <Typography sx={labelSx}>{t("tags")}</Typography>
           {sbom.tags.length > 0 ? (
             <Stack direction="row" flexWrap="wrap" sx={{ gap: 1, mt: 1 }}>
               {sbom.tags.map((tag) => (
@@ -541,7 +545,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
               ))}
             </Stack>
           ) : (
-            <Typography sx={{ color: slate[400], fontSize: 14, mt: 1 }}>未設定</Typography>
+            <Typography sx={{ color: slate[400], fontSize: 14, mt: 1 }}>{t("notSet")}</Typography>
           )}
         </Box>
       </Stack>
@@ -552,33 +556,33 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
     <Stack sx={{ display, gap: 2 }}>
       <Box>
         <Typography component="label" sx={labelSx}>
-          タイトル
+          {t("title")}
         </Typography>
         <TextField
           fullWidth
           onChange={(event) => onUpdate({ title: event.target.value })}
-          placeholder="例: Payment Service SBOM"
+          placeholder={t("titlePlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
           value={sbom.title}
         />
       </Box>
       <Box>
         <Typography component="label" sx={labelSx}>
-          説明文
+          {t("description")}
         </Typography>
         <TextField
           fullWidth
           minRows={4}
           multiline
           onChange={(event) => onUpdate({ description: event.target.value })}
-          placeholder="SBOMの対象システムや用途を入力"
+          placeholder={t("descriptionPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
           value={sbom.description}
         />
       </Box>
       <Box>
         <Typography component="label" sx={labelSx}>
-          タグ
+          {t("tags")}
         </Typography>
         <TextField
           fullWidth
@@ -597,6 +601,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
 }
 
 function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const display = { md: "block", xs: open ? "block" : "none" };
 
   return (
@@ -620,11 +625,11 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
                 sx={{ mb: 1.25 }}
               >
                 <Typography sx={{ color: slate[700], fontSize: 14, fontWeight: 700 }}>
-                  デプロイ先 {index + 1}
+                  {t("deploymentN", { n: index + 1 })}
                 </Typography>
                 {editing && (
                   <IconButton
-                    aria-label="デプロイ先を削除"
+                    aria-label={t("removeDeployment")}
                     onClick={() => onRemove(deployment.id)}
                     size="small"
                     sx={{ color: slate[400], "&:hover": { bgcolor: "white", color: slate[900] } }}
@@ -638,14 +643,14 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
                   <TextField
                     fullWidth
                     onChange={(event) => onUpdate(deployment.id, { ip: event.target.value })}
-                    placeholder="IPアドレス"
+                    placeholder={t("ipAddress")}
                     sx={fieldSx}
                     value={deployment.ip}
                   />
                   <TextField
                     disabled
                     fullWidth
-                    placeholder="ロケーション"
+                    placeholder={t("location")}
                     sx={fieldSx}
                     value={deployment.location}
                   />
@@ -654,19 +659,19 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
                 <Stack sx={{ gap: 1.25 }}>
                   <Box>
                     <Typography sx={{ color: slate[500], fontSize: 12, fontWeight: 700 }}>
-                      IPアドレス
+                      {t("ipAddress")}
                     </Typography>
                     <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 600, mt: 0.5 }}>
                       {deployment.ip || (
                         <Box component="span" sx={{ color: slate[400] }}>
-                          未設定
+                          {t("notSet")}
                         </Box>
                       )}
                     </Typography>
                   </Box>
                   <Box>
                     <Typography sx={{ color: slate[500], fontSize: 12, fontWeight: 700 }}>
-                      ロケーション
+                      {t("location")}
                     </Typography>
                     <Stack
                       direction="row"
@@ -680,7 +685,7 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
                       >
                         {deployment.location || (
                           <Box component="span" sx={{ color: slate[400] }}>
-                            未設定
+                            {t("notSet")}
                           </Box>
                         )}
                       </Typography>
@@ -701,7 +706,7 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
               textAlign: "center",
             }}
           >
-            デプロイ先が未登録です。
+            {t("noDeployments")}
           </Box>
         )}
       </Stack>
@@ -710,9 +715,10 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
 }
 
 function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmationName, setConfirmationName] = useState("");
-  const expectedName = sbomTitle || "Untitled SBOM";
+  const expectedName = sbomTitle || t("untitledSbom");
   const canDelete = isDeleteConfirmationValid(confirmationName, expectedName);
 
   const closeDialog = () => {
@@ -757,7 +763,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
           <Box sx={sectionIconBoxSx}>
             <WarningAmberIcon sx={{ display: "block", fontSize: 18, height: 18, width: 18 }} />
           </Box>
-          <Typography sx={sectionTitleTextSx}>危険操作</Typography>
+          <Typography sx={sectionTitleTextSx}>{t("dangerZone")}</Typography>
         </Stack>
         <ExpandMoreIcon
           sx={{
@@ -772,7 +778,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
         <CardContent sx={{ pb: 1.5, pt: 0, px: 2 }}>
           <Stack sx={{ gap: 1.5 }}>
             <Typography sx={{ color: slate[500], fontSize: 14, lineHeight: "24px" }}>
-              現在開いているSBOMタブを削除します。
+              {t("dangerZoneDesc")}
             </Typography>
             <AppButton
               disabled={disabled}
@@ -781,7 +787,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
               sx={{ bgcolor: "white", color: slate[700], width: "100%" }}
               variant="outlined"
             >
-              削除ダイアログを開く
+              {t("openDeleteDialog")}
             </AppButton>
           </Stack>
         </CardContent>
@@ -797,11 +803,11 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
         <DialogContent sx={{ p: 2, position: "relative" }}>
           <Box sx={{ pr: 6 }}>
             <Typography sx={{ color: slate[950], fontSize: 18, fontWeight: 800 }}>
-              SBOMを削除
+              {t("deleteSbomTitle")}
             </Typography>
           </Box>
           <IconButton
-            aria-label="閉じる"
+            aria-label={t("close")}
             onClick={closeDialog}
             size="small"
             sx={{
@@ -818,7 +824,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
             <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
           <Box sx={{ bgcolor: slate[50], borderRadius: 4, mt: 2.5, p: 2 }}>
-            <Typography sx={labelSx}>削除対象</Typography>
+            <Typography sx={labelSx}>{t("deleteTarget")}</Typography>
             <Typography
               sx={{
                 color: slate[800],
@@ -833,7 +839,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
           </Box>
           <Box sx={{ mt: 2.5 }}>
             <Typography component="label" sx={{ color: slate[500], fontSize: 12, fontWeight: 700 }}>
-              SBOM名を入力
+              {t("enterSbomName")}
             </Typography>
             <TextField
               autoFocus
@@ -844,7 +850,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
               value={confirmationName}
             />
             <Typography sx={{ color: slate[400], fontSize: 12, mt: 1 }}>
-              削除対象のSBOM名を完全一致で入力してください。
+              {t("enterSbomNameHelp")}
             </Typography>
           </Box>
           <Box
@@ -856,7 +862,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
             }}
           >
             <AppButton onClick={closeDialog} variant="outlined">
-              キャンセル
+              {t("cancel")}
             </AppButton>
             <AppButton
               disabled={!canDelete || disabled}
@@ -869,7 +875,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
               }}
               startIcon={<DeleteIcon />}
             >
-              削除する
+              {t("confirmDelete")}
             </AppButton>
           </Box>
         </DialogContent>
@@ -879,15 +885,16 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
 }
 
 function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   if (dependencies.length === 0) {
     return (
       <Box sx={{ p: 5, textAlign: "center" }}>
         <DescriptionIcon sx={{ color: slate[300], fontSize: 36, mb: 1.5 }} />
         <Typography sx={{ color: slate[600], fontSize: 14, fontWeight: 600 }}>
-          依存関係がありません
+          {t("noDependencies")}
         </Typography>
         <Typography sx={{ color: slate[400], fontSize: 12, mt: 0.5 }}>
-          SBOM JSONをアップロードするか、検索条件を変更してください。
+          {t("noDependenciesHelp")}
         </Typography>
       </Box>
     );
@@ -960,6 +967,7 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
 }
 
 function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel = true }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   return (
     <Box
       sx={{
@@ -1002,7 +1010,7 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
             component="h2"
             sx={{ color: slate[950], fontSize: 24, fontWeight: 800, letterSpacing: 0 }}
           >
-            新しいSBOMを登録
+            {t("registerNewSbom")}
           </Typography>
           <Typography
             sx={{
@@ -1014,8 +1022,7 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
               mx: "auto",
             }}
           >
-            まずSBOM
-            JSONをアップロードしてください。読み込み後に詳細情報とデプロイ先を設定できます。
+            {t("registerNewSbomDesc")}
           </Typography>
         </Box>
         <CardContent sx={{ p: { sm: 4, xs: 3 } }}>
@@ -1055,7 +1062,7 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
                 component="span"
                 sx={{ color: slate[800], fontSize: 14, fontWeight: 700 }}
               >
-                最初のSBOMをアップロード
+                {t("uploadFirstSbom")}
               </Typography>
               <Typography component="span" sx={{ color: slate[500], fontSize: 12, mt: 0.5 }}>
                 CycloneDX JSON / SPDX JSON
@@ -1064,7 +1071,7 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
             {showCancel && (
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <AppButton onClick={onCancel} variant="outlined">
-                  キャンセル
+                  {t("cancel")}
                 </AppButton>
               </Box>
             )}
@@ -1120,6 +1127,7 @@ export function SBOMManagement({
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
 
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const { enqueueSnackbar } = useSnackbar();
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const [deletePTeamService] = useDeletePTeamServiceMutation();
@@ -1199,9 +1207,9 @@ export function SBOMManagement({
       await deletePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
       }).unwrap();
-      enqueueSnackbar("SBOMを削除しました", { variant: "success" });
+      enqueueSnackbar(t("deleteSuccess"), { variant: "success" });
     } catch (error) {
-      enqueueSnackbar(`削除に失敗しました: ${errorToString(error)}`, { variant: "error" });
+      enqueueSnackbar(t("deleteFailed", { error: errorToString(error) }), { variant: "error" });
       return;
     }
 
@@ -1239,8 +1247,7 @@ export function SBOMManagement({
     }
 
     const confirmed =
-      typeof window === "undefined" ||
-      window.confirm("このデプロイ先を削除します。よろしいですか？");
+      typeof window === "undefined" || window.confirm(t("confirmRemoveDeployment"));
 
     if (!confirmed) {
       return;
@@ -1268,9 +1275,7 @@ export function SBOMManagement({
     try {
       await readSbomFile(file);
     } catch {
-      window.alert(
-        "SBOM JSONの読み込みに失敗しました。CycloneDX JSONまたはSPDX JSONを確認してください。",
-      );
+      window.alert(t("sbomParseFailed"));
       return;
     }
 
@@ -1287,14 +1292,14 @@ export function SBOMManagement({
     }
 
     if (file.size >= serviceImageMaxSize) {
-      enqueueSnackbar("画像サイズが大きすぎます", { variant: "error" });
+      enqueueSnackbar(t("imageTooLarge"), { variant: "error" });
       return;
     }
 
     try {
       const normalized = await normalizeServiceImageToPng(file);
       if (normalized.file.size >= serviceImageMaxSize) {
-        enqueueSnackbar("変換後の画像サイズが上限を超えました", { variant: "error" });
+        enqueueSnackbar(t("imageTooLargeAfterConvert"), { variant: "error" });
         return;
       }
       setPendingThumbnail({
@@ -1303,7 +1308,7 @@ export function SBOMManagement({
         deleted: false,
       });
     } catch {
-      enqueueSnackbar("画像の処理に失敗しました", { variant: "error" });
+      enqueueSnackbar(t("imageProcessFailed"), { variant: "error" });
     }
   };
 
@@ -1348,11 +1353,11 @@ export function SBOMManagement({
 
     try {
       await Promise.all(calls.map((fn) => fn()));
-      enqueueSnackbar("詳細情報を更新しました", { variant: "success" });
+      enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
     } catch (error) {
-      enqueueSnackbar(`更新に失敗しました: ${errorToString(error)}`, { variant: "error" });
+      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
   };
 
@@ -1371,10 +1376,10 @@ export function SBOMManagement({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
-      enqueueSnackbar("デプロイ先を更新しました", { variant: "success" });
+      enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
     } catch (error) {
-      enqueueSnackbar(`更新に失敗しました: ${errorToString(error)}`, { variant: "error" });
+      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
   };
 
@@ -1390,9 +1395,7 @@ export function SBOMManagement({
     try {
       await readSbomFile(file);
     } catch {
-      window.alert(
-        "SBOM JSONの読み込みに失敗しました。CycloneDX JSONまたはSPDX JSONを確認してください。",
-      );
+      window.alert(t("sbomParseFailed"));
       return;
     }
 
@@ -1467,7 +1470,7 @@ export function SBOMManagement({
             type="button"
           >
             <AddIcon sx={{ fontSize: 18 }} />
-            新規登録
+            {t("addNew")}
           </Box>
         </Stack>
 
@@ -1531,13 +1534,13 @@ export function SBOMManagement({
                         }
                       }}
                     >
-                      {detailsEditing ? "完了" : "編集"}
+                      {detailsEditing ? t("done") : t("edit")}
                     </HeaderActionButton>
                   }
                   icon={InfoOutlinedIcon}
                   onToggle={() => setDetailsOpen((open) => !open)}
                   open={detailsOpen}
-                  title="詳細情報"
+                  title={t("details")}
                 />
                 <CardContent
                   sx={{
@@ -1568,7 +1571,9 @@ export function SBOMManagement({
                 <AccordionHeader
                   action={
                     <Stack direction="row" alignItems="center" sx={{ gap: 1, height: 32 }}>
-                      <CountBadge>{activeSbom.deployments.length}件</CountBadge>
+                      <CountBadge>
+                        {t("countItems", { count: activeSbom.deployments.length })}
+                      </CountBadge>
                       {deploymentsEditing && (
                         <HeaderActionButton
                           icon={AddIcon}
@@ -1580,7 +1585,7 @@ export function SBOMManagement({
                             },
                           }}
                         >
-                          追加
+                          {t("add")}
                         </HeaderActionButton>
                       )}
                       <HeaderActionButton
@@ -1595,14 +1600,14 @@ export function SBOMManagement({
                           }
                         }}
                       >
-                        {deploymentsEditing ? "完了" : "編集"}
+                        {deploymentsEditing ? t("done") : t("edit")}
                       </HeaderActionButton>
                     </Stack>
                   }
                   icon={StorageRoundedIcon}
                   onToggle={() => setDeploymentsOpen((open) => !open)}
                   open={deploymentsOpen}
-                  title="デプロイ先"
+                  title={t("deployments")}
                 />
                 <DeploymentList
                   deployments={activeSbom.deployments}
@@ -1680,7 +1685,7 @@ export function SBOMManagement({
                           setCurrentPage(1);
                           setQuery(event.target.value);
                         }}
-                        placeholder="名前・バージョン・ライセンス検索"
+                        placeholder={t("searchPlaceholder")}
                         sx={{
                           "&::placeholder": { color: slate[400], opacity: 1 },
                           bgcolor: "transparent",
@@ -1712,8 +1717,12 @@ export function SBOMManagement({
                       }}
                     >
                       {filteredDependencies.length === 0
-                        ? "依存関係がありません"
-                        : `${filteredDependencies.length}件中 ${pageStartIndex + 1}-${pageEndIndex}件`}
+                        ? t("noDependencies")
+                        : t("pagingRange", {
+                            total: filteredDependencies.length,
+                            start: pageStartIndex + 1,
+                            end: pageEndIndex,
+                          })}
                     </Typography>
                     <Box sx={{ flex: { md: "1 1 auto", xs: "0 0 auto" } }} />
                     <Box
@@ -1731,7 +1740,7 @@ export function SBOMManagement({
                       sx={{ alignSelf: { md: "auto", xs: "center" }, bgcolor: "white" }}
                       variant="outlined"
                     >
-                      SBOM更新
+                      {t("updateSbom")}
                     </AppButton>
                   </Box>
 
@@ -1752,10 +1761,10 @@ export function SBOMManagement({
                         }}
                       >
                         <Box>SSVC</Box>
-                        <Box>パッケージ</Box>
-                        <Box>バージョン</Box>
-                        <Box>種別</Box>
-                        <Box>ライセンス</Box>
+                        <Box>{t("package")}</Box>
+                        <Box>{t("version")}</Box>
+                        <Box>{t("type")}</Box>
+                        <Box>{t("license")}</Box>
                       </Box>
                       <DependencyTable
                         dependencies={paginatedDependencies}
@@ -1797,7 +1806,7 @@ export function SBOMManagement({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          表示件数
+                          {t("rowsPerPage")}
                         </Typography>
                         <Select
                           onChange={(event) => {
@@ -1808,9 +1817,9 @@ export function SBOMManagement({
                           sx={compactSelectSx}
                           value={pageSize}
                         >
-                          <MenuItem value={10}>10件</MenuItem>
-                          <MenuItem value={20}>20件</MenuItem>
-                          <MenuItem value={50}>50件</MenuItem>
+                          <MenuItem value={10}>{t("countItems", { count: 10 })}</MenuItem>
+                          <MenuItem value={20}>{t("countItems", { count: 20 })}</MenuItem>
+                          <MenuItem value={50}>{t("countItems", { count: 50 })}</MenuItem>
                         </Select>
                       </Box>
                       <Box
@@ -1833,7 +1842,7 @@ export function SBOMManagement({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {safeCurrentPage} / {totalPages}ページ
+                          {t("pagingPosition", { current: safeCurrentPage, total: totalPages })}
                         </Typography>
                         <Stack direction="row" alignItems="center" sx={{ gap: 0.75 }}>
                           <AppButton
@@ -1843,7 +1852,7 @@ export function SBOMManagement({
                             startIcon={<ChevronLeftIcon />}
                             variant="outlined"
                           >
-                            前へ
+                            {t("prev")}
                           </AppButton>
                           <AppButton
                             disabled={safeCurrentPage >= totalPages}
@@ -1852,7 +1861,7 @@ export function SBOMManagement({
                             endIcon={<ChevronRightIcon />}
                             variant="outlined"
                           >
-                            次へ
+                            {t("next")}
                           </AppButton>
                         </Stack>
                       </Box>

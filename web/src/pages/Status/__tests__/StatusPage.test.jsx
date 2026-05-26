@@ -247,8 +247,8 @@ describe("StatusPage", () => {
       const ue = userEvent.setup();
       renderStatusPage();
 
-      await ue.click(screen.getByRole("button", { name: "新規登録" }));
-      expect(screen.getByText("最初のSBOMをアップロード")).toBeInTheDocument();
+      await ue.click(screen.getByRole("button", { name: "New" }));
+      expect(screen.getByText("Upload your first SBOM")).toBeInTheDocument();
     });
 
     it("show SBOM upload progress button when the service is registered", async () => {
