@@ -3,10 +3,10 @@ from typing import Any
 
 from packageurl import PackageURL
 
+from app.sbom.parser import syft_common
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import SBOM, SBOMParser
-from app.sbom.parser import syft_common
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
