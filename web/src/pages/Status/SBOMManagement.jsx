@@ -1082,6 +1082,14 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
   );
 }
 
+function getSafeActiveId(sboms, preferredId) {
+  if (preferredId && sboms.some((sbom) => sbom.id === preferredId)) {
+    return preferredId;
+  }
+
+  return sboms[0]?.id || NEW_SBOM_ID;
+}
+
 export function SBOMManagement({
   initialActiveId,
   initialSboms = [],
@@ -1091,7 +1099,7 @@ export function SBOMManagement({
   isFetching = false,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
-  const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
+  const [activeId, setActiveId] = useState(() => getSafeActiveId(initialSboms, initialActiveId));
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -1099,6 +1107,13 @@ export function SBOMManagement({
       setSboms(initialSboms);
     }
   }, [initialSboms, isDirty]);
+
+  useEffect(() => {
+    setActiveId((currentActiveId) => {
+      const nextActiveId = getSafeActiveId(sboms, currentActiveId);
+      return currentActiveId === nextActiveId ? currentActiveId : nextActiveId;
+    });
+  }, [sboms]);
 
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -1115,14 +1130,14 @@ export function SBOMManagement({
     if (!initialActiveId) return;
     if (initialActiveId === lastInitialActiveIdRef.current) return;
     lastInitialActiveIdRef.current = initialActiveId;
-    setActiveId(initialActiveId);
+    setActiveId(getSafeActiveId(sboms, initialActiveId));
     setCurrentPage(1);
     setDangerOpen(false);
     setDeploymentsEditing(false);
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setQuery("");
-  }, [initialActiveId]);
+  }, [initialActiveId, sboms]);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
