@@ -8,6 +8,7 @@ from cyclonedx.model.component import Component
 from packageurl import PackageURL
 from sortedcontainers import SortedSet
 
+from app.sbom.parser import syft_common
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.debug_info_outputer import error_message
 from app.sbom.parser.sbom_info import SBOMInfo
@@ -15,7 +16,6 @@ from app.sbom.parser.sbom_parser import (
     SBOM,
     SBOMParser,
 )
-from app.sbom.parser import syft_common
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
@@ -56,7 +56,6 @@ class SyftCDXParser(SBOMParser):
             package_manager, _ = syft_common.get_package_manager_from_path(location_path)
             if package_manager:
                 return SyftCDXParser.PkgMgrInfo(package_manager, location_path)  # Eureka!
-
             idx += 1
 
     @staticmethod
@@ -92,7 +91,6 @@ class SyftCDXParser(SBOMParser):
             source_name = str(upstream).casefold()
 
         pkg_info = syft_common.get_ecosystem_from_purl(component.purl)
-
         mgr_info = SyftCDXParser._guess_mgr(component.properties)
 
         return {
