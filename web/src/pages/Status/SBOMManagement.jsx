@@ -1105,17 +1105,19 @@ export function SBOMManagement({
   const [dangerOpen, setDangerOpen] = useState(false);
   const [pendingThumbnail, setPendingThumbnail] = useState(null);
 
+  const lastInitialActiveIdRef = useRef(initialActiveId);
   useEffect(() => {
-    if (initialActiveId && initialActiveId !== activeId) {
-      setActiveId(initialActiveId);
-      setCurrentPage(1);
-      setDangerOpen(false);
-      setDeploymentsEditing(false);
-      setDetailsEditing(false);
-      setPendingThumbnail(null);
-      setQuery("");
-    }
-  }, [initialActiveId, activeId]);
+    if (!initialActiveId) return;
+    if (initialActiveId === lastInitialActiveIdRef.current) return;
+    lastInitialActiveIdRef.current = initialActiveId;
+    setActiveId(initialActiveId);
+    setCurrentPage(1);
+    setDangerOpen(false);
+    setDeploymentsEditing(false);
+    setDetailsEditing(false);
+    setPendingThumbnail(null);
+    setQuery("");
+  }, [initialActiveId]);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
@@ -1511,9 +1513,7 @@ export function SBOMManagement({
                 <SbomImage
                   editing={detailsEditing}
                   imageUrl={
-                    pendingThumbnail
-                      ? pendingThumbnail.previewDataUrl || ""
-                      : activeSbom.imageUrl
+                    pendingThumbnail ? pendingThumbnail.previewDataUrl || "" : activeSbom.imageUrl
                   }
                   onImageUpload={handleImageUpload}
                   onRemoveImage={handleRemoveImage}
@@ -1873,9 +1873,7 @@ export function SBOMManagement({
         initialFile={pendingUpload?.file ?? null}
         serviceName={pendingUpload?.serviceName}
         existingServiceNames={
-          pendingUpload && !pendingUpload.serviceName
-            ? sboms.map((sbom) => sbom.title)
-            : undefined
+          pendingUpload && !pendingUpload.serviceName ? sboms.map((sbom) => sbom.title) : undefined
         }
         showWarning={!!pendingUpload?.serviceName}
         onUploaded={() => setPendingUpload(null)}

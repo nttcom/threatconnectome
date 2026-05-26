@@ -119,13 +119,7 @@ export function Status() {
     );
   }
 
-  return (
-    <StatusBody
-      pteamId={pteamId}
-      pteam={pteam}
-      initialActiveServiceId={serviceId}
-    />
-  );
+  return <StatusBody pteamId={pteamId} pteam={pteam} initialActiveServiceId={serviceId} />;
 }
 
 function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
