@@ -160,6 +160,16 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
     return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
   }, [pteam.services, packagesSummary, thumbnails]);
 
+  const handleActiveIdChange = useCallback(
+    (serviceId) => {
+      setActiveServiceId(serviceId);
+      const newParams = new URLSearchParams(location.search);
+      newParams.set("serviceId", serviceId);
+      navigate(location.pathname + "?" + newParams.toString());
+    },
+    [location, navigate],
+  );
+
   const handlePackageClick = useCallback(
     (serviceId, packageId) => {
       const preservedParams = preserveParams(location.search);
@@ -190,7 +200,7 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
       <SBOMManagement
         initialSboms={sboms}
         initialActiveId={initialActiveServiceId}
-        onActiveIdChange={setActiveServiceId}
+        onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
         isFetching={packagesSummaryIsFetching}

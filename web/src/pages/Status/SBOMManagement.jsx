@@ -31,8 +31,17 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
+import {
+  useDeletePTeamServiceMutation,
+  useDeletePTeamServiceThumbnailMutation,
+  useUpdatePTeamServiceMutation,
+  useUpdatePTeamServiceThumbnailMutation,
+} from "../../services/tcApi";
+import { serviceImageMaxSize } from "../../utils/const";
+import { errorToString } from "../../utils/func";
 import {
   createDefaultSboms,
   createId,
@@ -43,6 +52,7 @@ import {
   normalizeTags,
   parseDependenciesFromSbom,
 } from "../../utils/sbomManagementUtils";
+import { normalizeServiceImageToPng } from "../../utils/serviceImageUtils";
 
 import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 
@@ -478,6 +488,16 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 }
 
 function DetailsForm({ editing, onUpdate, open, sbom }) {
+  const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
+
+  useEffect(() => {
+    if (editing) {
+      setTagsText(sbom.tags.join(", "));
+    }
+    // Reset only when entering edit mode or switching SBOM; ignore live `tags` updates while typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, sbom.id]);
+
   const emptyText = (
     <Box component="span" sx={{ color: slate[400] }}>
       未設定
@@ -564,10 +584,14 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         </Typography>
         <TextField
           fullWidth
-          onChange={(event) => onUpdate({ tags: normalizeTags(event.target.value) })}
+          onChange={(event) => {
+            const raw = event.target.value;
+            setTagsText(raw);
+            onUpdate({ tags: normalizeTags(raw) });
+          }}
           placeholder="backend, prod, critical"
           sx={{ ...fieldSx, mt: 1 }}
-          value={sbom.tags.join(", ")}
+          value={tagsText}
         />
       </Box>
     </Stack>
@@ -621,8 +645,8 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
                     value={deployment.ip}
                   />
                   <TextField
+                    disabled
                     fullWidth
-                    onChange={(event) => onUpdate(deployment.id, { location: event.target.value })}
                     placeholder="ロケーション"
                     sx={fieldSx}
                     value={deployment.location}
@@ -1063,10 +1087,14 @@ export function SBOMManagement({
 }) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(initialActiveId || initialSboms[0]?.id || NEW_SBOM_ID);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    setSboms(initialSboms);
-  }, [initialSboms]);
+    if (!isDirty) {
+      setSboms(initialSboms);
+    }
+  }, [initialSboms, isDirty]);
+
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -1075,9 +1103,28 @@ export function SBOMManagement({
   const [deploymentsOpen, setDeploymentsOpen] = useState(false);
   const [deploymentsEditing, setDeploymentsEditing] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
+  const [pendingThumbnail, setPendingThumbnail] = useState(null);
+
+  useEffect(() => {
+    if (initialActiveId && initialActiveId !== activeId) {
+      setActiveId(initialActiveId);
+      setCurrentPage(1);
+      setDangerOpen(false);
+      setDeploymentsEditing(false);
+      setDetailsEditing(false);
+      setPendingThumbnail(null);
+      setQuery("");
+    }
+  }, [initialActiveId, activeId]);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
+
+  const { enqueueSnackbar } = useSnackbar();
+  const [updatePTeamService] = useUpdatePTeamServiceMutation();
+  const [deletePTeamService] = useDeletePTeamServiceMutation();
+  const [updatePTeamServiceThumbnail] = useUpdatePTeamServiceThumbnailMutation();
+  const [deletePTeamServiceThumbnail] = useDeletePTeamServiceThumbnailMutation();
 
   const isEmpty = sboms.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -1115,16 +1162,19 @@ export function SBOMManagement({
   const paginatedDependencies = filteredDependencies.slice(pageStartIndex, pageEndIndex);
 
   const updateActiveSbom = (patch) => {
+    setIsDirty(true);
     setSboms((current) =>
       current.map((sbom) => (sbom.id === activeId ? { ...sbom, ...patch } : sbom)),
     );
   };
 
   const resetUiState = () => {
+    setIsDirty(false);
     setCurrentPage(1);
     setDangerOpen(false);
     setDeploymentsEditing(false);
     setDetailsEditing(false);
+    setPendingThumbnail(null);
     setQuery("");
   };
 
@@ -1140,15 +1190,24 @@ export function SBOMManagement({
     resetUiState();
   };
 
-  const removeActiveSbom = () => {
-    if (isCreatingSbom) {
+  const removeActiveSbom = async () => {
+    if (isCreatingSbom || !pteamId || !activeSbom) {
+      return;
+    }
+
+    try {
+      await deletePTeamService({
+        path: { pteam_id: pteamId, service_id: activeSbom.id },
+      }).unwrap();
+      enqueueSnackbar("SBOMを削除しました", { variant: "success" });
+    } catch (error) {
+      enqueueSnackbar(`削除に失敗しました: ${errorToString(error)}`, { variant: "error" });
       return;
     }
 
     const nextActiveId = getNextActiveIdAfterRemoval(sboms, activeId) || NEW_SBOM_ID;
-
-    setSboms((current) => current.filter((sbom) => sbom.id !== activeId));
     setActiveId(nextActiveId);
+    onActiveIdChange?.(nextActiveId);
     resetUiState();
   };
 
@@ -1218,26 +1277,105 @@ export function SBOMManagement({
     setPendingUpload({ file, serviceName: activeSbom.title });
   };
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const input = event.target;
     const file = input.files?.[0];
+    input.value = "";
 
     if (!file || !activeSbom) {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      window.alert("画像ファイルを選択してください。");
-      input.value = "";
+    if (file.size >= serviceImageMaxSize) {
+      enqueueSnackbar("画像サイズが大きすぎます", { variant: "error" });
       return;
     }
 
-    const reader = new FileReader();
+    try {
+      const normalized = await normalizeServiceImageToPng(file);
+      if (normalized.file.size >= serviceImageMaxSize) {
+        enqueueSnackbar("変換後の画像サイズが上限を超えました", { variant: "error" });
+        return;
+      }
+      setPendingThumbnail({
+        file: normalized.file,
+        previewDataUrl: normalized.previewDataUrl,
+        deleted: false,
+      });
+    } catch {
+      enqueueSnackbar("画像の処理に失敗しました", { variant: "error" });
+    }
+  };
 
-    reader.onload = () => updateActiveSbom({ imageUrl: String(reader.result || "") });
-    reader.onerror = () => window.alert("画像の読み込みに失敗しました。");
-    reader.readAsDataURL(file);
-    input.value = "";
+  const handleRemoveImage = () => {
+    setPendingThumbnail({ file: null, previewDataUrl: null, deleted: true });
+  };
+
+  const commitDetailsEdit = async () => {
+    if (!activeSbom || !pteamId) {
+      setDetailsEditing(false);
+      return;
+    }
+
+    const calls = [];
+
+    calls.push(() =>
+      updatePTeamService({
+        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        body: {
+          service_name: activeSbom.title,
+          description: activeSbom.description,
+          keywords: activeSbom.tags,
+        },
+      }).unwrap(),
+    );
+
+    if (pendingThumbnail?.file) {
+      const file = pendingThumbnail.file;
+      calls.push(() =>
+        updatePTeamServiceThumbnail({
+          path: { pteam_id: pteamId, service_id: activeSbom.id },
+          body: { uploaded: file },
+        }).unwrap(),
+      );
+    } else if (pendingThumbnail?.deleted) {
+      calls.push(() =>
+        deletePTeamServiceThumbnail({
+          path: { pteam_id: pteamId, service_id: activeSbom.id },
+        }).unwrap(),
+      );
+    }
+
+    try {
+      await Promise.all(calls.map((fn) => fn()));
+      enqueueSnackbar("詳細情報を更新しました", { variant: "success" });
+      setPendingThumbnail(null);
+      setDetailsEditing(false);
+    } catch (error) {
+      enqueueSnackbar(`更新に失敗しました: ${errorToString(error)}`, { variant: "error" });
+    }
+  };
+
+  const commitDeploymentsEdit = async () => {
+    if (!activeSbom || !pteamId) {
+      setDeploymentsEditing(false);
+      return;
+    }
+
+    const ipAddresses = activeSbom.deployments
+      .map((deployment) => deployment.ip.trim())
+      .filter(Boolean);
+
+    try {
+      await updatePTeamService({
+        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        body: { asset: { ip_addresses: ipAddresses } },
+      }).unwrap();
+      enqueueSnackbar("デプロイ先を更新しました", { variant: "success" });
+      setDeploymentsEditing(false);
+    } catch (error) {
+      enqueueSnackbar(`更新に失敗しました: ${errorToString(error)}`, { variant: "error" });
+    }
   };
 
   const handleCreateFileUpload = async (event) => {
@@ -1372,9 +1510,13 @@ export function SBOMManagement({
               >
                 <SbomImage
                   editing={detailsEditing}
-                  imageUrl={activeSbom.imageUrl}
+                  imageUrl={
+                    pendingThumbnail
+                      ? pendingThumbnail.previewDataUrl || ""
+                      : activeSbom.imageUrl
+                  }
                   onImageUpload={handleImageUpload}
-                  onRemoveImage={() => updateActiveSbom({ imageUrl: "" })}
+                  onRemoveImage={handleRemoveImage}
                   title={activeSbom.title}
                 />
                 <AccordionHeader
@@ -1383,8 +1525,12 @@ export function SBOMManagement({
                       active={detailsEditing}
                       icon={detailsEditing ? CheckIcon : EditIcon}
                       onClick={() => {
-                        setDetailsOpen(true);
-                        setDetailsEditing((editing) => !editing);
+                        if (detailsEditing) {
+                          commitDetailsEdit();
+                        } else {
+                          setDetailsOpen(true);
+                          setDetailsEditing(true);
+                        }
                       }}
                     >
                       {detailsEditing ? "完了" : "編集"}
@@ -1443,8 +1589,12 @@ export function SBOMManagement({
                         active={deploymentsEditing}
                         icon={deploymentsEditing ? CheckIcon : EditIcon}
                         onClick={() => {
-                          setDeploymentsOpen(true);
-                          setDeploymentsEditing((editing) => !editing);
+                          if (deploymentsEditing) {
+                            commitDeploymentsEdit();
+                          } else {
+                            setDeploymentsOpen(true);
+                            setDeploymentsEditing(true);
+                          }
                         }}
                       >
                         {deploymentsEditing ? "完了" : "編集"}
