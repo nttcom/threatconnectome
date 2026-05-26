@@ -384,7 +384,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
     >
       {imageInput}
       <Box
-        alt={title || "SBOM Image"}
+        alt={title ? t("sbomImageAltWithTitle", { title }) : t("sbomImageAlt")}
         component="img"
         src={imageUrl}
         sx={{ height: "100%", objectFit: "cover", width: "100%" }}
@@ -591,7 +591,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
             setTagsText(raw);
             onUpdate({ tags: normalizeTags(raw) });
           }}
-          placeholder="backend, prod, critical"
+          placeholder={t("tagsPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
           value={tagsText}
         />
