@@ -6,11 +6,7 @@ from packageurl import PackageURL
 from app.sbom.parser.artifact import Artifact
 from app.sbom.parser.sbom_info import SBOMInfo
 from app.sbom.parser.sbom_parser import SBOM, SBOMParser
-from app.sbom.parser.syft_common import (
-    get_ecosystem_from_purl,
-    get_package_manager_from_path,
-    get_source_name_from_rpm_filename,
-)
+from app.sbom.parser import syft_common
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
@@ -43,7 +39,7 @@ class SyftSPDXParser(SBOMParser):
         if isinstance(purl.qualifiers, dict) and (upstream := purl.qualifiers.get("upstream")):
             if str(upstream).endswith(".rpm"):
                 try:
-                    return get_source_name_from_rpm_filename(str(upstream)).casefold()
+                    return syft_common.get_source_name_from_rpm_filename(str(upstream)).casefold()
                 except ValueError:
                     pass
             return str(upstream).casefold()
@@ -51,7 +47,7 @@ class SyftSPDXParser(SBOMParser):
 
     @staticmethod
     def _get_package_manager_from_path(path: str) -> tuple[str, str]:
-        return get_package_manager_from_path(path)
+        return syft_common.get_package_manager_from_path(path)
 
     @staticmethod
     def _get_package_manager(package: dict[str, Any]) -> tuple[str, str | None]:
@@ -63,7 +59,7 @@ class SyftSPDXParser(SBOMParser):
 
     @staticmethod
     def _get_ecosystem(purl: PackageURL) -> str:
-        return get_ecosystem_from_purl(purl)
+        return syft_common.get_ecosystem_from_purl(purl)
 
     @staticmethod
     def _extract_package_info(package: dict[str, Any]) -> dict[str, Any] | None:

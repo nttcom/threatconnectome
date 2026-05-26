@@ -15,11 +15,7 @@ from app.sbom.parser.sbom_parser import (
     SBOM,
     SBOMParser,
 )
-from app.sbom.parser.syft_common import (
-    get_ecosystem_from_purl,
-    get_package_manager_from_path,
-    get_source_name_from_rpm_filename,
-)
+from app.sbom.parser import syft_common
 from app.utility.progress_logger import TimeBasedProgressLogger
 
 
@@ -57,7 +53,7 @@ class SyftCDXParser(SBOMParser):
                 # could not guess type, but no more locations.
                 # return the top of locations as a (hint of) target.
                 return SyftCDXParser.PkgMgrInfo("", location_0_path)
-            package_manager, _ = get_package_manager_from_path(location_path)
+            package_manager, _ = syft_common.get_package_manager_from_path(location_path)
             if package_manager:
                 return SyftCDXParser.PkgMgrInfo(package_manager, location_path)  # Eureka!
 
@@ -80,7 +76,9 @@ class SyftCDXParser(SBOMParser):
                 break
             if property.name == "syft:metadata:sourceRpm":
                 try:
-                    source_name = get_source_name_from_rpm_filename(property.value).casefold()
+                    source_name = syft_common.get_source_name_from_rpm_filename(
+                        property.value
+                    ).casefold()
                     break
                 except ValueError:
                     continue
@@ -93,7 +91,7 @@ class SyftCDXParser(SBOMParser):
         ):
             source_name = str(upstream).casefold()
 
-        pkg_info = get_ecosystem_from_purl(component.purl)
+        pkg_info = syft_common.get_ecosystem_from_purl(component.purl)
 
         mgr_info = SyftCDXParser._guess_mgr(component.properties)
 
