@@ -1096,7 +1096,6 @@ export function SBOMManagement({
   onActiveIdChange,
   onPackageClick,
   pteamId,
-  isFetching = false,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
   const [activeId, setActiveId] = useState(() => getSafeActiveId(initialSboms, initialActiveId));

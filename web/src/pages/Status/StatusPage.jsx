@@ -147,16 +147,13 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
     });
   }, [pteamId, pteam.services, initialActiveServiceId]);
 
-  const {
-    currentData: packagesSummary,
-    error: packagesSummaryError,
-    isFetching: packagesSummaryIsFetching,
-  } = useGetPTeamPackagesSummaryQuery(
-    { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
-    {
-      skip: skipByAuth || !pteamId || !activeServiceId || !isActiveServiceValid,
-    },
-  );
+  const { currentData: packagesSummary, error: packagesSummaryError } =
+    useGetPTeamPackagesSummaryQuery(
+      { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
+      {
+        skip: skipByAuth || !pteamId || !activeServiceId || !isActiveServiceValid,
+      },
+    );
 
   if (packagesSummaryError)
     throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
@@ -215,7 +212,6 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
-        isFetching={packagesSummaryIsFetching}
       />
     </>
   );
