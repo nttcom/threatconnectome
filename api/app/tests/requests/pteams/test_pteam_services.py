@@ -437,6 +437,26 @@ class TestPostUploadPTeamSbomFile:
         assert data["service_name"] == params["service"]
         assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
 
+    def test_upload_pteam_sbom_file_with_syft_spdx(self):
+        # To avoid multiple rows error, pteam2 is created for test
+        create_pteam(USER1, PTEAM2)
+
+        params = {"service": "threatconnectome"}
+        sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "test_syft_spdx.json"
+        with open(sbom_file, "rb") as tags:
+            response = client.post(
+                f"/pteams/{self.pteam1.pteam_id}/upload_sbom_file",
+                headers=file_upload_headers(USER1),
+                params=params,
+                files={"file": tags},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["pteam_id"] == str(self.pteam1.pteam_id)
+        assert data["service_name"] == params["service"]
+        assert data["sbom_file_sha256"] == calc_file_sha256(sbom_file)
+
     def test_upload_pteam_sbom_file_with_empty_file(self):
         params = {"service": "threatconnectome"}
         sbom_file = Path(__file__).resolve().parent.parent / "upload_test" / "empty.json"
