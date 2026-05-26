@@ -12,7 +12,7 @@ export function parseDependenciesFromSbom(json) {
     return components.map((component, index) => ({
       name: component.name || component["bom-ref"] || `component-${index + 1}`,
       version: component.version || "-",
-      type: component.type || component.purl?.split(":")?.[0]?.replace("pkg", "") || "component",
+      type: component.purl?.split(":")?.[1]?.split("/")?.[0] || "component",
       license:
         component.licenses?.[0]?.license?.id ||
         component.licenses?.[0]?.license?.name ||
@@ -89,4 +89,3 @@ export function buildSbomsFromPTeam(services, packages) {
       })),
   }));
 }
-

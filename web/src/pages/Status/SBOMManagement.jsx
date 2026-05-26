@@ -1246,8 +1246,7 @@ export function SBOMManagement({
       return;
     }
 
-    const confirmed =
-      typeof window === "undefined" || window.confirm(t("confirmRemoveDeployment"));
+    const confirmed = typeof window === "undefined" || window.confirm(t("confirmRemoveDeployment"));
 
     if (!confirmed) {
       return;
