@@ -131,13 +131,31 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
     initialActiveServiceId || pteam.services[0]?.service_id,
   );
 
+  const isActiveServiceValid = useMemo(
+    () => pteam.services.some((s) => s.service_id === activeServiceId),
+    [pteam.services, activeServiceId],
+  );
+
+  useEffect(() => {
+    const ids = pteam.services.map((s) => s.service_id);
+    setActiveServiceId((prev) => {
+      if (prev && ids.includes(prev)) return prev;
+      if (initialActiveServiceId && ids.includes(initialActiveServiceId)) {
+        return initialActiveServiceId;
+      }
+      return pteam.services[0]?.service_id ?? "";
+    });
+  }, [pteamId, pteam.services, initialActiveServiceId]);
+
   const {
     currentData: packagesSummary,
     error: packagesSummaryError,
     isFetching: packagesSummaryIsFetching,
   } = useGetPTeamPackagesSummaryQuery(
     { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
-    { skip: skipByAuth || !pteamId || !activeServiceId },
+    {
+      skip: skipByAuth || !pteamId || !activeServiceId || !isActiveServiceValid,
+    },
   );
 
   if (packagesSummaryError)
