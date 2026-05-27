@@ -10,7 +10,7 @@ Threatconnectome supports vulnerability management in industries where products 
 
 - Alerts and Actions based on SSVC
 - PSIRT-friendly UI and Web API
-- CycloneDX 1.6 support
+- SPDX 2.3 and CycloneDX 1.6 support
 
 ## :eyes: Live demo
 
