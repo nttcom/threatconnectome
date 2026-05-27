@@ -18,8 +18,6 @@ import { buildSbomsFromPTeam } from "../../utils/sbomManagementUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { SBOMManagement } from "./SBOMManagement";
-import { FileDropZone } from "./SbomDrop/FileDropZone";
-import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 function ServiceThumbnailLoader({ pteamId, serviceId, onLoaded }) {
@@ -51,19 +49,6 @@ export function Status() {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const { t } = useTranslation("status", { keyPrefix: "StatusPage" });
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [sbomUpdateDialogOpen, setSbomUpdateDialogOpen] = useState(false);
-
-  const handleFileSelected = (file) => {
-    setSelectedFile(file);
-    setSbomUpdateDialogOpen(true);
-  };
-
-  const handleSbomUpdateDialogClose = () => {
-    setSelectedFile(null);
-    setSbomUpdateDialogOpen(false);
-  };
-
   const {
     data: pteam,
     error: pteamError,
@@ -91,33 +76,6 @@ export function Status() {
   if (skipByAuth) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>{t("loading_team")}</>;
-
-  if (pteam.services.length === 0) {
-    return (
-      <>
-        <Box display="flex" flexDirection="row">
-          <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
-          <Box flexGrow={1} />
-        </Box>
-        <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-          <SBOMUploadProgressButton pteamId={pteamId} />
-        </Box>
-        <FileDropZone
-          onFileSelected={handleFileSelected}
-          selectedFile={null}
-          showFileName={false}
-        />
-        <SBOMUpdateDialog
-          open={sbomUpdateDialogOpen}
-          onClose={handleSbomUpdateDialogClose}
-          pteamId={pteamId}
-          initialFile={selectedFile}
-          onUploaded={() => {}}
-          showWarning={false}
-        />
-      </>
-    );
-  }
 
   return <StatusBody pteamId={pteamId} pteam={pteam} initialActiveServiceId={serviceId} />;
 }
