@@ -191,7 +191,7 @@
     "sbomParseFailed": "SBOM JSONの読み込みに失敗しました。CycloneDX JSONまたはSPDX JSONを確認してください。",
     "registerNewSbom": "新しいSBOMを登録",
     "registerNewSbomDesc": "まずSBOM JSONをアップロードしてください。読み込み後に詳細情報とデプロイ先を設定できます。",
-    "uploadFirstSbom": "最初のSBOMをアップロード"
+    "uploadFirstSbom": "SBOMをアップロード"
   },
   "PTeamServiceDetailsSettingsView": {
     "serviceSettings": "サービス設定",

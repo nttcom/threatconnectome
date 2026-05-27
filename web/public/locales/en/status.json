@@ -191,7 +191,7 @@
     "sbomParseFailed": "Failed to read SBOM JSON. Please verify CycloneDX JSON or SPDX JSON format.",
     "registerNewSbom": "Register a new SBOM",
     "registerNewSbomDesc": "Upload an SBOM JSON first. You can configure details and deployments after the file is loaded.",
-    "uploadFirstSbom": "Upload your first SBOM"
+    "uploadFirstSbom": "Upload an SBOM"
   },
   "PTeamServiceDetailsSettingsView": {
     "serviceSettings": "Service settings",
