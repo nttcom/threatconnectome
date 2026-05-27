@@ -49,7 +49,6 @@ import {
   isDeleteConfirmationValid,
   NEW_SBOM_ID,
   normalizeTags,
-  parseDependenciesFromSbom,
 } from "../../utils/sbomManagementUtils";
 import { normalizeServiceImageToPng } from "../../utils/serviceImageUtils";
 
@@ -1271,24 +1270,12 @@ export function SBOMManagement({
     });
   };
 
-  const readSbomFile = async (file) => {
-    const text = await file.text();
-    return parseDependenciesFromSbom(JSON.parse(text));
-  };
-
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = (event) => {
     const input = event.target;
     const file = input.files?.[0];
     input.value = "";
 
     if (!file || !activeSbom) {
-      return;
-    }
-
-    try {
-      await readSbomFile(file);
-    } catch {
-      window.alert(t("sbomParseFailed"));
       return;
     }
 
@@ -1396,19 +1383,12 @@ export function SBOMManagement({
     }
   };
 
-  const handleCreateFileUpload = async (event) => {
+  const handleCreateFileUpload = (event) => {
     const input = event.target;
     const file = input.files?.[0];
     input.value = "";
 
     if (!file) {
-      return;
-    }
-
-    try {
-      await readSbomFile(file);
-    } catch {
-      window.alert(t("sbomParseFailed"));
       return;
     }
 

@@ -127,22 +127,15 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const [thumbnails, setThumbnails] = useState({});
-  const [activeServiceId, setActiveServiceId] = useState(
-    initialActiveServiceId || pteam.services[0]?.service_id,
-  );
-
-  const isActiveServiceValid = useMemo(
-    () => pteam.services.some((s) => s.service_id === activeServiceId),
-    [pteam.services, activeServiceId],
-  );
+  const [activeServiceId, setActiveServiceId] = useState(initialActiveServiceId);
 
   useEffect(() => {
     const ids = pteam.services.map((s) => s.service_id);
     setActiveServiceId((prev) => {
-      if (prev && ids.includes(prev)) return prev;
       if (initialActiveServiceId && ids.includes(initialActiveServiceId)) {
         return initialActiveServiceId;
       }
+      if (prev && ids.includes(prev)) return prev;
       return pteam.services[0]?.service_id ?? "";
     });
   }, [pteamId, pteam.services, initialActiveServiceId]);
@@ -151,7 +144,7 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
     useGetPTeamPackagesSummaryQuery(
       { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
       {
-        skip: skipByAuth || !pteamId || !activeServiceId || !isActiveServiceValid,
+        skip: skipByAuth || !pteamId || !activeServiceId,
       },
     );
 
@@ -171,7 +164,6 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
-      setActiveServiceId(serviceId);
       const newParams = new URLSearchParams(location.search);
       newParams.set("serviceId", serviceId);
       navigate(location.pathname + "?" + newParams.toString());
@@ -198,7 +190,7 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
-      {activeServiceId && isActiveServiceValid && (
+      {activeServiceId && (
         <ServiceThumbnailLoader
           key={activeServiceId}
           pteamId={pteamId}

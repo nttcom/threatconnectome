@@ -4,35 +4,6 @@ export function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-export function parseDependenciesFromSbom(json) {
-  const components = Array.isArray(json?.components) ? json.components : [];
-  const packages = Array.isArray(json?.packages) ? json.packages : [];
-
-  if (components.length > 0) {
-    return components.map((component, index) => ({
-      name: component.name || component["bom-ref"] || `component-${index + 1}`,
-      version: component.version || "-",
-      type: component.purl?.split(":")?.[1]?.split("/")?.[0] || "component",
-      license:
-        component.licenses?.[0]?.license?.id ||
-        component.licenses?.[0]?.license?.name ||
-        component.licenses?.[0]?.expression ||
-        "unknown",
-    }));
-  }
-
-  if (packages.length > 0) {
-    return packages.map((pkg, index) => ({
-      name: pkg.name || pkg.SPDXID || `package-${index + 1}`,
-      version: pkg.versionInfo || pkg.version || "-",
-      type: "spdx",
-      license: pkg.licenseConcluded || pkg.licenseDeclared || "unknown",
-    }));
-  }
-
-  return [];
-}
-
 export function normalizeTags(value) {
   return value
     .split(",")
