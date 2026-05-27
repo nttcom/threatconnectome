@@ -193,7 +193,6 @@ export const drawerParams = {
 export const preserveKeys = [
   "pteamId", // Query parameters required on all pages
   "serviceId", // Query parameters required on all pages
-  "allservices", // Toggle Button on Status Page
   "related", // Toggle button on Vulns Page
   "mytasks", // Toggle button on ToDo Page
 ];
