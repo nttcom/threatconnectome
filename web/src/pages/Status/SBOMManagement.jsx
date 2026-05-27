@@ -1763,15 +1763,14 @@ export function SBOMManagement({
                         sx={{
                           bgcolor: slate[50],
                           color: slate[500],
-                          display: "grid",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
-                          letterSpacing: 0,
-                          px: 2,
-                          py: 1.5,
-                          textTransform: "uppercase",
-                        }}
+                        display: "grid",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
+                        letterSpacing: 0,
+                        px: 2,
+                        py: 1.5,
+                      }}
                       >
                         <Box>SSVC</Box>
                         <Box>{t("package")}</Box>
