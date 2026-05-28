@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -144,6 +144,8 @@ describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
     beforeEach(() => {
       navigate.mockClear();
+      useGetPTeamQuery.mockClear();
+      useGetPTeamPackagesSummaryQuery.mockClear();
       useNavigate.mockReturnValue(navigate);
       const progresses = {
         data: [
@@ -217,6 +219,57 @@ describe("StatusPage", () => {
 
       renderStatusPage();
       expect(screen.queryByText("Drop or click to select")).toBeNull();
+    });
+
+    it("redirects stale serviceId before loading packages summary", async () => {
+      const testLocation = {
+        pathname: "/",
+        search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=old-team-service-id",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      };
+
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      renderStatusPage();
+
+      await waitFor(() => {
+        expect(navigate).toHaveBeenCalledWith(
+          "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+        );
+      });
+      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
+    });
+
+    it("does not load packages summary while team data is stale", () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: { ...testPTeamData, pteam_id: "previous-team-id" },
+        error: false,
+        isFetching: true,
+        isLoading: false,
+      };
+
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      renderStatusPage();
+
+      expect(navigate).not.toHaveBeenCalled();
+      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
     });
 
     it("show new SBOM registration panel when the new registration button is clicked", async () => {

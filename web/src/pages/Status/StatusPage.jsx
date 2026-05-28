@@ -58,51 +58,53 @@ export function Status() {
 
   useEffect(() => {
     if (!pteamId) return;
-    if (pteamIsFetching || !pteam) return;
-    if (!serviceId && pteam.services.length > 0) {
-      const newParams = new URLSearchParams();
-      newParams.set("pteamId", pteamId);
-      newParams.set("serviceId", pteam.services[0].service_id);
-      const mytasksParam = preserveMyTasksParam(location.search);
-      for (const [key, value] of mytasksParam) {
-        newParams.set(key, value);
-      }
-      navigate(location.pathname + "?" + newParams.toString());
+    if (pteamIsFetching || !pteam || pteam.pteam_id !== pteamId) return;
+
+    const serviceIds = pteam.services.map((service) => service.service_id);
+    const serviceIdInPTeam = serviceId && serviceIds.includes(serviceId);
+    const fallbackServiceId = pteam.services[0]?.service_id;
+    if (serviceIdInPTeam || (!fallbackServiceId && !serviceId)) {
+      return;
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, pteam, pteamIsFetching, serviceId]);
+
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", pteamId);
+    if (fallbackServiceId) {
+      newParams.set("serviceId", fallbackServiceId);
+    }
+    const mytasksParam = preserveMyTasksParam(location.search);
+    for (const [key, value] of mytasksParam) {
+      newParams.set(key, value);
+    }
+    navigate(location.pathname + "?" + newParams.toString());
+  }, [location.pathname, location.search, navigate, pteam, pteamId, pteamIsFetching, serviceId]);
 
   if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skipByAuth) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>{t("loading_team")}</>;
+  if (!pteam || pteam.pteam_id !== pteamId) return <>{t("loading_team")}</>;
 
-  return <StatusBody pteamId={pteamId} pteam={pteam} initialActiveServiceId={serviceId} />;
+  const serviceIdInPTeam =
+    serviceId && pteam.services.some((service) => service.service_id === serviceId);
+  if (pteam.services.length > 0 && !serviceIdInPTeam) return <></>;
+
+  return (
+    <StatusBody pteamId={pteamId} pteam={pteam} serviceId={serviceIdInPTeam ? serviceId : null} />
+  );
 }
 
-function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
+function StatusBody({ pteamId, pteam, serviceId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const [thumbnails, setThumbnails] = useState({});
-  const [activeServiceId, setActiveServiceId] = useState(initialActiveServiceId);
-
-  useEffect(() => {
-    const ids = pteam.services.map((s) => s.service_id);
-    setActiveServiceId((prev) => {
-      if (initialActiveServiceId && ids.includes(initialActiveServiceId)) {
-        return initialActiveServiceId;
-      }
-      if (prev && ids.includes(prev)) return prev;
-      return pteam.services[0]?.service_id ?? "";
-    });
-  }, [pteamId, pteam.services, initialActiveServiceId]);
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
-      { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
+      { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
       {
-        skip: skipByAuth || !pteamId || !activeServiceId,
+        skip: skipByAuth || !pteamId || !serviceId,
       },
     );
 
@@ -116,13 +118,9 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
   }, []);
 
   const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(
-      pteam.services,
-      packagesSummary?.packages ?? [],
-      activeServiceId,
-    );
+    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
     return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
-  }, [activeServiceId, pteam.services, packagesSummary, thumbnails]);
+  }, [pteam.services, packagesSummary, serviceId, thumbnails]);
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
@@ -152,17 +150,17 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
-      {activeServiceId && (
+      {serviceId && (
         <ServiceThumbnailLoader
-          key={activeServiceId}
+          key={serviceId}
           pteamId={pteamId}
-          serviceId={activeServiceId}
+          serviceId={serviceId}
           onLoaded={handleThumbnailLoaded}
         />
       )}
       <SBOMManagement
         initialSboms={sboms}
-        initialActiveId={initialActiveServiceId}
+        initialActiveId={serviceId}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
@@ -174,5 +172,5 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
 StatusBody.propTypes = {
   pteamId: PropTypes.string.isRequired,
   pteam: PropTypes.object.isRequired,
-  initialActiveServiceId: PropTypes.string,
+  serviceId: PropTypes.string,
 };
