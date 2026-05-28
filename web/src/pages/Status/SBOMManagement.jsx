@@ -1336,8 +1336,8 @@ export function SBOMManagement({
       updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: {
-          service_name: activeSbom.title,
-          description: activeSbom.description,
+          service_name: activeSbom.title.trim().replace(/\s+/g, " "),
+          description: activeSbom.description.trim(),
           keywords: activeSbom.tags,
         },
       }).unwrap(),
@@ -1369,6 +1369,10 @@ export function SBOMManagement({
         onThumbnailChange?.(activeSbom.id, "");
         updateActiveSbomImage("");
       }
+      updateActiveSbom({
+        title: activeSbom.title.trim().replace(/\s+/g, " "),
+        description: activeSbom.description.trim(),
+      });
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
@@ -1392,6 +1396,11 @@ export function SBOMManagement({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
+      updateActiveSbom({
+        deployments: activeSbom.deployments
+          .map((d) => ({ ...d, ip: d.ip.trim() }))
+          .filter((d) => d.ip),
+      });
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
     } catch (error) {
