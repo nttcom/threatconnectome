@@ -1655,12 +1655,11 @@ export function SBOMManagement({
                 >
                   <Box
                     sx={{
-                      alignItems: { md: "center", xs: "stretch" },
                       bgcolor: "rgba(248, 250, 252, 0.7)",
                       borderBottom: `1px solid ${slate[200]}`,
                       display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1.5,
+                      flexDirection: "column",
+                      gap: 0.5,
                       px: 1.5,
                       py: 1.25,
                     }}
@@ -1671,10 +1670,10 @@ export function SBOMManagement({
                         border: `1px solid ${slate[200]}`,
                         borderRadius: 3,
                         boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
-                        flex: { md: "0 1 520px", xs: "1 1 100%" },
                         height: 36,
-                        minWidth: { md: 280, xs: 0 },
+                        maxWidth: 520,
                         position: "relative",
+                        width: "100%",
                       }}
                     >
                       <SearchIcon
@@ -1715,42 +1714,44 @@ export function SBOMManagement({
                         value={query}
                       />
                     </Box>
-                    <Typography
-                      sx={{
-                        alignSelf: "center",
-                        color: slate[500],
-                        flex: { md: "0 0 auto", xs: "1 1 auto" },
-                        fontSize: 13,
-                        lineHeight: "18px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {filteredDependencies.length === 0
-                        ? t("noDependencies")
-                        : t("pagingRange", {
-                            total: filteredDependencies.length,
-                            start: pageStartIndex + 1,
-                            end: pageEndIndex,
-                          })}
-                    </Typography>
-                    <Box sx={{ flex: { md: "1 1 auto", xs: "0 0 auto" } }} />
-                    <Box
-                      accept=".json,application/json"
-                      component="input"
-                      onChange={handleFileUpload}
-                      ref={fileInputRef}
-                      sx={{ display: "none" }}
-                      type="file"
-                    />
-                    <AppButton
-                      onClick={() => fileInputRef.current?.click()}
-                      size="small"
-                      startIcon={<UploadFileIcon />}
-                      sx={{ alignSelf: { md: "auto", xs: "center" }, bgcolor: "white" }}
-                      variant="outlined"
-                    >
-                      {t("updateSbom")}
-                    </AppButton>
+                    <Box sx={{ alignItems: "center", display: "flex" }}>
+                      <Typography
+                        sx={{
+                          color: slate[500],
+                          fontSize: 13,
+                          lineHeight: "18px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {filteredDependencies.length === 0
+                          ? t("noDependencies")
+                          : t("pagingRange", {
+                              total: filteredDependencies.length,
+                              start: pageStartIndex + 1,
+                              end: pageEndIndex,
+                            })}
+                      </Typography>
+                      <Box
+                        accept=".json,application/json"
+                        component="input"
+                        onChange={handleFileUpload}
+                        ref={fileInputRef}
+                        sx={{ display: "none" }}
+                        type="file"
+                      />
+                      <AppButton
+                        onClick={() => fileInputRef.current?.click()}
+                        size="small"
+                        startIcon={<UploadFileIcon />}
+                        sx={{
+                          bgcolor: "white",
+                          ml: "auto",
+                        }}
+                        variant="outlined"
+                      >
+                        {t("updateSbom")}
+                      </AppButton>
+                    </Box>
                   </Box>
 
                   <Box sx={{ minWidth: 0, overflowX: "auto", width: "100%" }}>
