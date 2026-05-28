@@ -20,25 +20,6 @@ import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 import { SBOMManagement } from "./SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
-function ServiceThumbnailLoader({ pteamId, serviceId, onLoaded }) {
-  const { data: thumbnail } = useGetPTeamServiceThumbnailQuery({
-    path: { pteam_id: pteamId, service_id: serviceId },
-  });
-
-  useEffect(() => {
-    if (typeof thumbnail === "string") {
-      onLoaded(serviceId, thumbnail);
-    }
-  }, [thumbnail, serviceId, onLoaded]);
-
-  return null;
-}
-
-ServiceThumbnailLoader.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
-  onLoaded: PropTypes.func.isRequired,
-};
 
 export function Status() {
   const location = useLocation();
@@ -61,9 +42,9 @@ export function Status() {
     if (pteamIsFetching || !pteam || pteam.pteam_id !== pteamId) return;
 
     const serviceIds = pteam.services.map((service) => service.service_id);
-    const serviceIdInPTeam = serviceId && serviceIds.includes(serviceId);
+    const isServiceInTeam = serviceId && serviceIds.includes(serviceId);
     const fallbackServiceId = pteam.services[0]?.service_id;
-    if (serviceIdInPTeam || (!fallbackServiceId && !serviceId)) {
+    if (isServiceInTeam || (!fallbackServiceId && !serviceId)) {
       return;
     }
 
@@ -85,12 +66,12 @@ export function Status() {
   if (pteamIsLoading) return <>{t("loading_team")}</>;
   if (!pteam || pteam.pteam_id !== pteamId) return <>{t("loading_team")}</>;
 
-  const serviceIdInPTeam =
+  const isServiceInTeam =
     serviceId && pteam.services.some((service) => service.service_id === serviceId);
-  if (pteam.services.length > 0 && !serviceIdInPTeam) return <></>;
+  if (pteam.services.length > 0 && !isServiceInTeam) return <></>;
 
   return (
-    <StatusBody pteamId={pteamId} pteam={pteam} serviceId={serviceIdInPTeam ? serviceId : null} />
+    <StatusBody pteamId={pteamId} pteam={pteam} serviceId={isServiceInTeam ? serviceId : null} />
   );
 }
 
@@ -98,42 +79,47 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const [thumbnails, setThumbnails] = useState({});
-  const [thumbnailOverrides, setThumbnailOverrides] = useState({});
+  const [thumbnail, setThumbnail] = useState(null);
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
       { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
-      {
-        skip: skipByAuth || !pteamId || !serviceId,
-      },
+      { skip: skipByAuth || !pteamId || !serviceId },
     );
+
+  const { data: loadedThumbnail } = useGetPTeamServiceThumbnailQuery(
+    { path: { pteam_id: pteamId, service_id: serviceId } },
+    { skip: skipByAuth || !pteamId || !serviceId },
+  );
 
   if (packagesSummaryError)
     throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
-  const handleThumbnailLoaded = useCallback((serviceId, dataUrl) => {
-    setThumbnails((prev) =>
-      prev[serviceId] === dataUrl ? prev : { ...prev, [serviceId]: dataUrl },
-    );
-  }, []);
+  useEffect(() => {
+    setThumbnail(null);
+  }, [serviceId]);
 
-  const handleThumbnailChanged = useCallback((serviceId, dataUrl) => {
-    setThumbnailOverrides((prev) => {
-      if (prev[serviceId] === dataUrl) return prev;
-      return { ...prev, [serviceId]: dataUrl };
-    });
-  }, []);
+  useEffect(() => {
+    if (typeof loadedThumbnail === "string") {
+      setThumbnail(loadedThumbnail);
+    }
+  }, [loadedThumbnail]);
+
+  const handleThumbnailChanged = useCallback(
+    (id, dataUrl) => {
+      if (id !== serviceId) return;
+      setThumbnail(dataUrl);
+    },
+    [serviceId],
+  );
 
   const sboms = useMemo(() => {
     const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
-    return base.map((sbom) => ({
-      ...sbom,
-      imageUrl: Object.prototype.hasOwnProperty.call(thumbnailOverrides, sbom.id)
-        ? thumbnailOverrides[sbom.id]
-        : thumbnails[sbom.id] || "",
-    }));
-  }, [pteam.services, packagesSummary, serviceId, thumbnails, thumbnailOverrides]);
+    return base.map((sbom) => {
+      if (sbom.id !== serviceId) return sbom;
+      return { ...sbom, imageUrl: thumbnail ?? "" };
+    });
+  }, [pteam.services, packagesSummary, serviceId, thumbnail]);
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
@@ -163,14 +149,6 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
-      {serviceId && (
-        <ServiceThumbnailLoader
-          key={serviceId}
-          pteamId={pteamId}
-          serviceId={serviceId}
-          onLoaded={handleThumbnailLoaded}
-        />
-      )}
       <SBOMManagement
         initialSboms={sboms}
         initialActiveId={serviceId}
