@@ -566,8 +566,8 @@ def main() -> None:
         refresh_token,
         api_key=api_key,
         retry_max=3,
-        connect_timeout=60.0,
-        read_timeout=60.0,
+        connect_timeout=120.0,
+        read_timeout=120.0,
     )
 
     existing_vulns = get_vulns_data(tc_client, 0, 100)
