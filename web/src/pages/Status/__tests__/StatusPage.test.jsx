@@ -1,3 +1,4 @@
+// cspell:ignore notistack
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
@@ -5,9 +6,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
+  useDeletePTeamServiceMutation,
+  useDeletePTeamServiceThumbnailMutation,
   useGetPTeamQuery,
   useGetPTeamPackagesSummaryQuery,
+  useGetPTeamServiceThumbnailQuery,
   useGetSbomUploadProgressQuery,
+  useUpdatePTeamServiceMutation,
+  useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
 import store from "../../../store";
 import { Status } from "../StatusPage";
@@ -21,6 +27,7 @@ const renderStatusPage = () => {
 };
 
 const navigate = vi.fn();
+const enqueueSnackbar = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal();
@@ -28,6 +35,14 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useNavigate: vi.fn(),
     useLocation: vi.fn(),
+  };
+});
+
+vi.mock("notistack", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useSnackbar: vi.fn(() => ({ enqueueSnackbar })),
   };
 });
 
@@ -45,12 +60,17 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
     }),
     useGetPTeamQuery: vi.fn(),
     useGetPTeamPackagesSummaryQuery: vi.fn(),
+    useGetPTeamServiceThumbnailQuery: vi.fn(),
     useGetSbomUploadProgressQuery: vi.fn().mockReturnValue({
       data: [],
       error: undefined,
       isLoading: false,
       refetch: vi.fn(),
     }),
+    useUpdatePTeamServiceMutation: vi.fn(),
+    useDeletePTeamServiceMutation: vi.fn(),
+    useUpdatePTeamServiceThumbnailMutation: vi.fn(),
+    useDeletePTeamServiceThumbnailMutation: vi.fn(),
   };
 });
 
@@ -140,13 +160,33 @@ const testPackagesData = {
   },
 };
 
+const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
+
+const createResolvedMutation = () =>
+  vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(undefined) }));
+
 describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
     beforeEach(() => {
       navigate.mockClear();
+      enqueueSnackbar.mockClear();
       useGetPTeamQuery.mockClear();
       useGetPTeamPackagesSummaryQuery.mockClear();
+      useGetPTeamServiceThumbnailQuery.mockClear();
+      useUpdatePTeamServiceMutation.mockClear();
+      useDeletePTeamServiceMutation.mockClear();
+      useUpdatePTeamServiceThumbnailMutation.mockClear();
+      useDeletePTeamServiceThumbnailMutation.mockClear();
       useNavigate.mockReturnValue(navigate);
+      useUpdatePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
+      useDeletePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
+      useUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      useDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      useGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
+        data: service_id === testPTeamData.services[0].service_id ? testThumbnailDataUrl : "",
+        error: undefined,
+        isLoading: false,
+      }));
       const progresses = {
         data: [
           {
@@ -335,6 +375,46 @@ describe("StatusPage", () => {
       await ue.click(screen.getByLabelText("Upload Progress"));
       expect(screen.getByRole("dialog", { name: "Upload Progress" })).toBeInTheDocument();
       expect(screen.getAllByText("frontend").length).toBeGreaterThan(0);
+    });
+
+    it("keeps the image removed after saving image deletion", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      };
+
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      const testPackagesSummary = {
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      };
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      expect(await screen.findByAltText("test_service1 image")).toBeInTheDocument();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      await ue.click(screen.getByRole("button", { name: "Delete" }));
+      await ue.click(screen.getByRole("button", { name: "Delete" }));
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(screen.queryByAltText("test_service1 image")).toBeNull();
+      });
     });
 
     it("navigate to package detail when a package row is clicked", async () => {

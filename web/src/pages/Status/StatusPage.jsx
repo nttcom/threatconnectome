@@ -99,6 +99,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const [thumbnails, setThumbnails] = useState({});
+  const [thumbnailOverrides, setThumbnailOverrides] = useState({});
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
@@ -117,10 +118,22 @@ function StatusBody({ pteamId, pteam, serviceId }) {
     );
   }, []);
 
+  const handleThumbnailChanged = useCallback((serviceId, dataUrl) => {
+    setThumbnailOverrides((prev) => {
+      if (prev[serviceId] === dataUrl) return prev;
+      return { ...prev, [serviceId]: dataUrl };
+    });
+  }, []);
+
   const sboms = useMemo(() => {
     const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
-    return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
-  }, [pteam.services, packagesSummary, serviceId, thumbnails]);
+    return base.map((sbom) => ({
+      ...sbom,
+      imageUrl: Object.prototype.hasOwnProperty.call(thumbnailOverrides, sbom.id)
+        ? thumbnailOverrides[sbom.id]
+        : thumbnails[sbom.id] || "",
+    }));
+  }, [pteam.services, packagesSummary, serviceId, thumbnails, thumbnailOverrides]);
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
@@ -161,6 +174,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       <SBOMManagement
         initialSboms={sboms}
         initialActiveId={serviceId}
+        onThumbnailChange={handleThumbnailChanged}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}

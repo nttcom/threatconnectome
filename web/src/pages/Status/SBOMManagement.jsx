@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+/* eslint-disable react/prop-types, jsx-a11y/no-autofocus */
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -32,6 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
@@ -1093,6 +1094,7 @@ export function SBOMManagement({
   initialActiveId,
   initialSboms = [],
   onActiveIdChange,
+  onThumbnailChange,
   onPackageClick,
   pteamId,
 }) {
@@ -1186,6 +1188,12 @@ export function SBOMManagement({
     setIsDirty(true);
     setSboms((current) =>
       current.map((sbom) => (sbom.id === activeId ? { ...sbom, ...patch } : sbom)),
+    );
+  };
+
+  const updateActiveSbomImage = (imageUrl) => {
+    setSboms((current) =>
+      current.map((sbom) => (sbom.id === activeSbom?.id ? { ...sbom, imageUrl } : sbom)),
     );
   };
 
@@ -1353,6 +1361,14 @@ export function SBOMManagement({
 
     try {
       await Promise.all(calls.map((fn) => fn()));
+      if (pendingThumbnail?.file) {
+        const nextImageUrl = pendingThumbnail.previewDataUrl || "";
+        onThumbnailChange?.(activeSbom.id, nextImageUrl);
+        updateActiveSbomImage(nextImageUrl);
+      } else if (pendingThumbnail?.deleted) {
+        onThumbnailChange?.(activeSbom.id, "");
+        updateActiveSbomImage("");
+      }
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
@@ -1743,14 +1759,14 @@ export function SBOMManagement({
                         sx={{
                           bgcolor: slate[50],
                           color: slate[500],
-                        display: "grid",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
-                        letterSpacing: 0,
-                        px: 2,
-                        py: 1.5,
-                      }}
+                          display: "grid",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          gridTemplateColumns: "48px 1.4fr 0.7fr 0.65fr 0.8fr",
+                          letterSpacing: 0,
+                          px: 2,
+                          py: 1.5,
+                        }}
                       >
                         <Box>SSVC</Box>
                         <Box>{t("package")}</Box>
