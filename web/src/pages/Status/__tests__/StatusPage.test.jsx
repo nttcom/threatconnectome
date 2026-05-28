@@ -187,7 +187,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(packagesSummary);
 
       renderStatusPage();
-      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
+      expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
     });
 
     it("Do not show SBOMDropArea component when the service is registered", () => {
@@ -248,7 +248,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "New" }));
-      expect(screen.getByText("Upload your first SBOM")).toBeInTheDocument();
+      expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
     });
 
     it("show SBOM upload progress button when the service is registered", async () => {

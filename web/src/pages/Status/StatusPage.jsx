@@ -116,9 +116,13 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
   }, []);
 
   const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? []);
+    const base = buildSbomsFromPTeam(
+      pteam.services,
+      packagesSummary?.packages ?? [],
+      activeServiceId,
+    );
     return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
-  }, [pteam.services, packagesSummary, thumbnails]);
+  }, [activeServiceId, pteam.services, packagesSummary, thumbnails]);
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {

@@ -30,7 +30,7 @@ export function isDeleteConfirmationValid(input, title) {
   return input.trim() === (title || "Untitled SBOM");
 }
 
-export function buildSbomsFromPTeam(services, packages) {
+export function buildSbomsFromPTeam(services, packages, activeServiceId) {
   if (!Array.isArray(services)) return [];
   const allPackages = Array.isArray(packages) ? packages : [];
 
@@ -45,18 +45,17 @@ export function buildSbomsFromPTeam(services, packages) {
       ip,
       location: "",
     })),
-    dependencies: allPackages
-      .filter(
-        (pkg) => Array.isArray(pkg.service_ids) && pkg.service_ids.includes(service.service_id),
-      )
-      .map((pkg) => ({
-        packageId: pkg.package_id,
-        serviceId: service.service_id,
-        name: pkg.package_name,
-        version: "",
-        type: pkg.ecosystem,
-        license: "",
-        ssvcPriority: pkg.ssvc_priority || "no_known_vulnerability",
-      })),
+    dependencies:
+      service.service_id === activeServiceId
+        ? allPackages.map((pkg) => ({
+            packageId: pkg.package_id,
+            serviceId: service.service_id,
+            name: pkg.package_name,
+            version: "",
+            type: pkg.ecosystem,
+            license: "",
+            ssvcPriority: pkg.ssvc_priority || "no_known_vulnerability",
+          }))
+        : [],
   }));
 }
