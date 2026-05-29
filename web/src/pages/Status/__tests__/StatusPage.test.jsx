@@ -16,7 +16,7 @@ import {
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
 import store from "../../../store";
-import { SBOMManagement } from "../SBOMManagement";
+import { SBOMManagement } from "../SBOMManagement/SBOMManagement";
 import { Status } from "../StatusPage";
 
 const renderStatusPage = () => {

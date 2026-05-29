@@ -14,10 +14,10 @@ import {
 import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { buildSbomsFromPTeam } from "../../utils/sbomManagementUtils";
+import { buildSbomsFromPTeam } from "../../utils/SBOMManagement/sbomManagementUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
-import { SBOMManagement } from "./SBOMManagement";
+import { SBOMManagement } from "./SBOMManagement/SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 function getValidServiceId(services, requestedServiceId) {
