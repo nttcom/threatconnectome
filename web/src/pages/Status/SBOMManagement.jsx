@@ -137,59 +137,6 @@ const sectionTitleTextSx = {
   lineHeight: "20px",
 };
 
-const systemExposureOptions = [
-  {
-    description: "このサービスはローカル実行や閉じた管理ネットワーク内などからアクセスできます。",
-    label: "Small",
-    summary: "到達できる範囲がかなり限られています",
-    value: "small",
-  },
-  {
-    description:
-      "このサービスはVPNや社内ネットワークなど、接続元や経路が制限された範囲からアクセスできます。",
-    label: "Controlled",
-    summary: "接続元や経路が制限されています",
-    value: "controlled",
-  },
-  {
-    description: "このサービスはインターネットなど、広い範囲から直接アクセスできます。",
-    label: "Open",
-    summary: "広い範囲から直接アクセスできます",
-    value: "open",
-  },
-];
-
-const missionImpactOptions = [
-  {
-    description:
-      "このサービスが停止・利用不能になった場合も、影響は小さいか非重要機能の低下に留まります。",
-    label: "Degraded",
-    summary: "業務は概ね継続できます",
-    value: "degraded",
-  },
-  {
-    description:
-      "このサービスが停止・利用不能になった場合、重要業務を支える監視・連携・運用などの機能に影響します。",
-    label: "MEF Support Crippled",
-    summary: "監視・連携・運用などの支援機能に影響します",
-    value: "mef_support_crippled",
-  },
-  {
-    description:
-      "このサービスが停止・利用不能になった場合、重要業務の一つに大きく影響し、許容時間を超えて止まる可能性があります。",
-    label: "MEF Failure",
-    summary: "重要業務の一つに大きく影響します",
-    value: "mef_failure",
-  },
-  {
-    description:
-      "このサービスが停止・利用不能になった場合、複数または全ての重要業務に影響し、サービス提供の継続が難しくなります。",
-    label: "Mission Failure",
-    summary: "複数または全ての重要業務に影響します",
-    value: "mission_failure",
-  },
-];
-
 function maxLengthParams(maxHalf) {
   return {
     maxFull: Math.floor(maxHalf / 2),
@@ -429,6 +376,52 @@ function ServiceImpactEstimateCard({ onSave, sbom }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const currentSystemExposure = sbom?.systemExposure || "open";
   const currentMissionImpact = sbom?.missionImpact || "mission_failure";
+  const systemExposureOptions = [
+    {
+      description: t("systemExposureSmallDescription"),
+      label: t("small"),
+      summary: t("systemExposureSmallSummary"),
+      value: "small",
+    },
+    {
+      description: t("systemExposureControlledDescription"),
+      label: t("controlled"),
+      summary: t("systemExposureControlledSummary"),
+      value: "controlled",
+    },
+    {
+      description: t("systemExposureOpenDescription"),
+      label: t("open"),
+      summary: t("systemExposureOpenSummary"),
+      value: "open",
+    },
+  ];
+  const missionImpactOptions = [
+    {
+      description: t("missionImpactDegradedDescription"),
+      label: t("degraded"),
+      summary: t("missionImpactDegradedSummary"),
+      value: "degraded",
+    },
+    {
+      description: t("missionImpactSupportCrippledDescription"),
+      label: t("missionImpactSupportCrippled"),
+      summary: t("missionImpactSupportCrippledSummary"),
+      value: "mef_support_crippled",
+    },
+    {
+      description: t("missionImpactFailureDescription"),
+      label: t("missionImpactFailure"),
+      summary: t("missionImpactFailureSummary"),
+      value: "mef_failure",
+    },
+    {
+      description: t("missionImpactMissionFailureDescription"),
+      label: t("missionImpactMissionFailure"),
+      summary: t("missionImpactMissionFailureSummary"),
+      value: "mission_failure",
+    },
+  ];
   const [systemExposure, setSystemExposure] = useState(currentSystemExposure);
   const [missionImpact, setMissionImpact] = useState(currentMissionImpact);
   const [editing, setEditing] = useState(false);
@@ -503,14 +496,14 @@ function ServiceImpactEstimateCard({ onSave, sbom }) {
                 onSelect={setSystemExposure}
                 options={systemExposureOptions}
                 selectedValue={systemExposure}
-                title="System Exposure"
+                title={t("systemExposureTitle")}
               />
               <ServiceImpactOptionGroup
                 description={t("missionImpactDescription")}
                 onSelect={setMissionImpact}
                 options={missionImpactOptions}
                 selectedValue={missionImpact}
-                title="Mission Impact"
+                title={t("missionImpactTitle")}
               />
             </Stack>
           ) : (
@@ -518,12 +511,12 @@ function ServiceImpactEstimateCard({ onSave, sbom }) {
               <ServiceImpactSummaryRow
                 option={selectedSystemExposure}
                 summaryLabel={t("systemExposureSummaryLabel")}
-                title="System Exposure"
+                title={t("systemExposureTitle")}
               />
               <ServiceImpactSummaryRow
                 option={selectedMissionImpact}
                 summaryLabel={t("missionImpactSummaryLabel")}
-                title="Mission Impact"
+                title={t("missionImpactTitle")}
               />
             </Stack>
           )}
