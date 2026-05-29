@@ -363,10 +363,10 @@ describe("StatusPage", () => {
       const ue = userEvent.setup();
       renderStatusPage();
 
-      await ue.click(screen.getByRole("button", { name: "Change" }));
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
       await ue.click(screen.getByRole("button", { name: /Open/ }));
       await ue.click(screen.getByRole("button", { name: /Mission Failure/ }));
-      await ue.click(screen.getByRole("button", { name: "Save" }));
+      await ue.click(screen.getByRole("button", { name: "Done" }));
 
       await waitFor(() => {
         expect(updateService).toHaveBeenCalledWith({
@@ -383,7 +383,7 @@ describe("StatusPage", () => {
       expect(enqueueSnackbar).toHaveBeenCalledWith("Risk settings updated", {
         variant: "success",
       });
-      expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
       expect(screen.getByText("Open")).toBeInTheDocument();
       expect(screen.getByText("Mission Failure")).toBeInTheDocument();
     });
@@ -419,9 +419,9 @@ describe("StatusPage", () => {
       const ue = userEvent.setup();
       renderStatusPage();
 
-      await ue.click(screen.getByRole("button", { name: "Change" }));
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
       await ue.click(screen.getByRole("button", { name: /Open/ }));
-      await ue.click(screen.getByRole("button", { name: "Save" }));
+      await ue.click(screen.getByRole("button", { name: "Done" }));
 
       await waitFor(() => {
         expect(updateService).toHaveBeenCalled();
@@ -429,7 +429,7 @@ describe("StatusPage", () => {
       expect(enqueueSnackbar).toHaveBeenCalledWith("Update failed: 400: boom", {
         variant: "error",
       });
-      expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
     });
 
     it("redirects stale serviceId before loading packages summary", async () => {
@@ -714,7 +714,7 @@ describe("StatusPage", () => {
 
       expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
 
-      await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[2]);
       expect(screen.getByDisplayValue("10.0.0.1")).toBeInTheDocument();
 
       await ue.click(screen.getByRole("button", { name: "Done" }));

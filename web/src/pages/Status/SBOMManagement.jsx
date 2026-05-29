@@ -486,7 +486,7 @@ function ServiceImpactEstimateCard({ onSave, sbom }) {
               disabled={isSaving}
               onClick={handleActionClick}
             >
-              {isSaving ? t("saving") : editing ? t("saveRiskSettings") : t("changeRiskSettings")}
+              {editing ? t("done") : t("edit")}
             </HeaderActionButton>
           </Box>
           {editing ? (
