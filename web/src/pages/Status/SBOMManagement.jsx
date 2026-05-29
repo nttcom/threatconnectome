@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+/* eslint-disable react/prop-types, jsx-a11y/no-autofocus */
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -32,6 +32,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
@@ -41,15 +42,21 @@ import {
   useUpdatePTeamServiceMutation,
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../services/tcApi";
-import { serviceImageMaxSize } from "../../utils/const";
-import { errorToString } from "../../utils/func";
+import {
+  maxDescriptionLengthInHalf,
+  maxKeywordLengthInHalf,
+  maxKeywords,
+  maxServiceNameLengthInHalf,
+  serviceImageMaxSize,
+} from "../../utils/const";
+import { collapseSpaces } from "../../utils/displayText";
+import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 import {
   createId,
   getNextActiveIdAfterRemoval,
   isDeleteConfirmationValid,
   NEW_SBOM_ID,
   normalizeTags,
-  parseDependenciesFromSbom,
 } from "../../utils/sbomManagementUtils";
 import { normalizeServiceImageToPng } from "../../utils/serviceImageUtils";
 
@@ -182,6 +189,35 @@ const missionImpactOptions = [
     value: "mission_failure",
   },
 ];
+
+function maxLengthParams(maxHalf) {
+  return {
+    maxFull: Math.floor(maxHalf / 2),
+    maxHalf,
+  };
+}
+
+function getLengthError(t, value, maxHalf, translationKey) {
+  if (countFullWidthAndHalfWidthCharacters((value ?? "").trim()) <= maxHalf) {
+    return "";
+  }
+
+  return t(translationKey, maxLengthParams(maxHalf));
+}
+
+function getTagsError(t, tags) {
+  if (tags.length > maxKeywords) {
+    return t("tooManyKeywords", { max: maxKeywords });
+  }
+
+  if (
+    tags.some((tag) => countFullWidthAndHalfWidthCharacters(tag.trim()) > maxKeywordLengthInHalf)
+  ) {
+    return t("tooLongKeyword", maxLengthParams(maxKeywordLengthInHalf));
+  }
+
+  return "";
+}
 
 function CountBadge({ children }) {
   return (
@@ -551,7 +587,7 @@ function TabButton({ active, onClick, sbom }) {
       }}
       type="button"
     >
-      {sbom.title || t("untitledSbom")}
+      {collapseSpaces(sbom.title) || t("untitledSbom")}
     </Box>
   );
 }
@@ -693,7 +729,9 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
     >
       {imageInput}
       <Box
-        alt={title ? t("sbomImageAltWithTitle", { title }) : t("sbomImageAlt")}
+        alt={
+          title ? t("sbomImageAltWithTitle", { title: collapseSpaces(title) }) : t("sbomImageAlt")
+        }
         component="img"
         src={imageUrl}
         sx={{ height: "100%", objectFit: "cover", width: "100%" }}
@@ -790,7 +828,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
           {t("image")}
         </Typography>
         <Typography noWrap sx={{ color: "white", fontSize: 16, fontWeight: 700, mt: 0.5 }}>
-          {title || t("untitledSbom")}
+          {collapseSpaces(title) || t("untitledSbom")}
         </Typography>
       </Box>
     </Box>
@@ -799,11 +837,18 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 
 function DetailsForm({ editing, onUpdate, open, sbom }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { enqueueSnackbar } = useSnackbar();
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
+  const [titleInput, setTitleInput] = useState(sbom.title);
+
+  const showInputError = (message) => {
+    enqueueSnackbar(message, { variant: "error" });
+  };
 
   useEffect(() => {
     if (editing) {
       setTagsText(sbom.tags.join(", "));
+      setTitleInput(collapseSpaces(sbom.title));
     }
     // Reset only when entering edit mode or switching SBOM; ignore live `tags` updates while typing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -822,7 +867,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         <Box>
           <Typography sx={labelSx}>{t("title")}</Typography>
           <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 700, mt: 0.75 }}>
-            {sbom.title || emptyText}
+            {sbom.title ? collapseSpaces(sbom.title) : emptyText}
           </Typography>
         </Box>
         <Box>
@@ -869,10 +914,25 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         </Typography>
         <TextField
           fullWidth
-          onChange={(event) => onUpdate({ title: event.target.value })}
+          onChange={(event) => {
+            const nextTitle = event.target.value;
+            const error = getLengthError(
+              t,
+              nextTitle,
+              maxServiceNameLengthInHalf,
+              "tooLongServiceName",
+            );
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
+            setTitleInput(nextTitle);
+            onUpdate({ title: nextTitle });
+          }}
           placeholder={t("titlePlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
-          value={sbom.title}
+          value={titleInput}
         />
       </Box>
       <Box>
@@ -883,7 +943,21 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           fullWidth
           minRows={4}
           multiline
-          onChange={(event) => onUpdate({ description: event.target.value })}
+          onChange={(event) => {
+            const nextDescription = event.target.value;
+            const error = getLengthError(
+              t,
+              nextDescription,
+              maxDescriptionLengthInHalf,
+              "tooLongDescription",
+            );
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
+            onUpdate({ description: nextDescription });
+          }}
           placeholder={t("descriptionPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
           value={sbom.description}
@@ -897,8 +971,15 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           fullWidth
           onChange={(event) => {
             const raw = event.target.value;
+            const nextTags = normalizeTags(raw);
+            const error = getTagsError(t, nextTags);
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
             setTagsText(raw);
-            onUpdate({ tags: normalizeTags(raw) });
+            onUpdate({ tags: nextTags });
           }}
           placeholder={t("tagsPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
@@ -1141,6 +1222,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
                 fontWeight: 700,
                 mt: 0.5,
                 overflowWrap: "anywhere",
+                whiteSpace: "pre-wrap",
               }}
             >
               {expectedName}
@@ -1391,23 +1473,16 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
   );
 }
 
-function getSafeActiveId(sboms, preferredId) {
-  if (preferredId && sboms.some((sbom) => sbom.id === preferredId)) {
-    return preferredId;
-  }
-
-  return sboms[0]?.id || NEW_SBOM_ID;
-}
-
 export function SBOMManagement({
   initialActiveId,
   initialSboms = [],
   onActiveIdChange,
+  onThumbnailChange,
   onPackageClick,
   pteamId,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
-  const [activeId, setActiveId] = useState(() => getSafeActiveId(initialSboms, initialActiveId));
+  const [activeId, setActiveId] = useState(initialActiveId ?? NEW_SBOM_ID);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -1415,13 +1490,6 @@ export function SBOMManagement({
       setSboms(initialSboms);
     }
   }, [initialSboms, isDirty]);
-
-  useEffect(() => {
-    setActiveId((currentActiveId) => {
-      const nextActiveId = getSafeActiveId(sboms, currentActiveId);
-      return currentActiveId === nextActiveId ? currentActiveId : nextActiveId;
-    });
-  }, [sboms]);
 
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -1435,17 +1503,16 @@ export function SBOMManagement({
 
   const lastInitialActiveIdRef = useRef(initialActiveId);
   useEffect(() => {
-    if (!initialActiveId) return;
     if (initialActiveId === lastInitialActiveIdRef.current) return;
     lastInitialActiveIdRef.current = initialActiveId;
-    setActiveId(getSafeActiveId(sboms, initialActiveId));
+    setActiveId(initialActiveId ?? NEW_SBOM_ID);
     setCurrentPage(1);
     setDangerOpen(false);
     setDeploymentsEditing(false);
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setQuery("");
-  }, [initialActiveId, sboms]);
+  }, [initialActiveId]);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
@@ -1464,7 +1531,7 @@ export function SBOMManagement({
       return null;
     }
 
-    return sboms.find((sbom) => sbom.id === activeId) || sboms[0] || null;
+    return sboms.find((sbom) => sbom.id === activeId) || null;
   }, [activeId, isCreatingSbom, sboms]);
 
   const filteredDependencies = useMemo(() => {
@@ -1479,10 +1546,7 @@ export function SBOMManagement({
     }
 
     return activeSbom.dependencies.filter((dependency) =>
-      [dependency.name, dependency.version, dependency.type, dependency.license]
-        .join(" ")
-        .toLowerCase()
-        .includes(target),
+      dependency.name.toLowerCase().includes(target),
     );
   }, [activeSbom, query]);
 
@@ -1496,6 +1560,12 @@ export function SBOMManagement({
     setIsDirty(true);
     setSboms((current) =>
       current.map((sbom) => (sbom.id === activeId ? { ...sbom, ...patch } : sbom)),
+    );
+  };
+
+  const updateActiveSbomImage = (imageUrl) => {
+    setSboms((current) =>
+      current.map((sbom) => (sbom.id === activeSbom?.id ? { ...sbom, imageUrl } : sbom)),
     );
   };
 
@@ -1517,7 +1587,7 @@ export function SBOMManagement({
   };
 
   const cancelCreateSbom = () => {
-    setActiveId(sboms[0]?.id || NEW_SBOM_ID);
+    setActiveId(initialActiveId ?? NEW_SBOM_ID);
     resetUiState();
   };
 
@@ -1580,24 +1650,12 @@ export function SBOMManagement({
     });
   };
 
-  const readSbomFile = async (file) => {
-    const text = await file.text();
-    return parseDependenciesFromSbom(JSON.parse(text));
-  };
-
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = (event) => {
     const input = event.target;
     const file = input.files?.[0];
     input.value = "";
 
     if (!file || !activeSbom) {
-      return;
-    }
-
-    try {
-      await readSbomFile(file);
-    } catch {
-      window.alert(t("sbomParseFailed"));
       return;
     }
 
@@ -1650,8 +1708,8 @@ export function SBOMManagement({
       updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: {
-          service_name: activeSbom.title,
-          description: activeSbom.description,
+          service_name: activeSbom.title.trim(),
+          description: activeSbom.description.trim(),
           keywords: activeSbom.tags,
         },
       }).unwrap(),
@@ -1675,6 +1733,18 @@ export function SBOMManagement({
 
     try {
       await Promise.all(calls.map((fn) => fn()));
+      if (pendingThumbnail?.file) {
+        const nextImageUrl = pendingThumbnail.previewDataUrl || "";
+        onThumbnailChange?.(activeSbom.id, nextImageUrl);
+        updateActiveSbomImage(nextImageUrl);
+      } else if (pendingThumbnail?.deleted) {
+        onThumbnailChange?.(activeSbom.id, "");
+        updateActiveSbomImage("");
+      }
+      updateActiveSbom({
+        title: activeSbom.title.trim(),
+        description: activeSbom.description.trim(),
+      });
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
@@ -1694,10 +1764,17 @@ export function SBOMManagement({
       .filter(Boolean);
 
     try {
-      await updatePTeamService({
+      const updatedService = await updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
+      updateActiveSbom({
+        deployments: (updatedService.asset?.ip_addresses ?? []).map((ipAddress, index) => ({
+          id: `dep-${activeSbom.id}-${index}`,
+          ip: ipAddress,
+          location: "",
+        })),
+      });
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
     } catch (error) {
@@ -1705,19 +1782,12 @@ export function SBOMManagement({
     }
   };
 
-  const handleCreateFileUpload = async (event) => {
+  const handleCreateFileUpload = (event) => {
     const input = event.target;
     const file = input.files?.[0];
     input.value = "";
 
     if (!file) {
-      return;
-    }
-
-    try {
-      await readSbomFile(file);
-    } catch {
-      window.alert(t("sbomParseFailed"));
       return;
     }
 
@@ -1970,12 +2040,11 @@ export function SBOMManagement({
                 >
                   <Box
                     sx={{
-                      alignItems: { md: "center", xs: "stretch" },
                       bgcolor: "rgba(248, 250, 252, 0.7)",
                       borderBottom: `1px solid ${slate[200]}`,
                       display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1.5,
+                      flexDirection: "column",
+                      gap: 0.5,
                       px: 1.5,
                       py: 1.25,
                     }}
@@ -1986,10 +2055,10 @@ export function SBOMManagement({
                         border: `1px solid ${slate[200]}`,
                         borderRadius: 3,
                         boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
-                        flex: { md: "0 1 520px", xs: "1 1 100%" },
                         height: 36,
-                        minWidth: { md: 280, xs: 0 },
+                        maxWidth: 520,
                         position: "relative",
+                        width: "100%",
                       }}
                     >
                       <SearchIcon
@@ -2030,42 +2099,44 @@ export function SBOMManagement({
                         value={query}
                       />
                     </Box>
-                    <Typography
-                      sx={{
-                        alignSelf: "center",
-                        color: slate[500],
-                        flex: { md: "0 0 auto", xs: "1 1 auto" },
-                        fontSize: 13,
-                        lineHeight: "18px",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {filteredDependencies.length === 0
-                        ? t("noDependencies")
-                        : t("pagingRange", {
-                            total: filteredDependencies.length,
-                            start: pageStartIndex + 1,
-                            end: pageEndIndex,
-                          })}
-                    </Typography>
-                    <Box sx={{ flex: { md: "1 1 auto", xs: "0 0 auto" } }} />
-                    <Box
-                      accept=".json,application/json"
-                      component="input"
-                      onChange={handleFileUpload}
-                      ref={fileInputRef}
-                      sx={{ display: "none" }}
-                      type="file"
-                    />
-                    <AppButton
-                      onClick={() => fileInputRef.current?.click()}
-                      size="small"
-                      startIcon={<UploadFileIcon />}
-                      sx={{ alignSelf: { md: "auto", xs: "center" }, bgcolor: "white" }}
-                      variant="outlined"
-                    >
-                      {t("updateSbom")}
-                    </AppButton>
+                    <Box sx={{ alignItems: "center", display: "flex" }}>
+                      <Typography
+                        sx={{
+                          color: slate[500],
+                          fontSize: 13,
+                          lineHeight: "18px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {filteredDependencies.length === 0
+                          ? t("noDependencies")
+                          : t("pagingRange", {
+                              total: filteredDependencies.length,
+                              start: pageStartIndex + 1,
+                              end: pageEndIndex,
+                            })}
+                      </Typography>
+                      <Box
+                        accept=".json,application/json"
+                        component="input"
+                        onChange={handleFileUpload}
+                        ref={fileInputRef}
+                        sx={{ display: "none" }}
+                        type="file"
+                      />
+                      <AppButton
+                        onClick={() => fileInputRef.current?.click()}
+                        size="small"
+                        startIcon={<UploadFileIcon />}
+                        sx={{
+                          bgcolor: "white",
+                          ml: "auto",
+                        }}
+                        variant="outlined"
+                      >
+                        {t("updateSbom")}
+                      </AppButton>
+                    </Box>
                   </Box>
 
                   <Box sx={{ minWidth: 0, overflowX: "auto", width: "100%" }}>

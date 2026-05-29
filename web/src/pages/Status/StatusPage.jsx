@@ -18,29 +18,15 @@ import { buildSbomsFromPTeam } from "../../utils/sbomManagementUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { SBOMManagement } from "./SBOMManagement";
-import { FileDropZone } from "./SbomDrop/FileDropZone";
-import { SBOMUpdateDialog } from "./SbomDrop/SBOMUpdateDialog";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
-function ServiceThumbnailLoader({ pteamId, serviceId, onLoaded }) {
-  const { data: thumbnail } = useGetPTeamServiceThumbnailQuery({
-    path: { pteam_id: pteamId, service_id: serviceId },
-  });
+function getValidServiceId(services, requestedServiceId) {
+  if (requestedServiceId && services.some((service) => service.service_id === requestedServiceId)) {
+    return requestedServiceId;
+  }
 
-  useEffect(() => {
-    if (typeof thumbnail === "string") {
-      onLoaded(serviceId, thumbnail);
-    }
-  }, [thumbnail, serviceId, onLoaded]);
-
-  return null;
+  return services[0]?.service_id ?? null;
 }
-
-ServiceThumbnailLoader.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
-  onLoaded: PropTypes.func.isRequired,
-};
 
 export function Status() {
   const location = useLocation();
@@ -51,19 +37,6 @@ export function Status() {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   const { t } = useTranslation("status", { keyPrefix: "StatusPage" });
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [sbomUpdateDialogOpen, setSbomUpdateDialogOpen] = useState(false);
-
-  const handleFileSelected = (file) => {
-    setSelectedFile(file);
-    setSbomUpdateDialogOpen(true);
-  };
-
-  const handleSbomUpdateDialogClose = () => {
-    setSelectedFile(null);
-    setSbomUpdateDialogOpen(false);
-  };
-
   const {
     data: pteam,
     error: pteamError,
@@ -73,105 +46,85 @@ export function Status() {
 
   useEffect(() => {
     if (!pteamId) return;
-    if (pteamIsFetching || !pteam) return;
-    if (!serviceId && pteam.services.length > 0) {
-      const newParams = new URLSearchParams();
-      newParams.set("pteamId", pteamId);
-      newParams.set("serviceId", pteam.services[0].service_id);
-      const mytasksParam = preserveMyTasksParam(location.search);
-      for (const [key, value] of mytasksParam) {
-        newParams.set(key, value);
-      }
-      navigate(location.pathname + "?" + newParams.toString());
+    if (pteamIsFetching || !pteam || pteam.pteam_id !== pteamId) return;
+
+    const validServiceId = getValidServiceId(pteam.services, serviceId);
+    if (serviceId === validServiceId) {
+      return;
     }
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [pteamId, pteam, pteamIsFetching, serviceId]);
+
+    const newParams = new URLSearchParams();
+    newParams.set("pteamId", pteamId);
+    if (validServiceId) {
+      newParams.set("serviceId", validServiceId);
+    }
+    const mytasksParam = preserveMyTasksParam(location.search);
+    for (const [key, value] of mytasksParam) {
+      newParams.set(key, value);
+    }
+    navigate(location.pathname + "?" + newParams.toString());
+  }, [location.pathname, location.search, navigate, pteam, pteamId, pteamIsFetching, serviceId]);
 
   if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skipByAuth) return <></>;
   if (pteamError) throw new APIError(errorToString(pteamError), { api: "getPTeam" });
   if (pteamIsLoading) return <>{t("loading_team")}</>;
+  if (!pteam || pteam.pteam_id !== pteamId) return <>{t("loading_team")}</>;
 
-  if (pteam.services.length === 0) {
-    return (
-      <>
-        <Box display="flex" flexDirection="row">
-          <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
-          <Box flexGrow={1} />
-        </Box>
-        <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-          <SBOMUploadProgressButton pteamId={pteamId} />
-        </Box>
-        <FileDropZone
-          onFileSelected={handleFileSelected}
-          selectedFile={null}
-          showFileName={false}
-        />
-        <SBOMUpdateDialog
-          open={sbomUpdateDialogOpen}
-          onClose={handleSbomUpdateDialogClose}
-          pteamId={pteamId}
-          initialFile={selectedFile}
-          onUploaded={() => {}}
-          showWarning={false}
-        />
-      </>
-    );
-  }
+  const validServiceId = getValidServiceId(pteam.services, serviceId);
+  if (serviceId !== validServiceId) return <></>;
 
-  return <StatusBody pteamId={pteamId} pteam={pteam} initialActiveServiceId={serviceId} />;
+  return <StatusBody pteamId={pteamId} pteam={pteam} serviceId={validServiceId} />;
 }
 
-function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
+function StatusBody({ pteamId, pteam, serviceId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const [thumbnails, setThumbnails] = useState({});
-  const [activeServiceId, setActiveServiceId] = useState(
-    initialActiveServiceId || pteam.services[0]?.service_id,
-  );
-
-  const isActiveServiceValid = useMemo(
-    () => pteam.services.some((s) => s.service_id === activeServiceId),
-    [pteam.services, activeServiceId],
-  );
-
-  useEffect(() => {
-    const ids = pteam.services.map((s) => s.service_id);
-    setActiveServiceId((prev) => {
-      if (prev && ids.includes(prev)) return prev;
-      if (initialActiveServiceId && ids.includes(initialActiveServiceId)) {
-        return initialActiveServiceId;
-      }
-      return pteam.services[0]?.service_id ?? "";
-    });
-  }, [pteamId, pteam.services, initialActiveServiceId]);
+  const [thumbnail, setThumbnail] = useState(null);
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
-      { path: { pteam_id: pteamId }, query: { service_id: activeServiceId } },
-      {
-        skip: skipByAuth || !pteamId || !activeServiceId || !isActiveServiceValid,
-      },
+      { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
+      { skip: skipByAuth || !pteamId || !serviceId },
     );
+
+  const { data: loadedThumbnail } = useGetPTeamServiceThumbnailQuery(
+    { path: { pteam_id: pteamId, service_id: serviceId } },
+    { skip: skipByAuth || !pteamId || !serviceId },
+  );
 
   if (packagesSummaryError)
     throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
-  const handleThumbnailLoaded = useCallback((serviceId, dataUrl) => {
-    setThumbnails((prev) =>
-      prev[serviceId] === dataUrl ? prev : { ...prev, [serviceId]: dataUrl },
-    );
-  }, []);
+  useEffect(() => {
+    setThumbnail(null);
+  }, [serviceId]);
+
+  useEffect(() => {
+    if (typeof loadedThumbnail === "string") {
+      setThumbnail(loadedThumbnail);
+    }
+  }, [loadedThumbnail]);
+
+  const handleThumbnailChanged = useCallback(
+    (id, dataUrl) => {
+      if (id !== serviceId) return;
+      setThumbnail(dataUrl);
+    },
+    [serviceId],
+  );
 
   const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? []);
-    return base.map((sbom) => ({ ...sbom, imageUrl: thumbnails[sbom.id] || "" }));
-  }, [pteam.services, packagesSummary, thumbnails]);
+    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
+    return base.map((sbom) => {
+      if (sbom.id !== serviceId) return sbom;
+      return { ...sbom, imageUrl: thumbnail ?? "" };
+    });
+  }, [pteam.services, packagesSummary, serviceId, thumbnail]);
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
-      setActiveServiceId(serviceId);
       const newParams = new URLSearchParams(location.search);
       newParams.set("serviceId", serviceId);
       navigate(location.pathname + "?" + newParams.toString());
@@ -198,17 +151,10 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
       <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
         <SBOMUploadProgressButton pteamId={pteamId} />
       </Box>
-      {activeServiceId && isActiveServiceValid && (
-        <ServiceThumbnailLoader
-          key={activeServiceId}
-          pteamId={pteamId}
-          serviceId={activeServiceId}
-          onLoaded={handleThumbnailLoaded}
-        />
-      )}
       <SBOMManagement
         initialSboms={sboms}
-        initialActiveId={initialActiveServiceId}
+        initialActiveId={serviceId}
+        onThumbnailChange={handleThumbnailChanged}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
@@ -220,5 +166,5 @@ function StatusBody({ pteamId, pteam, initialActiveServiceId }) {
 StatusBody.propTypes = {
   pteamId: PropTypes.string.isRequired,
   pteam: PropTypes.object.isRequired,
-  initialActiveServiceId: PropTypes.string,
+  serviceId: PropTypes.string,
 };

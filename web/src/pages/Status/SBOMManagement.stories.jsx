@@ -1,6 +1,8 @@
 import { SBOMManagement } from "./SBOMManagement";
 import { createDefaultSboms } from "./SBOMManagement.stories.helpers";
 
+const defaultSboms = createDefaultSboms();
+
 const meta = {
   argTypes: {
     initialActiveId: { control: false },
@@ -17,7 +19,8 @@ export default meta;
 
 export const Default = {
   args: {
-    initialSboms: createDefaultSboms(),
+    initialActiveId: defaultSboms[0].id,
+    initialSboms: defaultSboms,
   },
 };
 
