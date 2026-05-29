@@ -425,13 +425,46 @@ function ServiceImpactSummaryRow({ option, summaryLabel, title }) {
   );
 }
 
-function ServiceImpactEstimateCard() {
-  const [systemExposure, setSystemExposure] = useState("open");
-  const [missionImpact, setMissionImpact] = useState("mission_failure");
+function ServiceImpactEstimateCard({ onSave, sbom }) {
+  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const currentSystemExposure = sbom?.systemExposure || "open";
+  const currentMissionImpact = sbom?.missionImpact || "mission_failure";
+  const [systemExposure, setSystemExposure] = useState(currentSystemExposure);
+  const [missionImpact, setMissionImpact] = useState(currentMissionImpact);
   const [editing, setEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const selectedSystemExposure = getImpactOption(systemExposureOptions, systemExposure);
   const selectedMissionImpact = getImpactOption(missionImpactOptions, missionImpact);
+
+  useEffect(() => {
+    setSystemExposure(currentSystemExposure);
+    setMissionImpact(currentMissionImpact);
+    setEditing(false);
+    setIsSaving(false);
+  }, [currentMissionImpact, currentSystemExposure, sbom?.id]);
+
+  const handleActionClick = async () => {
+    if (!editing) {
+      setEditing(true);
+      return;
+    }
+
+    if (systemExposure === currentSystemExposure && missionImpact === currentMissionImpact) {
+      setEditing(false);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const saved = await onSave?.({ missionImpact, systemExposure });
+      if (saved !== false) {
+        setEditing(false);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <Card
@@ -453,26 +486,27 @@ function ServiceImpactEstimateCard() {
               minWidth: 0,
             }}
           >
-            <Typography sx={sectionTitleTextSx}>リスク評価設定</Typography>
+            <Typography sx={sectionTitleTextSx}>{t("riskSettings")}</Typography>
             <HeaderActionButton
               active={editing}
               icon={editing ? CheckIcon : EditIcon}
-              onClick={() => setEditing((current) => !current)}
+              disabled={isSaving}
+              onClick={handleActionClick}
             >
-              {editing ? "完了" : "変更"}
+              {isSaving ? t("saving") : editing ? t("saveRiskSettings") : t("changeRiskSettings")}
             </HeaderActionButton>
           </Box>
           {editing ? (
             <Stack sx={{ gap: 2 }}>
               <ServiceImpactOptionGroup
-                description="対象サービスがどの範囲からアクセス可能か"
+                description={t("systemExposureDescription")}
                 onSelect={setSystemExposure}
                 options={systemExposureOptions}
                 selectedValue={systemExposure}
                 title="System Exposure"
               />
               <ServiceImpactOptionGroup
-                description="対象サービスが停止・利用不能になった場合の業務影響"
+                description={t("missionImpactDescription")}
                 onSelect={setMissionImpact}
                 options={missionImpactOptions}
                 selectedValue={missionImpact}
@@ -483,12 +517,12 @@ function ServiceImpactEstimateCard() {
             <Stack sx={{ gap: 1 }}>
               <ServiceImpactSummaryRow
                 option={selectedSystemExposure}
-                summaryLabel="アクセス可能範囲"
+                summaryLabel={t("systemExposureSummaryLabel")}
                 title="System Exposure"
               />
               <ServiceImpactSummaryRow
                 option={selectedMissionImpact}
-                summaryLabel="停止時の業務影響"
+                summaryLabel={t("missionImpactSummaryLabel")}
                 title="Mission Impact"
               />
             </Stack>
@@ -1782,6 +1816,38 @@ export function SBOMManagement({
     }
   };
 
+  const commitServiceImpactEdit = async ({ missionImpact, systemExposure }) => {
+    if (!activeSbom || !pteamId) {
+      return true;
+    }
+
+    if (
+      systemExposure === activeSbom.systemExposure &&
+      missionImpact === activeSbom.missionImpact
+    ) {
+      return true;
+    }
+
+    try {
+      const updatedService = await updatePTeamService({
+        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        body: {
+          system_exposure: systemExposure,
+          service_mission_impact: missionImpact,
+        },
+      }).unwrap();
+      updateActiveSbom({
+        systemExposure: updatedService?.system_exposure ?? systemExposure,
+        missionImpact: updatedService?.service_mission_impact ?? missionImpact,
+      });
+      enqueueSnackbar(t("updateRiskSettingsSuccess"), { variant: "success" });
+      return true;
+    } catch (error) {
+      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
+      return false;
+    }
+  };
+
   const handleCreateFileUpload = (event) => {
     const input = event.target;
     const file = input.files?.[0];
@@ -1952,7 +2018,7 @@ export function SBOMManagement({
                 </CardContent>
               </Card>
 
-              <ServiceImpactEstimateCard />
+              <ServiceImpactEstimateCard onSave={commitServiceImpactEdit} sbom={activeSbom} />
 
               <Card
                 sx={{

@@ -174,6 +174,9 @@ const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
 const createResolvedMutation = (resolvedValue = undefined) =>
   vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(resolvedValue) }));
 
+const createRejectedMutation = (rejectedValue) =>
+  vi.fn(() => ({ unwrap: vi.fn().mockRejectedValue(rejectedValue) }));
+
 describe("StatusPage", () => {
   describe("renders SBOM registration state", () => {
     beforeEach(() => {
@@ -268,6 +271,165 @@ describe("StatusPage", () => {
 
       renderStatusPage();
       expect(screen.queryByText("Drop or click to select")).toBeNull();
+    });
+
+    it("shows system exposure and mission impact from the service API", () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      renderStatusPage();
+
+      expect(screen.getByText("Small")).toBeInTheDocument();
+      expect(screen.getByText("MEF Support Crippled")).toBeInTheDocument();
+    });
+
+    it("shows risk settings for the selected SBOM tab", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "test_service2" }));
+
+      expect(screen.getByText("Open")).toBeInTheDocument();
+      expect(screen.getByText("Mission Failure")).toBeInTheDocument();
+    });
+
+    it("updates system exposure and mission impact through the service API", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const updateService = createResolvedMutation({
+        system_exposure: "open",
+        service_mission_impact: "mission_failure",
+      });
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "Change" }));
+      await ue.click(screen.getByRole("button", { name: /Open/ }));
+      await ue.click(screen.getByRole("button", { name: /Mission Failure/ }));
+      await ue.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() => {
+        expect(updateService).toHaveBeenCalledWith({
+          path: {
+            pteam_id: testPTeamData.pteam_id,
+            service_id: testPTeamData.services[0].service_id,
+          },
+          body: {
+            system_exposure: "open",
+            service_mission_impact: "mission_failure",
+          },
+        });
+      });
+      expect(enqueueSnackbar).toHaveBeenCalledWith("Risk settings updated", {
+        variant: "success",
+      });
+      expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+      expect(screen.getByText("Open")).toBeInTheDocument();
+      expect(screen.getByText("Mission Failure")).toBeInTheDocument();
+    });
+
+    it("keeps risk settings editable when the update fails", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const updateService = createRejectedMutation({
+        status: 400,
+        data: { detail: "boom" },
+      });
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "Change" }));
+      await ue.click(screen.getByRole("button", { name: /Open/ }));
+      await ue.click(screen.getByRole("button", { name: "Save" }));
+
+      await waitFor(() => {
+        expect(updateService).toHaveBeenCalled();
+      });
+      expect(enqueueSnackbar).toHaveBeenCalledWith("Update failed: 400: boom", {
+        variant: "error",
+      });
+      expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
     });
 
     it("redirects stale serviceId before loading packages summary", async () => {
