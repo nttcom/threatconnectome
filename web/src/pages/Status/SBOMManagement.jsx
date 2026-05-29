@@ -42,9 +42,15 @@ import {
   useUpdatePTeamServiceMutation,
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../services/tcApi";
-import { serviceImageMaxSize } from "../../utils/const";
+import {
+  maxDescriptionLengthInHalf,
+  maxKeywordLengthInHalf,
+  maxKeywords,
+  maxServiceNameLengthInHalf,
+  serviceImageMaxSize,
+} from "../../utils/const";
 import { collapseSpaces } from "../../utils/displayText";
-import { errorToString } from "../../utils/func";
+import { countFullWidthAndHalfWidthCharacters, errorToString } from "../../utils/func";
 import {
   createId,
   getNextActiveIdAfterRemoval,
@@ -130,6 +136,35 @@ const sectionTitleTextSx = {
   letterSpacing: 0,
   lineHeight: "20px",
 };
+
+function maxLengthParams(maxHalf) {
+  return {
+    maxFull: Math.floor(maxHalf / 2),
+    maxHalf,
+  };
+}
+
+function getLengthError(t, value, maxHalf, translationKey) {
+  if (countFullWidthAndHalfWidthCharacters((value ?? "").trim()) <= maxHalf) {
+    return "";
+  }
+
+  return t(translationKey, maxLengthParams(maxHalf));
+}
+
+function getTagsError(t, tags) {
+  if (tags.length > maxKeywords) {
+    return t("tooManyKeywords", { max: maxKeywords });
+  }
+
+  if (
+    tags.some((tag) => countFullWidthAndHalfWidthCharacters(tag.trim()) > maxKeywordLengthInHalf)
+  ) {
+    return t("tooLongKeyword", maxLengthParams(maxKeywordLengthInHalf));
+  }
+
+  return "";
+}
 
 function CountBadge({ children }) {
   return (
@@ -493,8 +528,13 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 
 function DetailsForm({ editing, onUpdate, open, sbom }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { enqueueSnackbar } = useSnackbar();
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
   const [titleInput, setTitleInput] = useState(sbom.title);
+
+  const showInputError = (message) => {
+    enqueueSnackbar(message, { variant: "error" });
+  };
 
   useEffect(() => {
     if (editing) {
@@ -566,8 +606,20 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         <TextField
           fullWidth
           onChange={(event) => {
-            setTitleInput(event.target.value);
-            onUpdate({ title: event.target.value });
+            const nextTitle = event.target.value;
+            const error = getLengthError(
+              t,
+              nextTitle,
+              maxServiceNameLengthInHalf,
+              "tooLongServiceName",
+            );
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
+            setTitleInput(nextTitle);
+            onUpdate({ title: nextTitle });
           }}
           placeholder={t("titlePlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
@@ -582,7 +634,21 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           fullWidth
           minRows={4}
           multiline
-          onChange={(event) => onUpdate({ description: event.target.value })}
+          onChange={(event) => {
+            const nextDescription = event.target.value;
+            const error = getLengthError(
+              t,
+              nextDescription,
+              maxDescriptionLengthInHalf,
+              "tooLongDescription",
+            );
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
+            onUpdate({ description: nextDescription });
+          }}
           placeholder={t("descriptionPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
           value={sbom.description}
@@ -596,8 +662,15 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           fullWidth
           onChange={(event) => {
             const raw = event.target.value;
+            const nextTags = normalizeTags(raw);
+            const error = getTagsError(t, nextTags);
+            if (error) {
+              showInputError(error);
+              return;
+            }
+
             setTagsText(raw);
-            onUpdate({ tags: normalizeTags(raw) });
+            onUpdate({ tags: nextTags });
           }}
           placeholder={t("tagsPlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}

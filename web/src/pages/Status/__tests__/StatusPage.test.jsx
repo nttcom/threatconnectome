@@ -1,5 +1,5 @@
 // cspell:ignore notistack
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -449,6 +449,59 @@ describe("StatusPage", () => {
       await waitFor(() => {
         expect(screen.queryByAltText("test_service1 image")).toBeNull();
       });
+    });
+
+    it("prevents details fields from exceeding their UI limits", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      const validServiceName = "a".repeat(255);
+      fireEvent.change(titleInput, { target: { value: validServiceName } });
+      expect(titleInput).toHaveValue(validServiceName);
+      fireEvent.change(titleInput, { target: { value: "a".repeat(256) } });
+      expect(titleInput).toHaveValue(validServiceName);
+
+      const descriptionInput = screen.getByPlaceholderText(
+        "Enter the target system or purpose of this SBOM",
+      );
+      const validDescription = "b".repeat(300);
+      fireEvent.change(descriptionInput, { target: { value: validDescription } });
+      expect(descriptionInput).toHaveValue(validDescription);
+      fireEvent.change(descriptionInput, { target: { value: "b".repeat(301) } });
+      expect(descriptionInput).toHaveValue(validDescription);
+
+      const tagsInput = screen.getByPlaceholderText("backend, prod, critical");
+      const validTags = "one,two,three,four,five";
+      fireEvent.change(tagsInput, { target: { value: validTags } });
+      expect(tagsInput).toHaveValue(validTags);
+      fireEvent.change(tagsInput, { target: { value: `${validTags},six` } });
+      expect(tagsInput).toHaveValue(validTags);
+      fireEvent.change(tagsInput, { target: { value: "a".repeat(21) } });
+      expect(tagsInput).toHaveValue(validTags);
     });
 
     it("shows normalized ip addresses after saving deployments", async () => {
