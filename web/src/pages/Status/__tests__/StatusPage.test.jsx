@@ -162,8 +162,8 @@ const testPackagesData = {
 
 const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
 
-const createResolvedMutation = () =>
-  vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(undefined) }));
+const createResolvedMutation = (resolvedValue = undefined) =>
+  vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(resolvedValue) }));
 
 describe("StatusPage", () => {
   describe("renders SBOMDropArea", () => {
@@ -414,6 +414,64 @@ describe("StatusPage", () => {
 
       await waitFor(() => {
         expect(screen.queryByAltText("test_service1 image")).toBeNull();
+      });
+    });
+
+    it("shows normalized ip addresses after saving deployments", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeamWithAsset = {
+        ...testPTeamData,
+        services: [
+          {
+            ...testPTeamData.services[0],
+            asset: {
+              ip_addresses: ["10.0.0.1"],
+            },
+          },
+          testPTeamData.services[1],
+        ],
+      };
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamWithAsset,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      useUpdatePTeamServiceMutation.mockReturnValue([
+        createResolvedMutation({
+          asset: {
+            ip_addresses: ["10.0.0.1/32"],
+          },
+        }),
+      ]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+      expect(screen.getByDisplayValue("10.0.0.1")).toBeInTheDocument();
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("10.0.0.1/32")).toBeInTheDocument();
       });
     });
 

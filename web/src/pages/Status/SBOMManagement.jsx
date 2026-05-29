@@ -43,6 +43,7 @@ import {
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../services/tcApi";
 import { serviceImageMaxSize } from "../../utils/const";
+import { collapseSpaces } from "../../utils/displayText";
 import { errorToString } from "../../utils/func";
 import {
   createId,
@@ -242,7 +243,7 @@ function TabButton({ active, onClick, sbom }) {
       }}
       type="button"
     >
-      {sbom.title || t("untitledSbom")}
+      {collapseSpaces(sbom.title) || t("untitledSbom")}
     </Box>
   );
 }
@@ -384,7 +385,9 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
     >
       {imageInput}
       <Box
-        alt={title ? t("sbomImageAltWithTitle", { title }) : t("sbomImageAlt")}
+        alt={
+          title ? t("sbomImageAltWithTitle", { title: collapseSpaces(title) }) : t("sbomImageAlt")
+        }
         component="img"
         src={imageUrl}
         sx={{ height: "100%", objectFit: "cover", width: "100%" }}
@@ -481,7 +484,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
           {t("image")}
         </Typography>
         <Typography noWrap sx={{ color: "white", fontSize: 16, fontWeight: 700, mt: 0.5 }}>
-          {title || t("untitledSbom")}
+          {collapseSpaces(title) || t("untitledSbom")}
         </Typography>
       </Box>
     </Box>
@@ -491,10 +494,12 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 function DetailsForm({ editing, onUpdate, open, sbom }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
+  const [titleInput, setTitleInput] = useState(sbom.title);
 
   useEffect(() => {
     if (editing) {
       setTagsText(sbom.tags.join(", "));
+      setTitleInput(collapseSpaces(sbom.title));
     }
     // Reset only when entering edit mode or switching SBOM; ignore live `tags` updates while typing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -513,7 +518,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         <Box>
           <Typography sx={labelSx}>{t("title")}</Typography>
           <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 700, mt: 0.75 }}>
-            {sbom.title || emptyText}
+            {sbom.title ? collapseSpaces(sbom.title) : emptyText}
           </Typography>
         </Box>
         <Box>
@@ -560,10 +565,13 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         </Typography>
         <TextField
           fullWidth
-          onChange={(event) => onUpdate({ title: event.target.value })}
+          onChange={(event) => {
+            setTitleInput(event.target.value);
+            onUpdate({ title: event.target.value });
+          }}
           placeholder={t("titlePlaceholder")}
           sx={{ ...fieldSx, mt: 1 }}
-          value={sbom.title}
+          value={titleInput}
         />
       </Box>
       <Box>
@@ -832,6 +840,7 @@ function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
                 fontWeight: 700,
                 mt: 0.5,
                 overflowWrap: "anywhere",
+                whiteSpace: "pre-wrap",
               }}
             >
               {expectedName}
@@ -1336,7 +1345,7 @@ export function SBOMManagement({
       updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: {
-          service_name: activeSbom.title.trim().replace(/\s+/g, " "),
+          service_name: activeSbom.title.trim(),
           description: activeSbom.description.trim(),
           keywords: activeSbom.tags,
         },
@@ -1370,7 +1379,7 @@ export function SBOMManagement({
         updateActiveSbomImage("");
       }
       updateActiveSbom({
-        title: activeSbom.title.trim().replace(/\s+/g, " "),
+        title: activeSbom.title.trim(),
         description: activeSbom.description.trim(),
       });
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
@@ -1392,14 +1401,16 @@ export function SBOMManagement({
       .filter(Boolean);
 
     try {
-      await updatePTeamService({
+      const updatedService = await updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeSbom.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
       updateActiveSbom({
-        deployments: activeSbom.deployments
-          .map((d) => ({ ...d, ip: d.ip.trim() }))
-          .filter((d) => d.ip),
+        deployments: (updatedService.asset?.ip_addresses ?? []).map((ipAddress, index) => ({
+          id: `dep-${activeSbom.id}-${index}`,
+          ip: ipAddress,
+          location: "",
+        })),
       });
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);

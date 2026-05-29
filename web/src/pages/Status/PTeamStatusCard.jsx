@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../components/SSVCPriorityStatusChip";
 import { ticketHandlingStatusProps, sortedTicketHandlingStatus } from "../../utils/const";
+import { collapseSpaces } from "../../utils/displayText";
 import { calcTimestampDiff } from "../../utils/func";
 import { compareSSVCPriority } from "../../utils/ssvcUtils";
 
@@ -144,8 +145,12 @@ export function PTeamStatusCard(props) {
         {serviceIds &&
           pteam.services
             .filter((service) => serviceIds.includes(service.service_id))
-            .sort((a, b) => a.service_name.localeCompare(b.service_name))
-            .map((service) => <Chip key={service.service_id} label={service.service_name} />)}
+            .sort((a, b) =>
+              collapseSpaces(a.service_name).localeCompare(collapseSpaces(b.service_name)),
+            )
+            .map((service) => (
+              <Chip key={service.service_id} label={collapseSpaces(service.service_name)} />
+            ))}
       </TableCell>
       <TableCell
         align="right"

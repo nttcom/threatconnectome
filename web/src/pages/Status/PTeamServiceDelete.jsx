@@ -20,6 +20,7 @@ import styles from "../../cssModule/dialog.module.css";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useDeletePTeamServiceMutation, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { collapseSpaces } from "../../utils/displayText";
 import { errorToString } from "../../utils/func";
 
 export function PTeamServiceDelete(props) {
@@ -130,7 +131,7 @@ export function PTeamServiceDelete(props) {
         }}
       >
         {services.map((service) => {
-          const labelId = `checkbox-list-label-${service.service_name}`;
+          const labelId = `checkbox-list-label-${service.service_id}`;
           return (
             <ListItem key={service.service_id} disablePadding>
               <ListItemButton
@@ -149,7 +150,7 @@ export function PTeamServiceDelete(props) {
                     inputProps={{ "aria-labelledby": labelId }}
                   />
                 </ListItemIcon>
-                <ListItemText id={labelId} primary={service.service_name} />
+                <ListItemText id={labelId} primary={collapseSpaces(service.service_name)} />
               </ListItemButton>
             </ListItem>
           );

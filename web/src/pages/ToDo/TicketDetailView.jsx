@@ -25,6 +25,7 @@ import {
   useGetVulnQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { collapseSpaces } from "../../utils/displayText";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import { preserveParams } from "../../utils/urlUtils.js";
@@ -198,7 +199,7 @@ export function TicketDetailView({ ticket }) {
             </IconButton>
           </DetailRow>
           <DetailRow label={t("service")}>
-            <Typography>{service?.service_name || "-"}</Typography>
+            <Typography>{collapseSpaces(service?.service_name) || "-"}</Typography>
             <IconButton size="small" onClick={handleServiceClick}>
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>
@@ -260,7 +261,7 @@ export function TicketDetailView({ ticket }) {
       <CustomTabPanel value={tabValue} index={2}>
         <RiskAnalysis
           ticketId={ticket.ticket_id}
-          serviceName={service?.service_name || "-"}
+          serviceName={collapseSpaces(service?.service_name) || "-"}
           ecosystem={dependency?.package_ecosystem || "-"}
           cveId={vuln?.cve_id || "No Known CVE"}
           cvss={Number.isFinite(vuln?.cvss_v3_score) ? vuln.cvss_v3_score.toFixed(1) : "N/A"}

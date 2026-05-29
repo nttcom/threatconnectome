@@ -5,6 +5,8 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { collapseSpaces } from "../../utils/displayText";
+
 export function PTeamServiceTabs(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceTabs" });
   const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;
@@ -23,7 +25,7 @@ export function PTeamServiceTabs(props) {
         aria-label="scrollable auto tabs example"
       >
         {services.map((service) => (
-          <Tooltip key={service.service_id} title={service.service_name}>
+          <Tooltip key={service.service_id} title={collapseSpaces(service.service_name)}>
             <Tab
               label={
                 <Box
@@ -38,7 +40,7 @@ export function PTeamServiceTabs(props) {
                   })}
                   component="span"
                 >
-                  {service.service_name}
+                  {collapseSpaces(service.service_name)}
                 </Box>
               }
               onClick={() => {

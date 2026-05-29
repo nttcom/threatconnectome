@@ -27,6 +27,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamServiceThumbnailQuery, useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import { collapseSpaces } from "../../utils/displayText";
 import { errorToString } from "../../utils/func";
 import { preserveParams } from "../../utils/urlUtils";
 
@@ -68,7 +69,7 @@ function ServiceCard(props) {
           variant="h5"
           component="div"
           noWrap
-          title={service.service_name}
+          title={collapseSpaces(service.service_name)}
           sx={(theme) => ({
             width: "100%",
             overflow: "hidden",
@@ -77,7 +78,7 @@ function ServiceCard(props) {
             p: theme.spacing(0, 0, 1, 0),
           })}
         >
-          {service.service_name}
+          {collapseSpaces(service.service_name)}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
           {service.description}
@@ -124,7 +125,7 @@ export function PTeamServicesListModal(props) {
 
   const targetServices = pteam.services
     .filter((service) => serviceIds.includes(service.service_id))
-    .sort((a, b) => a.service_name.localeCompare(b.service_name));
+    .sort((a, b) => collapseSpaces(a.service_name).localeCompare(collapseSpaces(b.service_name)));
   const pageServices = targetServices.slice(perPage * (page - 1), perPage * page);
 
   if (packageId === "") {

@@ -20,7 +20,6 @@ import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 import { SBOMManagement } from "./SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
-
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();

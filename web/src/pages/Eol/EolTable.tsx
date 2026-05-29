@@ -12,6 +12,7 @@ import {
 import { Layers as LayersIcon } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
+import { collapseSpaces } from "../../utils/displayText";
 import {
   getFormatDate,
   getDiffText,
@@ -61,7 +62,7 @@ export function EolTable({ filteredEolVersions }: { filteredEolVersions: EolVers
                     {eolVersion.services.map((s) => (
                       <Chip
                         key={s.service_id}
-                        label={s.service_name}
+                        label={collapseSpaces(s.service_name)}
                         size="small"
                         variant="outlined"
                       />

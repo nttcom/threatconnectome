@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
 import { Layers as LayersIcon } from "@mui/icons-material";
 
+import { collapseSpaces } from "../../utils/displayText";
 import {
   getFormatDate,
   getEolStatus,
@@ -57,7 +58,7 @@ export function EolCardList({ filteredEolVersions }: { filteredEolVersions: EolV
                 {eolVersion.services.map((service) => (
                   <Chip
                     key={service.service_id}
-                    label={service.service_name}
+                    label={collapseSpaces(service.service_name)}
                     size="small"
                     variant="outlined"
                   />

@@ -28,6 +28,7 @@ import {
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { APIError } from "../../utils/APIError";
+import { collapseSpaces } from "../../utils/displayText";
 import { errorToString } from "../../utils/func";
 import { getLatestUpdateDate, getEolStatus } from "../../utils/eolUtils";
 import { preserveParams } from "../../utils/urlUtils";
@@ -73,10 +74,12 @@ export function ServiceEolDashboard() {
       const status = getEolStatus(eolVersion.eol_from);
       const matchesFilter = filter === "all" || filter === status;
 
-      const normalizedSearch = searchTerm.trim().toLowerCase();
+      const normalizedSearch = collapseSpaces(searchTerm).trim().toLowerCase();
       const matchesSearch =
         eolVersion.product_name.toLowerCase().includes(normalizedSearch) ||
-        eolVersion.services.some((s) => s.service_name.toLowerCase().includes(normalizedSearch));
+        eolVersion.services.some((s) =>
+          collapseSpaces(s.service_name).toLowerCase().includes(normalizedSearch),
+        );
 
       return matchesFilter && matchesSearch;
     })

@@ -25,6 +25,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
 import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError";
 import { getNoPTeamMessage } from "../../utils/const.js";
+import { collapseSpaces } from "../../utils/displayText";
 import { a11yProps, errorToString } from "../../utils/func";
 
 import { CodeBlock } from "./CodeBlock.jsx";
@@ -117,9 +118,9 @@ export function Package() {
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             {isMdUp ? (
-              <Tooltip title={service.service_name}>
+              <Tooltip title={collapseSpaces(service.service_name)}>
                 <Chip
-                  label={service.service_name}
+                  label={collapseSpaces(service.service_name)}
                   variant="outlined"
                   sx={{
                     borderRadius: "2px",
@@ -138,10 +139,10 @@ export function Package() {
                   disableFocusListener
                   disableHoverListener
                   disableTouchListener
-                  title={service.service_name}
+                  title={collapseSpaces(service.service_name)}
                 >
                   <Chip
-                    label={service.service_name}
+                    label={collapseSpaces(service.service_name)}
                     variant="outlined"
                     sx={{
                       borderRadius: "2px",
