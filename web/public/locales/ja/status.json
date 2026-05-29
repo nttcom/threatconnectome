@@ -1,21 +1,6 @@
 {
   "StatusPage": {
-    "all_services": "全てのサービス",
-    "search": "検索",
-    "search_enter": "検索 (ENTERで適用)",
-    "loading_team": "チーム情報を読み込んでいます...",
-    "loading_packages_summary": "パッケージサマリーを読み込んでいます...",
-    "rows": "行"
-  },
-  "PTeamServicesListModal": {
-    "loadingTeam": "チーム情報を読み込んでいます...",
-    "rows": "{{count}}行",
-    "selectedPackage": "選択されたパッケージ"
-  },
-  "PTeamServiceSelectDialog": {
-    "selectService": "サービスを選択",
-    "selectAService": "サービスを選択",
-    "cancel": "キャンセル"
+    "loading_team": "チーム情報を読み込んでいます..."
   },
   "FileDropZone": {
     "alertOnlyOneFile": "1つのファイルのみを選択してください",
@@ -36,28 +21,6 @@
     "estimatedTime": "予測実行時間:",
     "sbomWarning": "重要: 誤ったSBOMをアップロードすると、関連チケットが削除される可能性があります。アップロード前にSBOMが正しいか確認してください。"
   },
-  "SBOMUpdateButton": {
-    "updateSBOM": "SBOMを更新"
-  },
-  "SBOMDropArea": {
-    "uploadSBOMFile": "SBOMファイルをアップロード",
-    "serviceName": "サービス名",
-    "serviceNameRequired": "この項目は必須です。",
-    "maxLengthPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "selectedFile": "選択されたファイル: ",
-    "upload": "アップロード",
-    "dropSBOMFile": "ここにSBOMファイルをドロップ",
-    "uploadingSBOMFile": "SBOMファイルのアップロード中",
-    "alertOnlyOneFile": "1つのファイルのみをドロップしてください",
-    "alertOnlyJson": "*.jsonのみサポートされています",
-    "alertMissingFile": "問題が発生しました: ファイルまたはサービスが見つかりません。",
-    "uploadingFile": "SBOMファイルをアップロード中: {{fileName}}",
-    "uploadSuccess": "SBOMの更新リクエストが受け付けられました。後でリロードしてください。",
-    "uploadFailed": "操作に失敗しました: {{message}}。",
-    "uploadFailedBecauseDuplicate": "重複したサービス名です: このサービス名のSBOMアップロードはすでに実行中です。",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
-    "estimatedTime": "予測実行時間:"
-  },
   "SBOMUploadProgressButton": {
     "loadingSbomProgress": "SBOMアップロードの進捗状況を読み込んでいます...",
     "buttonTitle": "アップロード進捗"
@@ -72,58 +35,6 @@
   },
   "WaitingModal": {
     "inProgress": "{{text}}です。お待ちください。"
-  },
-  "PTeamServiceDelete": {
-    "loadingTeam": "チーム情報を読み込んでいます...",
-    "removeServiceSucceeded": "サービスを削除しました。",
-    "removeServicesSucceeded": "サービスを削除しました。",
-    "removeServiceFailed": "サービスの削除に失敗しました: {{error}}。",
-    "removeServicesFailed": "サービスの削除に失敗しました: {{error}}。",
-    "deleting": "削除中...",
-    "delete": "削除"
-  },
-  "PTeamServiceTabs": {
-    "upload": "アップロード"
-  },
-  "DeleteServiceIcon": {
-    "serviceDelete": "サービスを削除",
-    "deleteServices": "サービスを削除"
-  },
-  "ServiceIDCopyButton": {
-    "copyServiceId": "サービスIDをコピー",
-    "copySuccess": "コピーしました！"
-  },
-  "PTeamServiceDetails": {
-    "ipAddress": "IPアドレス",
-    "location": "ロケーション",
-    "notAvailable": "未設定"
-  },
-  "PTeamServiceDetailsSettings": {
-    "updateSucceeded": "更新しました。",
-    "updateFailed": "更新に失敗しました: {{error}}。"
-  },
-  "PTeamServiceImageUploadDeleteButton": {
-    "fileSizeExceeds": "ファイルサイズが最大値（512KiB）を超えています。",
-    "normalizedFileSizeExceeds": "画像のサイズ調整後のファイル容量が最大値（512KiB）を超えました。より小さい画像を使用してください。",
-    "imageProcessingFailed": "画像の変換に失敗しました。別の画像で再度お試しください。",
-    "uploadImage": "画像をアップロード",
-    "deleteImage": "画像を削除"
-  },
-  "PTeamStatusSSVCCards": {
-    "highestSSVCPriority": "Highest SSVC Priority",
-    "highestSSVCPriorityDesc": "サービス内の脆弱性で最も高い対応優先度",
-    "systemExposure": "System Exposure",
-    "systemExposureDesc": "システムやサービスが外部に露出している範囲",
-    "missionImpact": "Mission Impact",
-    "missionImpactDesc": "組織の重要業務機能への影響",
-    "updateSucceeded": "更新しました。",
-    "updateFailed": "更新に失敗しました: {{error}}。",
-    "cancel": "キャンセル",
-    "update": "更新",
-    "updating": "更新中..."
-  },
-  "PTeamStatusCard": {
-    "updated": "更新 {{timeDiff}}"
   },
   "SBOMManagement": {
     "addNew": "新規登録",
@@ -192,28 +103,5 @@
     "registerNewSbom": "新しいSBOMを登録",
     "registerNewSbomDesc": "まずSBOM JSONをアップロードしてください。読み込み後に詳細情報とデプロイ先を設定できます。",
     "uploadFirstSbom": "SBOMをアップロード"
-  },
-  "PTeamServiceDetailsSettingsView": {
-    "serviceSettings": "サービス設定",
-    "name": "名前",
-    "nameRequired": "この項目は必須です。",
-    "image": "画像",
-    "keywords": "キーワード (最大5個)",
-    "description": "説明",
-    "ipAddress": "IPアドレス",
-    "ipAddressPlaceholder": "例: 192.168.10.25, 10.0.0.0/24",
-    "location": "ロケーション",
-    "locationPlaceholder": "例: 東京都渋谷区",
-    "defaultSafetyImpact": "defaultSafetyImpact",
-    "defaultSafetyImpactTooltip": "デフォルトの安全性影響は、個別のチケットに特定の安全性影響が定義されていない限り、SSVC計算時に自動的に適用されます。",
-    "save": "保存",
-    "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
-    "tooLongKeyword": "キーワードが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
-    "tooLongDescription": "説明が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
-    "maxLengthPlaceholder": "最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です",
-    "sameKeywordExists": "同じキーワードが既に存在します。",
-    "add": "追加",
-    "cancel": "キャンセル",
-    "addNewKeyword": "+ 新しいキーワードを追加"
   }
 }

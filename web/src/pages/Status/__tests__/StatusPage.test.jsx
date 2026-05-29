@@ -175,7 +175,7 @@ const createResolvedMutation = (resolvedValue = undefined) =>
   vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(resolvedValue) }));
 
 describe("StatusPage", () => {
-  describe("renders SBOMDropArea", () => {
+  describe("renders SBOM registration state", () => {
     beforeEach(() => {
       navigate.mockClear();
       enqueueSnackbar.mockClear();
@@ -211,7 +211,7 @@ describe("StatusPage", () => {
       useGetSbomUploadProgressQuery.mockReturnValue(progresses);
     });
 
-    it("Show SBOMDropArea component when the service is an unregistered", () => {
+    it("shows the SBOM registration state when no service is registered", () => {
       const testLocation = {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff",
@@ -241,7 +241,7 @@ describe("StatusPage", () => {
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
     });
 
-    it("Do not show SBOMDropArea component when the service is registered", () => {
+    it("does not show the SBOM registration state when a service is registered", () => {
       const testLocation = {
         pathname: "/",
         search:
