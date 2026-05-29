@@ -192,7 +192,7 @@ export function TicketDetailView({ ticket }) {
             </IconButton>
           </DetailRow>
           <DetailRow label={t("team")}>
-            <Typography sx={{ whiteSpace: "pre" }}>{pteam?.pteam_name || "-"}</Typography>
+            <Typography>{pteam?.pteam_name || "-"}</Typography>
             <IconButton size="small" onClick={handleTeamClick}>
               <LinkIcon color="primary" fontSize="small" />
             </IconButton>

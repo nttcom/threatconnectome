@@ -113,7 +113,6 @@ export function TeamSelector() {
                   key={pteam_role.pteam.pteam_id}
                   value={pteam_role.pteam.pteam_id}
                   onClick={() => switchToPTeam(pteam_role.pteam.pteam_id)}
-                  sx={{ whiteSpace: "pre" }}
                 >
                   {textTrim(pteam_role.pteam.pteam_name)}
                 </MenuItem>
