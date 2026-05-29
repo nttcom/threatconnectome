@@ -14,8 +14,6 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { collapseSpaces } from "../../utils/displayText";
-
 export function PTeamServiceSelectDialog(props) {
   const { t } = useTranslation("status", { keyPrefix: "PTeamServiceSelectDialog" });
   const { services, currentServiceId, onChangeService, setIsActiveUploadMode } = props;
@@ -60,7 +58,7 @@ export function PTeamServiceSelectDialog(props) {
             textAlign: "left",
           }}
         >
-          {collapseSpaces(services.find((s) => s.service_id === currentServiceId)?.service_name) ||
+          {services.find((s) => s.service_id === currentServiceId)?.service_name ||
             t("selectService")}
         </Box>
         <ArrowDropDownIcon sx={{ color: "grey.700", marginLeft: "8px", flexShrink: 0 }} />
@@ -95,7 +93,7 @@ export function PTeamServiceSelectDialog(props) {
                       display: "block",
                     }}
                   >
-                    {collapseSpaces(service.service_name)}
+                    {service.service_name}
                   </Box>
                 }
               />

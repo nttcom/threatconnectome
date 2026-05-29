@@ -1,7 +1,6 @@
 import type { PTeamServiceResponse } from "../../../types/types.gen";
 import { useGetPTeamServiceThumbnailQuery } from "../../services/tcApi";
 import { systemExposure, missionImpact } from "../../utils/const";
-import { collapseSpaces } from "../../utils/displayText";
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 
 const noImageAvailableUrl = "images/no-image-available-720x480.png";
@@ -57,7 +56,7 @@ export function usePTeamServiceDetailsData(
 
   return {
     image,
-    serviceName: collapseSpaces(service.service_name),
+    serviceName: service.service_name,
     description: service.description,
     keywords: service.keywords,
     statusItems,

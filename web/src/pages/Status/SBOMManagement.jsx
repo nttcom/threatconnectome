@@ -1091,14 +1091,6 @@ function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel
   );
 }
 
-function getSafeActiveId(sboms, preferredId) {
-  if (preferredId && sboms.some((sbom) => sbom.id === preferredId)) {
-    return preferredId;
-  }
-
-  return sboms[0]?.id || NEW_SBOM_ID;
-}
-
 export function SBOMManagement({
   initialActiveId,
   initialSboms = [],
@@ -1108,7 +1100,7 @@ export function SBOMManagement({
   pteamId,
 }) {
   const [sboms, setSboms] = useState(initialSboms);
-  const [activeId, setActiveId] = useState(() => getSafeActiveId(initialSboms, initialActiveId));
+  const [activeId, setActiveId] = useState(initialActiveId ?? NEW_SBOM_ID);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -1116,13 +1108,6 @@ export function SBOMManagement({
       setSboms(initialSboms);
     }
   }, [initialSboms, isDirty]);
-
-  useEffect(() => {
-    setActiveId((currentActiveId) => {
-      const nextActiveId = getSafeActiveId(sboms, currentActiveId);
-      return currentActiveId === nextActiveId ? currentActiveId : nextActiveId;
-    });
-  }, [sboms]);
 
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -1136,17 +1121,16 @@ export function SBOMManagement({
 
   const lastInitialActiveIdRef = useRef(initialActiveId);
   useEffect(() => {
-    if (!initialActiveId) return;
     if (initialActiveId === lastInitialActiveIdRef.current) return;
     lastInitialActiveIdRef.current = initialActiveId;
-    setActiveId(getSafeActiveId(sboms, initialActiveId));
+    setActiveId(initialActiveId ?? NEW_SBOM_ID);
     setCurrentPage(1);
     setDangerOpen(false);
     setDeploymentsEditing(false);
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setQuery("");
-  }, [initialActiveId, sboms]);
+  }, [initialActiveId]);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
   const [pendingUpload, setPendingUpload] = useState(null);
@@ -1165,7 +1149,7 @@ export function SBOMManagement({
       return null;
     }
 
-    return sboms.find((sbom) => sbom.id === activeId) || sboms[0] || null;
+    return sboms.find((sbom) => sbom.id === activeId) || null;
   }, [activeId, isCreatingSbom, sboms]);
 
   const filteredDependencies = useMemo(() => {
@@ -1224,7 +1208,7 @@ export function SBOMManagement({
   };
 
   const cancelCreateSbom = () => {
-    setActiveId(sboms[0]?.id || NEW_SBOM_ID);
+    setActiveId(initialActiveId ?? NEW_SBOM_ID);
     resetUiState();
   };
 

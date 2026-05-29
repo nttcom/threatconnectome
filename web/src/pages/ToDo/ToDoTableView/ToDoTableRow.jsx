@@ -7,7 +7,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { ResponsiveDrawer } from "../../../components/ResponsiveDrawer";
 import { useTodoItemState } from "../../../hooks/ToDo/useTodoItemState";
-import { collapseSpaces } from "../../../utils/displayText";
 import { preserveParams } from "../../../utils/urlUtils";
 import { TicketDetailView } from "../TicketDetailView";
 
@@ -33,7 +32,7 @@ export function ToDoTableRow(props) {
 
   const cveId = vuln?.cve_id || t("noKnownCve");
   const pteamName = pteam?.pteam_name || "-";
-  const serviceName = collapseSpaces(service?.service_name) || "-";
+  const serviceName = service?.service_name || "-";
   const packageName = serviceDependency?.package_name || "-";
 
   const handleRowClick = () => {

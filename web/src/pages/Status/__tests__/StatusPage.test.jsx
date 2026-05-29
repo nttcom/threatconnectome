@@ -16,12 +16,21 @@ import {
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
 import store from "../../../store";
+import { SBOMManagement } from "../SBOMManagement";
 import { Status } from "../StatusPage";
 
 const renderStatusPage = () => {
   render(
     <Provider store={store}>
       <Status />
+    </Provider>,
+  );
+};
+
+const renderSbomManagement = (props) => {
+  render(
+    <Provider store={store}>
+      <SBOMManagement {...props} />
     </Provider>,
   );
 };
@@ -288,6 +297,31 @@ describe("StatusPage", () => {
       expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
     });
 
+    it("redirects missing serviceId before loading packages summary", async () => {
+      const testLocation = {
+        pathname: "/",
+        search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      renderStatusPage();
+
+      await waitFor(() => {
+        expect(navigate).toHaveBeenCalledWith(
+          "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+        );
+      });
+      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
+    });
+
     it("does not load packages summary while team data is stale", () => {
       const testLocation = {
         pathname: "/",
@@ -508,6 +542,26 @@ describe("StatusPage", () => {
       expect(navigate).toHaveBeenCalledWith(
         "/packages/685335c5-c6aa-47ed-87d9-ce1d3eeaf48d?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       );
+    });
+
+    it("does not fallback to the first SBOM when initialActiveId is unknown", () => {
+      renderSbomManagement({
+        initialActiveId: "unknown-service-id",
+        initialSboms: [
+          {
+            id: testPTeamData.services[0].service_id,
+            title: testPTeamData.services[0].service_name,
+            description: "",
+            tags: [],
+            imageUrl: "",
+            deployments: [],
+            dependencies: [],
+          },
+        ],
+        pteamId: testPTeamData.pteam_id,
+      });
+
+      expect(screen.queryByText(testPTeamData.services[0].service_name)).toBeNull();
     });
   });
 });

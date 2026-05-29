@@ -25,7 +25,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import type { SbomUploadProgressResponse } from "../../../../types/types.gen";
-import { collapseSpaces } from "../../../utils/displayText";
 import { utcStringToLocalDate } from "../../../utils/func";
 
 const toPercentValue = (progress: SbomUploadProgressResponse): number => {
@@ -132,7 +131,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                               fontWeight="bold"
                               sx={{ wordBreak: "break-all" }}
                             >
-                              {collapseSpaces(progress.service_name)}
+                              {progress.service_name}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -190,7 +189,7 @@ export function SBOMUploadProgressDialog({ progresses, open, setOpen }: Props) {
                             fontWeight="bold"
                             sx={{ wordBreak: "break-all" }}
                           >
-                            {collapseSpaces(progress.service_name)}
+                            {progress.service_name}
                           </Typography>
                         </Box>
                       </Box>

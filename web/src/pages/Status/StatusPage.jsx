@@ -20,6 +20,14 @@ import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 import { SBOMManagement } from "./SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
+function getValidServiceId(services, requestedServiceId) {
+  if (requestedServiceId && services.some((service) => service.service_id === requestedServiceId)) {
+    return requestedServiceId;
+  }
+
+  return services[0]?.service_id ?? null;
+}
+
 export function Status() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,17 +48,15 @@ export function Status() {
     if (!pteamId) return;
     if (pteamIsFetching || !pteam || pteam.pteam_id !== pteamId) return;
 
-    const serviceIds = pteam.services.map((service) => service.service_id);
-    const isServiceInTeam = serviceId && serviceIds.includes(serviceId);
-    const fallbackServiceId = pteam.services[0]?.service_id;
-    if (isServiceInTeam || (!fallbackServiceId && !serviceId)) {
+    const validServiceId = getValidServiceId(pteam.services, serviceId);
+    if (serviceId === validServiceId) {
       return;
     }
 
     const newParams = new URLSearchParams();
     newParams.set("pteamId", pteamId);
-    if (fallbackServiceId) {
-      newParams.set("serviceId", fallbackServiceId);
+    if (validServiceId) {
+      newParams.set("serviceId", validServiceId);
     }
     const mytasksParam = preserveMyTasksParam(location.search);
     for (const [key, value] of mytasksParam) {
@@ -65,13 +71,10 @@ export function Status() {
   if (pteamIsLoading) return <>{t("loading_team")}</>;
   if (!pteam || pteam.pteam_id !== pteamId) return <>{t("loading_team")}</>;
 
-  const isServiceInTeam =
-    serviceId && pteam.services.some((service) => service.service_id === serviceId);
-  if (pteam.services.length > 0 && !isServiceInTeam) return <></>;
+  const validServiceId = getValidServiceId(pteam.services, serviceId);
+  if (serviceId !== validServiceId) return <></>;
 
-  return (
-    <StatusBody pteamId={pteamId} pteam={pteam} serviceId={isServiceInTeam ? serviceId : null} />
-  );
+  return <StatusBody pteamId={pteamId} pteam={pteam} serviceId={validServiceId} />;
 }
 
 function StatusBody({ pteamId, pteam, serviceId }) {
