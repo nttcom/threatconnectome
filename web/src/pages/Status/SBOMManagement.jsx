@@ -1164,10 +1164,7 @@ export function SBOMManagement({
     }
 
     return activeSbom.dependencies.filter((dependency) =>
-      [dependency.name, dependency.version, dependency.type, dependency.license]
-        .join(" ")
-        .toLowerCase()
-        .includes(target),
+      dependency.name.toLowerCase().includes(target),
     );
   }, [activeSbom, query]);
 

@@ -182,7 +182,7 @@
     "deleteFailed": "Delete failed: {{error}}",
     "noDependencies": "No dependencies",
     "noDependenciesHelp": "Upload an SBOM JSON or change the search query.",
-    "searchPlaceholder": "Search by name / version / license",
+    "searchPlaceholder": "Search by Package",
     "updateSbom": "Update SBOM",
     "package": "Package",
     "version": "Version",

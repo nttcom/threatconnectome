@@ -182,7 +182,7 @@
     "deleteFailed": "削除に失敗しました: {{error}}",
     "noDependencies": "依存関係がありません",
     "noDependenciesHelp": "SBOM JSONをアップロードするか、検索条件を変更してください。",
-    "searchPlaceholder": "名前・バージョン・ライセンス検索",
+    "searchPlaceholder": "パッケージで検索",
     "updateSbom": "SBOM更新",
     "package": "パッケージ",
     "version": "バージョン",
