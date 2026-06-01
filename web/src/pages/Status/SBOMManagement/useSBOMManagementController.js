@@ -18,15 +18,13 @@ export function useSBOMManagementController({
 
   const mutations = useSBOMManagementMutations({
     actions: {
-      markClean: state.markClean,
       resetUiState: state.resetUiState,
+      resetDraftToCurrentService: state.resetDraftToCurrentService,
       setActiveId: state.setActiveId,
       setDeploymentsEditing: state.setDeploymentsEditing,
       setDetailsEditing: state.setDetailsEditing,
-      setPendingThumbnail: state.setPendingThumbnail,
+      setThumbnailState: state.setThumbnailState,
       setPendingUpload: state.setPendingUpload,
-      setAwaitingThumbnailRefresh: state.setAwaitingThumbnailRefresh,
-      setThumbnailDisplayOverride: state.setThumbnailDisplayOverride,
       updateActiveService: state.updateActiveService,
     },
     callbacks: {
@@ -36,18 +34,11 @@ export function useSBOMManagementController({
       activeId: state.activeId,
       activeService: state.activeService,
       isCreatingSbom: state.isCreatingSbom,
-      pendingThumbnail: state.pendingThumbnail,
       pteamId,
       serviceTabs: state.serviceTabs,
-      thumbnailDisplayOverride: state.thumbnailDisplayOverride,
+      thumbnailState: state.thumbnailState,
     },
   });
-
-  const displayedServiceTabs = state.serviceTabs.map((service) =>
-    service.id === state.activeId && state.activeService
-      ? { ...service, title: state.activeService.title }
-      : service,
-  );
 
   return {
     activeId: state.activeId,
@@ -86,10 +77,9 @@ export function useSBOMManagementController({
         state.setDetailsOpen(true);
         state.setDetailsEditing(true);
       },
-      imageUrl: state.pendingThumbnail
-        ? state.pendingThumbnail.previewDataUrl || ""
-        : state.thumbnailDisplayOverride !== null
-          ? state.thumbnailDisplayOverride
+      imageUrl:
+        state.thumbnailState.previewDataUrl !== null
+          ? state.thumbnailState.previewDataUrl
           : state.activeService?.imageUrl || "",
       onCommit: mutations.commitDetailsEdit,
       onImageUpload: mutations.handleImageUpload,
@@ -122,7 +112,7 @@ export function useSBOMManagementController({
       onSave: mutations.commitServiceImpactEdit,
     },
     tabs: {
-      items: displayedServiceTabs,
+      items: state.serviceTabs,
       onAdd: state.addSbom,
       onSelect: (serviceId) => {
         state.selectService(serviceId);
