@@ -59,6 +59,7 @@
     "notSet": "未設定",
     "sbomImageAlt": "SBOMのイメージ画像",
     "sbomImageAltWithTitle": "{{title}}のイメージ画像",
+    "serviceNameRequired": "サービス名は空にできません。",
     "tags": "タグ",
     "tagsPlaceholder": "backend, prod, critical",
     "title": "タイトル",

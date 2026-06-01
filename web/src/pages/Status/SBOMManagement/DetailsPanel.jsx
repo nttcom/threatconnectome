@@ -196,6 +196,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
   const { enqueueSnackbar } = useSnackbar();
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
   const [titleInput, setTitleInput] = useState(sbom.title);
+  const isTitleBlank = editing && !titleInput.trim();
 
   const showInputError = (message) => {
     enqueueSnackbar(message, { variant: "error" });
@@ -270,6 +271,8 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
         </Typography>
         <TextField
           fullWidth
+          error={isTitleBlank}
+          helperText={isTitleBlank ? t("serviceNameRequired") : undefined}
           onChange={(event) => {
             const nextTitle = event.target.value;
             const error = getLengthError(
@@ -381,6 +384,7 @@ export function DetailsPanel({
           <HeaderActionButton
             active={editing}
             icon={editing ? CheckIcon : EditIcon}
+            disabled={editing && !sbom.title.trim()}
             onClick={onCommit}
           >
             {editing ? t("done") : t("edit")}

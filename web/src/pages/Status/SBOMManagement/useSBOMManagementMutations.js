@@ -151,6 +151,11 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       return;
     }
 
+    if (!activeService.title.trim()) {
+      enqueueSnackbar(t("serviceNameRequired"), { variant: "error" });
+      return;
+    }
+
     const calls = [];
 
     calls.push(() =>

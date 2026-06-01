@@ -575,7 +575,7 @@ describe("StatusPage", () => {
       expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
     });
 
-    it("keeps the tab title on the last fetched service name when details save fails", async () => {
+    it("blocks saving details when the trimmed service name is empty", async () => {
       const testLocation = {
         pathname: "/",
         search:
@@ -597,29 +597,22 @@ describe("StatusPage", () => {
         isFetching: false,
       });
 
-      useUpdatePTeamServiceMutation.mockReturnValue([
-        createRejectedMutation({
-          status: 400,
-          data: { detail: "boom" },
-        }),
-      ]);
+      const updateService = createResolvedMutation();
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
       renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service SBOM"), {
-        target: { value: "   " },
-      });
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      fireEvent.change(titleInput, { target: { value: "   " } });
+
+      expect(screen.getByRole("button", { name: "Done" })).toBeDisabled();
+      expect(screen.getByText("Service name cannot be empty.")).toBeInTheDocument();
+
       await ue.click(screen.getByRole("button", { name: "Done" }));
 
-      await waitFor(() => {
-        expect(enqueueSnackbar).toHaveBeenCalledWith("Update failed: 400: boom", {
-          variant: "error",
-        });
-      });
-
-      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+      expect(updateService).not.toHaveBeenCalled();
     });
 
     it("shows refreshed service details after saving them", async () => {
