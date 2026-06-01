@@ -13,7 +13,7 @@ import { AppButton } from "./sharedUiParts";
 import { compactSelectSx, slate } from "./styleTokens";
 
 function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DependenciesCard" });
   if (dependencies.length === 0) {
     return (
       <Box sx={{ p: 5, textAlign: "center" }}>
@@ -110,7 +110,7 @@ export function DependenciesCard({
   setQuery,
   totalPages,
 }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DependenciesCard" });
 
   return (
     <Card

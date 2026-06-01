@@ -20,7 +20,7 @@ import { AccordionHeader, AppButton, HeaderActionButton } from "./sharedUiParts"
 import { fieldSx, labelSx, slate } from "./styleTokens";
 
 function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const imageInputRef = useRef(null);
 
@@ -192,7 +192,7 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
 }
 
 function DetailsForm({ editing, onUpdate, open, sbom }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
   const { enqueueSnackbar } = useSnackbar();
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
   const [titleInput, setTitleInput] = useState(sbom.title);
@@ -357,7 +357,7 @@ export function DetailsPanel({
   open,
   sbom,
 }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
 
   return (
     <Card

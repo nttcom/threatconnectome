@@ -23,7 +23,7 @@ import { AppButton } from "./sharedUiParts";
 import { fieldSx, labelSx, sectionIconBoxSx, sectionTitleTextSx, slate } from "./styleTokens";
 
 export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DangerZone" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmationName, setConfirmationName] = useState("");
   const expectedName = sbomTitle || t("untitledSbom");

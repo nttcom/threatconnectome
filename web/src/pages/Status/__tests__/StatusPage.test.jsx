@@ -355,6 +355,9 @@ describe("StatusPage", () => {
 
       renderStatusPage();
       expect(screen.queryByText("Drop or click to select")).toBeNull();
+      expect(screen.getByText("Details")).toBeInTheDocument();
+      expect(screen.getByText("Deployments")).toBeInTheDocument();
+      expect(screen.getByText("Danger Zone")).toBeInTheDocument();
     });
 
     it("shows system exposure and mission impact from the service API", () => {

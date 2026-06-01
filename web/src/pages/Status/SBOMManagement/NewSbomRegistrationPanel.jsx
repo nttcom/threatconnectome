@@ -8,7 +8,7 @@ import { AppButton } from "./sharedUiParts";
 import { slate } from "./styleTokens";
 
 export function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel = true }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   return (
     <Box
       sx={{

@@ -31,7 +31,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     updateActiveService,
   } = actions;
   const { onActiveIdChange } = callbacks;
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "useSBOMManagementMutations" });
   const { enqueueSnackbar } = useSnackbar();
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
   const [deletePTeamService] = useDeletePTeamServiceMutation();

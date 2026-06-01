@@ -12,7 +12,7 @@ import { AccordionHeader, CountBadge, HeaderActionButton } from "./sharedUiParts
 import { fieldSx, slate } from "./styleTokens";
 
 function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DeploymentsPanel" });
   const display = { md: "block", xs: open ? "block" : "none" };
 
   return (
@@ -135,7 +135,7 @@ export function DeploymentsPanel({
   onUpdate,
   open,
 }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "DeploymentsPanel" });
 
   return (
     <Card

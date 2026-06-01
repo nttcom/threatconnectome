@@ -191,7 +191,7 @@ function ServiceImpactSummaryRow({ option, summaryLabel, title }) {
 }
 
 export function RiskSettingsCard({ onSave, sbom }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "RiskSettingsCard" });
   const currentSystemExposure = sbom?.systemExposure || "open";
   const currentMissionImpact = sbom?.missionImpact || "mission_failure";
   const systemExposureOptions = [

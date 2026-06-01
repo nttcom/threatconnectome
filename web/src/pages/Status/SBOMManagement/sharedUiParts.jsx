@@ -91,7 +91,7 @@ export function AppButton({ size = "medium", sx, variant = "contained", ...props
 }
 
 export function TabButton({ active, onClick, sbom }) {
-  const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
+  const { t } = useTranslation("status", { keyPrefix: "sharedUiParts" });
   return (
     <Box
       component="button"
