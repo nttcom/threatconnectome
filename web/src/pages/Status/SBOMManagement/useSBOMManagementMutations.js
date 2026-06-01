@@ -19,7 +19,7 @@ import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 export function useSBOMManagementMutations({ actions, callbacks, state }) {
   const { activeId, activeService, isCreatingSbom, pendingThumbnail, pteamId, serviceTabs } = state;
   const {
-    markClean,
+    resetDraftToCurrentService,
     resetUiState,
     setActiveId,
     setDeploymentsEditing,
@@ -192,7 +192,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
-      markClean();
+      resetDraftToCurrentService();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -215,7 +215,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       }).unwrap();
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
-      markClean();
+      resetDraftToCurrentService();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -242,7 +242,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
         },
       }).unwrap();
       enqueueSnackbar(t("updateRiskSettingsSuccess"), { variant: "success" });
-      markClean();
+      resetDraftToCurrentService();
       return true;
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });

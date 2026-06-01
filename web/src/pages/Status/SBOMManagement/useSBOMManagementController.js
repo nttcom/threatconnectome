@@ -18,8 +18,8 @@ export function useSBOMManagementController({
 
   const mutations = useSBOMManagementMutations({
     actions: {
-      markClean: state.markClean,
       resetUiState: state.resetUiState,
+      resetDraftToCurrentService: state.resetDraftToCurrentService,
       setActiveId: state.setActiveId,
       setDeploymentsEditing: state.setDeploymentsEditing,
       setDetailsEditing: state.setDetailsEditing,
@@ -42,12 +42,6 @@ export function useSBOMManagementController({
       thumbnailDisplayOverride: state.thumbnailDisplayOverride,
     },
   });
-
-  const displayedServiceTabs = state.serviceTabs.map((service) =>
-    service.id === state.activeId && state.activeService
-      ? { ...service, title: state.activeService.title }
-      : service,
-  );
 
   return {
     activeId: state.activeId,
@@ -122,7 +116,7 @@ export function useSBOMManagementController({
       onSave: mutations.commitServiceImpactEdit,
     },
     tabs: {
-      items: displayedServiceTabs,
+      items: state.serviceTabs,
       onAdd: state.addSbom,
       onSelect: (serviceId) => {
         state.selectService(serviceId);

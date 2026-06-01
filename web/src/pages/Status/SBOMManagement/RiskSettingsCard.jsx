@@ -270,6 +270,8 @@ export function RiskSettingsCard({ onSave, sbom }) {
     try {
       const saved = await onSave?.({ missionImpact, systemExposure });
       if (saved !== false) {
+        setSystemExposure(currentSystemExposure);
+        setMissionImpact(currentMissionImpact);
         setEditing(false);
       }
     } finally {

@@ -420,6 +420,45 @@ describe("StatusPage", () => {
       );
     });
 
+    it("discards unsaved details draft when a different SBOM tab is selected", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service SBOM"), {
+        target: { value: "unsaved service title" },
+      });
+
+      await ue.click(screen.getByRole("button", { name: "test_service2" }));
+
+      expect(navigate).toHaveBeenCalledWith(
+        "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=d36d5c85-8b37-4da2-854c-bfa58a43d83e",
+      );
+      expect(screen.queryByText("unsaved service title")).toBeNull();
+      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+    });
+
     it("updates system exposure and mission impact through the service API", async () => {
       const testLocation = {
         pathname: "/",
@@ -476,6 +515,9 @@ describe("StatusPage", () => {
           },
         });
       });
+      expect(screen.getByText("Small")).toBeInTheDocument();
+      expect(screen.getByText("MEF Support Crippled")).toBeInTheDocument();
+      expect(screen.queryByText("Degraded")).toBeNull();
       renderResult.rerender(
         <Provider store={store}>
           <Status />
@@ -531,6 +573,53 @@ describe("StatusPage", () => {
         variant: "error",
       });
       expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    });
+
+    it("keeps the tab title on the last fetched service name when details save fails", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      useUpdatePTeamServiceMutation.mockReturnValue([
+        createRejectedMutation({
+          status: 400,
+          data: { detail: "boom" },
+        }),
+      ]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service SBOM"), {
+        target: { value: "   " },
+      });
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(enqueueSnackbar).toHaveBeenCalledWith("Update failed: 400: boom", {
+          variant: "error",
+        });
+      });
+
+      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
     });
 
     it("shows refreshed service details after saving them", async () => {
@@ -590,6 +679,11 @@ describe("StatusPage", () => {
       fireEvent.change(tagsInput, { target: { value: "backend, prod, critical" } });
 
       await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+      expect(screen.queryByText("response description")).toBeNull();
+      expect(screen.queryByText("response")).toBeNull();
+      expect(screen.queryByText("Updated service description")).toBeNull();
 
       renderResult.rerender(
         <Provider store={store}>
@@ -1016,6 +1110,10 @@ describe("StatusPage", () => {
       expect(screen.getByDisplayValue("10.0.0.1")).toBeInTheDocument();
 
       await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
+      expect(screen.queryByText("response-ip")).toBeNull();
+      expect(screen.queryByText("10.0.0.1/32")).toBeNull();
 
       renderResult.rerender(
         <Provider store={store}>
