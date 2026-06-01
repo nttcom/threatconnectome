@@ -301,7 +301,7 @@ describe("StatusPage", () => {
       expect(screen.getByText("MEF Support Crippled")).toBeInTheDocument();
     });
 
-    it("shows risk settings for the selected SBOM tab", async () => {
+    it("navigates when a different SBOM tab is selected", async () => {
       const testLocation = {
         pathname: "/",
         search:
@@ -328,8 +328,9 @@ describe("StatusPage", () => {
 
       await ue.click(screen.getByRole("button", { name: "test_service2" }));
 
-      expect(screen.getByText("Open")).toBeInTheDocument();
-      expect(screen.getByText("Mission Failure")).toBeInTheDocument();
+      expect(navigate).toHaveBeenCalledWith(
+        "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=d36d5c85-8b37-4da2-854c-bfa58a43d83e",
+      );
     });
 
     it("updates system exposure and mission impact through the service API", async () => {
@@ -759,24 +760,31 @@ describe("StatusPage", () => {
       );
     });
 
-    it("does not fallback to the first SBOM when initialActiveId is unknown", () => {
+    it("uses currentService.id as the active SBOM", () => {
       renderSbomManagement({
-        initialActiveId: "unknown-service-id",
-        initialSboms: [
+        currentDependencies: [],
+        currentService: {
+          id: testPTeamData.services[0].service_id,
+          title: testPTeamData.services[0].service_name,
+          description: "",
+          tags: [],
+          systemExposure: "small",
+          missionImpact: "mef_support_crippled",
+          imageUrl: "",
+          deployments: [],
+        },
+        pteamId: testPTeamData.pteam_id,
+        serviceTabs: [
           {
             id: testPTeamData.services[0].service_id,
             title: testPTeamData.services[0].service_name,
-            description: "",
-            tags: [],
-            imageUrl: "",
-            deployments: [],
-            dependencies: [],
           },
         ],
-        pteamId: testPTeamData.pteam_id,
       });
 
-      expect(screen.queryByText(testPTeamData.services[0].service_name)).toBeNull();
+      expect(screen.getByText("Small")).toBeInTheDocument();
+      expect(screen.getByText("MEF Support Crippled")).toBeInTheDocument();
+      expect(screen.queryByText("Register a new SBOM")).toBeNull();
     });
   });
 });

@@ -7,31 +7,31 @@ import {
   useUpdatePTeamServiceMutation,
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
-import { serviceImageMaxSize } from "../../../utils/const";
-import { errorToString } from "../../../utils/func";
 import {
   createId,
   getNextActiveIdAfterRemoval,
   NEW_SBOM_ID,
 } from "../../../utils/SBOMManagement/sbomManagementUtils";
+import { serviceImageMaxSize } from "../../../utils/const";
+import { errorToString } from "../../../utils/func";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
 export function useSBOMManagementMutations({
   activeId,
-  activeSbom,
+  activeService,
   isCreatingSbom,
   onActiveIdChange,
   onThumbnailChange,
   pteamId,
   resetUiState,
-  sboms,
+  serviceTabs,
   setActiveId,
   setDeploymentsEditing,
   setDetailsEditing,
   setPendingThumbnail,
   setPendingUpload,
-  updateActiveSbom,
-  updateActiveSbomImage,
+  updateActiveService,
+  updateActiveServiceImage,
 }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const { enqueueSnackbar } = useSnackbar();
@@ -41,13 +41,13 @@ export function useSBOMManagementMutations({
   const [deletePTeamServiceThumbnail] = useDeletePTeamServiceThumbnailMutation();
 
   const removeActiveSbom = async () => {
-    if (isCreatingSbom || !pteamId || !activeSbom) {
+    if (isCreatingSbom || !pteamId || !activeService) {
       return;
     }
 
     try {
       await deletePTeamService({
-        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        path: { pteam_id: pteamId, service_id: activeService.id },
       }).unwrap();
       enqueueSnackbar(t("deleteSuccess"), { variant: "success" });
     } catch (error) {
@@ -55,36 +55,36 @@ export function useSBOMManagementMutations({
       return;
     }
 
-    const nextActiveId = getNextActiveIdAfterRemoval(sboms, activeId) || NEW_SBOM_ID;
+    const nextActiveId = getNextActiveIdAfterRemoval(serviceTabs, activeId) || NEW_SBOM_ID;
     setActiveId(nextActiveId);
     onActiveIdChange?.(nextActiveId);
     resetUiState();
   };
 
   const addDeployment = () => {
-    if (!activeSbom) {
+    if (!activeService) {
       return;
     }
 
-    updateActiveSbom({
-      deployments: [...activeSbom.deployments, { id: createId("dep"), ip: "", location: "" }],
+    updateActiveService({
+      deployments: [...activeService.deployments, { id: createId("dep"), ip: "", location: "" }],
     });
   };
 
   const updateDeployment = (deploymentId, patch) => {
-    if (!activeSbom) {
+    if (!activeService) {
       return;
     }
 
-    updateActiveSbom({
-      deployments: activeSbom.deployments.map((deployment) =>
+    updateActiveService({
+      deployments: activeService.deployments.map((deployment) =>
         deployment.id === deploymentId ? { ...deployment, ...patch } : deployment,
       ),
     });
   };
 
   const removeDeployment = (deploymentId) => {
-    if (!activeSbom) {
+    if (!activeService) {
       return;
     }
 
@@ -94,8 +94,8 @@ export function useSBOMManagementMutations({
       return;
     }
 
-    updateActiveSbom({
-      deployments: activeSbom.deployments.filter((deployment) => deployment.id !== deploymentId),
+    updateActiveService({
+      deployments: activeService.deployments.filter((deployment) => deployment.id !== deploymentId),
     });
   };
 
@@ -104,11 +104,11 @@ export function useSBOMManagementMutations({
     const file = input.files?.[0];
     input.value = "";
 
-    if (!file || !activeSbom) {
+    if (!file || !activeService) {
       return;
     }
 
-    setPendingUpload({ file, serviceName: activeSbom.title });
+    setPendingUpload({ file, serviceName: activeService.title });
   };
 
   const handleImageUpload = async (event) => {
@@ -116,7 +116,7 @@ export function useSBOMManagementMutations({
     const file = input.files?.[0];
     input.value = "";
 
-    if (!file || !activeSbom) {
+    if (!file || !activeService) {
       return;
     }
 
@@ -146,7 +146,7 @@ export function useSBOMManagementMutations({
   };
 
   const commitDetailsEdit = async (pendingThumbnail) => {
-    if (!activeSbom || !pteamId) {
+    if (!activeService || !pteamId) {
       setDetailsEditing(false);
       return;
     }
@@ -155,11 +155,11 @@ export function useSBOMManagementMutations({
 
     calls.push(() =>
       updatePTeamService({
-        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        path: { pteam_id: pteamId, service_id: activeService.id },
         body: {
-          service_name: activeSbom.title.trim(),
-          description: activeSbom.description.trim(),
-          keywords: activeSbom.tags,
+          service_name: activeService.title.trim(),
+          description: activeService.description.trim(),
+          keywords: activeService.tags,
         },
       }).unwrap(),
     );
@@ -168,14 +168,14 @@ export function useSBOMManagementMutations({
       const file = pendingThumbnail.file;
       calls.push(() =>
         updatePTeamServiceThumbnail({
-          path: { pteam_id: pteamId, service_id: activeSbom.id },
+          path: { pteam_id: pteamId, service_id: activeService.id },
           body: { uploaded: file },
         }).unwrap(),
       );
     } else if (pendingThumbnail?.deleted) {
       calls.push(() =>
         deletePTeamServiceThumbnail({
-          path: { pteam_id: pteamId, service_id: activeSbom.id },
+          path: { pteam_id: pteamId, service_id: activeService.id },
         }).unwrap(),
       );
     }
@@ -184,15 +184,15 @@ export function useSBOMManagementMutations({
       await Promise.all(calls.map((fn) => fn()));
       if (pendingThumbnail?.file) {
         const nextImageUrl = pendingThumbnail.previewDataUrl || "";
-        onThumbnailChange?.(activeSbom.id, nextImageUrl);
-        updateActiveSbomImage(nextImageUrl);
+        onThumbnailChange?.(activeService.id, nextImageUrl);
+        updateActiveServiceImage(nextImageUrl);
       } else if (pendingThumbnail?.deleted) {
-        onThumbnailChange?.(activeSbom.id, "");
-        updateActiveSbomImage("");
+        onThumbnailChange?.(activeService.id, "");
+        updateActiveServiceImage("");
       }
-      updateActiveSbom({
-        title: activeSbom.title.trim(),
-        description: activeSbom.description.trim(),
+      updateActiveService({
+        title: activeService.title.trim(),
+        description: activeService.description.trim(),
       });
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
@@ -203,23 +203,23 @@ export function useSBOMManagementMutations({
   };
 
   const commitDeploymentsEdit = async () => {
-    if (!activeSbom || !pteamId) {
+    if (!activeService || !pteamId) {
       setDeploymentsEditing(false);
       return;
     }
 
-    const ipAddresses = activeSbom.deployments
+    const ipAddresses = activeService.deployments
       .map((deployment) => deployment.ip.trim())
       .filter(Boolean);
 
     try {
       const updatedService = await updatePTeamService({
-        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        path: { pteam_id: pteamId, service_id: activeService.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
-      updateActiveSbom({
+      updateActiveService({
         deployments: (updatedService.asset?.ip_addresses ?? []).map((ipAddress, index) => ({
-          id: `dep-${activeSbom.id}-${index}`,
+          id: `dep-${activeService.id}-${index}`,
           ip: ipAddress,
           location: "",
         })),
@@ -232,26 +232,26 @@ export function useSBOMManagementMutations({
   };
 
   const commitServiceImpactEdit = async ({ missionImpact, systemExposure }) => {
-    if (!activeSbom || !pteamId) {
+    if (!activeService || !pteamId) {
       return true;
     }
 
     if (
-      systemExposure === activeSbom.systemExposure &&
-      missionImpact === activeSbom.missionImpact
+      systemExposure === activeService.systemExposure &&
+      missionImpact === activeService.missionImpact
     ) {
       return true;
     }
 
     try {
       const updatedService = await updatePTeamService({
-        path: { pteam_id: pteamId, service_id: activeSbom.id },
+        path: { pteam_id: pteamId, service_id: activeService.id },
         body: {
           system_exposure: systemExposure,
           service_mission_impact: missionImpact,
         },
       }).unwrap();
-      updateActiveSbom({
+      updateActiveService({
         systemExposure: updatedService?.system_exposure ?? systemExposure,
         missionImpact: updatedService?.service_mission_impact ?? missionImpact,
       });

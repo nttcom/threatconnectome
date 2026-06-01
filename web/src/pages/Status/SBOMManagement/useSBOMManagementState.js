@@ -2,9 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { NEW_SBOM_ID } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
-export function useSBOMManagementState({ initialActiveId, initialSboms }) {
-  const [sboms, setSboms] = useState(initialSboms);
-  const [activeId, setActiveId] = useState(initialActiveId ?? NEW_SBOM_ID);
+export function useSBOMManagementState({
+  currentDependencies = [],
+  currentService,
+  serviceTabs = [],
+}) {
+  const selectedServiceId = currentService?.id ?? null;
+  const [activeId, setActiveId] = useState(selectedServiceId ?? NEW_SBOM_ID);
+  const [activeServiceDraft, setActiveServiceDraft] = useState(currentService);
   const [isDirty, setIsDirty] = useState(false);
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,10 +25,16 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
   const createFileInputRef = useRef(null);
 
   useEffect(() => {
-    if (!isDirty) {
-      setSboms(initialSboms);
+    if (!serviceTabs.length) {
+      setActiveId(NEW_SBOM_ID);
     }
-  }, [initialSboms, isDirty]);
+  }, [serviceTabs.length]);
+
+  useEffect(() => {
+    if (!isDirty) {
+      setActiveServiceDraft(currentService);
+    }
+  }, [currentService, isDirty]);
 
   const resetUiState = () => {
     setIsDirty(false);
@@ -35,11 +46,12 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
     setQuery("");
   };
 
-  const lastInitialActiveIdRef = useRef(initialActiveId);
+  const lastSelectedServiceIdRef = useRef(selectedServiceId);
   useEffect(() => {
-    if (initialActiveId === lastInitialActiveIdRef.current) return;
-    lastInitialActiveIdRef.current = initialActiveId;
-    setActiveId(initialActiveId ?? NEW_SBOM_ID);
+    if (selectedServiceId === lastSelectedServiceIdRef.current) return;
+    lastSelectedServiceIdRef.current = selectedServiceId;
+    setActiveId(selectedServiceId ?? NEW_SBOM_ID);
+    setActiveServiceDraft(currentService);
     setIsDirty(false);
     setCurrentPage(1);
     setDangerOpen(false);
@@ -47,33 +59,37 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setQuery("");
-  }, [initialActiveId]);
+  }, [currentService, selectedServiceId]);
 
-  const isEmpty = sboms.length === 0;
+  const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
-  const activeSbom = useMemo(() => {
+  const activeService = useMemo(() => {
     if (isCreatingSbom) {
       return null;
     }
 
-    return sboms.find((sbom) => sbom.id === activeId) || null;
-  }, [activeId, isCreatingSbom, sboms]);
+    if (activeServiceDraft?.id !== activeId) {
+      return null;
+    }
+
+    return activeServiceDraft;
+  }, [activeId, activeServiceDraft, isCreatingSbom]);
 
   const filteredDependencies = useMemo(() => {
     const target = query.trim().toLowerCase();
 
-    if (!activeSbom) {
+    if (!activeService) {
       return [];
     }
 
     if (!target) {
-      return activeSbom.dependencies;
+      return currentDependencies;
     }
 
-    return activeSbom.dependencies.filter((dependency) =>
+    return currentDependencies.filter((dependency) =>
       dependency.name.toLowerCase().includes(target),
     );
-  }, [activeSbom, query]);
+  }, [activeService, currentDependencies, query]);
 
   const totalPages = Math.max(1, Math.ceil(filteredDependencies.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -81,16 +97,16 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
   const pageEndIndex = Math.min(pageStartIndex + pageSize, filteredDependencies.length);
   const paginatedDependencies = filteredDependencies.slice(pageStartIndex, pageEndIndex);
 
-  const updateActiveSbom = (patch) => {
+  const updateActiveService = (patch) => {
     setIsDirty(true);
-    setSboms((current) =>
-      current.map((sbom) => (sbom.id === activeId ? { ...sbom, ...patch } : sbom)),
+    setActiveServiceDraft((current) =>
+      current?.id === activeId ? { ...current, ...patch } : current,
     );
   };
 
-  const updateActiveSbomImage = (imageUrl) => {
-    setSboms((current) =>
-      current.map((sbom) => (sbom.id === activeSbom?.id ? { ...sbom, imageUrl } : sbom)),
+  const updateActiveServiceImage = (imageUrl) => {
+    setActiveServiceDraft((current) =>
+      current?.id === activeService?.id ? { ...current, imageUrl } : current,
     );
   };
 
@@ -102,18 +118,18 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
   };
 
   const cancelCreateSbom = () => {
-    setActiveId(initialActiveId ?? NEW_SBOM_ID);
+    setActiveId(selectedServiceId ?? NEW_SBOM_ID);
     resetUiState();
   };
 
-  const selectSbom = (sbomId) => {
-    setActiveId(sbomId);
+  const selectService = (serviceId) => {
+    setActiveId(serviceId);
     resetUiState();
   };
 
   return {
     activeId,
-    activeSbom,
+    activeService,
     addSbom,
     cancelCreateSbom,
     createFileInputRef,
@@ -136,8 +152,8 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
     query,
     resetUiState,
     safeCurrentPage,
-    sboms,
-    selectSbom,
+    selectService,
+    serviceTabs,
     setActiveId,
     setCurrentPage,
     setDangerOpen,
@@ -150,7 +166,7 @@ export function useSBOMManagementState({ initialActiveId, initialSboms }) {
     setPendingUpload,
     setQuery,
     totalPages,
-    updateActiveSbom,
-    updateActiveSbomImage,
+    updateActiveService,
+    updateActiveServiceImage,
   };
 }

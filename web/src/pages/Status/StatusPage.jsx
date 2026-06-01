@@ -12,9 +12,13 @@ import {
   useGetPTeamServiceThumbnailQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import {
+  buildCurrentServiceFromPTeam,
+  buildDependencyRows,
+  buildServiceTabsFromPTeam,
+} from "../../utils/SBOMManagement/sbomManagementUtils";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { buildSbomsFromPTeam } from "../../utils/SBOMManagement/sbomManagementUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { SBOMManagement } from "./SBOMManagement/SBOMManagement";
@@ -73,8 +77,37 @@ export function Status() {
 
   const validServiceId = getValidServiceId(pteam.services, serviceId);
   if (serviceId !== validServiceId) return <></>;
+  if (!validServiceId) return <StatusEmptyBody pteamId={pteamId} />;
 
   return <StatusBody pteamId={pteamId} pteam={pteam} serviceId={validServiceId} />;
+}
+
+function StatusHeader({ pteamId }) {
+  return (
+    <>
+      <Box display="flex" flexDirection="row">
+        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
+        <Box flexGrow={1} />
+      </Box>
+      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <SBOMUploadProgressButton pteamId={pteamId} />
+      </Box>
+    </>
+  );
+}
+
+function StatusEmptyBody({ pteamId }) {
+  return (
+    <>
+      <StatusHeader pteamId={pteamId} />
+      <SBOMManagement
+        currentDependencies={[]}
+        currentService={null}
+        pteamId={pteamId}
+        serviceTabs={[]}
+      />
+    </>
+  );
 }
 
 function StatusBody({ pteamId, pteam, serviceId }) {
@@ -86,12 +119,12 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
       { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
-      { skip: skipByAuth || !pteamId || !serviceId },
+      { skip: skipByAuth || !pteamId },
     );
 
   const { data: loadedThumbnail } = useGetPTeamServiceThumbnailQuery(
     { path: { pteam_id: pteamId, service_id: serviceId } },
-    { skip: skipByAuth || !pteamId || !serviceId },
+    { skip: skipByAuth || !pteamId },
   );
 
   if (packagesSummaryError)
@@ -115,13 +148,17 @@ function StatusBody({ pteamId, pteam, serviceId }) {
     [serviceId],
   );
 
-  const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
-    return base.map((sbom) => {
-      if (sbom.id !== serviceId) return sbom;
-      return { ...sbom, imageUrl: thumbnail ?? "" };
-    });
-  }, [pteam.services, packagesSummary, serviceId, thumbnail]);
+  const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
+
+  const currentService = useMemo(
+    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, thumbnail ?? ""),
+    [pteam.services, serviceId, thumbnail],
+  );
+
+  const currentDependencies = useMemo(
+    () => buildDependencyRows(packagesSummary?.packages ?? [], serviceId),
+    [packagesSummary, serviceId],
+  );
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
@@ -144,27 +181,30 @@ function StatusBody({ pteamId, pteam, serviceId }) {
 
   return (
     <>
-      <Box display="flex" flexDirection="row">
-        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
-        <Box flexGrow={1} />
-      </Box>
-      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <SBOMUploadProgressButton pteamId={pteamId} />
-      </Box>
+      <StatusHeader pteamId={pteamId} />
       <SBOMManagement
-        initialSboms={sboms}
-        initialActiveId={serviceId}
+        currentDependencies={currentDependencies}
+        currentService={currentService}
         onThumbnailChange={handleThumbnailChanged}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
+        serviceTabs={serviceTabs}
       />
     </>
   );
 }
 
+StatusHeader.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};
+
+StatusEmptyBody.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};
+
 StatusBody.propTypes = {
   pteamId: PropTypes.string.isRequired,
   pteam: PropTypes.object.isRequired,
-  serviceId: PropTypes.string,
+  serviceId: PropTypes.string.isRequired,
 };

@@ -1,102 +1,53 @@
-/* eslint-disable react/prop-types, jsx-a11y/no-autofocus */
+/* eslint-disable react/prop-types */
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { SBOMUpdateDialog } from "../SbomDrop/SBOMUpdateDialog";
-import { TabButton } from "./sharedUiParts";
+
 import { DangerZone } from "./DangerZone";
 import { DependenciesCard } from "./DependenciesCard";
 import { DeploymentsPanel } from "./DeploymentsPanel";
 import { DetailsPanel } from "./DetailsPanel";
 import { NewSbomRegistrationPanel } from "./NewSbomRegistrationPanel";
 import { RiskSettingsCard } from "./RiskSettingsCard";
+import { TabButton } from "./sharedUiParts";
 import { slate } from "./styleTokens";
-import { useSBOMManagementMutations } from "./useSBOMManagementMutations";
-import { useSBOMManagementState } from "./useSBOMManagementState";
+import { useSBOMManagementController } from "./useSBOMManagementController";
 
 export function SBOMManagement({
-  initialActiveId,
-  initialSboms = [],
+  currentDependencies = [],
+  currentService,
   onActiveIdChange,
   onThumbnailChange,
   onPackageClick,
   pteamId,
+  serviceTabs = [],
 }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const {
     activeId,
-    activeSbom,
-    addSbom,
-    cancelCreateSbom,
-    createFileInputRef,
-    dangerOpen,
-    deploymentsEditing,
-    deploymentsOpen,
-    detailsEditing,
-    detailsOpen,
-    fileInputRef,
-    filteredDependencies,
+    activeService,
+    dangerZone,
+    dependencies,
+    deployments,
+    details,
     isCreatingSbom,
     isEmpty,
-    pageEndIndex,
-    pageSize,
-    pageStartIndex,
-    paginatedDependencies,
-    pendingThumbnail,
+    newSbom,
     pendingUpload,
-    query,
-    resetUiState,
-    safeCurrentPage,
-    sboms,
-    selectSbom,
-    setActiveId,
-    setCurrentPage,
-    setDangerOpen,
-    setDeploymentsEditing,
-    setDeploymentsOpen,
-    setDetailsEditing,
-    setDetailsOpen,
-    setPageSize,
-    setPendingThumbnail,
-    setPendingUpload,
-    setQuery,
-    totalPages,
-    updateActiveSbom,
-    updateActiveSbomImage,
-  } = useSBOMManagementState({ initialActiveId, initialSboms });
-
-  const {
-    addDeployment,
-    commitDeploymentsEdit,
-    commitDetailsEdit,
-    commitServiceImpactEdit,
-    handleCreateFileUpload,
-    handleFileUpload,
-    handleImageUpload,
-    handleRemoveImage,
-    removeActiveSbom,
-    removeDeployment,
-    updateDeployment,
-  } = useSBOMManagementMutations({
-    activeId,
-    activeSbom,
-    isCreatingSbom,
+    riskSettings,
+    tabs,
+  } = useSBOMManagementController({
+    currentDependencies,
+    currentService,
     onActiveIdChange,
     onThumbnailChange,
     pteamId,
-    resetUiState,
-    sboms,
-    setActiveId,
-    setDeploymentsEditing,
-    setDetailsEditing,
-    setPendingThumbnail,
-    setPendingUpload,
-    updateActiveSbom,
-    updateActiveSbomImage,
+    serviceTabs,
   });
 
-  if (!activeSbom && !isCreatingSbom) {
+  if (!activeService && !isCreatingSbom) {
     return null;
   }
 
@@ -123,20 +74,17 @@ export function SBOMManagement({
             width: "100%",
           }}
         >
-          {sboms.map((sbom) => (
+          {tabs.items.map((service) => (
             <TabButton
-              active={sbom.id === activeId}
-              key={sbom.id}
-              onClick={() => {
-                selectSbom(sbom.id);
-                onActiveIdChange?.(sbom.id);
-              }}
-              sbom={sbom}
+              active={service.id === activeId}
+              key={service.id}
+              onClick={() => tabs.onSelect(service.id)}
+              sbom={service}
             />
           ))}
           <Box
             component="button"
-            onClick={addSbom}
+            onClick={tabs.onAdd}
             sx={{
               "&:hover": { bgcolor: "white", borderColor: slate[400], color: slate[900] },
               alignItems: "center",
@@ -169,9 +117,9 @@ export function SBOMManagement({
 
         {isCreatingSbom ? (
           <NewSbomRegistrationPanel
-            inputRef={createFileInputRef}
-            onCancel={cancelCreateSbom}
-            onFileChange={handleCreateFileUpload}
+            inputRef={newSbom.inputRef}
+            onCancel={newSbom.onCancel}
+            onFileChange={newSbom.onFileChange}
             showCancel={!isEmpty}
           />
         ) : (
@@ -196,84 +144,78 @@ export function SBOMManagement({
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
               <DetailsPanel
-                editing={detailsEditing}
-                imageUrl={
-                  pendingThumbnail ? pendingThumbnail.previewDataUrl || "" : activeSbom.imageUrl
-                }
+                editing={details.editing}
+                imageUrl={details.imageUrl}
                 onCommit={() => {
-                  if (detailsEditing) {
-                    commitDetailsEdit(pendingThumbnail);
+                  if (details.editing) {
+                    details.onCommit();
                   } else {
-                    setDetailsOpen(true);
-                    setDetailsEditing(true);
+                    details.beginEditing();
                   }
                 }}
-                onImageUpload={handleImageUpload}
-                onRemoveImage={handleRemoveImage}
-                onToggle={() => setDetailsOpen((open) => !open)}
-                onUpdate={updateActiveSbom}
-                open={detailsOpen}
-                sbom={activeSbom}
+                onImageUpload={details.onImageUpload}
+                onRemoveImage={details.onRemoveImage}
+                onToggle={details.onToggle}
+                onUpdate={details.onUpdate}
+                open={details.open}
+                sbom={activeService}
               />
 
-              <RiskSettingsCard onSave={commitServiceImpactEdit} sbom={activeSbom} />
+              <RiskSettingsCard onSave={riskSettings.onSave} sbom={activeService} />
 
               <DeploymentsPanel
-                deployments={activeSbom.deployments}
-                editing={deploymentsEditing}
-                onAdd={addDeployment}
+                deployments={activeService.deployments}
+                editing={deployments.editing}
+                onAdd={deployments.onAdd}
                 onCommit={() => {
-                  if (deploymentsEditing) {
-                    commitDeploymentsEdit();
+                  if (deployments.editing) {
+                    deployments.onCommit();
                   } else {
-                    setDeploymentsOpen(true);
-                    setDeploymentsEditing(true);
+                    deployments.beginEditing();
                   }
                 }}
-                onRemove={removeDeployment}
-                onToggle={() => setDeploymentsOpen((open) => !open)}
-                onUpdate={updateDeployment}
-                open={deploymentsOpen}
+                onRemove={deployments.onRemove}
+                onToggle={deployments.onToggle}
+                onUpdate={deployments.onUpdate}
+                open={deployments.open}
               />
 
               <DangerZone
-                onDelete={removeActiveSbom}
-                onToggle={() => setDangerOpen((open) => !open)}
-                open={dangerOpen}
-                sbomTitle={activeSbom.title}
+                onDelete={dangerZone.onDelete}
+                onToggle={dangerZone.onToggle}
+                open={dangerZone.open}
+                sbomTitle={activeService.title}
               />
             </Box>
 
             <DependenciesCard
-              filteredDependencies={filteredDependencies}
-              fileInputRef={fileInputRef}
-              onFileUpload={handleFileUpload}
+              filteredDependencies={dependencies.filtered}
+              fileInputRef={dependencies.fileInputRef}
+              onFileUpload={dependencies.onFileUpload}
               onPackageClick={onPackageClick}
-              pageEndIndex={pageEndIndex}
-              pageSize={pageSize}
-              pageStartIndex={pageStartIndex}
-              paginatedDependencies={paginatedDependencies}
-              query={query}
-              safeCurrentPage={safeCurrentPage}
-              setCurrentPage={setCurrentPage}
-              setPageSize={setPageSize}
-              setQuery={setQuery}
-              totalPages={totalPages}
+              pageEndIndex={dependencies.pageEndIndex}
+              pageSize={dependencies.pageSize}
+              pageStartIndex={dependencies.pageStartIndex}
+              paginatedDependencies={dependencies.paginated}
+              query={dependencies.query}
+              safeCurrentPage={dependencies.safeCurrentPage}
+              setCurrentPage={dependencies.setCurrentPage}
+              setPageSize={dependencies.setPageSize}
+              setQuery={dependencies.setQuery}
+              totalPages={dependencies.totalPages}
             />
           </Box>
         )}
       </Box>
       <SBOMUpdateDialog
-        open={!!pendingUpload}
-        onClose={() => setPendingUpload(null)}
+        open={!!pendingUpload.value}
+        onClose={pendingUpload.onClose}
         pteamId={pteamId}
-        initialFile={pendingUpload?.file ?? null}
-        serviceName={pendingUpload?.serviceName}
-        existingServiceNames={
-          pendingUpload && !pendingUpload.serviceName ? sboms.map((sbom) => sbom.title) : undefined
-        }
-        showWarning={!!pendingUpload?.serviceName}
-        onUploaded={() => setPendingUpload(null)}
+        initialFile={pendingUpload.value?.file ?? null}
+        serviceName={pendingUpload.value?.serviceName}
+        existingServiceNames={pendingUpload.existingServiceNames}
+        showWarning={!!pendingUpload.value?.serviceName}
+        onUploaded={pendingUpload.onUploaded}
       />
     </Box>
   );

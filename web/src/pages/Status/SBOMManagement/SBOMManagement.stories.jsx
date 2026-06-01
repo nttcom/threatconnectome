@@ -2,11 +2,14 @@ import { SBOMManagement } from "./SBOMManagement";
 import { createDefaultSboms } from "./SBOMManagement.stories.helpers";
 
 const defaultSboms = createDefaultSboms();
+const defaultService = defaultSboms[0];
+const { dependencies: defaultDependencies, ...defaultCurrentService } = defaultService;
 
 const meta = {
   argTypes: {
-    initialActiveId: { control: false },
-    initialSboms: { control: false },
+    currentDependencies: { control: false },
+    currentService: { control: false },
+    serviceTabs: { control: false },
   },
   component: SBOMManagement,
   parameters: {
@@ -19,13 +22,16 @@ export default meta;
 
 export const Default = {
   args: {
-    initialActiveId: defaultSboms[0].id,
-    initialSboms: defaultSboms,
+    currentDependencies: defaultDependencies,
+    currentService: defaultCurrentService,
+    serviceTabs: defaultSboms.map((sbom) => ({ id: sbom.id, title: sbom.title })),
   },
 };
 
 export const EmptyState = {
   args: {
-    initialSboms: [],
+    currentDependencies: [],
+    currentService: null,
+    serviceTabs: [],
   },
 };
