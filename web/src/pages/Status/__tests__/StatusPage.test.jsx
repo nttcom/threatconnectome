@@ -853,7 +853,8 @@ describe("StatusPage", () => {
               ip_addresses: ["response-ip"],
             },
           },
-          () => updateServiceAssetInPTeamData(testPTeamData.services[0].service_id, ["10.0.0.1/32"]),
+          () =>
+            updateServiceAssetInPTeamData(testPTeamData.services[0].service_id, ["10.0.0.1/32"]),
         ),
       ]);
 
