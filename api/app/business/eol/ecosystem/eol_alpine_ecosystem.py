@@ -1,4 +1,4 @@
-from .EoLBaseEcosystem import EoLBaseEcosystem
+from .eol_base_ecosystem import EoLBaseEcosystem
 
 
 class EoLAlpineEcosystem(EoLBaseEcosystem):

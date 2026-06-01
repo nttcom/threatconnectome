@@ -48,6 +48,7 @@ allow_list = [
     # b"SUSE Linux Enterprise 15.5",
     # b"alma 8",
     # b"alma 9",
+    # b"alma 10",
     # b"alpine 3.10",
     # b"alpine 3.11",
     # b"alpine 3.12",
@@ -61,6 +62,7 @@ allow_list = [
     b"alpine 3.20",
     b"alpine 3.21",
     b"alpine 3.22",
+    b"alpine 3.23",
     # b"alpine 3.2",
     # b"alpine 3.3",
     # b"alpine 3.4",
@@ -86,6 +88,7 @@ allow_list = [
     b"debian 11",
     b"debian 12",
     b"debian 13",
+    b"debian 14",
     # b"debian 7",
     # b"debian 8",
     # b"debian 9",
@@ -111,6 +114,7 @@ allow_list = [
     # b"pub::GitHub Security Advisory Pub",
     b"rocky 8",
     b"rocky 9",
+    b"rocky 10",
     b"rubygems::GitHub Security Advisory RubyGems",
     b"rubygems::Ruby Advisory Database",
     # b"swift::GitHub Security Advisory Swift",
@@ -141,6 +145,10 @@ allow_list = [
     # b"ubuntu 22.10",
     # b"ubuntu 23.04",
     b"ubuntu 24.04",
+    b"ubuntu 24.10",
+    b"ubuntu 25.04",
+    b"ubuntu 25.10",
+    b"ubuntu 26.04",
     # b"wolfi",
 ]
 
@@ -558,8 +566,8 @@ def main() -> None:
         refresh_token,
         api_key=api_key,
         retry_max=3,
-        connect_timeout=60.0,
-        read_timeout=60.0,
+        connect_timeout=120.0,
+        read_timeout=120.0,
     )
 
     existing_vulns = get_vulns_data(tc_client, 0, 100)
