@@ -2,6 +2,14 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { NEW_SBOM_ID } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
+function createThumbnailState() {
+  return {
+    file: null,
+    mode: "idle",
+    previewDataUrl: null,
+  };
+}
+
 function createEditorState(currentService) {
   return {
     activeServiceDraft: currentService,
@@ -76,10 +84,7 @@ export function useSBOMManagementState({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deploymentsOpen, setDeploymentsOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
-  const [pendingThumbnail, setPendingThumbnail] = useState(null);
-  const [thumbnailDisplayOverride, setThumbnailDisplayOverride] = useState(null);
-  const [awaitingThumbnailRefresh, setAwaitingThumbnailRefresh] = useState(false);
-  const [hasSeenThumbnailRefetch, setHasSeenThumbnailRefetch] = useState(false);
+  const [thumbnailState, setThumbnailState] = useState(createThumbnailState);
   const [pendingUpload, setPendingUpload] = useState(null);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
@@ -100,10 +105,7 @@ export function useSBOMManagementState({
     dispatchEditorState({ type: "resetUi" });
     setCurrentPage(1);
     setDangerOpen(false);
-    setPendingThumbnail(null);
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    setHasSeenThumbnailRefetch(false);
+    setThumbnailState(createThumbnailState());
     setQuery("");
   };
 
@@ -115,31 +117,31 @@ export function useSBOMManagementState({
     dispatchEditorState({ type: "replaceCurrentService", currentService });
     setCurrentPage(1);
     setDangerOpen(false);
-    setPendingThumbnail(null);
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    setHasSeenThumbnailRefetch(false);
+    setThumbnailState(createThumbnailState());
     setQuery("");
   }, [currentService, selectedServiceId]);
 
   useEffect(() => {
-    if (!awaitingThumbnailRefresh) {
+    if (
+      thumbnailState.mode !== "awaitingRefetch" &&
+      thumbnailState.mode !== "awaitingRefetchSeen"
+    ) {
       return;
     }
 
     if (isThumbnailFetching) {
-      setHasSeenThumbnailRefetch(true);
+      setThumbnailState((current) =>
+        current.mode === "awaitingRefetch" ? { ...current, mode: "awaitingRefetchSeen" } : current,
+      );
       return;
     }
 
-    if (!hasSeenThumbnailRefetch) {
+    if (thumbnailState.mode !== "awaitingRefetchSeen") {
       return;
     }
 
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    setHasSeenThumbnailRefetch(false);
-  }, [awaitingThumbnailRefresh, hasSeenThumbnailRefetch, isThumbnailFetching]);
+    setThumbnailState(createThumbnailState());
+  }, [isThumbnailFetching, thumbnailState.mode]);
 
   const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -230,7 +232,6 @@ export function useSBOMManagementState({
     pageSize,
     pageStartIndex,
     paginatedDependencies,
-    pendingThumbnail,
     pendingUpload,
     query,
     resetUiState,
@@ -246,13 +247,11 @@ export function useSBOMManagementState({
     setDetailsEditing,
     setDetailsOpen,
     setPageSize,
-    setPendingThumbnail,
-    setThumbnailDisplayOverride,
-    setAwaitingThumbnailRefresh,
+    setThumbnailState,
     setPendingUpload,
     setQuery,
+    thumbnailState,
     totalPages,
     updateActiveService,
-    thumbnailDisplayOverride,
   };
 }
