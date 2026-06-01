@@ -114,7 +114,7 @@ export function AccountSettingsDialog(props) {
               </Typography>
               <Stack spacing={1}>
                 {userMe.pteam_roles.map((pteam_role) => (
-                  <DialogContentText key={pteam_role.pteam.pteam_id} sx={{ whiteSpace: "pre" }}>
+                  <DialogContentText key={pteam_role.pteam.pteam_id}>
                     {pteam_role.pteam.pteam_name}
                   </DialogContentText>
                 ))}
@@ -146,11 +146,7 @@ export function AccountSettingsDialog(props) {
                   <em>{t("none")}</em>
                 </MenuItem>
                 {userMe.pteam_roles.map((pteam_role) => (
-                  <MenuItem
-                    key={pteam_role.pteam.pteam_id}
-                    value={pteam_role.pteam.pteam_id}
-                    sx={{ whiteSpace: "pre" }}
-                  >
+                  <MenuItem key={pteam_role.pteam.pteam_id} value={pteam_role.pteam.pteam_id}>
                     {pteam_role.pteam.pteam_name}
                   </MenuItem>
                 ))}
