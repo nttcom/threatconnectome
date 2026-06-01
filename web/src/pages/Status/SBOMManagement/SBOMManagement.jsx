@@ -114,9 +114,8 @@ export function SBOMManagement({
 
         {isCreatingSbom ? (
           <NewSbomRegistrationPanel
-            inputRef={newSbom.inputRef}
             onCancel={newSbom.onCancel}
-            onFileChange={newSbom.onFileChange}
+            onUploadClick={newSbom.onUploadClick}
             showCancel={!isEmpty}
           />
         ) : isActiveServicePending ? (
@@ -217,8 +216,7 @@ export function SBOMManagement({
 
             <DependenciesCard
               filteredDependencies={dependencies.filtered}
-              fileInputRef={dependencies.fileInputRef}
-              onFileUpload={dependencies.onFileUpload}
+              onUpdateClick={dependencies.onUpdateClick}
               onPackageClick={onPackageClick}
               pageEndIndex={dependencies.pageEndIndex}
               pageSize={dependencies.pageSize}

@@ -97,16 +97,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     });
   };
 
-  const handleFileUpload = (event) => {
-    const input = event.target;
-    const file = input.files?.[0];
-    input.value = "";
-
-    if (!file || !activeService) {
+  const openUpdateSbomDialog = () => {
+    if (!activeService) {
       return;
     }
 
-    setPendingUpload({ file, serviceName: activeService.title });
+    setPendingUpload({ serviceName: activeService.title });
   };
 
   const handleImageUpload = async (event) => {
@@ -250,16 +246,8 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     }
   };
 
-  const handleCreateFileUpload = (event) => {
-    const input = event.target;
-    const file = input.files?.[0];
-    input.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    setPendingUpload({ file });
+  const openCreateSbomDialog = () => {
+    setPendingUpload({});
   };
 
   return {
@@ -267,8 +255,8 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     commitDeploymentsEdit,
     commitDetailsEdit,
     commitServiceImpactEdit,
-    handleCreateFileUpload,
-    handleFileUpload,
+    openCreateSbomDialog,
+    openUpdateSbomDialog,
     handleImageUpload,
     handleRemoveImage,
     removeActiveSbom,

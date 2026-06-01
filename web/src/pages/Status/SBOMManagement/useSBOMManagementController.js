@@ -54,8 +54,7 @@ export function useSBOMManagementController({
     activeService: state.activeService,
     dependencies: {
       filtered: state.filteredDependencies,
-      fileInputRef: state.fileInputRef,
-      onFileUpload: mutations.handleFileUpload,
+      onUpdateClick: mutations.openUpdateSbomDialog,
       pageEndIndex: state.pageEndIndex,
       pageSize: state.pageSize,
       pageStartIndex: state.pageStartIndex,
@@ -106,9 +105,8 @@ export function useSBOMManagementController({
     isCreatingSbom: state.isCreatingSbom,
     isEmpty: state.isEmpty,
     newSbom: {
-      inputRef: state.createFileInputRef,
       onCancel: state.cancelCreateSbom,
-      onFileChange: mutations.handleCreateFileUpload,
+      onUploadClick: mutations.openCreateSbomDialog,
     },
     pendingUpload: {
       existingServiceNames: state.pendingUpload?.serviceName

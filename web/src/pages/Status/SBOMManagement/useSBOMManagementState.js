@@ -25,8 +25,6 @@ export function useSBOMManagementState({
   const [awaitingThumbnailRefresh, setAwaitingThumbnailRefresh] = useState(false);
   const [hasSeenThumbnailRefetch, setHasSeenThumbnailRefetch] = useState(false);
   const [pendingUpload, setPendingUpload] = useState(null);
-  const fileInputRef = useRef(null);
-  const createFileInputRef = useRef(null);
 
   useEffect(() => {
     if (!serviceTabs.length) {
@@ -159,14 +157,12 @@ export function useSBOMManagementState({
     activeService,
     addSbom,
     cancelCreateSbom,
-    createFileInputRef,
     currentPage,
     dangerOpen,
     deploymentsEditing,
     deploymentsOpen,
     detailsEditing,
     detailsOpen,
-    fileInputRef,
     filteredDependencies,
     isCreatingSbom,
     isEmpty,

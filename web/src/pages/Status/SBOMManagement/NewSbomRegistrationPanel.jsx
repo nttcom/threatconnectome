@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { AppButton } from "./sharedUiParts";
 import { slate } from "./styleTokens";
 
-export function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, showCancel = true }) {
+export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel = true }) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   return (
     <Box
@@ -69,16 +69,8 @@ export function NewSbomRegistrationPanel({ inputRef, onCancel, onFileChange, sho
         <CardContent sx={{ p: { sm: 4, xs: 3 } }}>
           <Stack sx={{ gap: 2.5 }}>
             <Box
-              accept=".json,application/json"
-              component="input"
-              onChange={onFileChange}
-              ref={inputRef}
-              sx={{ display: "none" }}
-              type="file"
-            />
-            <Box
               component="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={onUploadClick}
               sx={{
                 "&:hover": { bgcolor: "white", borderColor: slate[400] },
                 alignItems: "center",
