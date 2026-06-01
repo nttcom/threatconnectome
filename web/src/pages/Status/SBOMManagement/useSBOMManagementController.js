@@ -23,6 +23,7 @@ export function useSBOMManagementController({
       setDetailsEditing: state.setDetailsEditing,
       setPendingThumbnail: state.setPendingThumbnail,
       setPendingUpload: state.setPendingUpload,
+      setThumbnailDisplayOverride: state.setThumbnailDisplayOverride,
       updateActiveService: state.updateActiveService,
     },
     callbacks: {
@@ -35,6 +36,7 @@ export function useSBOMManagementController({
       pendingThumbnail: state.pendingThumbnail,
       pteamId,
       serviceTabs: state.serviceTabs,
+      thumbnailDisplayOverride: state.thumbnailDisplayOverride,
     },
   });
 
@@ -83,7 +85,9 @@ export function useSBOMManagementController({
       },
       imageUrl: state.pendingThumbnail
         ? state.pendingThumbnail.previewDataUrl || ""
-        : state.activeService?.imageUrl || "",
+        : state.thumbnailDisplayOverride !== null
+          ? state.thumbnailDisplayOverride
+          : state.activeService?.imageUrl || "",
       onCommit: mutations.commitDetailsEdit,
       onImageUpload: mutations.handleImageUpload,
       onRemoveImage: mutations.handleRemoveImage,

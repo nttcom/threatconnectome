@@ -20,6 +20,7 @@ export function useSBOMManagementState({
   const [deploymentsEditing, setDeploymentsEditing] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
   const [pendingThumbnail, setPendingThumbnail] = useState(null);
+  const [thumbnailDisplayOverride, setThumbnailDisplayOverride] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
@@ -43,6 +44,7 @@ export function useSBOMManagementState({
     setDeploymentsEditing(false);
     setDetailsEditing(false);
     setPendingThumbnail(null);
+    setThumbnailDisplayOverride(null);
     setQuery("");
   };
 
@@ -58,8 +60,19 @@ export function useSBOMManagementState({
     setDeploymentsEditing(false);
     setDetailsEditing(false);
     setPendingThumbnail(null);
+    setThumbnailDisplayOverride(null);
     setQuery("");
   }, [currentService, selectedServiceId]);
+
+  useEffect(() => {
+    if (thumbnailDisplayOverride === null) {
+      return;
+    }
+
+    if (thumbnailDisplayOverride === currentService?.imageUrl) {
+      setThumbnailDisplayOverride(null);
+    }
+  }, [currentService?.imageUrl, thumbnailDisplayOverride]);
 
   const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -161,10 +174,12 @@ export function useSBOMManagementState({
     setDetailsOpen,
     setPageSize,
     setPendingThumbnail,
+    setThumbnailDisplayOverride,
     setPendingUpload,
     setQuery,
     totalPages,
     markClean,
     updateActiveService,
+    thumbnailDisplayOverride,
   };
 }

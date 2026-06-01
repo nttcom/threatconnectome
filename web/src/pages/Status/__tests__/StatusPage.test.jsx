@@ -16,6 +16,7 @@ import {
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
 import store from "../../../store";
+import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 import { SBOMManagement } from "../SBOMManagement/SBOMManagement";
 import { Status } from "../StatusPage";
 
@@ -88,6 +89,14 @@ vi.mock("../../../hooks/auth", async (importOriginal) => {
   return {
     ...actual,
     useSkipUntilAuthUserIsReady: vi.fn(),
+  };
+});
+
+vi.mock("../../../utils/serviceImageUtils", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    normalizeServiceImageToPng: vi.fn(),
   };
 });
 
@@ -234,11 +243,16 @@ describe("StatusPage", () => {
       useDeletePTeamServiceMutation.mockClear();
       useUpdatePTeamServiceThumbnailMutation.mockClear();
       useDeletePTeamServiceThumbnailMutation.mockClear();
+      normalizeServiceImageToPng.mockReset();
       useNavigate.mockReturnValue(navigate);
       useUpdatePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
       useDeletePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
       useUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
       useDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      normalizeServiceImageToPng.mockResolvedValue({
+        file: new File(["test"], "test.png", { type: "image/png" }),
+        previewDataUrl: "data:image/png;base64,test-preview",
+      });
       useGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
         data: queryThumbnailByServiceId[service_id] ?? "",
         error: undefined,
@@ -723,11 +737,7 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      useDeletePTeamServiceThumbnailMutation.mockReturnValue([
-        createResolvedMutation(undefined, () =>
-          updateServiceThumbnailData(testPTeamData.services[0].service_id, ""),
-        ),
-      ]);
+      useDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
 
       const testPackagesSummary = {
         currentData: testPackagesData,
@@ -746,6 +756,9 @@ describe("StatusPage", () => {
       await ue.click(screen.getByRole("button", { name: "Delete" }));
       await ue.click(screen.getByRole("button", { name: "Done" }));
 
+      expect(screen.queryByAltText("test_service1 image")).toBeNull();
+
+      updateServiceThumbnailData(testPTeamData.services[0].service_id, "");
       renderResult.rerender(
         <Provider store={store}>
           <Status />
@@ -754,6 +767,86 @@ describe("StatusPage", () => {
 
       await waitFor(() => {
         expect(screen.queryByAltText("test_service1 image")).toBeNull();
+      });
+    });
+
+    it("keeps the uploaded image visible until the thumbnail query catches up", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      const uploadPreviewDataUrl = "data:image/png;base64,uploaded-preview";
+      normalizeServiceImageToPng.mockResolvedValue({
+        file: new File(["test"], "test.png", { type: "image/png" }),
+        previewDataUrl: uploadPreviewDataUrl,
+      });
+
+      useUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      const renderResult = renderStatusPage();
+
+      expect(await screen.findByAltText("test_service1 image")).toBeInTheDocument();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      await ue.click(screen.getByRole("button", { name: "Change image" }));
+
+      const fileInput = renderResult.container.querySelector('input[type="file"]');
+      expect(fileInput).not.toBeNull();
+      fireEvent.change(fileInput, {
+        target: { files: [new File(["test"], "test.jpg", { type: "image/jpeg" })] },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByAltText("test_service1 image")).toHaveAttribute(
+          "src",
+          uploadPreviewDataUrl,
+        );
+      });
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(screen.getByAltText("test_service1 image")).toHaveAttribute(
+          "src",
+          uploadPreviewDataUrl,
+        );
+      });
+
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      updateServiceThumbnailData(testPTeamData.services[0].service_id, uploadPreviewDataUrl);
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByAltText("test_service1 image")).toHaveAttribute(
+          "src",
+          uploadPreviewDataUrl,
+        );
       });
     });
 
