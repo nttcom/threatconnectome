@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import PropTypes from "prop-types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -12,12 +12,16 @@ import {
   useGetPTeamServiceThumbnailQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
+import {
+  buildCurrentServiceFromPTeam,
+  buildDependencyRows,
+  buildServiceTabsFromPTeam,
+} from "../../utils/SBOMManagement/sbomManagementUtils";
 import { getNoPTeamMessage } from "../../utils/const";
 import { errorToString } from "../../utils/func";
-import { buildSbomsFromPTeam } from "../../utils/sbomManagementUtils";
 import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
-import { SBOMManagement } from "./SBOMManagement";
+import { SBOMManagement } from "./SBOMManagement/SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
 
 function getValidServiceId(services, requestedServiceId) {
@@ -73,55 +77,75 @@ export function Status() {
 
   const validServiceId = getValidServiceId(pteam.services, serviceId);
   if (serviceId !== validServiceId) return <></>;
+  if (!validServiceId) return <StatusEmptyBody pteamId={pteamId} />;
 
   return <StatusBody pteamId={pteamId} pteam={pteam} serviceId={validServiceId} />;
+}
+
+function StatusHeader({ pteamId }) {
+  return (
+    <>
+      <Box display="flex" flexDirection="row">
+        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
+        <Box flexGrow={1} />
+      </Box>
+      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
+        <SBOMUploadProgressButton pteamId={pteamId} />
+      </Box>
+    </>
+  );
+}
+
+function StatusEmptyBody({ pteamId }) {
+  return (
+    <>
+      <StatusHeader pteamId={pteamId} />
+      <SBOMManagement
+        currentDependencies={[]}
+        currentService={null}
+        pteamId={pteamId}
+        serviceTabs={[]}
+      />
+    </>
+  );
 }
 
 function StatusBody({ pteamId, pteam, serviceId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const [thumbnail, setThumbnail] = useState(null);
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
       { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
-      { skip: skipByAuth || !pteamId || !serviceId },
+      { skip: skipByAuth || !pteamId },
     );
 
-  const { data: loadedThumbnail } = useGetPTeamServiceThumbnailQuery(
+  const {
+    data: loadedThumbnail,
+    error: loadedThumbnailError,
+    isFetching: isThumbnailFetching,
+  } = useGetPTeamServiceThumbnailQuery(
     { path: { pteam_id: pteamId, service_id: serviceId } },
-    { skip: skipByAuth || !pteamId || !serviceId },
+    { skip: skipByAuth || !pteamId },
   );
 
   if (packagesSummaryError)
     throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
-  useEffect(() => {
-    setThumbnail(null);
-  }, [serviceId]);
+  const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
 
-  useEffect(() => {
-    if (typeof loadedThumbnail === "string") {
-      setThumbnail(loadedThumbnail);
-    }
-  }, [loadedThumbnail]);
+  const normalizedThumbnail = loadedThumbnailError?.status === 404 ? "" : (loadedThumbnail ?? "");
 
-  const handleThumbnailChanged = useCallback(
-    (id, dataUrl) => {
-      if (id !== serviceId) return;
-      setThumbnail(dataUrl);
-    },
-    [serviceId],
+  const currentService = useMemo(
+    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, normalizedThumbnail),
+    [normalizedThumbnail, pteam.services, serviceId],
   );
 
-  const sboms = useMemo(() => {
-    const base = buildSbomsFromPTeam(pteam.services, packagesSummary?.packages ?? [], serviceId);
-    return base.map((sbom) => {
-      if (sbom.id !== serviceId) return sbom;
-      return { ...sbom, imageUrl: thumbnail ?? "" };
-    });
-  }, [pteam.services, packagesSummary, serviceId, thumbnail]);
+  const currentDependencies = useMemo(
+    () => buildDependencyRows(packagesSummary?.packages ?? [], serviceId),
+    [packagesSummary, serviceId],
+  );
 
   const handleActiveIdChange = useCallback(
     (serviceId) => {
@@ -144,27 +168,30 @@ function StatusBody({ pteamId, pteam, serviceId }) {
 
   return (
     <>
-      <Box display="flex" flexDirection="row">
-        <PTeamLabel pteamId={pteamId} defaultTabIndex={0} />
-        <Box flexGrow={1} />
-      </Box>
-      <Box display="flex" flexDirection="row-reverse" sx={{ marginTop: 0 }}>
-        <SBOMUploadProgressButton pteamId={pteamId} />
-      </Box>
+      <StatusHeader pteamId={pteamId} />
       <SBOMManagement
-        initialSboms={sboms}
-        initialActiveId={serviceId}
-        onThumbnailChange={handleThumbnailChanged}
+        currentDependencies={currentDependencies}
+        currentService={currentService}
+        isThumbnailFetching={isThumbnailFetching}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}
+        serviceTabs={serviceTabs}
       />
     </>
   );
 }
 
+StatusHeader.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};
+
+StatusEmptyBody.propTypes = {
+  pteamId: PropTypes.string.isRequired,
+};
+
 StatusBody.propTypes = {
   pteamId: PropTypes.string.isRequired,
   pteam: PropTypes.object.isRequired,
-  serviceId: PropTypes.string,
+  serviceId: PropTypes.string.isRequired,
 };
