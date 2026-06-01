@@ -183,10 +183,11 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     try {
       await Promise.all(calls.map((fn) => fn()));
       if (thumbnailState.mode === "pendingUpload" || thumbnailState.mode === "pendingDelete") {
-        setThumbnailState({
-          ...thumbnailState,
-          mode: "awaitingRefetch",
-        });
+        setThumbnailState((current) =>
+          current.mode === "pendingUpload" || current.mode === "pendingDelete"
+            ? { ...current, mode: "awaitingRefetch" }
+            : current,
+        );
       }
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setDetailsEditing(false);

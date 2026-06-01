@@ -455,7 +455,7 @@ describe("StatusPage", () => {
       expect(navigate).toHaveBeenCalledWith(
         "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=d36d5c85-8b37-4da2-854c-bfa58a43d83e",
       );
-      expect(screen.queryByText("unsaved service title")).toBeNull();
+      expect(screen.queryByRole("button", { name: "unsaved service title" })).toBeNull();
       expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
     });
 
