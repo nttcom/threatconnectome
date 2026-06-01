@@ -39,6 +39,8 @@ export function buildSbomsFromPTeam(services, packages, activeServiceId) {
     title: service.service_name,
     description: service.description || "",
     tags: Array.isArray(service.keywords) ? service.keywords : [],
+    systemExposure: service.system_exposure ?? "open",
+    missionImpact: service.service_mission_impact ?? "mission_failure",
     imageUrl: "",
     deployments: (service.asset?.ip_addresses || []).map((ip, index) => ({
       id: `dep-${service.service_id}-${index}`,
