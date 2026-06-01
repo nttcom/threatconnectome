@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import PropTypes from "prop-types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -114,7 +114,6 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const [thumbnail, setThumbnail] = useState(null);
 
   const { currentData: packagesSummary, error: packagesSummaryError } =
     useGetPTeamPackagesSummaryQuery(
@@ -130,29 +129,11 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   if (packagesSummaryError)
     throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
 
-  useEffect(() => {
-    setThumbnail(null);
-  }, [serviceId]);
-
-  useEffect(() => {
-    if (typeof loadedThumbnail === "string") {
-      setThumbnail(loadedThumbnail);
-    }
-  }, [loadedThumbnail]);
-
-  const handleThumbnailChanged = useCallback(
-    (id, dataUrl) => {
-      if (id !== serviceId) return;
-      setThumbnail(dataUrl);
-    },
-    [serviceId],
-  );
-
   const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
 
   const currentService = useMemo(
-    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, thumbnail ?? ""),
-    [pteam.services, serviceId, thumbnail],
+    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, loadedThumbnail ?? ""),
+    [loadedThumbnail, pteam.services, serviceId],
   );
 
   const currentDependencies = useMemo(
@@ -185,7 +166,6 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       <SBOMManagement
         currentDependencies={currentDependencies}
         currentService={currentService}
-        onThumbnailChange={handleThumbnailChanged}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}

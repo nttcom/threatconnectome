@@ -20,7 +20,7 @@ import { SBOMManagement } from "../SBOMManagement/SBOMManagement";
 import { Status } from "../StatusPage";
 
 const renderStatusPage = () => {
-  render(
+  return render(
     <Provider store={store}>
       <Status />
     </Provider>,
@@ -170,16 +170,61 @@ const testPackagesData = {
 };
 
 const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
+let queryPTeamData;
+let queryThumbnailByServiceId;
 
-const createResolvedMutation = (resolvedValue = undefined) =>
-  vi.fn(() => ({ unwrap: vi.fn().mockResolvedValue(resolvedValue) }));
+const createResolvedMutation = (resolvedValue = undefined, onResolve) =>
+  vi.fn(() => ({
+    unwrap: vi.fn().mockImplementation(async () => {
+      onResolve?.();
+      return resolvedValue;
+    }),
+  }));
 
 const createRejectedMutation = (rejectedValue) =>
   vi.fn(() => ({ unwrap: vi.fn().mockRejectedValue(rejectedValue) }));
 
+const updateServiceInPTeamData = (serviceId, patch) => {
+  queryPTeamData = {
+    ...queryPTeamData,
+    services: queryPTeamData.services.map((service) =>
+      service.service_id === serviceId ? { ...service, ...patch } : service,
+    ),
+  };
+};
+
+const updateServiceAssetInPTeamData = (serviceId, ipAddresses) => {
+  queryPTeamData = {
+    ...queryPTeamData,
+    services: queryPTeamData.services.map((service) =>
+      service.service_id === serviceId
+        ? {
+            ...service,
+            asset: {
+              ...service.asset,
+              ip_addresses: ipAddresses,
+            },
+          }
+        : service,
+    ),
+  };
+};
+
+const updateServiceThumbnailData = (serviceId, dataUrl) => {
+  queryThumbnailByServiceId = {
+    ...queryThumbnailByServiceId,
+    [serviceId]: dataUrl,
+  };
+};
+
 describe("StatusPage", () => {
   describe("renders SBOM registration state", () => {
     beforeEach(() => {
+      queryPTeamData = structuredClone(testPTeamData);
+      queryThumbnailByServiceId = {
+        [testPTeamData.services[0].service_id]: testThumbnailDataUrl,
+        [testPTeamData.services[1].service_id]: "",
+      };
       navigate.mockClear();
       enqueueSnackbar.mockClear();
       useGetPTeamQuery.mockClear();
@@ -195,7 +240,7 @@ describe("StatusPage", () => {
       useUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
       useDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
       useGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
-        data: service_id === testPTeamData.services[0].service_id ? testThumbnailDataUrl : "",
+        data: queryThumbnailByServiceId[service_id] ?? "",
         error: undefined,
         isLoading: false,
       }));
@@ -324,7 +369,7 @@ describe("StatusPage", () => {
       });
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "test_service2" }));
 
@@ -342,12 +387,12 @@ describe("StatusPage", () => {
       useLocation.mockReturnValue(testLocation);
       useSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
-        data: testPTeamData,
+      useGetPTeamQuery.mockImplementation(() => ({
+        data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
-      });
+      }));
 
       useGetPTeamPackagesSummaryQuery.mockReturnValue({
         currentData: testPackagesData,
@@ -355,14 +400,22 @@ describe("StatusPage", () => {
         isFetching: false,
       });
 
-      const updateService = createResolvedMutation({
-        system_exposure: "open",
-        service_mission_impact: "mission_failure",
-      });
+      const updateService = createResolvedMutation(
+        {
+          system_exposure: "controlled-from-response",
+          service_mission_impact: "degraded",
+        },
+        () => {
+          updateServiceInPTeamData(testPTeamData.services[0].service_id, {
+            system_exposure: "open",
+            service_mission_impact: "mission_failure",
+          });
+        },
+      );
       useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
       await ue.click(screen.getByRole("button", { name: /Open/ }));
@@ -381,6 +434,11 @@ describe("StatusPage", () => {
           },
         });
       });
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
       expect(enqueueSnackbar).toHaveBeenCalledWith("Risk settings updated", {
         variant: "success",
       });
@@ -418,7 +476,7 @@ describe("StatusPage", () => {
       useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
       await ue.click(screen.getByRole("button", { name: /Open/ }));
@@ -431,6 +489,79 @@ describe("StatusPage", () => {
         variant: "error",
       });
       expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
+    });
+
+    it("shows refreshed service details after saving them", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockImplementation(() => ({
+        data: queryPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      }));
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const updateService = createResolvedMutation(
+        {
+          service_name: "response service name",
+          description: "response description",
+          keywords: ["response"],
+        },
+        () => {
+          updateServiceInPTeamData(testPTeamData.services[0].service_id, {
+            service_name: "Payment Service SBOM V2",
+            description: "Updated service description",
+            keywords: ["backend", "critical", "prod"],
+          });
+        },
+      );
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+
+      const ue = userEvent.setup();
+      const renderResult = renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      fireEvent.change(titleInput, { target: { value: "Payment Service SBOM V2" } });
+
+      const descriptionInput = screen.getByPlaceholderText(
+        "Enter the target system or purpose of this SBOM",
+      );
+      fireEvent.change(descriptionInput, {
+        target: { value: "Updated service description" },
+      });
+
+      const tagsInput = screen.getByPlaceholderText("backend, prod, critical");
+      fireEvent.change(tagsInput, { target: { value: "backend, prod, critical" } });
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Updated service description")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Updated service description")).toBeInTheDocument();
+      expect(screen.getByText("backend")).toBeInTheDocument();
+      expect(screen.getByText("critical")).toBeInTheDocument();
+      expect(screen.getByText("prod")).toBeInTheDocument();
     });
 
     it("redirects stale serviceId before loading packages summary", async () => {
@@ -535,7 +666,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "New" }));
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
@@ -567,7 +698,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getByLabelText("Upload Progress"));
       expect(screen.getByRole("dialog", { name: "Upload Progress" })).toBeInTheDocument();
@@ -592,6 +723,12 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
+      useDeletePTeamServiceThumbnailMutation.mockReturnValue([
+        createResolvedMutation(undefined, () =>
+          updateServiceThumbnailData(testPTeamData.services[0].service_id, ""),
+        ),
+      ]);
+
       const testPackagesSummary = {
         currentData: testPackagesData,
         error: false,
@@ -600,7 +737,7 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       expect(await screen.findByAltText("test_service1 image")).toBeInTheDocument();
 
@@ -608,6 +745,12 @@ describe("StatusPage", () => {
       await ue.click(screen.getByRole("button", { name: "Delete" }));
       await ue.click(screen.getByRole("button", { name: "Delete" }));
       await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
 
       await waitFor(() => {
         expect(screen.queryByAltText("test_service1 image")).toBeNull();
@@ -637,7 +780,7 @@ describe("StatusPage", () => {
       });
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
 
@@ -689,12 +832,13 @@ describe("StatusPage", () => {
         ],
       };
 
-      useGetPTeamQuery.mockReturnValue({
-        data: testPTeamWithAsset,
+      queryPTeamData = structuredClone(testPTeamWithAsset);
+      useGetPTeamQuery.mockImplementation(() => ({
+        data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
-      });
+      }));
 
       useGetPTeamPackagesSummaryQuery.mockReturnValue({
         currentData: testPackagesData,
@@ -703,15 +847,18 @@ describe("StatusPage", () => {
       });
 
       useUpdatePTeamServiceMutation.mockReturnValue([
-        createResolvedMutation({
-          asset: {
-            ip_addresses: ["10.0.0.1/32"],
+        createResolvedMutation(
+          {
+            asset: {
+              ip_addresses: ["response-ip"],
+            },
           },
-        }),
+          () => updateServiceAssetInPTeamData(testPTeamData.services[0].service_id, ["10.0.0.1/32"]),
+        ),
       ]);
 
       const ue = userEvent.setup();
-      renderStatusPage();
+      const renderResult = renderStatusPage();
 
       expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
 
@@ -719,6 +866,12 @@ describe("StatusPage", () => {
       expect(screen.getByDisplayValue("10.0.0.1")).toBeInTheDocument();
 
       await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
 
       await waitFor(() => {
         expect(screen.getByText("10.0.0.1/32")).toBeInTheDocument();

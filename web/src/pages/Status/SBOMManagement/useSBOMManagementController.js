@@ -5,7 +5,6 @@ export function useSBOMManagementController({
   currentDependencies = [],
   currentService,
   onActiveIdChange,
-  onThumbnailChange,
   pteamId,
   serviceTabs = [],
 }) {
@@ -17,6 +16,7 @@ export function useSBOMManagementController({
 
   const mutations = useSBOMManagementMutations({
     actions: {
+      markClean: state.markClean,
       resetUiState: state.resetUiState,
       setActiveId: state.setActiveId,
       setDeploymentsEditing: state.setDeploymentsEditing,
@@ -24,11 +24,9 @@ export function useSBOMManagementController({
       setPendingThumbnail: state.setPendingThumbnail,
       setPendingUpload: state.setPendingUpload,
       updateActiveService: state.updateActiveService,
-      updateActiveServiceImage: state.updateActiveServiceImage,
     },
     callbacks: {
       onActiveIdChange,
-      onThumbnailChange,
     },
     state: {
       activeId: state.activeId,

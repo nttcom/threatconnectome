@@ -19,7 +19,6 @@ export function SBOMManagement({
   currentDependencies = [],
   currentService,
   onActiveIdChange,
-  onThumbnailChange,
   onPackageClick,
   pteamId,
   serviceTabs = [],
@@ -42,7 +41,6 @@ export function SBOMManagement({
     currentDependencies,
     currentService,
     onActiveIdChange,
-    onThumbnailChange,
     pteamId,
     serviceTabs,
   });

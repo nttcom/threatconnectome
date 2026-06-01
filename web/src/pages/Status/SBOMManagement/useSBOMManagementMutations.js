@@ -17,15 +17,9 @@ import { errorToString } from "../../../utils/func";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
 export function useSBOMManagementMutations({ actions, callbacks, state }) {
+  const { activeId, activeService, isCreatingSbom, pendingThumbnail, pteamId, serviceTabs } = state;
   const {
-    activeId,
-    activeService,
-    isCreatingSbom,
-    pendingThumbnail,
-    pteamId,
-    serviceTabs,
-  } = state;
-  const {
+    markClean,
     resetUiState,
     setActiveId,
     setDeploymentsEditing,
@@ -33,9 +27,8 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     setPendingThumbnail,
     setPendingUpload,
     updateActiveService,
-    updateActiveServiceImage,
   } = actions;
-  const { onActiveIdChange, onThumbnailChange } = callbacks;
+  const { onActiveIdChange } = callbacks;
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const { enqueueSnackbar } = useSnackbar();
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
@@ -185,21 +178,10 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
 
     try {
       await Promise.all(calls.map((fn) => fn()));
-      if (pendingThumbnail?.file) {
-        const nextImageUrl = pendingThumbnail.previewDataUrl || "";
-        onThumbnailChange?.(activeService.id, nextImageUrl);
-        updateActiveServiceImage(nextImageUrl);
-      } else if (pendingThumbnail?.deleted) {
-        onThumbnailChange?.(activeService.id, "");
-        updateActiveServiceImage("");
-      }
-      updateActiveService({
-        title: activeService.title.trim(),
-        description: activeService.description.trim(),
-      });
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
+      markClean();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -216,19 +198,13 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       .filter(Boolean);
 
     try {
-      const updatedService = await updatePTeamService({
+      await updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeService.id },
         body: { asset: { ip_addresses: ipAddresses } },
       }).unwrap();
-      updateActiveService({
-        deployments: (updatedService.asset?.ip_addresses ?? []).map((ipAddress, index) => ({
-          id: `dep-${activeService.id}-${index}`,
-          ip: ipAddress,
-          location: "",
-        })),
-      });
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
+      markClean();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -247,18 +223,15 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     }
 
     try {
-      const updatedService = await updatePTeamService({
+      await updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeService.id },
         body: {
           system_exposure: systemExposure,
           service_mission_impact: missionImpact,
         },
       }).unwrap();
-      updateActiveService({
-        systemExposure: updatedService?.system_exposure ?? systemExposure,
-        missionImpact: updatedService?.service_mission_impact ?? missionImpact,
-      });
       enqueueSnackbar(t("updateRiskSettingsSuccess"), { variant: "success" });
+      markClean();
       return true;
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });

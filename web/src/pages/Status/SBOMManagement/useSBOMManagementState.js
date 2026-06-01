@@ -104,10 +104,8 @@ export function useSBOMManagementState({
     );
   };
 
-  const updateActiveServiceImage = (imageUrl) => {
-    setActiveServiceDraft((current) =>
-      current?.id === activeService?.id ? { ...current, imageUrl } : current,
-    );
+  const markClean = () => {
+    setIsDirty(false);
   };
 
   const addSbom = () => {
@@ -166,7 +164,7 @@ export function useSBOMManagementState({
     setPendingUpload,
     setQuery,
     totalPages,
+    markClean,
     updateActiveService,
-    updateActiveServiceImage,
   };
 }
