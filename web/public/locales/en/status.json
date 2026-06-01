@@ -128,6 +128,7 @@
     "noDependenciesHelp": "Upload an SBOM JSON or change the search query.",
     "searchPlaceholder": "Search by Package",
     "updateSbom": "Update SBOM",
+    "loadingSelectedSbom": "Loading selected SBOM...",
     "package": "Package",
     "version": "Version",
     "type": "Type",

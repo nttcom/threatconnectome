@@ -44,10 +44,7 @@ export function SBOMManagement({
     pteamId,
     serviceTabs,
   });
-
-  if (!activeService && !isCreatingSbom) {
-    return null;
-  }
+  const isActiveServicePending = !activeService && !isCreatingSbom;
 
   return (
     <Box
@@ -120,6 +117,36 @@ export function SBOMManagement({
             onFileChange={newSbom.onFileChange}
             showCancel={!isEmpty}
           />
+        ) : isActiveServicePending ? (
+          <Box
+            sx={{
+              bgcolor: "white",
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+              borderTopRightRadius: 24,
+              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
+              minWidth: 0,
+              p: { sm: 2.5, xs: 1.5 },
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                alignItems: "center",
+                border: `1px solid ${slate[200]}`,
+                borderRadius: 6,
+                color: slate[500],
+                display: "flex",
+                fontSize: 14,
+                justifyContent: "center",
+                minHeight: 240,
+                px: 2,
+                textAlign: "center",
+              }}
+            >
+              {t("loadingSelectedSbom")}
+            </Box>
+          </Box>
         ) : (
           <Box
             sx={{

@@ -128,6 +128,7 @@
     "noDependenciesHelp": "SBOM JSONをアップロードするか、検索条件を変更してください。",
     "searchPlaceholder": "パッケージで検索",
     "updateSbom": "SBOM更新",
+    "loadingSelectedSbom": "選択したSBOMを読み込んでいます...",
     "package": "パッケージ",
     "version": "バージョン",
     "type": "種別",

@@ -1033,5 +1033,43 @@ describe("StatusPage", () => {
       expect(screen.getByText("MEF Support Crippled")).toBeInTheDocument();
       expect(screen.queryByText("Register a new SBOM")).toBeNull();
     });
+
+    it("keeps the tab UI visible while the selected service details are unresolved", async () => {
+      const onActiveIdChange = vi.fn();
+      const ue = userEvent.setup();
+
+      renderSbomManagement({
+        currentDependencies: [],
+        currentService: {
+          id: testPTeamData.services[0].service_id,
+          title: testPTeamData.services[0].service_name,
+          description: "",
+          tags: [],
+          systemExposure: "small",
+          missionImpact: "mef_support_crippled",
+          imageUrl: "",
+          deployments: [],
+        },
+        onActiveIdChange,
+        pteamId: testPTeamData.pteam_id,
+        serviceTabs: [
+          {
+            id: testPTeamData.services[0].service_id,
+            title: testPTeamData.services[0].service_name,
+          },
+          {
+            id: testPTeamData.services[1].service_id,
+            title: testPTeamData.services[1].service_name,
+          },
+        ],
+      });
+
+      await ue.click(screen.getByRole("button", { name: "test_service2" }));
+
+      expect(onActiveIdChange).toHaveBeenCalledWith(testPTeamData.services[1].service_id);
+      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "test_service2" })).toBeInTheDocument();
+      expect(screen.getByText("Loading selected SBOM...")).toBeInTheDocument();
+    });
   });
 });
