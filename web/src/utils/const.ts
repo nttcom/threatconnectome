@@ -35,26 +35,6 @@ export const experienceColors = {
   7: red[500],
 };
 
-export const sortedSystemExposure = ["open", "controlled", "small"];
-export const systemExposure = {
-  open: "Open",
-  controlled: "Controlled",
-  small: "Small",
-};
-
-export const sortedMissionImpact = [
-  "mission_failure",
-  "mef_failure",
-  "mef_support_crippled",
-  "degraded",
-];
-export const missionImpact = {
-  mission_failure: "Mission Failure",
-  mef_failure: "MEF Failure",
-  mef_support_crippled: "MEF Support Crippled",
-  degraded: "Degraded",
-};
-
 /* Safety Impact */
 export const sortedSafetyImpacts = [
   // should match with strings which api returns
@@ -193,7 +173,6 @@ export const drawerParams = {
 export const preserveKeys = [
   "pteamId", // Query parameters required on all pages
   "serviceId", // Query parameters required on all pages
-  "allservices", // Toggle Button on Status Page
   "related", // Toggle button on Vulns Page
   "mytasks", // Toggle button on ToDo Page
 ];
