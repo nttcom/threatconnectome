@@ -181,6 +181,8 @@ const testPackagesData = {
 const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
 let queryPTeamData;
 let queryThumbnailByServiceId;
+let queryThumbnailErrorByServiceId;
+let queryThumbnailFetchingByServiceId;
 
 const createResolvedMutation = (resolvedValue = undefined, onResolve) =>
   vi.fn(() => ({
@@ -226,6 +228,20 @@ const updateServiceThumbnailData = (serviceId, dataUrl) => {
   };
 };
 
+const updateServiceThumbnailFetching = (serviceId, isFetching) => {
+  queryThumbnailFetchingByServiceId = {
+    ...queryThumbnailFetchingByServiceId,
+    [serviceId]: isFetching,
+  };
+};
+
+const updateServiceThumbnailError = (serviceId, error) => {
+  queryThumbnailErrorByServiceId = {
+    ...queryThumbnailErrorByServiceId,
+    [serviceId]: error,
+  };
+};
+
 describe("StatusPage", () => {
   describe("renders SBOM registration state", () => {
     beforeEach(() => {
@@ -233,6 +249,14 @@ describe("StatusPage", () => {
       queryThumbnailByServiceId = {
         [testPTeamData.services[0].service_id]: testThumbnailDataUrl,
         [testPTeamData.services[1].service_id]: "",
+      };
+      queryThumbnailErrorByServiceId = {
+        [testPTeamData.services[0].service_id]: undefined,
+        [testPTeamData.services[1].service_id]: undefined,
+      };
+      queryThumbnailFetchingByServiceId = {
+        [testPTeamData.services[0].service_id]: false,
+        [testPTeamData.services[1].service_id]: false,
       };
       navigate.mockClear();
       enqueueSnackbar.mockClear();
@@ -255,7 +279,8 @@ describe("StatusPage", () => {
       });
       useGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
         data: queryThumbnailByServiceId[service_id] ?? "",
-        error: undefined,
+        error: queryThumbnailErrorByServiceId[service_id],
+        isFetching: queryThumbnailFetchingByServiceId[service_id] ?? false,
         isLoading: false,
       }));
       const progresses = {
@@ -758,7 +783,23 @@ describe("StatusPage", () => {
 
       expect(screen.queryByAltText("test_service1 image")).toBeNull();
 
-      updateServiceThumbnailData(testPTeamData.services[0].service_id, "");
+      updateServiceThumbnailFetching(testPTeamData.services[0].service_id, true);
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByAltText("test_service1 image")).toBeNull();
+      });
+
+      updateServiceThumbnailFetching(testPTeamData.services[0].service_id, false);
+      updateServiceThumbnailError(testPTeamData.services[0].service_id, {
+        status: 404,
+        data: { detail: "No thumbnail" },
+      });
+      updateServiceThumbnailData(testPTeamData.services[0].service_id, testThumbnailDataUrl);
       renderResult.rerender(
         <Provider store={store}>
           <Status />
@@ -770,7 +811,7 @@ describe("StatusPage", () => {
       });
     });
 
-    it("keeps the uploaded image visible until the thumbnail query catches up", async () => {
+    it("keeps the uploaded image visible until the thumbnail refetch completes", async () => {
       const testLocation = {
         pathname: "/",
         search:
@@ -829,13 +870,7 @@ describe("StatusPage", () => {
         );
       });
 
-      renderResult.rerender(
-        <Provider store={store}>
-          <Status />
-        </Provider>,
-      );
-
-      updateServiceThumbnailData(testPTeamData.services[0].service_id, uploadPreviewDataUrl);
+      updateServiceThumbnailFetching(testPTeamData.services[0].service_id, true);
       renderResult.rerender(
         <Provider store={store}>
           <Status />
@@ -846,6 +881,24 @@ describe("StatusPage", () => {
         expect(screen.getByAltText("test_service1 image")).toHaveAttribute(
           "src",
           uploadPreviewDataUrl,
+        );
+      });
+
+      updateServiceThumbnailFetching(testPTeamData.services[0].service_id, false);
+      updateServiceThumbnailData(
+        testPTeamData.services[0].service_id,
+        "data:image/png;base64,refetched-thumbnail",
+      );
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByAltText("test_service1 image")).toHaveAttribute(
+          "src",
+          "data:image/png;base64,refetched-thumbnail",
         );
       });
     });

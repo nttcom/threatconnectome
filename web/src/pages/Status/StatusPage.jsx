@@ -121,7 +121,11 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       { skip: skipByAuth || !pteamId },
     );
 
-  const { data: loadedThumbnail } = useGetPTeamServiceThumbnailQuery(
+  const {
+    data: loadedThumbnail,
+    error: loadedThumbnailError,
+    isFetching: isThumbnailFetching,
+  } = useGetPTeamServiceThumbnailQuery(
     { path: { pteam_id: pteamId, service_id: serviceId } },
     { skip: skipByAuth || !pteamId },
   );
@@ -131,9 +135,11 @@ function StatusBody({ pteamId, pteam, serviceId }) {
 
   const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
 
+  const normalizedThumbnail = loadedThumbnailError?.status === 404 ? "" : (loadedThumbnail ?? "");
+
   const currentService = useMemo(
-    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, loadedThumbnail ?? ""),
-    [loadedThumbnail, pteam.services, serviceId],
+    () => buildCurrentServiceFromPTeam(pteam.services, serviceId, normalizedThumbnail),
+    [normalizedThumbnail, pteam.services, serviceId],
   );
 
   const currentDependencies = useMemo(
@@ -166,6 +172,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       <SBOMManagement
         currentDependencies={currentDependencies}
         currentService={currentService}
+        isThumbnailFetching={isThumbnailFetching}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}

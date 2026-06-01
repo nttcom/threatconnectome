@@ -5,6 +5,7 @@ import { NEW_SBOM_ID } from "../../../utils/SBOMManagement/sbomManagementUtils";
 export function useSBOMManagementState({
   currentDependencies = [],
   currentService,
+  isThumbnailFetching = false,
   serviceTabs = [],
 }) {
   const selectedServiceId = currentService?.id ?? null;
@@ -21,6 +22,8 @@ export function useSBOMManagementState({
   const [dangerOpen, setDangerOpen] = useState(false);
   const [pendingThumbnail, setPendingThumbnail] = useState(null);
   const [thumbnailDisplayOverride, setThumbnailDisplayOverride] = useState(null);
+  const [awaitingThumbnailRefresh, setAwaitingThumbnailRefresh] = useState(false);
+  const [hasSeenThumbnailRefetch, setHasSeenThumbnailRefetch] = useState(false);
   const [pendingUpload, setPendingUpload] = useState(null);
   const fileInputRef = useRef(null);
   const createFileInputRef = useRef(null);
@@ -45,6 +48,8 @@ export function useSBOMManagementState({
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setThumbnailDisplayOverride(null);
+    setAwaitingThumbnailRefresh(false);
+    setHasSeenThumbnailRefetch(false);
     setQuery("");
   };
 
@@ -61,18 +66,29 @@ export function useSBOMManagementState({
     setDetailsEditing(false);
     setPendingThumbnail(null);
     setThumbnailDisplayOverride(null);
+    setAwaitingThumbnailRefresh(false);
+    setHasSeenThumbnailRefetch(false);
     setQuery("");
   }, [currentService, selectedServiceId]);
 
   useEffect(() => {
-    if (thumbnailDisplayOverride === null) {
+    if (!awaitingThumbnailRefresh) {
       return;
     }
 
-    if (thumbnailDisplayOverride === currentService?.imageUrl) {
-      setThumbnailDisplayOverride(null);
+    if (isThumbnailFetching) {
+      setHasSeenThumbnailRefetch(true);
+      return;
     }
-  }, [currentService?.imageUrl, thumbnailDisplayOverride]);
+
+    if (!hasSeenThumbnailRefetch) {
+      return;
+    }
+
+    setThumbnailDisplayOverride(null);
+    setAwaitingThumbnailRefresh(false);
+    setHasSeenThumbnailRefetch(false);
+  }, [awaitingThumbnailRefresh, hasSeenThumbnailRefetch, isThumbnailFetching]);
 
   const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -175,6 +191,7 @@ export function useSBOMManagementState({
     setPageSize,
     setPendingThumbnail,
     setThumbnailDisplayOverride,
+    setAwaitingThumbnailRefresh,
     setPendingUpload,
     setQuery,
     totalPages,

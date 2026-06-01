@@ -26,6 +26,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     setDetailsEditing,
     setPendingThumbnail,
     setPendingUpload,
+    setAwaitingThumbnailRefresh,
     setThumbnailDisplayOverride,
     updateActiveService,
   } = actions;
@@ -186,6 +187,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
           : null;
       if (nextThumbnailDisplayOverride !== null) {
         setThumbnailDisplayOverride(nextThumbnailDisplayOverride);
+        setAwaitingThumbnailRefresh(true);
       }
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
