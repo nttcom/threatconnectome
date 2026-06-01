@@ -9,7 +9,7 @@ from univers.versions import (
 
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseVersion import EoLBaseVersion
+from .eol_base_version import EoLBaseVersion
 
 
 class MajorAndMinorVersion(EoLBaseVersion):

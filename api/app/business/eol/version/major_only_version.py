@@ -6,7 +6,7 @@ from univers.versions import PypiVersion, SemverVersion
 
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseVersion import EoLBaseVersion
+from .eol_base_version import EoLBaseVersion
 
 
 class MajorOnlyVersion(EoLBaseVersion):

@@ -1,13 +1,13 @@
-from .EoLBaseEcosystem import EoLBaseEcosystem
+from .eol_base_ecosystem import EoLBaseEcosystem
 
 
-class EoLRockyEcosystem(EoLBaseEcosystem):
+class EoLAlmaLinuxEcosystem(EoLBaseEcosystem):
     def __init__(self, product: str):
         self.product = product
 
     def match_ecosystem(self, ecosystem: str, eol_version: str) -> bool:
-        matching_ecosystem = EoLRockyEcosystem._get_matching_ecosystem(ecosystem)
-        return f"rocky-{eol_version}" == matching_ecosystem
+        matching_ecosystem = EoLAlmaLinuxEcosystem._get_matching_ecosystem(ecosystem)
+        return f"alma-{eol_version}" == matching_ecosystem
 
     @staticmethod
     def _get_matching_ecosystem(ecosystem: str) -> str:
@@ -15,5 +15,5 @@ class EoLRockyEcosystem(EoLBaseEcosystem):
         if len(parts) == 2:
             version = parts[1].split(".")
             if len(version) >= 1:
-                return f"rocky-{version[0]}"
+                return f"alma-{version[0]}"
         return ecosystem

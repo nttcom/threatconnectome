@@ -1,6 +1,6 @@
 from app.detector.package_family import PackageFamily
 
-from .EoLBaseProduct import EoLBaseProduct
+from .eol_base_product import EoLBaseProduct
 
 
 class ContainerdProduct(EoLBaseProduct):

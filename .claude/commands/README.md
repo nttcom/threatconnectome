@@ -78,8 +78,11 @@ Run after `/eol-investigate`. Review the report before proceeding.
 
 | is_ecosystem | Files changed |
 |---|---|
-| False (Package type) | `scripts/endoflife2tc.py`, `api/app/business/eol/product/<Product>Product.py` (new), `eol_product_factory.py`, `eol_version_factory.py` |
-| True (Ecosystem type) | `scripts/endoflife2tc.py`, `api/app/business/eol/ecosystem/EoL<Product>Ecosystem.py` (new), `eol_ecosystem_factory.py` |
+| False (Package type) | `scripts/endoflife2tc.py`, `api/app/business/eol/product/<product_snake>_product.py` (new), `eol_product_factory.py`, `eol_version_factory.py` |
+| True (Ecosystem type) | `scripts/endoflife2tc.py`, `api/app/business/eol/ecosystem/eol_<product_snake>_ecosystem.py` (new), `eol_ecosystem_factory.py` |
+
+`$product` は Claude コマンド引数 (endoflife.date のプロダクト名) です。`<product_snake>` は `$product` を Python モジュール名として有効な snake_case に変換した派生値です。
+例: `apache-http-server` -> `apache_http_server`
 
 After implementation, black / ruff / mypy / codespell and pytest are run automatically.
 

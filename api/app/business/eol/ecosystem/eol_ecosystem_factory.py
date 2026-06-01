@@ -1,7 +1,7 @@
-from .EoLAlmaLinuxEcosystem import EoLAlmaLinuxEcosystem
-from .EoLAlpineEcosystem import EoLAlpineEcosystem
-from .EoLBaseEcosystem import EoLBaseEcosystem
-from .EoLRockyEcosystem import EoLRockyEcosystem
+from .eol_alma_linux_ecosystem import EoLAlmaLinuxEcosystem
+from .eol_alpine_ecosystem import EoLAlpineEcosystem
+from .eol_base_ecosystem import EoLBaseEcosystem
+from .eol_rocky_ecosystem import EoLRockyEcosystem
 
 
 def gen_ecosystem_instance_for_eol(

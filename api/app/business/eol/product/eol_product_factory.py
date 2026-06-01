@@ -1,18 +1,18 @@
 from app import models
 
-from .AmazonCorrettoProduct import AmazonCorrettoProduct
-from .ApacheHttpServerProduct import ApacheHttpServerProduct
+from .amazon_corretto_product import AmazonCorrettoProduct
+from .apache_http_server_product import ApacheHttpServerProduct
 from .containerd_product import ContainerdProduct
-from .DjangoProduct import DjangoProduct
-from .EoLBaseProduct import EoLBaseProduct
+from .django_product import DjangoProduct
+from .eol_base_product import EoLBaseProduct
 from .log4j_product import Log4jProduct
-from .NumpyProduct import NumpyProduct
-from .PhpProduct import PhpProduct
-from .PostgresqlProduct import PostgresqlProduct
-from .PythonProduct import PythonProduct
-from .RedisProduct import RedisProduct
-from .RubyProduct import RubyProduct
-from .SqliteProduct import SqliteProduct
+from .numpy_product import NumpyProduct
+from .php_product import PhpProduct
+from .postgresql_product import PostgresqlProduct
+from .python_product import PythonProduct
+from .redis_product import RedisProduct
+from .ruby_product import RubyProduct
+from .sqlite_product import SqliteProduct
 
 
 def gen_product_instance_for_eol(
