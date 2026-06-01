@@ -16,23 +16,26 @@ import { serviceImageMaxSize } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
-export function useSBOMManagementMutations({
-  activeId,
-  activeService,
-  isCreatingSbom,
-  onActiveIdChange,
-  onThumbnailChange,
-  pteamId,
-  resetUiState,
-  serviceTabs,
-  setActiveId,
-  setDeploymentsEditing,
-  setDetailsEditing,
-  setPendingThumbnail,
-  setPendingUpload,
-  updateActiveService,
-  updateActiveServiceImage,
-}) {
+export function useSBOMManagementMutations({ actions, callbacks, state }) {
+  const {
+    activeId,
+    activeService,
+    isCreatingSbom,
+    pendingThumbnail,
+    pteamId,
+    serviceTabs,
+  } = state;
+  const {
+    resetUiState,
+    setActiveId,
+    setDeploymentsEditing,
+    setDetailsEditing,
+    setPendingThumbnail,
+    setPendingUpload,
+    updateActiveService,
+    updateActiveServiceImage,
+  } = actions;
+  const { onActiveIdChange, onThumbnailChange } = callbacks;
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const { enqueueSnackbar } = useSnackbar();
   const [updatePTeamService] = useUpdatePTeamServiceMutation();
@@ -145,7 +148,7 @@ export function useSBOMManagementMutations({
     setPendingThumbnail({ file: null, previewDataUrl: null, deleted: true });
   };
 
-  const commitDetailsEdit = async (pendingThumbnail) => {
+  const commitDetailsEdit = async () => {
     if (!activeService || !pteamId) {
       setDetailsEditing(false);
       return;

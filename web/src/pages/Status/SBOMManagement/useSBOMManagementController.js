@@ -16,21 +16,28 @@ export function useSBOMManagementController({
   });
 
   const mutations = useSBOMManagementMutations({
-    activeId: state.activeId,
-    activeService: state.activeService,
-    isCreatingSbom: state.isCreatingSbom,
-    onActiveIdChange,
-    onThumbnailChange,
-    pteamId,
-    resetUiState: state.resetUiState,
-    serviceTabs: state.serviceTabs,
-    setActiveId: state.setActiveId,
-    setDeploymentsEditing: state.setDeploymentsEditing,
-    setDetailsEditing: state.setDetailsEditing,
-    setPendingThumbnail: state.setPendingThumbnail,
-    setPendingUpload: state.setPendingUpload,
-    updateActiveService: state.updateActiveService,
-    updateActiveServiceImage: state.updateActiveServiceImage,
+    actions: {
+      resetUiState: state.resetUiState,
+      setActiveId: state.setActiveId,
+      setDeploymentsEditing: state.setDeploymentsEditing,
+      setDetailsEditing: state.setDetailsEditing,
+      setPendingThumbnail: state.setPendingThumbnail,
+      setPendingUpload: state.setPendingUpload,
+      updateActiveService: state.updateActiveService,
+      updateActiveServiceImage: state.updateActiveServiceImage,
+    },
+    callbacks: {
+      onActiveIdChange,
+      onThumbnailChange,
+    },
+    state: {
+      activeId: state.activeId,
+      activeService: state.activeService,
+      isCreatingSbom: state.isCreatingSbom,
+      pendingThumbnail: state.pendingThumbnail,
+      pteamId,
+      serviceTabs: state.serviceTabs,
+    },
   });
 
   const displayedServiceTabs = state.serviceTabs.map((service) =>
@@ -79,7 +86,7 @@ export function useSBOMManagementController({
       imageUrl: state.pendingThumbnail
         ? state.pendingThumbnail.previewDataUrl || ""
         : state.activeService?.imageUrl || "",
-      onCommit: () => mutations.commitDetailsEdit(state.pendingThumbnail),
+      onCommit: mutations.commitDetailsEdit,
       onImageUpload: mutations.handleImageUpload,
       onRemoveImage: mutations.handleRemoveImage,
       onToggle: () => state.setDetailsOpen((open) => !open),
