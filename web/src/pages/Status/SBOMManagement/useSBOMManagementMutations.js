@@ -179,8 +179,11 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
 
     try {
       await Promise.all(calls.map((fn) => fn()));
-      const nextThumbnailDisplayOverride =
-        pendingThumbnail?.file ? pendingThumbnail.previewDataUrl || "" : pendingThumbnail?.deleted ? "" : null;
+      const nextThumbnailDisplayOverride = pendingThumbnail?.file
+        ? pendingThumbnail.previewDataUrl || ""
+        : pendingThumbnail?.deleted
+          ? ""
+          : null;
       if (nextThumbnailDisplayOverride !== null) {
         setThumbnailDisplayOverride(nextThumbnailDisplayOverride);
       }
