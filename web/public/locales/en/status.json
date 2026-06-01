@@ -160,6 +160,7 @@
     "imageProcessFailed": "Failed to process image",
     "imageTooLarge": "Image is too large",
     "imageTooLargeAfterConvert": "Image size after conversion exceeds the limit",
+    "serviceNameRequired": "Service name cannot be empty.",
     "updateDeploymentsSuccess": "Deployments updated",
     "updateDetailsSuccess": "Details updated",
     "updateFailed": "Update failed: {{error}}",
