@@ -18,7 +18,6 @@ import { useSBOMManagementController } from "./useSBOMManagementController";
 export function SBOMManagement({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   onActiveIdChange,
   onPackageClick,
   pteamId,
@@ -41,7 +40,6 @@ export function SBOMManagement({
   } = useSBOMManagementController({
     currentDependencies,
     currentService,
-    isThumbnailFetching,
     onActiveIdChange,
     pteamId,
     serviceTabs,
@@ -114,9 +112,8 @@ export function SBOMManagement({
 
         {isCreatingSbom ? (
           <NewSbomRegistrationPanel
-            inputRef={newSbom.inputRef}
             onCancel={newSbom.onCancel}
-            onFileChange={newSbom.onFileChange}
+            onUploadClick={newSbom.onUploadClick}
             showCancel={!isEmpty}
           />
         ) : isActiveServicePending ? (
@@ -217,8 +214,7 @@ export function SBOMManagement({
 
             <DependenciesCard
               filteredDependencies={dependencies.filtered}
-              fileInputRef={dependencies.fileInputRef}
-              onFileUpload={dependencies.onFileUpload}
+              onUpdateClick={dependencies.onUpdateClick}
               onPackageClick={onPackageClick}
               pageEndIndex={dependencies.pageEndIndex}
               pageSize={dependencies.pageSize}
@@ -238,7 +234,6 @@ export function SBOMManagement({
         open={!!pendingUpload.value}
         onClose={pendingUpload.onClose}
         pteamId={pteamId}
-        initialFile={pendingUpload.value?.file ?? null}
         serviceName={pendingUpload.value?.serviceName}
         existingServiceNames={pendingUpload.existingServiceNames}
         showWarning={!!pendingUpload.value?.serviceName}

@@ -2,14 +2,6 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { NEW_SBOM_ID } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
-function createThumbnailState() {
-  return {
-    file: null,
-    mode: "idle",
-    previewDataUrl: null,
-  };
-}
-
 function createEditorState(currentService) {
   return {
     activeServiceDraft: currentService,
@@ -44,10 +36,9 @@ function editorStateReducer(state, action) {
             : state.activeServiceDraft,
         isDirty: true,
       };
-    case "resetDraftToCurrentService":
+    case "markClean":
       return {
         ...state,
-        activeServiceDraft: action.currentService,
         isDirty: false,
       };
     case "setDetailsEditing":
@@ -68,7 +59,6 @@ function editorStateReducer(state, action) {
 export function useSBOMManagementState({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   serviceTabs = [],
 }) {
   const selectedServiceId = currentService?.id ?? null;
@@ -84,10 +74,8 @@ export function useSBOMManagementState({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deploymentsOpen, setDeploymentsOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
-  const [thumbnailState, setThumbnailState] = useState(createThumbnailState);
+  const [pendingThumbnail, setPendingThumbnail] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
-  const fileInputRef = useRef(null);
-  const createFileInputRef = useRef(null);
 
   useEffect(() => {
     if (!serviceTabs.length) {
@@ -105,7 +93,7 @@ export function useSBOMManagementState({
     dispatchEditorState({ type: "resetUi" });
     setCurrentPage(1);
     setDangerOpen(false);
-    setThumbnailState(createThumbnailState());
+    setPendingThumbnail(null);
     setQuery("");
   };
 
@@ -117,31 +105,9 @@ export function useSBOMManagementState({
     dispatchEditorState({ type: "replaceCurrentService", currentService });
     setCurrentPage(1);
     setDangerOpen(false);
-    setThumbnailState(createThumbnailState());
+    setPendingThumbnail(null);
     setQuery("");
   }, [currentService, selectedServiceId]);
-
-  useEffect(() => {
-    if (
-      thumbnailState.mode !== "awaitingRefetch" &&
-      thumbnailState.mode !== "awaitingRefetchSeen"
-    ) {
-      return;
-    }
-
-    if (isThumbnailFetching) {
-      setThumbnailState((current) =>
-        current.mode === "awaitingRefetch" ? { ...current, mode: "awaitingRefetchSeen" } : current,
-      );
-      return;
-    }
-
-    if (thumbnailState.mode !== "awaitingRefetchSeen") {
-      return;
-    }
-
-    setThumbnailState(createThumbnailState());
-  }, [isThumbnailFetching, thumbnailState.mode]);
 
   const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -183,16 +149,16 @@ export function useSBOMManagementState({
     dispatchEditorState({ type: "updateActiveService", activeId, patch });
   };
 
-  const resetDraftToCurrentService = () => {
-    dispatchEditorState({ type: "resetDraftToCurrentService", currentService });
-  };
-
   const setDetailsEditing = (value) => {
     dispatchEditorState({ type: "setDetailsEditing", value });
   };
 
   const setDeploymentsEditing = (value) => {
     dispatchEditorState({ type: "setDeploymentsEditing", value });
+  };
+
+  const markClean = () => {
+    dispatchEditorState({ type: "markClean" });
   };
 
   const addSbom = () => {
@@ -217,14 +183,12 @@ export function useSBOMManagementState({
     activeService,
     addSbom,
     cancelCreateSbom,
-    createFileInputRef,
     currentPage,
     dangerOpen,
     deploymentsEditing: editorState.deploymentsEditing,
     deploymentsOpen,
     detailsEditing: editorState.detailsEditing,
     detailsOpen,
-    fileInputRef,
     filteredDependencies,
     isCreatingSbom,
     isEmpty,
@@ -232,10 +196,10 @@ export function useSBOMManagementState({
     pageSize,
     pageStartIndex,
     paginatedDependencies,
+    pendingThumbnail,
     pendingUpload,
     query,
     resetUiState,
-    resetDraftToCurrentService,
     safeCurrentPage,
     selectService,
     serviceTabs,
@@ -247,10 +211,10 @@ export function useSBOMManagementState({
     setDetailsEditing,
     setDetailsOpen,
     setPageSize,
-    setThumbnailState,
+    setPendingThumbnail,
     setPendingUpload,
     setQuery,
-    thumbnailState,
+    markClean,
     totalPages,
     updateActiveService,
   };

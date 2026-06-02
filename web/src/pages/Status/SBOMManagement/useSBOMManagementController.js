@@ -4,7 +4,6 @@ import { useSBOMManagementState } from "./useSBOMManagementState";
 export function useSBOMManagementController({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   onActiveIdChange,
   pteamId,
   serviceTabs = [],
@@ -12,18 +11,17 @@ export function useSBOMManagementController({
   const state = useSBOMManagementState({
     currentDependencies,
     currentService,
-    isThumbnailFetching,
     serviceTabs,
   });
 
   const mutations = useSBOMManagementMutations({
     actions: {
+      markClean: state.markClean,
       resetUiState: state.resetUiState,
-      resetDraftToCurrentService: state.resetDraftToCurrentService,
       setActiveId: state.setActiveId,
       setDeploymentsEditing: state.setDeploymentsEditing,
       setDetailsEditing: state.setDetailsEditing,
-      setThumbnailState: state.setThumbnailState,
+      setPendingThumbnail: state.setPendingThumbnail,
       setPendingUpload: state.setPendingUpload,
       updateActiveService: state.updateActiveService,
     },
@@ -34,9 +32,9 @@ export function useSBOMManagementController({
       activeId: state.activeId,
       activeService: state.activeService,
       isCreatingSbom: state.isCreatingSbom,
+      pendingThumbnail: state.pendingThumbnail,
       pteamId,
       serviceTabs: state.serviceTabs,
-      thumbnailState: state.thumbnailState,
     },
   });
 
@@ -45,8 +43,7 @@ export function useSBOMManagementController({
     activeService: state.activeService,
     dependencies: {
       filtered: state.filteredDependencies,
-      fileInputRef: state.fileInputRef,
-      onFileUpload: mutations.handleFileUpload,
+      onUpdateClick: mutations.openUpdateSbomDialog,
       pageEndIndex: state.pageEndIndex,
       pageSize: state.pageSize,
       pageStartIndex: state.pageStartIndex,
@@ -77,10 +74,9 @@ export function useSBOMManagementController({
         state.setDetailsOpen(true);
         state.setDetailsEditing(true);
       },
-      imageUrl:
-        state.thumbnailState.previewDataUrl !== null
-          ? state.thumbnailState.previewDataUrl
-          : state.activeService?.imageUrl || "",
+      imageUrl: state.pendingThumbnail
+        ? state.pendingThumbnail.previewDataUrl || ""
+        : state.activeService?.imageUrl || "",
       onCommit: mutations.commitDetailsEdit,
       onImageUpload: mutations.handleImageUpload,
       onRemoveImage: mutations.handleRemoveImage,
@@ -96,9 +92,8 @@ export function useSBOMManagementController({
     isCreatingSbom: state.isCreatingSbom,
     isEmpty: state.isEmpty,
     newSbom: {
-      inputRef: state.createFileInputRef,
       onCancel: state.cancelCreateSbom,
-      onFileChange: mutations.handleCreateFileUpload,
+      onUploadClick: mutations.openCreateSbomDialog,
     },
     pendingUpload: {
       existingServiceNames: state.pendingUpload?.serviceName

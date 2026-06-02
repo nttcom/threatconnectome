@@ -96,8 +96,7 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
 
 export function DependenciesCard({
   filteredDependencies,
-  fileInputRef,
-  onFileUpload,
+  onUpdateClick,
   onPackageClick,
   pageEndIndex,
   pageSize,
@@ -209,16 +208,8 @@ export function DependenciesCard({
                       end: pageEndIndex,
                     })}
               </Typography>
-              <Box
-                accept=".json,application/json"
-                component="input"
-                onChange={onFileUpload}
-                ref={fileInputRef}
-                sx={{ display: "none" }}
-                type="file"
-              />
               <AppButton
-                onClick={() => fileInputRef.current?.click()}
+                onClick={onUpdateClick}
                 size="small"
                 startIcon={<UploadFileIcon />}
                 sx={{
