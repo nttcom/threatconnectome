@@ -217,8 +217,6 @@ export function SBOMManagement({
             <DependenciesCard
               filteredDependencies={dependencies.filtered}
               onUpdateClick={dependencies.onUpdateClick}
-              fileInputRef={dependencies.fileInputRef}
-              onFileUpload={dependencies.onFileUpload}
               onPackageClick={onPackageClick}
               pageEndIndex={dependencies.pageEndIndex}
               pageSize={dependencies.pageSize}
