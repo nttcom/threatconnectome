@@ -39,7 +39,6 @@ export function useSBOMManagementController({
       pendingThumbnail: state.pendingThumbnail,
       pteamId,
       serviceTabs: state.serviceTabs,
-      thumbnailDisplayOverride: state.thumbnailDisplayOverride,
     },
   });
 

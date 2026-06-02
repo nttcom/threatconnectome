@@ -28,7 +28,6 @@ type Props = {
   onClose: () => void;
   pteamId: string;
   serviceName?: string;
-  initialFile?: File | null;
   onUploaded?: () => void;
   existingServiceNames?: string[];
   showWarning?: boolean;
@@ -39,7 +38,6 @@ export function SBOMUpdateDialog({
   onClose,
   pteamId,
   serviceName,
-  initialFile,
   onUploaded,
   existingServiceNames,
   showWarning = true,
@@ -61,10 +59,10 @@ export function SBOMUpdateDialog({
 
   useEffect(() => {
     if (open) {
-      setSbomFile(initialFile ?? null);
+      setSbomFile(null);
       setServiceNameInput("");
     }
-  }, [open, initialFile]);
+  }, [open]);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 

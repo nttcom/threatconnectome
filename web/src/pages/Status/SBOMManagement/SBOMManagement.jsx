@@ -236,7 +236,6 @@ export function SBOMManagement({
         open={!!pendingUpload.value}
         onClose={pendingUpload.onClose}
         pteamId={pteamId}
-        initialFile={pendingUpload.value?.file ?? null}
         serviceName={pendingUpload.value?.serviceName}
         existingServiceNames={pendingUpload.existingServiceNames}
         showWarning={!!pendingUpload.value?.serviceName}
