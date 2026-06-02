@@ -608,9 +608,9 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service SBOM"), {
-        target: { value: "   " },
-      });
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      fireEvent.change(titleInput, { target: { value: "Updated service name" } });
+
       await ue.click(screen.getByRole("button", { name: "Done" }));
 
       await waitFor(() => {
@@ -620,6 +620,46 @@ describe("StatusPage", () => {
       });
 
       expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+    });
+
+    it("blocks saving details when the trimmed service name is empty", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const updateService = createResolvedMutation();
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      fireEvent.change(titleInput, { target: { value: "   " } });
+
+      expect(screen.getByRole("button", { name: "Done" })).toBeDisabled();
+      expect(screen.getByText("Service name cannot be empty.")).toBeInTheDocument();
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      expect(updateService).not.toHaveBeenCalled();
     });
 
     it("shows refreshed service details after saving them", async () => {
