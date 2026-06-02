@@ -114,7 +114,6 @@ export function SBOMManagement({
 
         {isCreatingSbom ? (
           <NewSbomRegistrationPanel
-            inputRef={newSbom.inputRef}
             onCancel={newSbom.onCancel}
             onUploadClick={newSbom.onUploadClick}
             showCancel={!isEmpty}
