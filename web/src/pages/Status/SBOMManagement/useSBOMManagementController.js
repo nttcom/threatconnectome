@@ -4,7 +4,6 @@ import { useSBOMManagementState } from "./useSBOMManagementState";
 export function useSBOMManagementController({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   onActiveIdChange,
   pteamId,
   serviceTabs = [],
@@ -12,7 +11,6 @@ export function useSBOMManagementController({
   const state = useSBOMManagementState({
     currentDependencies,
     currentService,
-    isThumbnailFetching,
     serviceTabs,
   });
 
@@ -25,8 +23,6 @@ export function useSBOMManagementController({
       setDetailsEditing: state.setDetailsEditing,
       setPendingThumbnail: state.setPendingThumbnail,
       setPendingUpload: state.setPendingUpload,
-      setAwaitingThumbnailRefresh: state.setAwaitingThumbnailRefresh,
-      setThumbnailDisplayOverride: state.setThumbnailDisplayOverride,
       updateActiveService: state.updateActiveService,
     },
     callbacks: {
@@ -80,9 +76,7 @@ export function useSBOMManagementController({
       },
       imageUrl: state.pendingThumbnail
         ? state.pendingThumbnail.previewDataUrl || ""
-        : state.thumbnailDisplayOverride !== null
-          ? state.thumbnailDisplayOverride
-          : state.activeService?.imageUrl || "",
+        : state.activeService?.imageUrl || "",
       onCommit: mutations.commitDetailsEdit,
       onImageUpload: mutations.handleImageUpload,
       onRemoveImage: mutations.handleRemoveImage,

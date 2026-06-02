@@ -121,11 +121,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       { skip: skipByAuth || !pteamId },
     );
 
-  const {
-    data: loadedThumbnail,
-    error: loadedThumbnailError,
-    isFetching: isThumbnailFetching,
-  } = useGetPTeamServiceThumbnailQuery(
+  const { data: loadedThumbnail, error: loadedThumbnailError } = useGetPTeamServiceThumbnailQuery(
     { path: { pteam_id: pteamId, service_id: serviceId } },
     { skip: skipByAuth || !pteamId },
   );
@@ -172,7 +168,6 @@ function StatusBody({ pteamId, pteam, serviceId }) {
       <SBOMManagement
         currentDependencies={currentDependencies}
         currentService={currentService}
-        isThumbnailFetching={isThumbnailFetching}
         onActiveIdChange={handleActiveIdChange}
         onPackageClick={handlePackageClick}
         pteamId={pteamId}

@@ -59,7 +59,6 @@ function editorStateReducer(state, action) {
 export function useSBOMManagementState({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   serviceTabs = [],
 }) {
   const selectedServiceId = currentService?.id ?? null;
@@ -76,10 +75,7 @@ export function useSBOMManagementState({
   const [deploymentsOpen, setDeploymentsOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
   const [pendingThumbnail, setPendingThumbnail] = useState(null);
-  const [thumbnailDisplayOverride, setThumbnailDisplayOverride] = useState(null);
-  const [awaitingThumbnailRefresh, setAwaitingThumbnailRefresh] = useState(false);
   const [pendingUpload, setPendingUpload] = useState(null);
-  const awaitingThumbnailRefreshSeenRef = useRef(false);
 
   useEffect(() => {
     if (!serviceTabs.length) {
@@ -98,9 +94,6 @@ export function useSBOMManagementState({
     setCurrentPage(1);
     setDangerOpen(false);
     setPendingThumbnail(null);
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    awaitingThumbnailRefreshSeenRef.current = false;
     setQuery("");
   };
 
@@ -113,31 +106,8 @@ export function useSBOMManagementState({
     setCurrentPage(1);
     setDangerOpen(false);
     setPendingThumbnail(null);
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    awaitingThumbnailRefreshSeenRef.current = false;
     setQuery("");
   }, [currentService, selectedServiceId]);
-
-  useEffect(() => {
-    if (!awaitingThumbnailRefresh) {
-      awaitingThumbnailRefreshSeenRef.current = false;
-      return;
-    }
-
-    if (isThumbnailFetching) {
-      awaitingThumbnailRefreshSeenRef.current = true;
-      return;
-    }
-
-    if (!awaitingThumbnailRefreshSeenRef.current) {
-      return;
-    }
-
-    setThumbnailDisplayOverride(null);
-    setAwaitingThumbnailRefresh(false);
-    awaitingThumbnailRefreshSeenRef.current = false;
-  }, [awaitingThumbnailRefresh, isThumbnailFetching]);
 
   const isEmpty = serviceTabs.length === 0;
   const isCreatingSbom = activeId === NEW_SBOM_ID || isEmpty;
@@ -234,7 +204,6 @@ export function useSBOMManagementState({
     selectService,
     serviceTabs,
     setActiveId,
-    setAwaitingThumbnailRefresh,
     setCurrentPage,
     setDangerOpen,
     setDeploymentsEditing,
@@ -245,9 +214,6 @@ export function useSBOMManagementState({
     setPendingThumbnail,
     setPendingUpload,
     setQuery,
-    setThumbnailDisplayOverride,
-    thumbnailDisplayOverride,
-    awaitingThumbnailRefresh,
     markClean,
     totalPages,
     updateActiveService,

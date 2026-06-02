@@ -18,7 +18,6 @@ import { useSBOMManagementController } from "./useSBOMManagementController";
 export function SBOMManagement({
   currentDependencies = [],
   currentService,
-  isThumbnailFetching = false,
   onActiveIdChange,
   onPackageClick,
   pteamId,
@@ -41,7 +40,6 @@ export function SBOMManagement({
   } = useSBOMManagementController({
     currentDependencies,
     currentService,
-    isThumbnailFetching,
     onActiveIdChange,
     pteamId,
     serviceTabs,

@@ -26,8 +26,6 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     setDetailsEditing,
     setPendingThumbnail,
     setPendingUpload,
-    setAwaitingThumbnailRefresh,
-    setThumbnailDisplayOverride,
     updateActiveService,
   } = actions;
   const { onActiveIdChange } = callbacks;
@@ -181,15 +179,6 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
 
     try {
       await Promise.all(calls.map((fn) => fn()));
-      const nextThumbnailDisplayOverride = pendingThumbnail?.file
-        ? pendingThumbnail.previewDataUrl || ""
-        : pendingThumbnail?.deleted
-          ? ""
-          : null;
-      if (nextThumbnailDisplayOverride !== null) {
-        setThumbnailDisplayOverride(nextThumbnailDisplayOverride);
-        setAwaitingThumbnailRefresh(true);
-      }
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
       setPendingThumbnail(null);
       setDetailsEditing(false);
