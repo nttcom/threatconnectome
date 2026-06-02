@@ -16,6 +16,7 @@ import { collapseSpaces } from "../../../utils/displayText";
 import { getLengthError, getTagsError } from "../../../utils/SBOMManagement/formValidation";
 import { normalizeTags } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
+import { ServiceIdCopyButton } from "./ServiceIdCopyButton";
 import { AccordionHeader, AppButton, HeaderActionButton } from "./sharedUiParts";
 import { fieldSx, labelSx, slate } from "./styleTokens";
 
@@ -223,9 +224,23 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
       <Stack sx={{ display, gap: 2 }}>
         <Box>
           <Typography sx={labelSx}>{t("title")}</Typography>
-          <Typography sx={{ color: slate[800], fontSize: 14, fontWeight: 700, mt: 0.75 }}>
-            {sbom.title ? collapseSpaces(sbom.title) : emptyText}
-          </Typography>
+          <Box sx={{ alignItems: "center", display: "flex", gap: 0.5, mt: 0.75, minWidth: 0 }}>
+            <Typography
+              noWrap
+              sx={{
+                color: slate[800],
+                flex: "0 1 auto",
+                fontSize: 14,
+                fontWeight: 700,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {sbom.title ? collapseSpaces(sbom.title) : emptyText}
+            </Typography>
+            <ServiceIdCopyButton serviceId={sbom.id} />
+          </Box>
         </Box>
         <Box>
           <Typography sx={labelSx}>{t("description")}</Typography>

@@ -360,6 +360,43 @@ describe("StatusPage", () => {
       expect(screen.getByText("Danger Zone")).toBeInTheDocument();
     });
 
+    it("copies the service id from the details title action", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(window.navigator, "clipboard", {
+        configurable: true,
+        value: { writeText },
+      });
+
+      renderStatusPage();
+
+      fireEvent.click(screen.getByRole("button", { name: "Copy service ID" }));
+
+      await waitFor(() => {
+        expect(writeText).toHaveBeenCalledWith(testPTeamData.services[0].service_id);
+      });
+    });
+
     it("shows system exposure and mission impact from the service API", () => {
       const testLocation = {
         pathname: "/",

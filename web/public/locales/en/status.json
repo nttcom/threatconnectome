@@ -64,6 +64,8 @@
     "descriptionPlaceholder": "Enter the target system or purpose of this SBOM",
     "tags": "Tags",
     "tagsPlaceholder": "backend, prod, critical",
+    "copyServiceId": "Copy service ID",
+    "copySuccess": "Copied!",
     "tooLongDescription": "Too long description. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "tooLongKeyword": "Too long keyword. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
