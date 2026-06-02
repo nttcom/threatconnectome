@@ -382,7 +382,7 @@ describe("StatusPage", () => {
         isFetching: false,
       });
 
-      const writeText = vi.fn();
+      const writeText = vi.fn().mockResolvedValue(undefined);
       Object.defineProperty(window.navigator, "clipboard", {
         configurable: true,
         value: { writeText },
@@ -392,7 +392,9 @@ describe("StatusPage", () => {
 
       fireEvent.click(screen.getByRole("button", { name: "Copy service ID" }));
 
-      expect(writeText).toHaveBeenCalledWith(testPTeamData.services[0].service_id);
+      await waitFor(() => {
+        expect(writeText).toHaveBeenCalledWith(testPTeamData.services[0].service_id);
+      });
     });
 
     it("shows system exposure and mission impact from the service API", () => {

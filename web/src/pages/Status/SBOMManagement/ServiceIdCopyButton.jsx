@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 export function ServiceIdCopyButton({ serviceId }) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
-  const [tooltipText, setTooltipText] = useState(t("copyServiceId"));
+  const [tooltipKey, setTooltipKey] = useState("copyServiceId");
 
   if (!serviceId) return null;
 
@@ -13,15 +13,19 @@ export function ServiceIdCopyButton({ serviceId }) {
     <Tooltip
       arrow
       onClose={() => {
-        setTooltipText(t("copyServiceId"));
+        setTooltipKey("copyServiceId");
       }}
-      title={tooltipText}
+      title={t(tooltipKey)}
     >
       <IconButton
         aria-label={t("copyServiceId")}
-        onClick={() => {
-          navigator.clipboard.writeText(serviceId);
-          setTooltipText(t("copySuccess"));
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(serviceId);
+            setTooltipKey("copySuccess");
+          } catch {
+            setTooltipKey("copyServiceId");
+          }
         }}
         size="small"
         sx={{ color: "primary.main", flexShrink: 0, p: 0.5, "&:hover": { color: "primary.dark" } }}
