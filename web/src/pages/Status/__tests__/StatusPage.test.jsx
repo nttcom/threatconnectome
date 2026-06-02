@@ -575,6 +575,53 @@ describe("StatusPage", () => {
       expect(screen.getByRole("button", { name: "Done" })).toBeInTheDocument();
     });
 
+    it("keeps the tab title on the last fetched service name when details save fails", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      useUpdatePTeamServiceMutation.mockReturnValue([
+        createRejectedMutation({
+          status: 400,
+          data: { detail: "boom" },
+        }),
+      ]);
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      fireEvent.change(titleInput, { target: { value: "Updated service name" } });
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(enqueueSnackbar).toHaveBeenCalledWith("Update failed: 400: boom", {
+          variant: "error",
+        });
+      });
+
+      expect(screen.getByRole("button", { name: "test_service1" })).toBeInTheDocument();
+    });
+
     it("blocks saving details when the trimmed service name is empty", async () => {
       const testLocation = {
         pathname: "/",
