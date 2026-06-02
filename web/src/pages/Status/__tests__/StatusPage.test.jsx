@@ -846,6 +846,56 @@ describe("StatusPage", () => {
 
       await ue.click(screen.getByRole("button", { name: "New" }));
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
+
+      const uploadButton = screen.getByText("Upload an SBOM").closest("button");
+      expect(uploadButton).not.toBeNull();
+      await ue.click(uploadButton);
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("Upload SBOM")).toBeInTheDocument();
+      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
+    });
+
+    it("opens the upload dialog with warning text when the SBOM update button is clicked", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeam = {
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      };
+      useGetPTeamQuery.mockReturnValue(testPTeam);
+
+      const testPackagesSummary = {
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      };
+      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+
+      useGetPTeamServiceThumbnailQuery.mockReturnValue({
+        data: testThumbnailDataUrl,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "Update SBOM" }));
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("Upload SBOM")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading.",
+        ),
+      ).toBeInTheDocument();
     });
 
     it("show SBOM upload progress button when the service is registered", async () => {

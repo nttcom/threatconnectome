@@ -17,15 +17,17 @@ import { errorToString } from "../../../utils/func";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
 export function useSBOMManagementMutations({ actions, callbacks, state }) {
-  const { activeId, activeService, isCreatingSbom, pteamId, serviceTabs, thumbnailState } = state;
+  const { activeId, activeService, isCreatingSbom, pendingThumbnail, pteamId, serviceTabs } = state;
   const {
-    resetDraftToCurrentService,
+    markClean,
     resetUiState,
     setActiveId,
     setDeploymentsEditing,
     setDetailsEditing,
-    setThumbnailState,
+    setPendingThumbnail,
     setPendingUpload,
+    setAwaitingThumbnailRefresh,
+    setThumbnailDisplayOverride,
     updateActiveService,
   } = actions;
   const { onActiveIdChange } = callbacks;
@@ -95,16 +97,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     });
   };
 
-  const handleFileUpload = (event) => {
-    const input = event.target;
-    const file = input.files?.[0];
-    input.value = "";
-
-    if (!file || !activeService) {
+  const openUpdateSbomDialog = () => {
+    if (!activeService) {
       return;
     }
 
-    setPendingUpload({ file, serviceName: activeService.title });
+    setPendingUpload({ serviceName: activeService.title });
   };
 
   const handleImageUpload = async (event) => {
@@ -127,10 +125,10 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
         enqueueSnackbar(t("imageTooLargeAfterConvert"), { variant: "error" });
         return;
       }
-      setThumbnailState({
+      setPendingThumbnail({
         file: normalized.file,
-        mode: "pendingUpload",
         previewDataUrl: normalized.previewDataUrl,
+        deleted: false,
       });
     } catch {
       enqueueSnackbar(t("imageProcessFailed"), { variant: "error" });
@@ -138,21 +136,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
   };
 
   const handleRemoveImage = () => {
-    setThumbnailState({
-      file: null,
-      mode: "pendingDelete",
-      previewDataUrl: "",
-    });
+    setPendingThumbnail({ file: null, previewDataUrl: null, deleted: true });
   };
 
   const commitDetailsEdit = async () => {
     if (!activeService || !pteamId) {
       setDetailsEditing(false);
-      return;
-    }
-
-    if (!activeService.title.trim()) {
-      enqueueSnackbar(t("serviceNameRequired"), { variant: "error" });
       return;
     }
 
@@ -169,15 +158,15 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       }).unwrap(),
     );
 
-    if (thumbnailState.mode === "pendingUpload" && thumbnailState.file) {
-      const file = thumbnailState.file;
+    if (pendingThumbnail?.file) {
+      const file = pendingThumbnail.file;
       calls.push(() =>
         updatePTeamServiceThumbnail({
           path: { pteam_id: pteamId, service_id: activeService.id },
           body: { uploaded: file },
         }).unwrap(),
       );
-    } else if (thumbnailState.mode === "pendingDelete") {
+    } else if (pendingThumbnail?.deleted) {
       calls.push(() =>
         deletePTeamServiceThumbnail({
           path: { pteam_id: pteamId, service_id: activeService.id },
@@ -187,16 +176,19 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
 
     try {
       await Promise.all(calls.map((fn) => fn()));
-      if (thumbnailState.mode === "pendingUpload" || thumbnailState.mode === "pendingDelete") {
-        setThumbnailState((current) =>
-          current.mode === "pendingUpload" || current.mode === "pendingDelete"
-            ? { ...current, mode: "awaitingRefetch" }
-            : current,
-        );
+      const nextThumbnailDisplayOverride = pendingThumbnail?.file
+        ? pendingThumbnail.previewDataUrl || ""
+        : pendingThumbnail?.deleted
+          ? ""
+          : null;
+      if (nextThumbnailDisplayOverride !== null) {
+        setThumbnailDisplayOverride(nextThumbnailDisplayOverride);
+        setAwaitingThumbnailRefresh(true);
       }
       enqueueSnackbar(t("updateDetailsSuccess"), { variant: "success" });
+      setPendingThumbnail(null);
       setDetailsEditing(false);
-      resetDraftToCurrentService();
+      markClean();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -219,7 +211,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       }).unwrap();
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
-      resetDraftToCurrentService();
+      markClean();
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
     }
@@ -246,7 +238,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
         },
       }).unwrap();
       enqueueSnackbar(t("updateRiskSettingsSuccess"), { variant: "success" });
-      resetDraftToCurrentService();
+      markClean();
       return true;
     } catch (error) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
@@ -254,16 +246,8 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     }
   };
 
-  const handleCreateFileUpload = (event) => {
-    const input = event.target;
-    const file = input.files?.[0];
-    input.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    setPendingUpload({ file });
+  const openCreateSbomDialog = () => {
+    setPendingUpload({});
   };
 
   return {
@@ -271,8 +255,8 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     commitDeploymentsEdit,
     commitDetailsEdit,
     commitServiceImpactEdit,
-    handleCreateFileUpload,
-    handleFileUpload,
+    openCreateSbomDialog,
+    openUpdateSbomDialog,
     handleImageUpload,
     handleRemoveImage,
     removeActiveSbom,
