@@ -43,12 +43,6 @@ export function useSBOMManagementController({
     },
   });
 
-  const displayedServiceTabs = state.serviceTabs.map((service) =>
-    service.id === state.activeId && state.activeService
-      ? { ...service, title: state.activeService.title }
-      : service,
-  );
-
   return {
     activeId: state.activeId,
     activeService: state.activeService,
@@ -120,7 +114,7 @@ export function useSBOMManagementController({
       onSave: mutations.commitServiceImpactEdit,
     },
     tabs: {
-      items: displayedServiceTabs,
+      items: state.serviceTabs,
       onAdd: state.addSbom,
       onSelect: (serviceId) => {
         state.selectService(serviceId);
