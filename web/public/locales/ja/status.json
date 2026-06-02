@@ -52,6 +52,8 @@
     "description": "説明文",
     "descriptionPlaceholder": "SBOMの対象システムや用途を入力",
     "details": "詳細情報",
+    "copyServiceId": "サービスIDをコピー",
+    "copySuccess": "コピーしました！",
     "done": "完了",
     "edit": "編集",
     "image": "イメージ",
