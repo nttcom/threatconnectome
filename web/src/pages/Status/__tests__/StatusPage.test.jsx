@@ -363,9 +363,11 @@ describe("StatusPage", () => {
 
       renderStatusPage();
 
+      const pageSizeSelector = screen.getByRole("combobox");
+
       expect(screen.getByText("Rows")).toBeInTheDocument();
-      expect(screen.getByRole("combobox")).toHaveTextContent("10");
-      expect(screen.queryByText("countItems")).toBeNull();
+      expect(pageSizeSelector).toHaveTextContent("10");
+      expect(pageSizeSelector).not.toHaveTextContent("countItems");
     });
 
     it("copies the service id from the details title action", async () => {
