@@ -295,9 +295,9 @@ export function DependenciesCard({
                   sx={compactSelectSx}
                   value={pageSize}
                 >
-                  <MenuItem value={10}>{t("countItems", { count: 10 })}</MenuItem>
-                  <MenuItem value={20}>{t("countItems", { count: 20 })}</MenuItem>
-                  <MenuItem value={50}>{t("countItems", { count: 50 })}</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
                 </Select>
               </Box>
               <Box
