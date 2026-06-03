@@ -1,7 +1,6 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { SerializedError } from "@reduxjs/toolkit";
 
-import { UserResponse } from "../../types/types.gen";
 import { t } from "i18next";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -76,12 +75,6 @@ export const blobToDataURL = async (blob: Blob) =>
     reader.onerror = (error) => reject(error);
     reader.readAsDataURL(blob);
   });
-
-export const checkAdmin = (member: UserResponse, pteamId: string) => {
-  return member.pteam_roles.some(
-    (pteam_role) => pteam_role.pteam.pteam_id === pteamId && pteam_role.is_admin,
-  );
-};
 
 export const countFullWidthAndHalfWidthCharacters = (string: string) => {
   let count = 0;
