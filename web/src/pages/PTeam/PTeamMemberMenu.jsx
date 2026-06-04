@@ -11,13 +11,20 @@ import { useTranslation } from "react-i18next";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { errorToString, checkAdmin } from "../../utils/func";
+import { errorToString } from "../../utils/func";
 
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
 export function PTeamMemberMenu(props) {
-  const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, userMe } = props;
+  const {
+    pteamId,
+    memberUserId,
+    userEmail,
+    isTargetMemberAdmin,
+    currentUserId,
+    isCurrentUserAdmin,
+  } = props;
   const { t } = useTranslation("pteam", { keyPrefix: "PTeamMemberMenu" });
 
   const [openAuth, setOpenAuth] = useState(false);
@@ -50,8 +57,6 @@ export function PTeamMemberMenu(props) {
     setOpenRemove(true);
   };
 
-  const isCurrentUserAdmin = checkAdmin(userMe, pteamId);
-
   return (
     <>
       <IconButton
@@ -76,7 +81,7 @@ export function PTeamMemberMenu(props) {
           <KeyIcon sx={{ mr: 1 }} />
           {t("authorities")}
         </MenuItem>
-        {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
+        {(isCurrentUserAdmin || memberUserId === currentUserId) && (
           <MenuItem onClick={handleRemoveMember}>
             <PersonOffIcon sx={{ mr: 1 }} />
             {t("removeFromTeam")}
@@ -95,7 +100,7 @@ export function PTeamMemberMenu(props) {
           />
         </DialogContent>
       </Dialog>
-      {(isCurrentUserAdmin || memberUserId === userMe.user_id) && (
+      {(isCurrentUserAdmin || memberUserId === currentUserId) && (
         <Dialog open={openRemove} onClose={() => setOpenRemove(false)}>
           <PTeamMemberRemoveModal
             memberUserId={memberUserId}
@@ -115,5 +120,6 @@ PTeamMemberMenu.propTypes = {
   memberUserId: PropTypes.string.isRequired,
   userEmail: PropTypes.string.isRequired,
   isTargetMemberAdmin: PropTypes.bool.isRequired,
-  userMe: PropTypes.object.isRequired,
+  currentUserId: PropTypes.string.isRequired,
+  isCurrentUserAdmin: PropTypes.bool.isRequired,
 };

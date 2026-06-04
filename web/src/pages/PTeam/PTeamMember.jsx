@@ -43,6 +43,7 @@ export function PTeamMember(props) {
     data: userMe,
     error: userMeError,
     isLoading: userMeIsLoading,
+    isFetching: userMeIsFetching,
   } = useGetUserMeQuery(undefined, { skip });
 
   if (skip) return <></>;
@@ -53,12 +54,19 @@ export function PTeamMember(props) {
 
   if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
 
-  const user = userMe.pteam_roles.find((pteam_role) => pteam_role.pteam.pteam_id === pteamId);
+  const currentMember = members.find((member) => member.user_id === userMe.user_id);
+  if (!currentMember) {
+    if (userMeIsFetching) return <>{t("loadingUserInfo")}</>;
+    throw new APIError(`Current user is not included in pteam members: ${pteamId}`, {
+      api: "getPTeamMembers",
+    });
+  }
+  const isCurrentUserAdmin = currentMember.is_admin;
 
   return (
     <>
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        {user.is_admin && pteamId && <InvitationManageDialog pteamId={pteamId} />}
+        {isCurrentUserAdmin && pteamId && <InvitationManageDialog pteamId={pteamId} />}
       </Box>
       {isMdDown ? (
         <Stack spacing={2}>
@@ -92,7 +100,8 @@ export function PTeamMember(props) {
                     memberUserId={member.user_id}
                     userEmail={member.email}
                     isTargetMemberAdmin={member.is_admin}
-                    userMe={userMe}
+                    currentUserId={userMe.user_id}
+                    isCurrentUserAdmin={isCurrentUserAdmin}
                   />
                 </Box>
               </Box>
@@ -162,7 +171,8 @@ export function PTeamMember(props) {
                       memberUserId={member.user_id}
                       userEmail={member.email}
                       isTargetMemberAdmin={member.is_admin}
-                      userMe={userMe}
+                      currentUserId={userMe.user_id}
+                      isCurrentUserAdmin={isCurrentUserAdmin}
                     />
                   </TableCell>
                 </TableRow>
@@ -184,6 +194,7 @@ PTeamMember.propTypes = {
       email: PropTypes.string.isRequired,
       disabled: PropTypes.bool,
       years: PropTypes.number.isRequired,
+      is_admin: PropTypes.bool.isRequired,
     }),
   ).isRequired,
 };
