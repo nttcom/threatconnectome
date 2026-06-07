@@ -88,10 +88,10 @@ Always execute:
 
 ```bash
 cd api
-pipenv run black --check --diff ./app
-pipenv run ruff check ./app
-pipenv run mypy ./app --show-error-codes --no-error-summary
-pipenv run codespell ./app
+uv run --locked black --check --diff ./app
+uv run --locked ruff check ./app
+uv run --locked mypy ./app --show-error-codes --no-error-summary
+uv run --locked codespell ./app
 ```
 
 #### 3. Run API Tests
