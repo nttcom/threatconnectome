@@ -9,7 +9,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.7.13 /uv /uvx /bin/
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY ./pyproject.toml ./uv.lock /
-COPY ./app/ /app
 RUN uv sync --locked --no-dev --project /
+COPY ./app/ /app
 USER tcuser
 CMD ["hypercorn", "app.main:app", "--bind", "0.0.0.0:8080", "--access-logfile", "-"]
