@@ -125,7 +125,7 @@ class ThreatconnectomeClient:
         )
 
 
-def _json_loads(filepath: str | bytes | bytearray):
+def _json_loads(filepath: str):
     with open(filepath, "r") as file:
         try:
             return json.load(file)
