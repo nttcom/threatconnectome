@@ -126,7 +126,7 @@ class ThreatconnectomeClient:
 
 
 def _json_loads(filepath: str):
-    with open(filepath, "r") as file:
+    with open(filepath, "r", encoding="utf-8") as file:
         try:
             return json.load(file)
         except json.JSONDecodeError as error:
