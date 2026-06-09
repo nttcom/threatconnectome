@@ -28,7 +28,10 @@ class TestRefreshAccessToken:
         assert new["token_type"].lower() == "bearer"
         assert new["refresh_token"]
 
+        # When
         refreshed = refresh_access_token(new["refresh_token"])
+
+        # Then
         assert refreshed["access_token"]
         assert refreshed["token_type"].lower() == "bearer"
         assert refreshed["refresh_token"]
