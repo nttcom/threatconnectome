@@ -17,8 +17,21 @@ class TestLoginForAccessToken:
 
 class TestRefreshAccessToken:
     def test_refresh_token(self):
+        # Given
         old = get_access_token(USER1["email"], USER1["pass"])
+
+        # When
         new = refresh_access_token(old["refresh_token"])
+
+        # Then
         assert new["access_token"]
         assert new["token_type"].lower() == "bearer"
-        assert new["refresh_token"] == old["refresh_token"]
+        assert new["refresh_token"]
+
+        # When
+        refreshed = refresh_access_token(new["refresh_token"])
+
+        # Then
+        assert refreshed["access_token"]
+        assert refreshed["token_type"].lower() == "bearer"
+        assert refreshed["refresh_token"]
