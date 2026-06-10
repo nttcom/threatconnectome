@@ -1,3 +1,23 @@
+[project]
+name = "threatconnectome-e2etests"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+    "pytest-playwright",
+    "requests",
+    "types-requests",
+]
+
+[dependency-groups]
+dev = [
+    "black",
+    "mypy",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
 [tool.mypy]
 ignore_missing_imports = true
 
@@ -15,4 +35,3 @@ lint.ignore = ["E741"]
 
 [tool.black]
 line-length = 100
-

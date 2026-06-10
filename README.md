@@ -63,3 +63,5 @@ To stop a running service:
 Need the Firebase Authentication / emulator setup? See [docs/setup_firebase.md](docs/setup_firebase.md). (This is the standard configuration.)
 
 Need an on-premises Supabase stack? See [docs/setup_supabase.md](docs/setup_supabase.md).
+
+For Python tooling in `api`, `scripts`, and `e2etests`, use `uv` (`uv sync --locked ...` and `uv run --locked ...`).

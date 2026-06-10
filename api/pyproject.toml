@@ -1,3 +1,49 @@
+[project]
+name = "threatconnectome-api"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+    "alembic",
+    "cyclonedx-python-lib[validation]",
+    "cryptography>=46.0.5",
+    "deprecation",
+    "email-validator",
+    "fastapi",
+    "firebase-admin",
+    "hypercorn",
+    "mako>=1.3.12",
+    "packageurl-python",
+    "pillow",
+    "protobuf<7.0",
+    "psycopg2",
+    "pydantic",
+    "python-multipart>=0.0.27",
+    "requests",
+    "sendgrid",
+    "slack-sdk",
+    "sqlalchemy",
+    "supabase",
+    "univers",
+]
+
+[dependency-groups]
+dev = [
+    "black==26.3.1",
+    "codespell",
+    "httpretty",
+    "httpx",
+    "mypy",
+    "mypy-extensions",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "ruff",
+    "types-requests",
+]
+
+[tool.uv]
+package = false
+
 [tool.mypy]
 ignore_missing_imports = true
 

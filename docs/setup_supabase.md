@@ -13,7 +13,7 @@ Use this guide when deploying Threatconnectome in an on-premises environment bac
 
 ### Development environment
 
-- `Pipenv`
+- `uv`
 
 ## :gear: Installation
 

@@ -11,7 +11,7 @@
 
 ### Development environment
 
-- `Pipenv`
+- `uv`
 
 ## :gear: Installation
 
