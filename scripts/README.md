@@ -6,8 +6,14 @@ Purpose: To inspect packages (OS packages & library packages) used in a user's s
 
 - `Python3`
 - `Trivy`
+- `uv`
 
 ## :desktop_computer: Preparation
+
+```bash
+cd scripts
+uv sync --locked --dev
+```
 
 ### Account creation
 
@@ -70,9 +76,7 @@ Purpose: To create vulns from TrivyDB to understand the threat impact of your pa
 
 ## :pushpin: Requirements
 
-```bash
-pip install boltdb requests
-```
+Use the dependencies installed by `uv sync --locked --dev`.
 
 ## :triangular_flag_on_post: Usage
 
@@ -96,15 +100,13 @@ The value of SYSTEM_API_KEY should match the value specified in the SYSTEM_API_K
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 export SYSTEM_API_KEY="XXXXXXXXX"
 # For local development environment
-python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db "http://localhost/api"
-
+uv run --locked python trivydb2tc.py -d ~/.cache/trivy/db/trivy.db "http://localhost/api"
 ```
 
 Use `--force-update` option to update existing vulns.
 
 ```bash
-python3 trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://localhost/api"
-
+uv run --locked python trivydb2tc.py -d ~/.cache/trivy/db/trivy.db --force-update "http://localhost/api"
 ```
 
 # :bulb: Vuln Update from Vulnrichment
@@ -128,8 +130,7 @@ The value of SYSTEM_API_KEY should match the value specified in the SYSTEM_API_K
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 export SYSTEM_API_KEY="XXXXXXXXX"
 # For local development environment
-python3 vulnrichment2tc.py -v vulnrichment "http://localhost/api"
-
+uv run --locked python vulnrichment2tc.py -v vulnrichment "http://localhost/api"
 ```
 
 # :bulb: Colletct tickets data
@@ -139,8 +140,7 @@ Run the following commands to collect tickets data
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 # For local development environment
-python3 collect_tickets_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
-
+uv run --locked python collect_tickets_data.py -p <pteam_id> -s <service_id> "http://localhost/api"
 ```
 
 # :bulb: Safety impact registration from ImpactEstimator
@@ -150,7 +150,7 @@ Run the following commands to register the safety impact
 ```bash
 export THREATCONNECTOME_REFRESHTOKEN="XXXXXXXXX"
 # For local development environment
-python3 impact_estimator2tc.py -d <tickets_data> -s <safety_impact> -p <process_safety_impact> "http://localhost/api"
+uv run --locked python impact_estimator2tc.py -d <tickets_data> -s <safety_impact> -p <process_safety_impact> "http://localhost/api"
 ```
 
 ## 🧾 Argument Descriptions
