@@ -116,7 +116,8 @@ def test_show_package_page(page: Page):
     package_row = page.get_by_role("button").filter(has_text=str(PACKAGE1["package_name"]))
     expect(package_row).to_be_visible()
     page.get_by_placeholder("Search by Package").fill(str(PACKAGE1["package_name"]))
-    page.get_by_role("button").filter(has_text=str(PACKAGE1["package_name"])).click()
+    expect(package_row).to_be_visible()
+    package_row.click()
 
     # tag page
     package_title1 = PACKAGE1["package_name"]
