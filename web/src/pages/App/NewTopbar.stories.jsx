@@ -1,6 +1,3 @@
-/* eslint-disable react/prop-types, @cspell/spellchecker */
-import "@fontsource/inter/400.css";
-import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CheckIcon from "@mui/icons-material/Check";
@@ -115,6 +112,33 @@ const controlButtonSx = {
     outline: `2px solid ${colors.brand100}`,
     outlineOffset: 2,
   },
+};
+
+const compactTopbarButtonSx = {
+  ...controlButtonSx,
+  width: 40,
+  height: 40,
+  minWidth: 40,
+  px: 0,
+};
+
+const responsiveTopbarButtonSx = {
+  ...controlButtonSx,
+  minWidth: { xs: 40, sm: 0 },
+  width: { xs: 40, sm: "auto" },
+  px: { xs: 0, sm: 1.5 },
+};
+
+const topbarButtonContentSx = {
+  alignItems: "center",
+  gap: 1,
+  minWidth: 0,
+};
+
+const ellipsisTextSx = {
+  textOverflow: "ellipsis",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
 };
 
 const compactMenuItemSx = {
@@ -264,6 +288,21 @@ function IconBadge({ icon, size = 32, iconSize = 18, radius = 8, tone = "slate" 
     >
       <IconRenderer icon={icon} size={iconSize} />
     </Box>
+  );
+}
+
+function MenuTriggerButton({ active, ariaLabel, children, onClick, sx }) {
+  return (
+    <Button
+      variant="outlined"
+      aria-label={ariaLabel}
+      aria-haspopup="menu"
+      aria-expanded={active}
+      onClick={onClick}
+      sx={sx}
+    >
+      {children}
+    </Button>
   );
 }
 
@@ -636,19 +675,11 @@ function PageMenuButton({ active, currentPage, onClick }) {
 
   if (isMobile) {
     return (
-      <Button
-        variant="outlined"
-        aria-label="ページメニュー"
-        aria-haspopup="menu"
-        aria-expanded={active}
+      <MenuTriggerButton
+        active={active}
+        ariaLabel="ページメニュー"
         onClick={onClick}
-        sx={{
-          ...controlButtonSx,
-          width: 40,
-          height: 40,
-          minWidth: 40,
-          px: 0,
-        }}
+        sx={compactTopbarButtonSx}
       >
         <IconBadge
           icon={currentPage.icon}
@@ -657,34 +688,22 @@ function PageMenuButton({ active, currentPage, onClick }) {
           radius={8}
           tone={currentPage.tone}
         />
-      </Button>
+      </MenuTriggerButton>
     );
   }
 
   return (
-    <Button
-      variant="outlined"
-      aria-label="ページメニュー"
-      aria-haspopup="menu"
-      aria-expanded={active}
+    <MenuTriggerButton
+      active={active}
+      ariaLabel="ページメニュー"
       onClick={onClick}
-      endIcon={<IconRenderer icon={ExpandMoreIcon} size={16} />}
       sx={{
-        ...controlButtonSx,
-        minWidth: { xs: 40, sm: 0 },
-        width: { xs: 40, sm: "auto" },
+        ...responsiveTopbarButtonSx,
         maxWidth: { sm: 220 },
-        px: { xs: 0, sm: 1.5 },
         gap: 0.5,
-        "& .MuiButton-endIcon": {
-          display: { xs: "none", sm: "flex" },
-          ml: 0.75,
-          mr: 0,
-          color: colors.ink400,
-        },
       }}
     >
-      <Stack direction="row" sx={{ alignItems: "center", gap: 1, minWidth: 0 }}>
+      <Stack direction="row" sx={topbarButtonContentSx}>
         <IconBadge
           icon={currentPage.icon}
           size={24}
@@ -698,26 +717,23 @@ function PageMenuButton({ active, currentPage, onClick }) {
         >
           {currentPage.label}
         </Typography>
+        <Box sx={{ color: colors.ink400 }}>
+          <IconRenderer icon={ExpandMoreIcon} size={16} />
+        </Box>
       </Stack>
-    </Button>
+    </MenuTriggerButton>
   );
 }
 
 function TeamMenuButton({ active, onClick }) {
   return (
-    <Button
-      variant="outlined"
-      aria-haspopup="menu"
-      aria-expanded={active}
+    <MenuTriggerButton
+      active={active}
+      ariaLabel="チームメニュー"
       onClick={onClick}
-      sx={{
-        ...controlButtonSx,
-        minWidth: { xs: 40, sm: 0 },
-        width: { xs: 40, sm: "auto" },
-        px: { xs: 0, sm: 1.5 },
-      }}
+      sx={responsiveTopbarButtonSx}
     >
-      <Stack direction="row" sx={{ alignItems: "center", gap: 1, minWidth: 0 }}>
+      <Stack direction="row" sx={topbarButtonContentSx}>
         <IconBadge icon={GroupIcon} size={24} iconSize={15} radius={6} />
         <Typography
           noWrap
@@ -734,7 +750,7 @@ function TeamMenuButton({ active, onClick }) {
           <IconRenderer icon={ExpandMoreIcon} size={16} />
         </Box>
       </Stack>
-    </Button>
+    </MenuTriggerButton>
   );
 }
 
@@ -753,10 +769,7 @@ function UserMenuButton({ active, onClick }) {
         startIcon={<AccountCircleIcon />}
         sx={{ maxWidth: 400 }}
       >
-        <Typography
-          variant="button"
-          sx={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
-        >
+        <Typography variant="button" sx={ellipsisTextSx}>
           {user.email}
         </Typography>
       </Button>
@@ -764,22 +777,14 @@ function UserMenuButton({ active, onClick }) {
   }
 
   return (
-    <Button
-      variant="outlined"
-      aria-label="user menu"
-      aria-haspopup="menu"
-      aria-expanded={active}
+    <MenuTriggerButton
+      active={active}
+      ariaLabel="user menu"
       onClick={onClick}
-      sx={{
-        ...controlButtonSx,
-        width: 40,
-        height: 40,
-        minWidth: 40,
-        px: 0,
-      }}
+      sx={compactTopbarButtonSx}
     >
       {userIcon}
-    </Button>
+    </MenuTriggerButton>
   );
 }
 
