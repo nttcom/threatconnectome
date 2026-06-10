@@ -326,7 +326,7 @@ function CurrentChip({ sx }) {
 // Logo
 // ---------------------------------------------------------------------------
 
-export function MarkLogo({ size = 32, framed = true }) {
+function MarkLogo({ size = 32, framed = true }) {
   const markGeometry = framed
     ? {
         path: "M168 164 L344 164 L268 346",
@@ -645,7 +645,7 @@ function UserMenu({ anchorEl, open, onClose }) {
 // Topbar Buttons
 // ---------------------------------------------------------------------------
 
-export function TopbarLogoLink() {
+function TopbarLogoLink() {
   return (
     <Box
       component="a"
