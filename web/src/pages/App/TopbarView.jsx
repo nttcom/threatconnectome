@@ -1,12 +1,12 @@
 import "@fontsource/inter/700.css";
+
+/* eslint-disable react/prop-types */
+
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
-import ChecklistIcon from "@mui/icons-material/Checklist";
-import EventNoteIcon from "@mui/icons-material/EventNote";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import GppMaybeIcon from "@mui/icons-material/GppMaybe";
 import GroupIcon from "@mui/icons-material/Group";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
@@ -25,11 +25,8 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import { useState } from "react";
-
-// ---------------------------------------------------------------------------
-// Design Tokens
-// ---------------------------------------------------------------------------
 
 const colors = {
   ink900: "#111827",
@@ -46,10 +43,8 @@ const colors = {
   red50: "#FEF2F2",
   red100: "#FEE2E2",
   red600: "#DC2626",
-  red700: "#B91C1C",
   amber50: "#FFFBEB",
   amber100: "#FEF3C7",
-  amber600: "#D97706",
   amber700: "#B45309",
   sky50: "#F0F9FF",
   sky100: "#E0F2FE",
@@ -67,10 +62,6 @@ const tonePalette = {
   violet: { bg: colors.violet50, color: colors.violet700, ring: colors.violet100 },
   slate: { bg: "#fff", color: colors.ink500, ring: colors.slate200 },
 };
-
-// ---------------------------------------------------------------------------
-// Shared sx presets
-// ---------------------------------------------------------------------------
 
 const menuWidths = {
   page: { xs: "calc(100vw - 16px)", sm: 336 },
@@ -133,6 +124,8 @@ const topbarButtonContentSx = {
   alignItems: "center",
   gap: 1,
   minWidth: 0,
+  maxWidth: "100%",
+  overflow: "hidden",
 };
 
 const ellipsisTextSx = {
@@ -176,68 +169,6 @@ const teamMenuListSx = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// Fixture Data
-// ---------------------------------------------------------------------------
-
-const user = {
-  initials: "YA",
-  name: "Yuki Admin",
-  email: "admin@threatconnectome.example",
-};
-
-const pageItems = [
-  {
-    label: "SBOM管理",
-    shortLabel: "SBOM",
-    icon: Inventory2Icon,
-    tone: "brand",
-  },
-  {
-    label: "チーム管理",
-    icon: GroupIcon,
-    tone: "sky",
-  },
-  {
-    label: "脆弱性",
-    icon: GppMaybeIcon,
-    tone: "red",
-  },
-  {
-    label: "EOL",
-    icon: EventNoteIcon,
-    tone: "amber",
-  },
-  {
-    label: "TODO",
-    icon: ChecklistIcon,
-    tone: "violet",
-  },
-];
-
-const teamItems = [
-  { name: "Security Team", current: true },
-  { name: "Platform Team" },
-  { name: "Product Team" },
-  { name: "Backend Team" },
-  { name: "Frontend Team" },
-  { name: "SRE Team" },
-  { name: "Incident Response Team" },
-  { name: "Cloud Infrastructure Team" },
-  { name: "Identity Access Team" },
-  { name: "Compliance Team" },
-  { name: "DevSecOps Team" },
-  { name: "Data Protection Team" },
-  { name: "Mobile App Team" },
-  { name: "Partner Integration Team" },
-];
-
-const currentTeam = teamItems.find((item) => item.current);
-
-// ---------------------------------------------------------------------------
-// Hooks
-// ---------------------------------------------------------------------------
-
 function useMenu() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -260,10 +191,6 @@ function useMenu() {
 
   return { anchorEl, close, toggle, isOpen };
 }
-
-// ---------------------------------------------------------------------------
-// Primitives
-// ---------------------------------------------------------------------------
 
 function IconRenderer({ icon: Icon, size = 18 }) {
   return <Icon aria-hidden="true" sx={{ fontSize: size }} />;
@@ -306,10 +233,10 @@ function MenuTriggerButton({ active, ariaLabel, children, onClick, sx }) {
   );
 }
 
-function CurrentChip({ sx }) {
+function CurrentChip({ label, sx }) {
   return (
     <Chip
-      label="現在"
+      label={label}
       size="small"
       sx={{
         ...currentChipSx,
@@ -321,10 +248,6 @@ function CurrentChip({ sx }) {
     />
   );
 }
-
-// ---------------------------------------------------------------------------
-// Logo
-// ---------------------------------------------------------------------------
 
 function MarkLogo({ size = 32, framed = true }) {
   const markGeometry = framed
@@ -414,7 +337,7 @@ function WordmarkLogo() {
           fontSize: 16,
           fontWeight: 700,
           color: colors.ink900,
-          letterSpacing: "-0.01em",
+          letterSpacing: 0,
           lineHeight: 1,
           userSelect: "none",
         }}
@@ -425,9 +348,30 @@ function WordmarkLogo() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Menu Shell & Header (shared by all menus)
-// ---------------------------------------------------------------------------
+function TopbarLogoLink({ ariaLabel, onClick }) {
+  return (
+    <Box
+      component="a"
+      href="/"
+      aria-label={ariaLabel}
+      onClick={onClick}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        height: 40,
+        flexShrink: 0,
+        textDecoration: "none",
+      }}
+    >
+      <Box sx={{ display: { xs: "block", sm: "none" }, lineHeight: 0 }}>
+        <MarkLogo size={38} framed={false} />
+      </Box>
+      <Box sx={{ display: { xs: "none", sm: "block" } }}>
+        <WordmarkLogo />
+      </Box>
+    </Box>
+  );
+}
 
 function MenuShell({ anchorEl, ariaLabel, children, open, onClose, width }) {
   return (
@@ -466,11 +410,7 @@ function MenuHeader({ title, detail }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page Menu
-// ---------------------------------------------------------------------------
-
-function PageMenuItem({ current, item, onSelect }) {
+function PageMenuItem({ current, item, labels, onSelect }) {
   return (
     <MenuItem
       selected={current}
@@ -497,43 +437,45 @@ function PageMenuItem({ current, item, onSelect }) {
           <Typography sx={{ color: colors.ink900, fontSize: 14, fontWeight: 600 }}>
             {item.label}
           </Typography>
-          {current ? <CurrentChip sx={{ bgcolor: "#fff" }} /> : null}
+          {current ? <CurrentChip label={labels.current} sx={{ bgcolor: "#fff" }} /> : null}
         </Stack>
       </Box>
     </MenuItem>
   );
 }
 
-function PageMenu({ anchorEl, currentPage, open, onClose, onSelectPage }) {
+function PageMenu({ anchorEl, currentPage, labels, open, onClose, onSelectPage, pageItems }) {
+  const selectPage = (item) => {
+    onSelectPage(item);
+    onClose();
+  };
+
   return (
     <MenuShell
       anchorEl={anchorEl}
-      ariaLabel="ページ切替"
+      ariaLabel={labels.pageSwitch}
       open={open}
       onClose={onClose}
       width={menuWidths.page}
     >
-      <MenuHeader title="ページ切替" />
+      <MenuHeader title={labels.pageSwitch} />
       {pageItems.map((item) => (
         <PageMenuItem
-          key={item.label}
-          current={item.label === currentPage.label}
+          key={item.id}
+          current={item.id === currentPage.id}
           item={item}
-          onSelect={onSelectPage}
+          labels={labels}
+          onSelect={selectPage}
         />
       ))}
     </MenuShell>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Team Menu
-// ---------------------------------------------------------------------------
-
-function TeamMenuItem({ item, onClose }) {
+function TeamMenuItem({ item, onSelectTeam }) {
   return (
     <MenuItem
-      onClick={onClose}
+      onClick={() => onSelectTeam(item.id)}
       sx={{
         ...compactMenuItemSx,
         justifyContent: "space-between",
@@ -557,36 +499,60 @@ function TeamMenuItem({ item, onClose }) {
   );
 }
 
-function TeamMenuList({ onClose }) {
+function TeamMenuList({ labels, onCreateTeam, onSelectTeam, teamItems }) {
+  const selectTeam = (teamId) => {
+    onSelectTeam(teamId);
+  };
+
   return (
-    <Box sx={teamMenuListSx}>
-      {teamItems.map((item) => (
-        <TeamMenuItem key={item.name} item={item} onClose={onClose} />
-      ))}
-    </Box>
+    <>
+      <Box sx={teamMenuListSx}>
+        {teamItems.map((item) => (
+          <TeamMenuItem key={item.id} item={item} onSelectTeam={selectTeam} />
+        ))}
+      </Box>
+      <Divider sx={{ my: 0.75 }} />
+      <MenuItem onClick={onCreateTeam} sx={compactMenuItemSx}>
+        <ListItemIcon>
+          <AddIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>{labels.createTeam}</ListItemText>
+      </MenuItem>
+    </>
   );
 }
 
-function TeamMenu({ anchorEl, open, onClose }) {
+function TeamMenu({ anchorEl, labels, open, onClose, onCreateTeam, onSelectTeam, teamItems }) {
+  const closeAfterCreateTeam = () => {
+    onCreateTeam();
+    onClose();
+  };
+
+  const closeAfterSelectTeam = (teamId) => {
+    onSelectTeam(teamId);
+    onClose();
+  };
+
   return (
     <MenuShell
       anchorEl={anchorEl}
-      ariaLabel="チーム選択"
+      ariaLabel={labels.teamSelect}
       open={open}
       onClose={onClose}
       width={menuWidths.default}
     >
-      <MenuHeader title="チーム選択" />
-      <TeamMenuList onClose={onClose} />
+      <MenuHeader title={labels.teamSelect} />
+      <TeamMenuList
+        labels={labels}
+        onCreateTeam={closeAfterCreateTeam}
+        onSelectTeam={closeAfterSelectTeam}
+        teamItems={teamItems}
+      />
     </MenuShell>
   );
 }
 
-// ---------------------------------------------------------------------------
-// User Menu (mimics the existing UserMenu component)
-// ---------------------------------------------------------------------------
-
-function UserMenu({ anchorEl, open, onClose }) {
+function UserMenu({ anchorEl, labels, open, onClose, onLogout, onOpenAccountSettings }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const mobileSlotProps = isMobile
@@ -601,6 +567,16 @@ function UserMenu({ anchorEl, open, onClose }) {
         },
       }
     : undefined;
+
+  const handleAccountSettings = () => {
+    onOpenAccountSettings();
+    onClose();
+  };
+
+  const handleLogout = () => {
+    onLogout();
+    onClose();
+  };
 
   return (
     <Menu
@@ -617,67 +593,33 @@ function UserMenu({ anchorEl, open, onClose }) {
       }}
       slotProps={mobileSlotProps}
     >
-      {isMobile ? (
-        <>
-          <MenuHeader title="チーム選択" detail="現在のチームを切り替え" />
-          <TeamMenuList onClose={onClose} />
-          <Divider sx={{ my: 0.75 }} />
-        </>
-      ) : null}
-      <MenuItem onClick={onClose} sx={isMobile ? compactMenuItemSx : undefined}>
+      <MenuItem onClick={handleAccountSettings} sx={isMobile ? compactMenuItemSx : undefined}>
         <ListItemIcon>
           <SettingsIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>設定</ListItemText>
+        <ListItemText>{labels.settings}</ListItemText>
       </MenuItem>
       <Divider sx={isMobile ? { my: 0.75 } : undefined} />
-      <MenuItem onClick={onClose} sx={isMobile ? compactMenuItemSx : undefined}>
+      <MenuItem onClick={handleLogout} sx={isMobile ? compactMenuItemSx : undefined}>
         <ListItemIcon>
           <LogoutIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>ログアウト</ListItemText>
+        <ListItemText>{labels.logout}</ListItemText>
       </MenuItem>
     </Menu>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Topbar Buttons
-// ---------------------------------------------------------------------------
-
-function TopbarLogoLink() {
-  return (
-    <Box
-      component="a"
-      href="#"
-      aria-label="Threatconnectome home"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        height: 40,
-        flexShrink: 0,
-        textDecoration: "none",
-      }}
-    >
-      <Box sx={{ display: { xs: "block", sm: "none" }, lineHeight: 0 }}>
-        <MarkLogo size={38} framed={false} />
-      </Box>
-      <Box sx={{ display: { xs: "none", sm: "block" } }}>
-        <WordmarkLogo />
-      </Box>
-    </Box>
-  );
-}
-
-function PageMenuButton({ active, currentPage, onClick }) {
+function PageMenuButton({ active, currentPage, labels, onClick }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const compactLabel = currentPage.shortLabel ?? currentPage.label;
 
   if (isMobile) {
     return (
       <MenuTriggerButton
         active={active}
-        ariaLabel="ページメニュー"
+        ariaLabel={labels.pageMenu}
         onClick={onClick}
         sx={compactTopbarButtonSx}
       >
@@ -695,11 +637,12 @@ function PageMenuButton({ active, currentPage, onClick }) {
   return (
     <MenuTriggerButton
       active={active}
-      ariaLabel="ページメニュー"
+      ariaLabel={labels.pageMenu}
       onClick={onClick}
       sx={{
         ...responsiveTopbarButtonSx,
-        maxWidth: { sm: 220 },
+        maxWidth: { sm: 168, md: 220 },
+        minWidth: 0,
         gap: 0.5,
       }}
     >
@@ -713,11 +656,29 @@ function PageMenuButton({ active, currentPage, onClick }) {
         />
         <Typography
           noWrap
-          sx={{ display: { xs: "none", sm: "block" }, fontSize: 14, fontWeight: 600 }}
+          sx={{
+            display: { xs: "none", sm: "block", md: "none" },
+            minWidth: 0,
+            fontSize: 14,
+            fontWeight: 600,
+            ...ellipsisTextSx,
+          }}
+        >
+          {compactLabel}
+        </Typography>
+        <Typography
+          noWrap
+          sx={{
+            display: { xs: "none", md: "block" },
+            minWidth: 0,
+            fontSize: 14,
+            fontWeight: 600,
+            ...ellipsisTextSx,
+          }}
         >
           {currentPage.label}
         </Typography>
-        <Box sx={{ color: colors.ink400 }}>
+        <Box sx={{ color: colors.ink400, flexShrink: 0 }}>
           <IconRenderer icon={ExpandMoreIcon} size={16} />
         </Box>
       </Stack>
@@ -725,11 +686,11 @@ function PageMenuButton({ active, currentPage, onClick }) {
   );
 }
 
-function TeamMenuButton({ active, onClick }) {
+function TeamMenuButton({ active, currentTeam, labels, onClick }) {
   return (
     <MenuTriggerButton
       active={active}
-      ariaLabel="チームメニュー"
+      ariaLabel={labels.teamMenu}
       onClick={onClick}
       sx={responsiveTopbarButtonSx}
     >
@@ -744,7 +705,7 @@ function TeamMenuButton({ active, onClick }) {
             fontWeight: 600,
           }}
         >
-          {currentTeam.name}
+          {currentTeam?.name ?? labels.noTeam}
         </Typography>
         <Box sx={{ display: { xs: "none", sm: "flex" }, color: colors.ink400 }}>
           <IconRenderer icon={ExpandMoreIcon} size={16} />
@@ -754,7 +715,7 @@ function TeamMenuButton({ active, onClick }) {
   );
 }
 
-function UserMenuButton({ active, onClick }) {
+function UserMenuButton({ active, labels, onClick, userEmail }) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const userIcon = <IconRenderer icon={AccountCircleIcon} size={22} />;
@@ -762,7 +723,7 @@ function UserMenuButton({ active, onClick }) {
   if (isDesktop) {
     return (
       <Button
-        aria-label="user menu"
+        aria-label={labels.userMenu}
         aria-haspopup="menu"
         aria-expanded={active}
         onClick={onClick}
@@ -770,7 +731,7 @@ function UserMenuButton({ active, onClick }) {
         sx={{ maxWidth: 400 }}
       >
         <Typography variant="button" sx={ellipsisTextSx}>
-          {user.email}
+          {userEmail}
         </Typography>
       </Button>
     );
@@ -779,7 +740,7 @@ function UserMenuButton({ active, onClick }) {
   return (
     <MenuTriggerButton
       active={active}
-      ariaLabel="user menu"
+      ariaLabel={labels.userMenu}
       onClick={onClick}
       sx={compactTopbarButtonSx}
     >
@@ -788,18 +749,26 @@ function UserMenuButton({ active, onClick }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-function ThreatconnectomeTopbarMuiStory() {
+export function TopbarView({
+  currentPage,
+  currentTeam,
+  labels,
+  languageSwitcher,
+  loading,
+  onCreateTeam,
+  onLogout,
+  onOpenAccountSettings,
+  onSelectHome,
+  onSelectPage,
+  onSelectTeam,
+  pageItems,
+  teamItems,
+  userEmail,
+}) {
   const { anchorEl, close, toggle, isOpen } = useMenu();
-  const [currentPage, setCurrentPage] = useState(pageItems[0]);
-
-  const selectPage = (item) => {
-    setCurrentPage(item);
-    close();
-  };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#fff", color: colors.ink900 }}>
+    <>
       <AppBar
         position="sticky"
         elevation={0}
@@ -819,7 +788,7 @@ function ThreatconnectomeTopbarMuiStory() {
             gap: { sm: 3 },
             alignItems: "center",
             display: { xs: "grid", sm: "flex" },
-            gridTemplateColumns: { xs: "40px 1fr 48px", sm: "none" },
+            gridTemplateColumns: { xs: "40px 40px 1fr 40px 40px", sm: "none" },
           }}
         >
           <Stack
@@ -833,7 +802,7 @@ function ThreatconnectomeTopbarMuiStory() {
               height: "100%",
             }}
           >
-            <TopbarLogoLink />
+            <TopbarLogoLink ariaLabel={labels.homeAriaLabel} onClick={onSelectHome} />
             <Box
               sx={{
                 display: { xs: "none", sm: "block" },
@@ -846,6 +815,7 @@ function ThreatconnectomeTopbarMuiStory() {
             <PageMenuButton
               active={isOpen("page")}
               currentPage={currentPage}
+              labels={labels}
               onClick={toggle("page")}
             />
           </Stack>
@@ -854,12 +824,22 @@ function ThreatconnectomeTopbarMuiStory() {
             <PageMenuButton
               active={isOpen("page")}
               currentPage={currentPage}
+              labels={labels}
               onClick={toggle("page")}
             />
           </Box>
 
+          <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "start" }}>
+            <TeamMenuButton
+              active={isOpen("team")}
+              currentTeam={currentTeam}
+              labels={labels}
+              onClick={toggle("team")}
+            />
+          </Box>
+
           <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "center" }}>
-            <TopbarLogoLink />
+            <TopbarLogoLink ariaLabel={labels.homeAriaLabel} onClick={onSelectHome} />
           </Box>
 
           <Stack
@@ -872,12 +852,32 @@ function ThreatconnectomeTopbarMuiStory() {
               height: "100%",
             }}
           >
-            <TeamMenuButton active={isOpen("team")} onClick={toggle("team")} />
-            <UserMenuButton active={isOpen("user")} onClick={toggle("user")} />
+            <TeamMenuButton
+              active={isOpen("team")}
+              currentTeam={currentTeam}
+              labels={labels}
+              onClick={toggle("team")}
+            />
+            {languageSwitcher}
+            <UserMenuButton
+              active={isOpen("user")}
+              labels={labels}
+              onClick={toggle("user")}
+              userEmail={loading ? labels.loadingUserInfo : userEmail}
+            />
           </Stack>
 
           <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "end" }}>
-            <UserMenuButton active={isOpen("user")} onClick={toggle("user")} />
+            {languageSwitcher}
+          </Box>
+
+          <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "end" }}>
+            <UserMenuButton
+              active={isOpen("user")}
+              labels={labels}
+              onClick={toggle("user")}
+              userEmail={loading ? labels.loadingUserInfo : userEmail}
+            />
           </Box>
         </Toolbar>
       </AppBar>
@@ -885,30 +885,82 @@ function ThreatconnectomeTopbarMuiStory() {
       <PageMenu
         anchorEl={anchorEl}
         currentPage={currentPage}
+        labels={labels}
         open={isOpen("page")}
         onClose={close}
-        onSelectPage={selectPage}
+        onSelectPage={onSelectPage}
+        pageItems={pageItems}
       />
-      <TeamMenu anchorEl={anchorEl} open={isOpen("team")} onClose={close} />
-      <UserMenu anchorEl={anchorEl} open={isOpen("user")} onClose={close} />
-    </Box>
+      <TeamMenu
+        anchorEl={anchorEl}
+        labels={labels}
+        open={isOpen("team")}
+        onClose={close}
+        onCreateTeam={onCreateTeam}
+        onSelectTeam={onSelectTeam}
+        teamItems={teamItems}
+      />
+      <UserMenu
+        anchorEl={anchorEl}
+        labels={labels}
+        open={isOpen("user")}
+        onClose={close}
+        onLogout={onLogout}
+        onOpenAccountSettings={onOpenAccountSettings}
+      />
+    </>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Storybook Meta
-// ---------------------------------------------------------------------------
+const pageItemType = PropTypes.shape({
+  icon: PropTypes.elementType.isRequired,
+  id: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  shortLabel: PropTypes.string,
+  tone: PropTypes.string.isRequired,
+});
 
-const meta = {
-  title: "Threatconnectome/Topbar MUI",
-  component: ThreatconnectomeTopbarMuiStory,
-  parameters: {
-    layout: "fullscreen",
-  },
+const teamItemType = PropTypes.shape({
+  current: PropTypes.bool,
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+});
+
+const labelsType = PropTypes.shape({
+  createTeam: PropTypes.string.isRequired,
+  current: PropTypes.string.isRequired,
+  currentTeamDetail: PropTypes.string.isRequired,
+  homeAriaLabel: PropTypes.string.isRequired,
+  loadingUserInfo: PropTypes.string.isRequired,
+  logout: PropTypes.string.isRequired,
+  noTeam: PropTypes.string.isRequired,
+  pageMenu: PropTypes.string.isRequired,
+  pageSwitch: PropTypes.string.isRequired,
+  settings: PropTypes.string.isRequired,
+  teamMenu: PropTypes.string.isRequired,
+  teamSelect: PropTypes.string.isRequired,
+  userMenu: PropTypes.string.isRequired,
+});
+
+TopbarView.propTypes = {
+  currentPage: pageItemType.isRequired,
+  currentTeam: teamItemType,
+  labels: labelsType.isRequired,
+  languageSwitcher: PropTypes.node.isRequired,
+  loading: PropTypes.bool,
+  onCreateTeam: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  onOpenAccountSettings: PropTypes.func.isRequired,
+  onSelectHome: PropTypes.func.isRequired,
+  onSelectPage: PropTypes.func.isRequired,
+  onSelectTeam: PropTypes.func.isRequired,
+  pageItems: PropTypes.arrayOf(pageItemType).isRequired,
+  teamItems: PropTypes.arrayOf(teamItemType).isRequired,
+  userEmail: PropTypes.string,
 };
 
-export default meta;
-
-export const Default = {
-  render: () => <ThreatconnectomeTopbarMuiStory />,
+TopbarView.defaultProps = {
+  currentTeam: null,
+  loading: false,
+  userEmail: "",
 };

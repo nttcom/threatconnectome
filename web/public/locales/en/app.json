@@ -21,6 +21,29 @@
     "loadingUserInfo": "Now loading UserInfo...",
     "createTeam": "Create Team"
   },
+  "Topbar": {
+    "pages": {
+      "sbomManagement": "SBOM Management",
+      "sbomShort": "SBOM",
+      "teamManagement": "Team Management",
+      "vulnerabilities": "Vulnerabilities",
+      "eol": "EOL",
+      "todo": "ToDo"
+    },
+    "current": "Current",
+    "currentTeamDetail": "Switch the current team",
+    "createTeam": "Create Team",
+    "homeAriaLabel": "Threatconnectome home",
+    "loadingUserInfo": "Now loading UserInfo...",
+    "logout": "Logout",
+    "noTeam": "No team",
+    "pageMenu": "Page menu",
+    "pageSwitch": "Switch page",
+    "settings": "Settings",
+    "teamMenu": "Team menu",
+    "teamSelect": "Select team",
+    "userMenu": "User menu"
+  },
   "PTeamCreateModal": {
     "title": "Create Team",
     "teamName": "Team name",

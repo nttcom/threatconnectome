@@ -41,13 +41,16 @@
     "SUPABASE",
     "Swipeable",
     "Threatconnectome",
+    "Topbar",
+    "topbar",
     "Videogame",
     "vulns",
     "Vulns",
     "VULNS",
     "weaponization",
     "Lngs",
-    "Unscored"
+    "Unscored",
+    "Wordmark"
   ],
   "ignoreWords": [],
   "ignorePaths": [
