@@ -113,12 +113,11 @@ def test_show_package_page(page: Page):
     page.locator("#team-selector-button").click()
     page.get_by_role("menuitem", name=str(PTEAM1["pteam_name"])).click()
     # status page
-    status_row_titile1 = f"{PACKAGE1['package_name']}:{PACKAGE1['ecosystem']}"
-    expect(page.get_by_role("heading", name=status_row_titile1)).to_have_text(status_row_titile1)
-    expect(page.get_by_role("rowheader", name=status_row_titile1)).to_have_text(
-        re.compile(status_row_titile1)
-    )
-    page.get_by_role("rowheader", name=status_row_titile1).click()
+    package_row = page.get_by_role("button").filter(has_text=str(PACKAGE1["package_name"]))
+    expect(package_row).to_be_visible()
+    page.get_by_placeholder("Search by Package").fill(str(PACKAGE1["package_name"]))
+    expect(package_row).to_be_visible()
+    package_row.click()
 
     # tag page
     package_title1 = PACKAGE1["package_name"]
