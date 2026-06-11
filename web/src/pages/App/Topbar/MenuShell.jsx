@@ -10,7 +10,7 @@ export function MenuShell({ anchorEl, ariaLabel, children, open, onClose, width 
       onClose={onClose}
       slotProps={{
         list: { "aria-label": ariaLabel, sx: { p: 0.75 } },
-        paper: { sx: { ...menuPaperSx, width, maxWidth: width.sm } },
+        paper: { sx: { ...menuPaperSx, width, maxWidth: width } },
       }}
     >
       {children}
