@@ -10,6 +10,7 @@ export const pageItemType = PropTypes.shape({
 
 export const teamItemType = PropTypes.shape({
   current: PropTypes.bool,
+  detail: PropTypes.string,
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
 });
