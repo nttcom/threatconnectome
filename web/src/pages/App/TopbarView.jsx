@@ -715,27 +715,8 @@ function TeamMenuButton({ active, currentTeam, labels, onClick }) {
   );
 }
 
-function UserMenuButton({ active, labels, onClick, userEmail }) {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+function UserMenuButton({ active, labels, onClick }) {
   const userIcon = <IconRenderer icon={AccountCircleIcon} size={22} />;
-
-  if (isDesktop) {
-    return (
-      <Button
-        aria-label={labels.userMenu}
-        aria-haspopup="menu"
-        aria-expanded={active}
-        onClick={onClick}
-        startIcon={<AccountCircleIcon />}
-        sx={{ maxWidth: 400 }}
-      >
-        <Typography variant="button" sx={ellipsisTextSx}>
-          {userEmail}
-        </Typography>
-      </Button>
-    );
-  }
 
   return (
     <MenuTriggerButton
@@ -754,7 +735,6 @@ export function TopbarView({
   currentTeam,
   labels,
   languageSwitcher,
-  loading,
   onCreateTeam,
   onLogout,
   onOpenAccountSettings,
@@ -763,7 +743,6 @@ export function TopbarView({
   onSelectTeam,
   pageItems,
   teamItems,
-  userEmail,
 }) {
   const { anchorEl, close, toggle, isOpen } = useMenu();
 
@@ -859,12 +838,7 @@ export function TopbarView({
               onClick={toggle("team")}
             />
             {languageSwitcher}
-            <UserMenuButton
-              active={isOpen("user")}
-              labels={labels}
-              onClick={toggle("user")}
-              userEmail={loading ? labels.loadingUserInfo : userEmail}
-            />
+            <UserMenuButton active={isOpen("user")} labels={labels} onClick={toggle("user")} />
           </Stack>
 
           <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "end" }}>
@@ -872,12 +846,7 @@ export function TopbarView({
           </Box>
 
           <Box sx={{ display: { xs: "flex", sm: "none" }, justifySelf: "end" }}>
-            <UserMenuButton
-              active={isOpen("user")}
-              labels={labels}
-              onClick={toggle("user")}
-              userEmail={loading ? labels.loadingUserInfo : userEmail}
-            />
+            <UserMenuButton active={isOpen("user")} labels={labels} onClick={toggle("user")} />
           </Box>
         </Toolbar>
       </AppBar>
@@ -931,7 +900,6 @@ const labelsType = PropTypes.shape({
   current: PropTypes.string.isRequired,
   currentTeamDetail: PropTypes.string.isRequired,
   homeAriaLabel: PropTypes.string.isRequired,
-  loadingUserInfo: PropTypes.string.isRequired,
   logout: PropTypes.string.isRequired,
   noTeam: PropTypes.string.isRequired,
   pageMenu: PropTypes.string.isRequired,
@@ -947,7 +915,6 @@ TopbarView.propTypes = {
   currentTeam: teamItemType,
   labels: labelsType.isRequired,
   languageSwitcher: PropTypes.node.isRequired,
-  loading: PropTypes.bool,
   onCreateTeam: PropTypes.func.isRequired,
   onLogout: PropTypes.func.isRequired,
   onOpenAccountSettings: PropTypes.func.isRequired,
@@ -956,11 +923,8 @@ TopbarView.propTypes = {
   onSelectTeam: PropTypes.func.isRequired,
   pageItems: PropTypes.arrayOf(pageItemType).isRequired,
   teamItems: PropTypes.arrayOf(teamItemType).isRequired,
-  userEmail: PropTypes.string,
 };
 
 TopbarView.defaultProps = {
   currentTeam: null,
-  loading: false,
-  userEmail: "",
 };

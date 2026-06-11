@@ -15,7 +15,6 @@ export function Topbar() {
     currentTeamDetail: t("currentTeamDetail"),
     createTeam: t("createTeam"),
     homeAriaLabel: t("homeAriaLabel"),
-    loadingUserInfo: t("loadingUserInfo"),
     logout: t("logout"),
     noTeam: t("noTeam"),
     pageMenu: t("pageMenu"),
@@ -35,7 +34,6 @@ export function Topbar() {
         currentTeam={topbar.currentTeam}
         labels={topbar.labels}
         languageSwitcher={<LanguageSwitcher />}
-        loading={topbar.loading}
         onCreateTeam={topbar.onCreateTeam}
         onLogout={topbar.onLogout}
         onOpenAccountSettings={topbar.onOpenAccountSettings}
@@ -44,7 +42,6 @@ export function Topbar() {
         onSelectTeam={topbar.onSelectTeam}
         pageItems={topbar.pageItems}
         teamItems={topbar.teamItems}
-        userEmail={topbar.userMe?.email}
       />
       {topbar.userMe ? (
         <AccountSettings

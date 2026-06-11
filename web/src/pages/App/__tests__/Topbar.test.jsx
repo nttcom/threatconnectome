@@ -128,6 +128,7 @@ describe("Topbar", () => {
     expect(screen.getAllByRole("button", { name: "Team menu" })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "User menu" })[0]).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "en" })[0]).toBeInTheDocument();
+    expect(screen.queryByText(mockUserMe.email)).not.toBeInTheDocument();
   });
 
   it("navigates from the page menu while preserving shared query params", async () => {

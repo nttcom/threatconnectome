@@ -35,7 +35,6 @@ const labels = {
   current: "Current",
   currentTeamDetail: "Switch the current team",
   homeAriaLabel: "Threatconnectome home",
-  loadingUserInfo: "Loading user info...",
   logout: "Logout",
   noTeam: "No team",
   pageMenu: "Page menu",
@@ -61,7 +60,6 @@ function ThreatconnectomeTopbarMuiStory() {
       onSelectTeam={() => undefined}
       pageItems={pageItems}
       teamItems={teamItems}
-      userEmail="admin@threatconnectome.example"
     />
   );
 }
