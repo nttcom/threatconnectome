@@ -1,7 +1,7 @@
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { buildTopbarPageItems } from "../../utils/App/topbarNavigation";
 
 import { TopbarView } from "./TopbarView";
-import { buildTopbarPageItems } from "./topbarNavigation";
 
 const fixtureTranslations = {
   "pages.sbomManagement": "SBOM Management",

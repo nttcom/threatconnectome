@@ -2,14 +2,13 @@ import { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useAuth, useSkipUntilAuthUserIsReady } from "../../hooks/auth";
+import { useAuth, useSkipUntilAuthUserIsReady } from "../auth";
 import { tcApi, useGetUserMeQuery } from "../../services/tcApi";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
 import { APIError } from "../../utils/APIError";
+import { buildTopbarPageUrl, getCurrentTopbarPage } from "../../utils/App/topbarNavigation";
 import { errorToString } from "../../utils/func";
 import { preserveMyTasksParam } from "../../utils/urlUtils";
-
-import { buildTopbarPageUrl, getCurrentTopbarPage } from "./topbarNavigation";
 
 function buildTeamItems(userMe, currentTeamId) {
   return [...(userMe?.pteam_roles ?? [])]

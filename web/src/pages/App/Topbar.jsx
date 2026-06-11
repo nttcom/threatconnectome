@@ -5,8 +5,8 @@ import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { PTeamCreateModal } from "./PTeamCreateModal";
 import { TopbarView } from "./TopbarView";
 import { AccountSettings } from "./UserMenu/AccountSettings";
-import { buildTopbarPageItems } from "./topbarNavigation";
-import { useTopbarModel } from "./useTopbarModel";
+import { useTopbarModel } from "../../hooks/App/useTopbarModel";
+import { buildTopbarPageItems } from "../../utils/App/topbarNavigation";
 
 export function Topbar() {
   const { t } = useTranslation("app", { keyPrefix: "Topbar" });

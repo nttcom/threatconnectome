@@ -4,8 +4,8 @@ import GppMaybeIcon from "@mui/icons-material/GppMaybe";
 import GroupIcon from "@mui/icons-material/Group";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 
-import { LocationReader } from "../../utils/LocationReader";
-import { preserveParams } from "../../utils/urlUtils";
+import { LocationReader } from "../LocationReader";
+import { preserveParams } from "../urlUtils";
 
 export const topbarPageDefinitions = [
   {
