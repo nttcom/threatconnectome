@@ -21,6 +21,28 @@
     "loadingUserInfo": "ユーザー情報を読み込んでいます...",
     "createTeam": "チームを作成"
   },
+  "Topbar": {
+    "pages": {
+      "sbomManagement": "SBOM管理",
+      "sbomShort": "SBOM",
+      "teamManagement": "チーム管理",
+      "vulnerabilities": "脆弱性",
+      "eol": "EOL",
+      "todo": "ToDo"
+    },
+    "current": "現在",
+    "currentTeamDetail": "現在のチームを切り替え",
+    "createTeam": "チームを作成",
+    "homeAriaLabel": "Threatconnectome ホーム",
+    "logout": "ログアウト",
+    "noTeam": "チームなし",
+    "pageMenu": "ページメニュー",
+    "pageSwitch": "ページ切替",
+    "settings": "設定",
+    "teamMenu": "チームメニュー",
+    "teamSelect": "チーム選択",
+    "userMenu": "ユーザーメニュー"
+  },
   "PTeamCreateModal": {
     "title": "チームを作成",
     "teamName": "チーム名",
