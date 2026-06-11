@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
 
-import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import { LanguageSwitcher } from "../../../components/LanguageSwitcher";
+import { useTopbarModel } from "../../../hooks/App/useTopbarModel";
+import { buildTopbarPageItems } from "../../../utils/App/topbarNavigation";
 
-import { PTeamCreateModal } from "./PTeamCreateModal";
 import { TopbarView } from "./TopbarView";
-import { AccountSettings } from "./UserMenu/AccountSettings";
-import { useTopbarModel } from "../../hooks/App/useTopbarModel";
-import { buildTopbarPageItems } from "../../utils/App/topbarNavigation";
+import { PTeamCreateModal } from "../PTeamCreateModal";
+import { AccountSettings } from "../UserMenu/AccountSettings";
 
 export function Topbar() {
   const { t } = useTranslation("app", { keyPrefix: "Topbar" });

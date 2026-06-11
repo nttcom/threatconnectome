@@ -1,5 +1,5 @@
-import { LanguageSwitcher } from "../../components/LanguageSwitcher";
-import { buildTopbarPageItems } from "../../utils/App/topbarNavigation";
+import { LanguageSwitcher } from "../../../components/LanguageSwitcher";
+import { buildTopbarPageItems } from "../../../utils/App/topbarNavigation";
 
 import { TopbarView } from "./TopbarView";
 
