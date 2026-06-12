@@ -99,8 +99,14 @@ Choose commands based on the files and behavior changed:
 
 - Related tests only, unless the change is broad or high risk:
 
+  Before running API tests:
+
+  - Run Docker Compose commands from the repository root.
+  - If `docker-compose-firebase-local.yml` is running, stop it first to avoid port conflicts.
+  - Ensure `docker-compose-firebase-test.yml` is running
+    (start it if not running; do NOT restart if already running).
+
   ```bash
-  # Run from the repository root.
   docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv <related test files or directories>
   ```
 
@@ -120,21 +126,35 @@ If any of the following change:
 
 #### How to regenerate
 
-- Ensure `docker-compose-firebase-local.yml` is running  
-  (start it if not running; do NOT restart if already running)
+- Run Docker Compose commands from the repository root.
 
-- Wait for API to be fully running:
+- If `docker-compose-firebase-test.yml` is running, stop it first to avoid port conflicts.
+
+- Ensure `docker-compose-firebase-local.yml` is running
+  (start it if not running; do NOT restart services other than `api` if already running).
+
+- Always restart the `api` service before fetching OpenAPI, so generated files reflect the latest source code:
 
   ```bash
-  docker compose -f docker-compose-firebase-local.yml logs api | grep -q "Application startup complete"
+  docker compose -f docker-compose-firebase-test.yml stop
+  docker compose -f docker-compose-firebase-local.yml up -d
+  docker compose -f docker-compose-firebase-local.yml restart api
   ```
 
-- Under this common condition (API running), always run:
+- Wait for the current API process to be reachable. Do not rely only on old `Application startup complete` logs:
+
+  ```bash
+  curl --fail --silent --show-error --output /tmp/openapi-check.json http://localhost/api/internal-api/openapi.json
+  ```
+
+- Then always run:
 
 ```bash
 cd web
 npm run openapi:update
 ```
+
+- After regeneration, verify `web/openapi.json` and `web/types` reflect the intended API schema changes.
 
 ### Python Test Standards
 
