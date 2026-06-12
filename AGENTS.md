@@ -51,25 +51,24 @@ Reference URLs:
 - **Avoid ambiguous descriptions**: Vague wording causes inconsistent agent behavior. Write instructions that have only one reasonable interpretation.
 - **Avoid excessive detail**: Overly granular rules are hard to maintain. Focus on principles and key constraints rather than exhaustive step-by-step procedures.
 
+### Command Safety Policy
+
+Commands are subject to the execution environment's approval rules.
+Within those limits, treat these as normal project operations:
+
+- Read-only inspection
+- Repository-local file changes
+- Project-local format, lint, validation, and test commands
+- Starting or stopping Docker Compose services defined in this repository
+
+Do not affect external systems, global configuration, or data outside this repository without explicit approval.
+
 ---
 
 ## api — Rules for changes under `./api`
 
 This block applies to all changes under `./api`.
 Always operate from the repository root.
-
-### Command Safety Policy
-
-The agent may run the following commands without confirmation:
-
-- Read-only commands (e.g. grep, rg, cat, ls)
-- Commands that modify files within this repository only
-- Commands that start or stop local Docker containers defined in this repository
-- Test execution commands (e.g. pytest)
-
-Before running commands that affect anything outside the repository
-(e.g. global installs, system changes, external services, data deletion),
-the agent MUST ask for user confirmation.
 
 ### Mandatory Actions (Agent)
 
@@ -82,36 +81,39 @@ If API schemas, models, or data structures change:
 - Find affected tests under `api/app/tests/`
 - Update them to match changed field names, types, and nullability
 
-#### 2. Run Static Checks
+#### 2. Run Targeted Verification
 
-Always execute:
+Run the smallest useful verification for the change before reporting completion.
+Choose commands based on the files and behavior changed:
 
-```bash
-cd api
-uv run --locked black --check --diff ./app
-uv run --locked ruff check ./app
-uv run --locked mypy ./app --show-error-codes --no-error-summary
-uv run --locked codespell ./app
-```
+- Static checks for touched Python modules when practical:
 
-#### 3. Run API Tests
+  ```bash
+  cd api
+  uv run --locked black --check --diff <changed files or ./app>
+  uv run --locked ruff check <changed files or ./app>
+  uv run --locked mypy <changed files or ./app> --show-error-codes --no-error-summary
+  uv run --locked codespell <changed files or ./app>
+  ```
 
-- If `docker-compose-firebase-local.yml` is running, stop it before running the tests
+- Related tests only, unless the change is broad or high risk:
 
-- Ensure `docker-compose-firebase-test.yml` is running  
-  (start it if not running; do NOT restart if already running)
+  Before running API tests:
 
-- Always execute tests:
+  - Run Docker Compose commands from the repository root.
+  - If `docker-compose-firebase-local.yml` is running, stop it first to avoid port conflicts.
+  - Ensure `docker-compose-firebase-test.yml` is running
+    (start it if not running; do NOT restart if already running).
 
-```bash
-docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv app/tests/
-```
+  ```bash
+  docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv <related test files or directories>
+  ```
 
-- Stop the test stack only if you started it
+- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
 
 ### Frontend Type Definitions (`./web/types`) and OpenAPI
 
-The following files are auto-generated and must not be edited manually: `./web/types` and `./openapi.json`.
+The following files are auto-generated and must not be edited manually: `./web/types` and `./web/openapi.json`.
 
 #### When to regenerate
 
@@ -123,21 +125,35 @@ If any of the following change:
 
 #### How to regenerate
 
-- Ensure `docker-compose-firebase-local.yml` is running  
-  (start it if not running; do NOT restart if already running)
+- Run Docker Compose commands from the repository root.
 
-- Wait for API to be fully running:
+- If `docker-compose-firebase-test.yml` is running, stop it first to avoid port conflicts.
+
+- Ensure `docker-compose-firebase-local.yml` is running
+  (start it if not running; do NOT restart services other than `api` if already running).
+
+- Always restart the `api` service before fetching OpenAPI, so generated files reflect the latest source code:
 
   ```bash
-  docker compose -f docker-compose-firebase-local.yml logs api | grep -q "Application startup complete"
+  docker compose -f docker-compose-firebase-test.yml stop
+  docker compose -f docker-compose-firebase-local.yml up -d
+  docker compose -f docker-compose-firebase-local.yml restart api
   ```
 
-- Under this common condition (API running), always run:
+- Wait for the current API process to be reachable. Do not rely only on old `Application startup complete` logs:
 
-```bash
-cd web
-npm run openapi:update
-```
+  ```bash
+  curl --fail --silent --show-error --output /tmp/openapi-check.json http://localhost/api/internal-api/openapi.json
+  ```
+
+- Then always run:
+
+  ```bash
+  cd web
+  npm run openapi:update
+  ```
+
+- After regeneration, verify `web/openapi.json` and `web/types` reflect the intended API schema changes.
 
 ### Python Test Standards
 
@@ -163,32 +179,6 @@ For Python tests under `./api`, follow the Given-When-Then structure where it im
 This block applies to all changes under `./web`.
 Always operate from the repository root.
 
-### Command Safety Policy
-
-The agent may run the following commands **without user confirmation**:
-
-- Read-only commands and inspection tools
-
-- Commands that modify files **only within this repository**
-
-- Project-scoped `npm` commands executed inside this repository
-  for **local formatting, linting, validation, or test execution**, including:
-  - `npm run check`
-  - `npm run test`
-  - `npm test`
-  - `npm run format`
-  - `npm run lint`
-  - `npx vitest`
-  - `npx vitest run`
-
-The agent MUST ask for user confirmation before running commands that:
-
-- affect files or systems outside this repository
-- install, update, or remove global packages
-- change system or environment configuration
-- access external services or networks
-- delete data outside the repository scope
-
 ### Mandatory Actions (Agent)
 
 Whenever code under `./web` is modified, you MUST do the following automatically.
@@ -208,27 +198,26 @@ Test locations:
 Use existing testing tools and patterns already used in the project
 (e.g. React Testing Library, Jest / Vitest).
 
-#### 2. Run Static Checks
+#### 2. Run Targeted Verification
 
-Always execute:
+Run the smallest useful verification for the change before reporting completion.
+Choose commands based on the files and behavior changed:
 
-```bash
-cd ./web
-npm run check
-```
+- Static checks when practical:
 
-This must pass with no errors.
+  ```bash
+  cd ./web
+  npm run check
+  ```
 
-#### 3. Run Web Tests
+- Related tests only, unless the change is broad or high risk:
 
-Always execute:
+  ```bash
+  cd ./web
+  npx vitest run <related test files>
+  ```
 
-```bash
-cd ./web
-npm run test
-```
-
-- All newly added or modified tests must pass
+- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
 
 ### UI and Logic Separation Rule (IMPORTANT)
 
