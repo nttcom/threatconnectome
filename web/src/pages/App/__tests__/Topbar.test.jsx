@@ -131,6 +131,33 @@ describe("Topbar", () => {
     expect(screen.queryByText(mockUserMe.email)).not.toBeInTheDocument();
   });
 
+  it("keeps the topbar available without throwing when user info loading fails", async () => {
+    const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+    vi.mocked(useGetUserMeQuery).mockReturnValue({
+      data: undefined,
+      error: { status: 500 },
+      isLoading: false,
+    });
+
+    renderTopbar();
+
+    expect(screen.queryByText("Something went wrong")).not.toBeInTheDocument();
+    screen.getAllByRole("button", { name: "Team menu" }).forEach((button) => {
+      expect(button).toBeDisabled();
+    });
+
+    await ue.click(screen.getAllByRole("button", { name: "User menu" })[0]);
+
+    expect(screen.getByRole("menuitem", { name: "Settings" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    expect(screen.getByRole("menuitem", { name: "Logout" })).not.toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
   it("navigates from the page menu while preserving shared query params", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const navigate = vi.fn();

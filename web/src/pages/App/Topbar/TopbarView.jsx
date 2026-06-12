@@ -18,6 +18,7 @@ import { colors } from "./topbarStyles";
 export function TopbarView({
   currentPage,
   currentTeam,
+  hasUserMe,
   labels,
   languageSwitcher,
   onCreateTeam,
@@ -98,6 +99,7 @@ export function TopbarView({
             <TeamMenuButton
               active={isOpen("team")}
               currentTeam={currentTeam}
+              disabled={!hasUserMe}
               labels={labels}
               onClick={toggle("team")}
             />
@@ -120,6 +122,7 @@ export function TopbarView({
             <TeamMenuButton
               active={isOpen("team")}
               currentTeam={currentTeam}
+              disabled={!hasUserMe}
               labels={labels}
               onClick={toggle("team")}
             />
@@ -156,6 +159,7 @@ export function TopbarView({
         teamItems={teamItems}
       />
       <UserMenu
+        accountSettingsEnabled={hasUserMe}
         anchorEl={anchorEl}
         labels={labels}
         open={isOpen("user")}
@@ -170,6 +174,7 @@ export function TopbarView({
 TopbarView.propTypes = {
   currentPage: pageItemType.isRequired,
   currentTeam: teamItemType,
+  hasUserMe: PropTypes.bool.isRequired,
   labels: labelsType.isRequired,
   languageSwitcher: PropTypes.node.isRequired,
   onCreateTeam: PropTypes.func.isRequired,

@@ -12,7 +12,15 @@ import {
 
 import { compactMenuItemSx, menuPaperSx, menuWidths } from "./topbarStyles";
 
-export function UserMenu({ anchorEl, labels, open, onClose, onLogout, onOpenAccountSettings }) {
+export function UserMenu({
+  accountSettingsEnabled,
+  anchorEl,
+  labels,
+  open,
+  onClose,
+  onLogout,
+  onOpenAccountSettings,
+}) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const mobileSlotProps = isMobile
@@ -29,7 +37,9 @@ export function UserMenu({ anchorEl, labels, open, onClose, onLogout, onOpenAcco
     : undefined;
 
   const handleAccountSettings = () => {
-    onOpenAccountSettings();
+    if (accountSettingsEnabled) {
+      onOpenAccountSettings();
+    }
     onClose();
   };
 
@@ -53,7 +63,11 @@ export function UserMenu({ anchorEl, labels, open, onClose, onLogout, onOpenAcco
       }}
       slotProps={mobileSlotProps}
     >
-      <MenuItem onClick={handleAccountSettings} sx={isMobile ? compactMenuItemSx : undefined}>
+      <MenuItem
+        disabled={!accountSettingsEnabled}
+        onClick={handleAccountSettings}
+        sx={isMobile ? compactMenuItemSx : undefined}
+      >
         <ListItemIcon>
           <SettingsIcon fontSize="small" />
         </ListItemIcon>

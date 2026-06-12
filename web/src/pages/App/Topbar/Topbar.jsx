@@ -32,6 +32,7 @@ export function Topbar() {
       <TopbarView
         currentPage={topbar.currentPage}
         currentTeam={topbar.currentTeam}
+        hasUserMe={topbar.hasUserMe}
         labels={topbar.labels}
         languageSwitcher={<LanguageSwitcher />}
         onCreateTeam={topbar.onCreateTeam}
