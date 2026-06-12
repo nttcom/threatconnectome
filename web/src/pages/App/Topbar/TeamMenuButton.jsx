@@ -7,11 +7,12 @@ import { IconRenderer } from "./IconRenderer";
 import { MenuTriggerButton } from "./MenuTriggerButton";
 import { colors, responsiveTopbarButtonSx, topbarButtonContentSx } from "./topbarStyles";
 
-export function TeamMenuButton({ active, currentTeam, labels, onClick }) {
+export function TeamMenuButton({ active, currentTeam, disabled, labels, onClick }) {
   return (
     <MenuTriggerButton
       active={active}
       ariaLabel={labels.teamMenu}
+      disabled={disabled}
       onClick={onClick}
       sx={responsiveTopbarButtonSx}
     >

@@ -1,23 +1,21 @@
-import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
 import { mainMaxWidth } from "../../utils/const";
 
-import { AppBar } from "./AppBar";
 import { AppFallback } from "./AppFallback";
-import { Drawer } from "./Drawer";
 import { Main } from "./Main";
 import { OutletWithCheckedParams } from "./OutletWithCheckedParams";
+import { Topbar } from "./Topbar";
 
 export function App() {
   const { t } = useTranslation("app", { keyPrefix: "AppPage" });
-  const system = useSelector((state) => state.system);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -43,16 +41,14 @@ export function App() {
     dispatch(setRedirectedFrom({ from: location.pathname, search: location.search }));
   }, [dispatch, location.pathname, location.search]);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   return (
     <>
       <Box flexGrow={1}>
-        <AppBar />
+        <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>
+          <Topbar />
+        </ErrorBoundary>
       </Box>
-      <Drawer />
-      <Main open={!isMobile && system.drawerOpen}>
+      <Main>
         <Box sx={{ maxWidth: mainMaxWidth, width: "100%" }}>
           <ErrorBoundary FallbackComponent={AppFallback} resetKeys={[location.pathname]}>
             <OutletWithCheckedParams />

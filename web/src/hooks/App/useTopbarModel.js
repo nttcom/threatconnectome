@@ -5,9 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useSkipUntilAuthUserIsReady } from "../auth";
 import { tcApi, useGetUserMeQuery } from "../../services/tcApi";
 import { setAuthUserIsReady, setRedirectedFrom } from "../../slices/auth";
-import { APIError } from "../../utils/APIError";
 import { buildTopbarPageUrl, getCurrentTopbarPage } from "../../utils/App/topbarNavigation";
-import { errorToString } from "../../utils/func";
 import { preserveMyTasksParam } from "../../utils/urlUtils";
 
 function buildTeamItems(userMe, currentTeamId) {
@@ -44,10 +42,7 @@ export function useTopbarModel({ labels, pageItems }) {
     error: userMeError,
     isLoading: userMeIsLoading,
   } = useGetUserMeQuery(undefined, { skip });
-
-  if (userMeError) {
-    throw new APIError(errorToString(userMeError), { api: "getUserMe" });
-  }
+  const hasUserMe = Boolean(userMe) && !userMeError;
 
   const currentPage = useMemo(
     () => getCurrentTopbarPage(location, pageItems),
@@ -70,6 +65,7 @@ export function useTopbarModel({ labels, pageItems }) {
   };
 
   const handleSelectTeam = (teamId) => {
+    if (!hasUserMe) return;
     const preservedParams = preserveMyTasksParam(location.search);
     preservedParams.set("pteamId", teamId);
     navigate("/?" + preservedParams.toString());
@@ -86,6 +82,7 @@ export function useTopbarModel({ labels, pageItems }) {
     accountSettingOpen,
     currentPage,
     currentTeam,
+    hasUserMe,
     labels,
     loading: skip || userMeIsLoading,
     onCreateTeam: () => setTeamCreationOpen(true),
