@@ -158,6 +158,33 @@ describe("Topbar", () => {
     );
   });
 
+  it("disables user-dependent actions when refetch fails with cached user info", async () => {
+    const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+    const navigate = vi.fn();
+    vi.mocked(useNavigate).mockReturnValue(navigate);
+    vi.mocked(useGetUserMeQuery).mockReturnValue({
+      data: mockUserMe,
+      error: { status: 500 },
+      isLoading: false,
+    });
+
+    renderTopbar();
+
+    screen.getAllByRole("button", { name: "Team menu" }).forEach((button) => {
+      expect(button).toBeDisabled();
+    });
+
+    await ue.click(screen.getAllByRole("button", { name: "Team menu" })[0]);
+    expect(screen.queryByRole("menuitem", { name: "Platform Team" })).not.toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled();
+
+    await ue.click(screen.getAllByRole("button", { name: "User menu" })[0]);
+    expect(screen.getByRole("menuitem", { name: "Settings" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+  });
+
   it("navigates from the page menu while preserving shared query params", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     const navigate = vi.fn();

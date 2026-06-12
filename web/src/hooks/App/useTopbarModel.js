@@ -37,7 +37,12 @@ export function useTopbarModel({ labels, pageItems }) {
   const [teamCreationOpen, setTeamCreationOpen] = useState(false);
 
   const skip = useSkipUntilAuthUserIsReady();
-  const { data: userMe, isLoading: userMeIsLoading } = useGetUserMeQuery(undefined, { skip });
+  const {
+    data: userMe,
+    error: userMeError,
+    isLoading: userMeIsLoading,
+  } = useGetUserMeQuery(undefined, { skip });
+  const hasUserMe = Boolean(userMe) && !userMeError;
 
   const currentPage = useMemo(
     () => getCurrentTopbarPage(location, pageItems),
@@ -60,7 +65,7 @@ export function useTopbarModel({ labels, pageItems }) {
   };
 
   const handleSelectTeam = (teamId) => {
-    if (!userMe) return;
+    if (!hasUserMe) return;
     const preservedParams = preserveMyTasksParam(location.search);
     preservedParams.set("pteamId", teamId);
     navigate("/?" + preservedParams.toString());
@@ -77,7 +82,7 @@ export function useTopbarModel({ labels, pageItems }) {
     accountSettingOpen,
     currentPage,
     currentTeam,
-    hasUserMe: Boolean(userMe),
+    hasUserMe,
     labels,
     loading: skip || userMeIsLoading,
     onCreateTeam: () => setTeamCreationOpen(true),
