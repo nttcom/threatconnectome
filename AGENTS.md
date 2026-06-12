@@ -51,25 +51,24 @@ Reference URLs:
 - **Avoid ambiguous descriptions**: Vague wording causes inconsistent agent behavior. Write instructions that have only one reasonable interpretation.
 - **Avoid excessive detail**: Overly granular rules are hard to maintain. Focus on principles and key constraints rather than exhaustive step-by-step procedures.
 
+### Command Safety Policy
+
+Commands are subject to the execution environment's approval rules.
+Within those limits, treat these as normal project operations:
+
+- Read-only inspection
+- Repository-local file changes
+- Project-local format, lint, validation, and test commands
+- Starting or stopping Docker Compose services defined in this repository
+
+Do not affect external systems, global configuration, or data outside this repository without explicit approval.
+
 ---
 
 ## api — Rules for changes under `./api`
 
 This block applies to all changes under `./api`.
 Always operate from the repository root.
-
-### Command Safety Policy
-
-The agent may run the following commands without confirmation:
-
-- Read-only commands (e.g. grep, rg, cat, ls)
-- Commands that modify files within this repository only
-- Commands that start or stop local Docker containers defined in this repository
-- Test execution commands (e.g. pytest)
-
-Before running commands that affect anything outside the repository
-(e.g. global installs, system changes, external services, data deletion),
-the agent MUST ask for user confirmation.
 
 ### Mandatory Actions (Agent)
 
@@ -179,32 +178,6 @@ For Python tests under `./api`, follow the Given-When-Then structure where it im
 
 This block applies to all changes under `./web`.
 Always operate from the repository root.
-
-### Command Safety Policy
-
-The agent may run the following commands **without user confirmation**:
-
-- Read-only commands and inspection tools
-
-- Commands that modify files **only within this repository**
-
-- Project-scoped `npm` commands executed inside this repository
-  for **local formatting, linting, validation, or test execution**, including:
-  - `npm run check`
-  - `npm run test`
-  - `npm test`
-  - `npm run format`
-  - `npm run lint`
-  - `npx vitest`
-  - `npx vitest run`
-
-The agent MUST ask for user confirmation before running commands that:
-
-- affect files or systems outside this repository
-- install, update, or remove global packages
-- change system or environment configuration
-- access external services or networks
-- delete data outside the repository scope
 
 ### Mandatory Actions (Agent)
 
