@@ -6,20 +6,8 @@
   "AppPage": {
     "message": "続行するにはログインしてください。"
   },
-  "Drawer": {
-    "title": "Threatconnectome",
-    "status": "ステータス",
-    "team": "チーム",
-    "vulns": "脆弱性",
-    "eol": "EOL",
-    "todo": "ToDo"
-  },
   "OutletWithCheckedParams": {
     "loading": "ユーザー情報を読み込んでいます..."
-  },
-  "TeamSelector": {
-    "loadingUserInfo": "ユーザー情報を読み込んでいます...",
-    "createTeam": "チームを作成"
   },
   "Topbar": {
     "pages": {
@@ -59,11 +47,6 @@
     "operationFailed": "操作に失敗しました：{{error}}"
   },
   "UserMenu": {
-    "UserMenu": {
-      "loadingUserInfo": "ユーザー情報を読み込んでいます...",
-      "settings": "設定",
-      "logout": "ログアウト"
-    },
     "AccountSettings": {
       "updateSucceeded": "ユーザー情報を更新しました。"
     },

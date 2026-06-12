@@ -50,6 +50,7 @@ export function TopbarView({
             px: { xs: 2, sm: 3, lg: 4 },
             py: 0,
             gap: { sm: 3 },
+            columnGap: { xs: 0.75, sm: 3 },
             alignItems: "center",
             display: { xs: "grid", sm: "flex" },
             gridTemplateColumns: { xs: "40px 40px 1fr 40px 40px", sm: "none" },

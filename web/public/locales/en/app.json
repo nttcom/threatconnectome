@@ -6,20 +6,8 @@
   "AppPage": {
     "message": "Please login to continue."
   },
-  "Drawer": {
-    "title": "Threatconnectome",
-    "status": "Status",
-    "team": "Team",
-    "vulns": "Vulns",
-    "eol": "EOL",
-    "todo": "ToDo"
-  },
   "OutletWithCheckedParams": {
     "loading": "Now loading UserInfo..."
-  },
-  "TeamSelector": {
-    "loadingUserInfo": "Now loading UserInfo...",
-    "createTeam": "Create Team"
   },
   "Topbar": {
     "pages": {
@@ -59,11 +47,6 @@
     "operationFailed": "Operation failed: {{error}}"
   },
   "UserMenu": {
-    "UserMenu": {
-      "loadingUserInfo": "Now loading UserInfo...",
-      "settings": "Settings",
-      "logout": "Logout"
-    },
     "AccountSettings": {
       "updateSucceeded": "Update user info succeeded"
     },

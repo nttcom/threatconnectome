@@ -1,17 +1,5 @@
-import {
-  blueGrey,
-  brown,
-  green,
-  grey,
-  lightBlue,
-  orange,
-  red,
-  teal,
-  yellow,
-} from "@mui/material/colors";
+import { blueGrey, green, grey, lightBlue, orange, red, teal, yellow } from "@mui/material/colors";
 import { t } from "i18next";
-
-export const drawerWidth = 200;
 
 export const mainMaxWidth = 1100;
 
@@ -164,11 +152,6 @@ export const sxModal = {
 };
 
 export const getNoPTeamMessage = () => t("const.noPTeamMessage", { ns: "utils" });
-
-export const drawerParams = {
-  mainColor: brown[900],
-  hoverColor: brown[700],
-};
 
 export const preserveKeys = [
   "pteamId", // Query parameters required on all pages
