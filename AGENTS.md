@@ -113,7 +113,7 @@ Choose commands based on the files and behavior changed:
 
 ### Frontend Type Definitions (`./web/types`) and OpenAPI
 
-The following files are auto-generated and must not be edited manually: `./web/types` and `./openapi.json`.
+The following files are auto-generated and must not be edited manually: `./web/types` and `./web/openapi.json`.
 
 #### When to regenerate
 
@@ -148,10 +148,10 @@ If any of the following change:
 
 - Then always run:
 
-```bash
-cd web
-npm run openapi:update
-```
+  ```bash
+  cd web
+  npm run openapi:update
+  ```
 
 - After regeneration, verify `web/openapi.json` and `web/types` reflect the intended API schema changes.
 

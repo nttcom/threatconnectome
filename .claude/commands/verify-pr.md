@@ -37,6 +37,7 @@ arguments:
    全APIテストを実行する。
 
    ```bash
+   cd ..
    docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv app/tests/
    ```
 
@@ -54,5 +55,5 @@ arguments:
 
 - `api/` と `web/` の両方に変更がある場合は、両方の検証を実行する。
 - 失敗した検証がある場合は、原因を調査して修正を試み、同じ検証を再実行する。
-- API の endpoint signature、request/response schema、field name/type/nullability を変更している場合は、AGENTS.md の OpenAPI 再生成ルールに従い、必要に応じて `web/types` と `openapi.json` を更新してから再検証する。
+- API の endpoint signature、request/response schema、field name/type/nullability を変更している場合は、AGENTS.md の OpenAPI 再生成ルールに従い、必要に応じて `web/types` と `web/openapi.json` を更新してから再検証する。
 - 機微ファイル (`.env` 等) が差分に混ざっていたら停止して警告する。
