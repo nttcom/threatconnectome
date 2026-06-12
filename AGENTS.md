@@ -82,32 +82,29 @@ If API schemas, models, or data structures change:
 - Find affected tests under `api/app/tests/`
 - Update them to match changed field names, types, and nullability
 
-#### 2. Run Static Checks
+#### 2. Run Targeted Verification
 
-Always execute:
+Run the smallest useful verification for the change before reporting completion.
+Choose commands based on the files and behavior changed:
 
-```bash
-cd api
-uv run --locked black --check --diff ./app
-uv run --locked ruff check ./app
-uv run --locked mypy ./app --show-error-codes --no-error-summary
-uv run --locked codespell ./app
-```
+- Static checks for touched Python modules when practical:
 
-#### 3. Run API Tests
+  ```bash
+  cd api
+  uv run --locked black --check --diff <changed files or ./app>
+  uv run --locked ruff check <changed files or ./app>
+  uv run --locked mypy <changed files or ./app> --show-error-codes --no-error-summary
+  uv run --locked codespell <changed files or ./app>
+  ```
 
-- If `docker-compose-firebase-local.yml` is running, stop it before running the tests
+- Related tests only, unless the change is broad or high risk:
 
-- Ensure `docker-compose-firebase-test.yml` is running  
-  (start it if not running; do NOT restart if already running)
+  ```bash
+  # Run from the repository root.
+  docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv <related test files or directories>
+  ```
 
-- Always execute tests:
-
-```bash
-docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv app/tests/
-```
-
-- Stop the test stack only if you started it
+- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
 
 ### Frontend Type Definitions (`./web/types`) and OpenAPI
 
@@ -208,27 +205,26 @@ Test locations:
 Use existing testing tools and patterns already used in the project
 (e.g. React Testing Library, Jest / Vitest).
 
-#### 2. Run Static Checks
+#### 2. Run Targeted Verification
 
-Always execute:
+Run the smallest useful verification for the change before reporting completion.
+Choose commands based on the files and behavior changed:
 
-```bash
-cd ./web
-npm run check
-```
+- Static checks when practical:
 
-This must pass with no errors.
+  ```bash
+  cd ./web
+  npm run check
+  ```
 
-#### 3. Run Web Tests
+- Related tests only, unless the change is broad or high risk:
 
-Always execute:
+  ```bash
+  cd ./web
+  npx vitest run <related test files>
+  ```
 
-```bash
-cd ./web
-npm run test
-```
-
-- All newly added or modified tests must pass
+- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
 
 ### UI and Logic Separation Rule (IMPORTANT)
 
