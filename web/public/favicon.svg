@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background frame -->
+  <rect width="512" height="512" rx="112" fill="#FFFFFF" />
+  <rect x="22" y="22" width="468" height="468" rx="90" stroke="#cbd5e1" stroke-width="16" />
+
+  <!-- Top connection line -->
+  <path
+    d="M168 164 L344 164 L268 346"
+    stroke="#0B1220"
+    stroke-width="54"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Top left node -->
+  <circle cx="168" cy="164" r="60" fill="#0B1220" />
+
+  <!-- Top right node -->
+  <circle cx="344" cy="164" r="60" fill="#0B1220" />
+
+  <!-- Bottom node (primary focus) -->
+  <circle cx="268" cy="346" r="70" fill="#22C55E" />
+
+  <!-- Bottom node highlight -->
+  <circle cx="268" cy="346" r="26" fill="#FFFFFF" opacity="0.22" />
+</svg>
