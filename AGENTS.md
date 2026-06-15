@@ -66,17 +66,16 @@ Applies to all changes under `./api`. Work from the repository root.
   uv run --locked codespell <files or ./app>
   ```
 
-- Related tests only unless broad/high risk. Before API tests, stop local stack if running and ensure test stack is running:
+- Related tests only unless broad/high risk. Before API tests, stop local stack if running; run `docker compose -f docker-compose-firebase-test.yml up -d` only if test stack is not already running:
 
   ```bash
   docker compose -f docker-compose-firebase-local.yml stop
-  docker compose -f docker-compose-firebase-test.yml up -d
   docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv <related test files or directories>
   ```
 
 ### OpenAPI
 
-Do not manually edit `web/types`.
+Do not manually edit generated files: `web/types` or `web/openapi.json`.
 
 Use `npm run openapi:update` by default. Do not regenerate types from a stale `openapi.json`.
 
@@ -108,7 +107,7 @@ Applies to all changes under `./web`. Work from the repository root.
   ```bash
   cd ./web
   npm run check
-  npx vitest run <related test files>
+  npm run test -- <related test files>
   ```
 
 - Keep UI components focused on rendering/interaction; move business logic to hooks/utilities/services.
