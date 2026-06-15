@@ -76,7 +76,9 @@ Applies to all changes under `./api`. Work from the repository root.
 
 ### OpenAPI
 
-Do not manually edit `web/types` or `openapi.json`.
+Do not manually edit `web/types`.
+
+Use `npm run openapi:update` by default. Do not regenerate types from a stale `openapi.json`.
 
 If endpoint signatures, request/response schemas, or field names/types/nullability change, regenerate after restarting the current API:
 
