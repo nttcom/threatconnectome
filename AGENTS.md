@@ -1,7 +1,5 @@
 # Coding Standards
 
-This file defines coding standards for implementation work.
-
 ---
 
 ## ⚠️ STOP — MANDATORY FIRST ACTION BEFORE ANY FILE CHANGE ⚠️
@@ -24,34 +22,18 @@ Do not consider the task complete until every mandatory post-action has been exe
 
 ---
 
-## Global Coding Rules
+## Global Rules
 
-These rules apply to implementation work across this repository, regardless of directory.
-
-### Language Rules for Source Code Comments (REQUIRED)
-
-- **All source code comments MUST be written in English**
-- This applies to:
-  - Inline comments
-  - Block comments
-  - File-level comments
-  - TODO / FIXME comments
-- Do NOT write comments in Japanese or other languages
-
-### Japanese Terminology Standards
-
-For implementation involving Japanese text, ensure terminology is consistent with IPA (Information-technology Promotion Agency) standard terms.
-Reference URLs:
-
-- https://www.ipa.go.jp/shiken/kubun/sc.html
-- https://www.ipa.go.jp/security/index.html
+- Source code comments, including TODO/FIXME, MUST be English.
+- For Japanese text, follow IPA terminology where applicable:
+  https://www.ipa.go.jp/shiken/kubun/sc.html / https://www.ipa.go.jp/security/index.html
 
 ### Guidelines for Writing Directory Blocks
 
 - **Avoid ambiguous descriptions**: Vague wording causes inconsistent agent behavior. Write instructions that have only one reasonable interpretation.
 - **Avoid excessive detail**: Overly granular rules are hard to maintain. Focus on principles and key constraints rather than exhaustive step-by-step procedures.
 
-### Command Safety Policy
+### Commands
 
 Commands are subject to the execution environment's approval rules.
 Within those limits, treat these as normal project operations:
@@ -67,190 +49,72 @@ Do not affect external systems, global configuration, or data outside this repos
 
 ## api — Rules for changes under `./api`
 
-This block applies to all changes under `./api`.
-Always operate from the repository root.
+Applies to all changes under `./api`. Work from the repository root.
 
-### Mandatory Actions (Agent)
+### Required
 
-Whenever code under `./api` is modified, you MUST do the following automatically.
-
-#### 1. Update Tests
-
-If API schemas, models, or data structures change:
-
-- Find affected tests under `api/app/tests/`
-- Update them to match changed field names, types, and nullability
-
-#### 2. Run Targeted Verification
-
-Run the smallest useful verification for the change before reporting completion.
-Choose commands based on the files and behavior changed:
+- Update affected tests under `api/app/tests/` when schemas, models, or data structures change.
+- Run the smallest useful verification and report what ran or why it was skipped.
 
 - Static checks for touched Python modules when practical:
 
   ```bash
   cd api
-  uv run --locked black --check --diff <changed files or ./app>
-  uv run --locked ruff check <changed files or ./app>
-  uv run --locked mypy <changed files or ./app> --show-error-codes --no-error-summary
-  uv run --locked codespell <changed files or ./app>
+  uv run --locked black --check --diff <files or ./app>
+  uv run --locked ruff check <files or ./app>
+  uv run --locked mypy <files or ./app> --show-error-codes --no-error-summary
+  uv run --locked codespell <files or ./app>
   ```
 
-- Related tests only, unless the change is broad or high risk:
-
-  Before running API tests:
-
-  - Run Docker Compose commands from the repository root.
-  - If `docker-compose-firebase-local.yml` is running, stop it first to avoid port conflicts.
-  - Ensure `docker-compose-firebase-test.yml` is running
-    (start it if not running; do NOT restart if already running).
+- Related tests only unless broad/high risk. Before API tests, stop local stack if running; run `docker compose -f docker-compose-firebase-test.yml up -d` only if test stack is not already running:
 
   ```bash
+  docker compose -f docker-compose-firebase-local.yml stop
   docker compose -f docker-compose-firebase-test.yml exec testapi pytest -s -vv <related test files or directories>
   ```
 
-- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
+### OpenAPI
 
-### Frontend Type Definitions (`./web/types`) and OpenAPI
+Do not manually edit generated files: `web/types` or `web/openapi.json`.
 
-The following files are auto-generated and must not be edited manually: `./web/types` and `./web/openapi.json`.
+Use `npm run openapi:update` by default. Do not regenerate types from a stale `openapi.json`.
 
-#### When to regenerate
-
-If any of the following change:
-
-- API endpoint signatures
-- API request/response schemas in `./api/app/schemas.py`
-- Field names, types, or nullability in API request/response
-
-#### How to regenerate
-
-- Run Docker Compose commands from the repository root.
-
-- If `docker-compose-firebase-test.yml` is running, stop it first to avoid port conflicts.
-
-- Ensure `docker-compose-firebase-local.yml` is running
-  (start it if not running; do NOT restart services other than `api` if already running).
-
-- Always restart the `api` service before fetching OpenAPI, so generated files reflect the latest source code:
+If endpoint signatures, request/response schemas, or field names/types/nullability change, regenerate after restarting the current API:
 
   ```bash
   docker compose -f docker-compose-firebase-test.yml stop
   docker compose -f docker-compose-firebase-local.yml up -d
   docker compose -f docker-compose-firebase-local.yml restart api
-  ```
-
-- Wait for the current API process to be reachable. Do not rely only on old `Application startup complete` logs:
-
-  ```bash
   curl --fail --silent --show-error --output /tmp/openapi-check.json http://localhost/api/internal-api/openapi.json
-  ```
-
-- Then always run:
-
-  ```bash
   cd web
   npm run openapi:update
   ```
 
-- After regeneration, verify `web/openapi.json` and `web/types` reflect the intended API schema changes.
-
-### Python Test Standards
-
-For Python tests under `./api`, follow the Given-When-Then structure where it improves readability.
-
-1. **Preferred Structure (Given/When/Then)**:
-   - Divide test functions into three sections with comments: `# Given`, `# When`, and `# Then`.
-   - `# Given`: Setup phase.
-   - `# When`: The action under test.
-   - `# Then`: Verification phase.
-
-2. **Pragmatic Application**:
-   - If test logic is very simple, do not force this structure unnaturally.
-   - Maintain clear separation between setup, action, and assertion even without comments.
-
-3. **Formatting**:
-   - Keep a single blank line between `# Given`, `# When`, and `# Then` blocks.
+- Verify generated diffs reflect the intended API change.
+- For Python tests, use Given/When/Then comments where they improve readability.
 
 ---
 
 ## web — Rules for changes under `./web`
 
-This block applies to all changes under `./web`.
-Always operate from the repository root.
+Applies to all changes under `./web`. Work from the repository root.
 
-### Mandatory Actions (Agent)
+### Required
 
-Whenever code under `./web` is modified, you MUST do the following automatically.
-
-#### 1. Update / Create Tests
-
-You MUST:
-
-- Identify the affected files
-- Create or update tests that cover **only the modified behavior**
-- Prefer minimal, focused tests over broad integration tests
-
-Test locations:
-
-- `./web/src/**/__tests__/*`
-
-Use existing testing tools and patterns already used in the project
-(e.g. React Testing Library, Jest / Vitest).
-
-#### 2. Run Targeted Verification
-
-Run the smallest useful verification for the change before reporting completion.
-Choose commands based on the files and behavior changed:
-
-- Static checks when practical:
+- Create/update focused tests under `web/src/**/__tests__/*` for changed behavior.
+- Run the smallest useful verification and report what ran or why it was skipped.
 
   ```bash
   cd ./web
   npm run check
+  npm run test -- <related test files>
   ```
 
-- Related tests only, unless the change is broad or high risk:
+- Keep UI components focused on rendering/interaction; move business logic to hooks/utilities/services.
+- Delete only localization keys under `web/public/locales` that are clearly unused.
+- If missing external specs affect implementation choices, confirm the assumed spec before editing.
 
-  ```bash
-  cd ./web
-  npx vitest run <related test files>
-  ```
-
-- In the final response, explicitly list which checks/tests were run. If a relevant check was skipped, state why.
-
-### UI and Logic Separation Rule (IMPORTANT)
-
-When modifying or implementing UI components (e.g. React components):
-
-- UI components MUST focus on rendering and user interaction only
-- Business logic, data processing, or complex behavior MUST be extracted
-  into separate files (e.g. hooks, utilities, or service modules)
-- UI components MUST NOT contain substantial business logic
-  unless it is strictly presentation-related
-
-### Localization Cleanup Rules (IMPORTANT)
-
-Localization strings are defined under `./web/public/locales`.
-
-- If code changes cause localization keys to become unused, those unused keys SHOULD be deleted
-- Deletion MUST be limited to keys that are clearly unreferenced by the codebase
-- Do NOT delete localization keys speculatively or preemptively
-
-### External Specification Confirmation Rule (IMPORTANT)
-
-If a requested change depends on external specifications
-(e.g. user-visible behavior, UX meaning, or product requirements)
-and those specifications are not clearly defined:
-
-- The agent MUST propose the assumed external specification first
-- The agent MUST obtain explicit user confirmation before making any code changes
-- Until confirmation, the agent MUST NOT modify files or run modifying commands
-- If confirmation is not given, the agent MUST stop and ask for clarification
-
-Do NOT infer or assume external behavior without explicit confirmation.
-
-### RTK Query API Definition Rule (IMPORTANT)
+### RTK Query
 
 When using RTK Query endpoints defined in `./web/src/services/tcApi.ts`:
 
@@ -258,17 +122,11 @@ When using RTK Query endpoints defined in `./web/src/services/tcApi.ts`:
 - Endpoint URLs MUST be defined only inside `tcApi.ts`.
 - If a generated API data type requires `url`, define an API-specific request
   parameter type in `tcApi.ts` using `Pick`.
-- Prefer the existing request parameter style:
+- Use this style:
 
 ```ts
 type ExampleRequestParams = Pick<GeneratedApiDataType, "body" | "path" | "query">;
 ```
 
-- Do not use generic `Omit<T, "url">` or an equivalent shared helper for these
-  request parameter types unless there is a specific reason.
-- When converting a call site from JavaScript to TypeScript, if the existing
-  endpoint definition in `tcApi.ts` still requires `url` (old style; historical
-  examples include `getDependencies` / `useGetDependenciesQuery`), update that
-  definition in `tcApi.ts` to the new style using `Pick` (e.g. as done for
-  `getInvitationList` / `useGetInvitationListQuery`). Do NOT leave old-style
-  definitions in place.
+- Do not use generic `Omit<T, "url">` or equivalent shared helpers.
+- When converting JS call sites, update old-style `tcApi.ts` endpoint definitions to this `Pick` style.
