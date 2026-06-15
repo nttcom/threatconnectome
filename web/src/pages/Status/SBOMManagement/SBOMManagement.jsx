@@ -12,7 +12,7 @@ import { DetailsPanel } from "./DetailsPanel";
 import { NewSbomRegistrationPanel } from "./NewSbomRegistrationPanel";
 import { RiskSettingsCard } from "./RiskSettingsCard";
 import { TabButton } from "./sharedUiParts";
-import { slate } from "./styleTokens";
+import { slate, tabButtonSx, tabPanelSx, uiRadii } from "./styleTokens";
 import { useSBOMManagementController } from "./useSBOMManagementController";
 
 export function SBOMManagement({
@@ -87,9 +87,6 @@ export function SBOMManagement({
               border: "1px solid",
               borderColor: isCreatingSbom ? slate[200] : slate[300],
               borderStyle: isCreatingSbom ? "solid" : "dashed",
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              boxShadow: isCreatingSbom ? "0 1px 2px rgba(15, 23, 42, 0.05)" : "none",
               color: isCreatingSbom ? slate[950] : slate[500],
               cursor: "pointer",
               display: "flex",
@@ -100,8 +97,8 @@ export function SBOMManagement({
               ml: 0.5,
               px: 2.5,
               py: 1.5,
-              transition: "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
-              whiteSpace: "nowrap",
+              ...tabButtonSx,
+              boxShadow: isCreatingSbom ? tabButtonSx.boxShadow : "none",
             }}
             type="button"
           >
@@ -119,21 +116,15 @@ export function SBOMManagement({
         ) : isActiveServicePending ? (
           <Box
             sx={{
-              bgcolor: "white",
-              borderBottomLeftRadius: 24,
-              borderBottomRightRadius: 24,
-              borderTopRightRadius: 24,
-              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
-              minWidth: 0,
+              ...tabPanelSx,
               p: { sm: 2.5, xs: 1.5 },
-              width: "100%",
             }}
           >
             <Box
               sx={{
                 alignItems: "center",
                 border: `1px solid ${slate[200]}`,
-                borderRadius: 6,
+                borderRadius: uiRadii.statusCard,
                 color: slate[500],
                 display: "flex",
                 fontSize: 14,
@@ -149,11 +140,7 @@ export function SBOMManagement({
         ) : (
           <Box
             sx={{
-              bgcolor: "white",
-              borderBottomLeftRadius: 24,
-              borderBottomRightRadius: 24,
-              borderTopRightRadius: 24,
-              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
+              ...tabPanelSx,
               display: "grid",
               gap: 3,
               gridTemplateColumns: {
@@ -161,9 +148,7 @@ export function SBOMManagement({
                 xl: "minmax(320px, 0.75fr) minmax(0, 2.35fr)",
                 xs: "1fr",
               },
-              minWidth: 0,
               p: { sm: 2.5, xs: 1.5 },
-              width: "100%",
             }}
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>

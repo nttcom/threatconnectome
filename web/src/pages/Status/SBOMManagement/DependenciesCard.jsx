@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip";
 
 import { AppButton } from "./sharedUiParts";
-import { compactSelectSx, slate } from "./styleTokens";
+import { compactSelectSx, slate, statusCardSx, surfaceShadowSx, uiRadii } from "./styleTokens";
 
 function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
   const { t } = useTranslation("status", { keyPrefix: "DependenciesCard" });
@@ -114,17 +114,14 @@ export function DependenciesCard({
   return (
     <Card
       sx={{
-        border: `1px solid ${slate[200]}`,
-        borderRadius: 6,
-        boxShadow: "none",
-        minWidth: 0,
+        ...statusCardSx,
       }}
     >
       <CardContent sx={{ minWidth: 0, p: 3 }}>
         <Box
           sx={{
             border: `1px solid ${slate[200]}`,
-            borderRadius: 4,
+            borderRadius: uiRadii.field,
             minWidth: 0,
             overflow: "hidden",
             width: "100%",
@@ -145,8 +142,8 @@ export function DependenciesCard({
               sx={{
                 bgcolor: "white",
                 border: `1px solid ${slate[200]}`,
-                borderRadius: 3,
-                boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
+                borderRadius: uiRadii.statusButton,
+                ...surfaceShadowSx,
                 height: 36,
                 maxWidth: 520,
                 position: "relative",
