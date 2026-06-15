@@ -232,6 +232,18 @@ describe("Topbar", () => {
     expect(screen.queryByRole("menuitem", { name: "Create Team" })).not.toBeInTheDocument();
   });
 
+  it("shows the signed-in email at the top of the user menu", async () => {
+    const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+    renderTopbar();
+
+    expect(screen.queryByText(mockUserMe.email)).not.toBeInTheDocument();
+
+    await ue.click(screen.getAllByRole("button", { name: "User menu" })[0]);
+
+    expect(screen.getByText(mockUserMe.email)).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: mockUserMe.email })).not.toBeInTheDocument();
+  });
+
   it("opens account settings from the user menu", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
     renderTopbar();

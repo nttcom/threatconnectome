@@ -43,6 +43,7 @@ export function Topbar() {
         onSelectTeam={topbar.onSelectTeam}
         pageItems={topbar.pageItems}
         teamItems={topbar.teamItems}
+        userEmail={topbar.hasUserMe ? topbar.userMe.email : null}
       />
       {topbar.userMe ? (
         <AccountSettings

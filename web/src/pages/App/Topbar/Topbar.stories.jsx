@@ -50,6 +50,7 @@ function ThreatconnectomeTopbarMuiStory() {
     <TopbarView
       currentPage={pageItems[0]}
       currentTeam={teamItems[0]}
+      hasUserMe
       labels={labels}
       languageSwitcher={<LanguageSwitcher />}
       onCreateTeam={() => undefined}
@@ -60,6 +61,7 @@ function ThreatconnectomeTopbarMuiStory() {
       onSelectTeam={() => undefined}
       pageItems={pageItems}
       teamItems={teamItems}
+      userEmail="admin@threatconnectome.example"
     />
   );
 }

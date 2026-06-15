@@ -1,16 +1,18 @@
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
+  Box,
   Divider,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 
-import { compactMenuItemSx, menuPaperSx, menuWidths } from "./topbarStyles";
+import { colors, compactMenuItemSx, ellipsisTextSx, menuPaperSx, menuWidths } from "./topbarStyles";
 
 export function UserMenu({
   accountSettingsEnabled,
@@ -20,9 +22,11 @@ export function UserMenu({
   onClose,
   onLogout,
   onOpenAccountSettings,
+  userEmail,
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const displayEmail = userEmail?.trim() || null;
   const mobileSlotProps = isMobile
     ? {
         list: { sx: { p: 0.75 } },
@@ -63,6 +67,32 @@ export function UserMenu({
       }}
       slotProps={mobileSlotProps}
     >
+      {displayEmail ? (
+        <>
+          <Box
+            role="presentation"
+            sx={{
+              px: isMobile ? 1.5 : 2,
+              py: isMobile ? 1.25 : 1.5,
+              maxWidth: isMobile ? menuWidths.default.xs : menuWidths.default.sm,
+            }}
+          >
+            <Typography
+              title={displayEmail}
+              sx={{
+                ...ellipsisTextSx,
+                color: colors.ink700,
+                fontSize: 14,
+                fontWeight: 600,
+                lineHeight: 1.35,
+              }}
+            >
+              {displayEmail}
+            </Typography>
+          </Box>
+          <Divider sx={isMobile ? { my: 0.75 } : undefined} />
+        </>
+      ) : null}
       <MenuItem
         disabled={!accountSettingsEnabled}
         onClick={handleAccountSettings}
