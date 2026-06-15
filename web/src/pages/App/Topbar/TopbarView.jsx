@@ -29,6 +29,7 @@ export function TopbarView({
   onSelectTeam,
   pageItems,
   teamItems,
+  userEmail,
 }) {
   const { anchorEl, close, toggle, isOpen } = useTopbarMenu();
 
@@ -166,6 +167,7 @@ export function TopbarView({
         onClose={close}
         onLogout={onLogout}
         onOpenAccountSettings={onOpenAccountSettings}
+        userEmail={userEmail}
       />
     </>
   );
@@ -185,8 +187,10 @@ TopbarView.propTypes = {
   onSelectTeam: PropTypes.func.isRequired,
   pageItems: PropTypes.arrayOf(pageItemType).isRequired,
   teamItems: PropTypes.arrayOf(teamItemType).isRequired,
+  userEmail: PropTypes.string,
 };
 
 TopbarView.defaultProps = {
   currentTeam: null,
+  userEmail: null,
 };
