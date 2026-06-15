@@ -20,7 +20,16 @@ import { useTranslation } from "react-i18next";
 import { isDeleteConfirmationValid } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
 import { AppButton } from "./sharedUiParts";
-import { fieldSx, labelSx, sectionIconBoxSx, sectionTitleTextSx, slate } from "./styleTokens";
+import {
+  fieldSx,
+  labelSx,
+  sectionIconBoxSx,
+  sectionTitleTextSx,
+  slate,
+  statusCardSx,
+  uiRadii,
+  uiTransitions,
+} from "./styleTokens";
 
 export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
   const { t } = useTranslation("status", { keyPrefix: "DangerZone" });
@@ -38,10 +47,7 @@ export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTit
     <Card
       sx={{
         bgcolor: slate[50],
-        border: `1px solid ${slate[200]}`,
-        borderRadius: 6,
-        boxShadow: "none",
-        minWidth: 0,
+        ...statusCardSx,
       }}
     >
       <Box
@@ -77,7 +83,7 @@ export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTit
           sx={{
             color: slate[400],
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 160ms ease",
+            transition: uiTransitions.transform,
           }}
         />
       </Box>
@@ -106,7 +112,7 @@ export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTit
         maxWidth="xs"
         onClose={closeDialog}
         open={dialogOpen}
-        PaperProps={{ sx: { borderRadius: 6, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: uiRadii.statusCard, p: 1 } }}
       >
         <DialogContent sx={{ p: 2, position: "relative" }}>
           <Box sx={{ pr: 6 }}>
@@ -131,7 +137,7 @@ export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTit
           >
             <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
-          <Box sx={{ bgcolor: slate[50], borderRadius: 4, mt: 2.5, p: 2 }}>
+          <Box sx={{ bgcolor: slate[50], borderRadius: uiRadii.field, mt: 2.5, p: 2 }}>
             <Typography sx={labelSx}>{t("deleteTarget")}</Typography>
             <Typography
               sx={{

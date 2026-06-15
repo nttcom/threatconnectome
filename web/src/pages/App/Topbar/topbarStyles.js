@@ -1,27 +1,29 @@
+import { uiPalette, uiRadii, uiShadows } from "../../../styles/designTokens";
+
 export const colors = {
-  ink900: "#111827",
-  ink700: "#374151",
-  ink500: "#6B7280",
-  ink400: "#9CA3AF",
-  slate50: "#F8FAFC",
-  slate100: "#F1F5F9",
-  slate200: "#E2E8F0",
-  slate300: "#CBD5E1",
-  brand50: "#ECFDF5",
-  brand100: "#D1FAE5",
-  brand700: "#047857",
-  red50: "#FEF2F2",
-  red100: "#FEE2E2",
-  red600: "#DC2626",
-  amber50: "#FFFBEB",
-  amber100: "#FEF3C7",
-  amber700: "#B45309",
-  sky50: "#F0F9FF",
-  sky100: "#E0F2FE",
-  sky700: "#0369A1",
-  violet50: "#F5F3FF",
-  violet100: "#EDE9FE",
-  violet700: "#6D28D9",
+  ink900: uiPalette.gray[900],
+  ink700: uiPalette.gray[700],
+  ink500: uiPalette.gray[500],
+  ink400: uiPalette.gray[400],
+  slate50: uiPalette.slate[50],
+  slate100: uiPalette.slate[100],
+  slate200: uiPalette.slate[200],
+  slate300: uiPalette.slate[300],
+  brand50: uiPalette.brand[50],
+  brand100: uiPalette.brand[100],
+  brand700: uiPalette.brand[700],
+  red50: uiPalette.red[50],
+  red100: uiPalette.red[100],
+  red600: uiPalette.red[600],
+  amber50: uiPalette.amber[50],
+  amber100: uiPalette.amber[100],
+  amber700: uiPalette.amber[700],
+  sky50: uiPalette.sky[50],
+  sky100: uiPalette.sky[100],
+  sky700: uiPalette.sky[700],
+  violet50: uiPalette.violet[50],
+  violet100: uiPalette.violet[100],
+  violet700: uiPalette.violet[700],
 };
 
 export const tonePalette = {
@@ -41,8 +43,8 @@ export const menuWidths = {
 export const menuPaperSx = {
   mt: 1,
   border: `1px solid ${colors.slate200}`,
-  borderRadius: 3,
-  boxShadow: "0 18px 44px rgba(17, 24, 39, 0.14), 0 2px 8px rgba(17, 24, 39, 0.08)",
+  borderRadius: uiRadii.popover,
+  boxShadow: uiShadows.topbarMenu,
   overflow: "hidden",
 };
 
@@ -52,8 +54,8 @@ export const controlButtonSx = {
   borderColor: `${colors.slate300} !important`,
   color: colors.ink700,
   bgcolor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0 1px 2px rgba(17, 24, 39, 0.05)",
+  borderRadius: uiRadii.topbarControl,
+  boxShadow: uiShadows.xs,
   textTransform: "none",
   fontWeight: 600,
   lineHeight: 1,
@@ -109,7 +111,7 @@ export const compactMenuItemSx = {
   my: 0.25,
   px: 1.5,
   py: 1.25,
-  borderRadius: 2,
+  borderRadius: uiRadii.menuItem,
 };
 
 export const currentChipSx = {
@@ -129,7 +131,7 @@ export const teamMenuListSx = {
     width: 8,
   },
   "&::-webkit-scrollbar-thumb": {
-    borderRadius: 999,
+    borderRadius: uiRadii.pill,
     bgcolor: colors.ink400,
     border: "2px solid transparent",
     backgroundClip: "content-box",

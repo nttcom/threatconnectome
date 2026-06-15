@@ -5,7 +5,15 @@ import { useTranslation } from "react-i18next";
 
 import { collapseSpaces } from "../../../utils/displayText";
 
-import { sectionIconBoxSx, sectionTitleTextSx, slate, textButtonSx } from "./styleTokens";
+import {
+  sectionIconBoxSx,
+  sectionTitleTextSx,
+  slate,
+  tabButtonSx,
+  textButtonSx,
+  uiRadii,
+  uiTransitions,
+} from "./styleTokens";
 
 export function CountBadge({ children }) {
   return (
@@ -14,7 +22,7 @@ export function CountBadge({ children }) {
       sx={{
         alignItems: "center",
         bgcolor: slate[100],
-        borderRadius: 999,
+        borderRadius: uiRadii.pill,
         color: slate[600],
         display: "inline-flex",
         flexShrink: 0,
@@ -44,7 +52,7 @@ export function HeaderActionButton({ active = false, children, icon: Icon, sx, .
         alignItems: "center",
         bgcolor: active ? slate[950] : "white",
         border: `1px solid ${active ? slate[950] : slate[300]}`,
-        borderRadius: 999,
+        borderRadius: uiRadii.pill,
         color: active ? "white" : slate[900],
         cursor: "pointer",
         display: "inline-flex",
@@ -104,9 +112,6 @@ export function TabButton({ active, onClick, sbom }) {
         backgroundColor: active ? "white" : slate[100],
         border: "1px solid",
         borderColor: active ? slate[200] : "transparent",
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-        boxShadow: active ? "0 1px 2px rgba(15, 23, 42, 0.05)" : "none",
         color: active ? slate[950] : slate[500],
         cursor: "pointer",
         font: "inherit",
@@ -114,8 +119,8 @@ export function TabButton({ active, onClick, sbom }) {
         fontWeight: 600,
         px: 2.5,
         py: 1.5,
-        transition: "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
-        whiteSpace: "nowrap",
+        ...tabButtonSx,
+        boxShadow: active ? tabButtonSx.boxShadow : "none",
       }}
       type="button"
     >
@@ -174,7 +179,7 @@ export function AccordionHeader({ action, icon: Icon, onToggle, open, title }) {
             height: 22,
             ml: "auto",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 160ms ease",
+            transition: uiTransitions.transform,
             width: 22,
           }}
         />

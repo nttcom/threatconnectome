@@ -5,26 +5,27 @@ import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { AppButton } from "./sharedUiParts";
-import { slate } from "./styleTokens";
+import {
+  slate,
+  statusCardSx,
+  surfaceShadowSx,
+  tabPanelSx,
+  uiRadii,
+  uiTransitions,
+} from "./styleTokens";
 
 export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel = true }) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   return (
     <Box
       sx={{
-        bgcolor: "white",
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        borderTopRightRadius: 24,
-        boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
+        ...tabPanelSx,
         p: { sm: 4, xs: 2 },
       }}
     >
       <Card
         sx={{
-          border: `1px solid ${slate[200]}`,
-          borderRadius: 6,
-          boxShadow: "none",
+          ...statusCardSx,
           maxWidth: 768,
           mx: "auto",
           overflow: "hidden",
@@ -35,8 +36,8 @@ export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel =
             sx={{
               alignItems: "center",
               bgcolor: "white",
-              borderRadius: 6,
-              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.05)",
+              borderRadius: uiRadii.statusCard,
+              ...surfaceShadowSx,
               display: "flex",
               height: 64,
               justifyContent: "center",
@@ -76,7 +77,7 @@ export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel =
                 alignItems: "center",
                 bgcolor: slate[50],
                 border: `1px dashed ${slate[300]}`,
-                borderRadius: 6,
+                borderRadius: uiRadii.statusCard,
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
@@ -85,7 +86,7 @@ export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel =
                 px: 3,
                 py: 5,
                 textAlign: "center",
-                transition: "background-color 160ms ease, border-color 160ms ease",
+                transition: uiTransitions.borderOnly,
                 width: "100%",
               }}
               type="button"

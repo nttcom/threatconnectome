@@ -18,7 +18,7 @@ import { normalizeTags } from "../../../utils/SBOMManagement/sbomManagementUtils
 
 import { ServiceIdCopyButton } from "./ServiceIdCopyButton";
 import { AccordionHeader, AppButton, HeaderActionButton } from "./sharedUiParts";
-import { fieldSx, labelSx, slate } from "./styleTokens";
+import { fieldSx, floatingSurfaceSx, labelSx, slate, statusCardSx, uiRadii } from "./styleTokens";
 
 function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
@@ -134,8 +134,8 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
           sx={{
             bgcolor: "white",
             border: `1px solid ${slate[200]}`,
-            borderRadius: 4,
-            boxShadow: "0 10px 15px rgba(15, 23, 42, 0.1)",
+            borderRadius: uiRadii.field,
+            ...floatingSurfaceSx,
             left: 12,
             p: 1.5,
             position: "absolute",
@@ -380,10 +380,7 @@ export function DetailsPanel({
   return (
     <Card
       sx={{
-        border: `1px solid ${slate[200]}`,
-        borderRadius: 6,
-        boxShadow: "none",
-        minWidth: 0,
+        ...statusCardSx,
         overflow: "hidden",
       }}
     >

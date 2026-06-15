@@ -6,7 +6,14 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { HeaderActionButton } from "./sharedUiParts";
-import { labelSx, sectionTitleTextSx, slate } from "./styleTokens";
+import {
+  labelSx,
+  sectionTitleTextSx,
+  slate,
+  statusCardSx,
+  uiRadii,
+  uiTransitions,
+} from "./styleTokens";
 
 function ImpactOptionButton({ onSelect, option, selected }) {
   return (
@@ -23,7 +30,7 @@ function ImpactOptionButton({ onSelect, option, selected }) {
         bgcolor: selected ? "#eef6ff" : "white",
         border: "1px solid",
         borderColor: selected ? "#2563eb" : slate[200],
-        borderRadius: 4,
+        borderRadius: uiRadii.field,
         boxShadow: selected ? "0 1px 2px rgba(37, 99, 235, 0.14)" : "none",
         color: slate[800],
         cursor: "pointer",
@@ -33,7 +40,7 @@ function ImpactOptionButton({ onSelect, option, selected }) {
         minHeight: 104,
         p: 1.5,
         textAlign: "left",
-        transition: "background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+        transition: uiTransitions.borderAndShadow,
         width: "100%",
       }}
       type="button"
@@ -59,7 +66,7 @@ function ImpactOptionButton({ onSelect, option, selected }) {
             alignItems: "center",
             bgcolor: selected ? "#2563eb" : slate[100],
             border: `1px solid ${selected ? "#2563eb" : slate[200]}`,
-            borderRadius: 999,
+            borderRadius: uiRadii.pill,
             color: selected ? "white" : "transparent",
             display: "flex",
             flexShrink: 0,
@@ -129,7 +136,7 @@ function ServiceImpactSummaryRow({ option, summaryLabel, title }) {
       sx={{
         bgcolor: slate[50],
         border: `1px solid ${slate[200]}`,
-        borderRadius: 4,
+        borderRadius: uiRadii.field,
         minWidth: 0,
         p: 1.5,
       }}
@@ -282,10 +289,7 @@ export function RiskSettingsCard({ onSave, sbom }) {
   return (
     <Card
       sx={{
-        border: `1px solid ${slate[200]}`,
-        borderRadius: 6,
-        boxShadow: "none",
-        minWidth: 0,
+        ...statusCardSx,
       }}
     >
       <CardContent sx={{ minWidth: 0, p: 2 }}>

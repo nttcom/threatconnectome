@@ -9,7 +9,7 @@ import { Box, Card, CardContent, IconButton, Stack, TextField, Typography } from
 import { useTranslation } from "react-i18next";
 
 import { AccordionHeader, CountBadge, HeaderActionButton } from "./sharedUiParts";
-import { fieldSx, slate } from "./styleTokens";
+import { fieldSx, slate, statusCardSx, uiRadii } from "./styleTokens";
 
 function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
   const { t } = useTranslation("status", { keyPrefix: "DeploymentsPanel" });
@@ -25,7 +25,7 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
               sx={{
                 bgcolor: slate[50],
                 border: `1px solid ${slate[200]}`,
-                borderRadius: 4,
+                borderRadius: uiRadii.field,
                 p: 1.5,
               }}
             >
@@ -110,7 +110,7 @@ function DeploymentList({ deployments, editing, onRemove, onUpdate, open }) {
           <Box
             sx={{
               border: `1px dashed ${slate[300]}`,
-              borderRadius: 4,
+              borderRadius: uiRadii.field,
               color: slate[500],
               fontSize: 14,
               p: 2.5,
@@ -140,10 +140,7 @@ export function DeploymentsPanel({
   return (
     <Card
       sx={{
-        border: `1px solid ${slate[200]}`,
-        borderRadius: 6,
-        boxShadow: "none",
-        minWidth: 0,
+        ...statusCardSx,
       }}
     >
       <AccordionHeader
