@@ -5,7 +5,7 @@ requires-python = "==3.12.*"
 dependencies = [
     "alembic",
     "cyclonedx-python-lib[validation]",
-    "cryptography>=46.0.5",
+    "cryptography>=48.0.1",
     "deprecation",
     "email-validator",
     "fastapi",
