@@ -107,10 +107,10 @@
     "confirmDelete": "削除する",
     "dangerZone": "危険操作",
     "dangerZoneDesc": "現在開いているサービスを削除します。",
-    "deleteSbomTitle": "SBOMを削除",
+    "deleteSbomTitle": "サービスを削除",
     "deleteTarget": "削除対象",
-    "enterSbomName": "SBOM名を入力",
-    "enterSbomNameHelp": "削除対象のSBOM名を完全一致で入力してください。",
+    "enterSbomName": "サービス名を入力",
+    "enterSbomNameHelp": "削除対象のサービス名を完全一致で入力してください。",
     "openDeleteDialog": "削除ダイアログを開く",
     "untitledSbom": "Untitled SBOM"
   },

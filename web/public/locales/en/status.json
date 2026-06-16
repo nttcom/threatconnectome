@@ -107,10 +107,10 @@
     "confirmDelete": "Delete",
     "dangerZone": "Danger Zone",
     "dangerZoneDesc": "Delete the currently open service.",
-    "deleteSbomTitle": "Delete SBOM",
+    "deleteSbomTitle": "Delete service",
     "deleteTarget": "Target",
-    "enterSbomName": "Enter SBOM name",
-    "enterSbomNameHelp": "Type the SBOM name exactly to confirm deletion.",
+    "enterSbomName": "Enter service name",
+    "enterSbomNameHelp": "Type the service name exactly to confirm deletion.",
     "openDeleteDialog": "Open delete dialog",
     "untitledSbom": "Untitled SBOM"
   },
