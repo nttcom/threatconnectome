@@ -37,9 +37,8 @@ def login(page: Page, user: dict):
     page.get_by_label("Password").fill(user["pass"])
     page.get_by_role("button", name="Log In with Email").click()
 
-    # Wait for the authenticated app shell to finish rendering.
-    # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
-    page.get_by_role("button", name="Page menu").wait_for(timeout=10000)
+    # Wait for user data to load so the team selector is ready.
+    expect(page.get_by_role("button", name="Team menu")).to_be_enabled(timeout=10000)
 
 
 def test_login_first_time(page: Page):
