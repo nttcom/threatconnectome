@@ -114,5 +114,9 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "overrides": {
+    "protobufjs": "^7.6.1",
+    "ws": "^8.21.0"
   }
 }
