@@ -5,7 +5,7 @@ requires-python = "==3.12.*"
 dependencies = [
     "alembic",
     "cyclonedx-python-lib[validation]",
-    "cryptography>=46.0.5",
+    "cryptography>=48.0.1",
     "deprecation",
     "email-validator",
     "fastapi",
@@ -17,7 +17,7 @@ dependencies = [
     "protobuf<7.0",
     "psycopg2",
     "pydantic",
-    "python-multipart>=0.0.27",
+    "python-multipart>=0.0.31",
     "requests",
     "sendgrid",
     "slack-sdk",
