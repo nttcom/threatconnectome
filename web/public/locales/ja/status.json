@@ -64,7 +64,7 @@
     "serviceNameRequired": "サービス名は空にできません。",
     "tags": "タグ",
     "tagsPlaceholder": "backend, prod, critical",
-    "title": "タイトル",
+    "title": "サービス名",
     "titlePlaceholder": "例: Payment Service SBOM",
     "tooLongDescription": "説明が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooLongKeyword": "キーワードが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",

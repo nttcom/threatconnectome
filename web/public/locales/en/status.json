@@ -58,7 +58,7 @@
     "deleteImage": "Delete image",
     "confirmRemoveImageTitle": "Remove image?",
     "confirmRemoveImageBody": "After removal it goes back to not set.",
-    "title": "Title",
+    "title": "Service Name",
     "titlePlaceholder": "e.g. Payment Service SBOM",
     "description": "Description",
     "descriptionPlaceholder": "Enter the target system or purpose of this SBOM",
