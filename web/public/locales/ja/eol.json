@@ -2,7 +2,7 @@
     "EolTable": {
         "status": "サポート状況",
         "productVersion": "製品名 / バージョン",
-        "service": "サービス名",
+        "service": "サービス",
         "category": "区分",
         "eolDate": "サポート終了日"
     },
