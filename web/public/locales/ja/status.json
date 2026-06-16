@@ -70,7 +70,7 @@
     "tooLongKeyword": "キーワードが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooManyKeywords": "タグは最大{{max}}個までです。",
-    "untitledSbom": "Untitled SBOM",
+    "untitledSbom": "名称未設定のサービス",
     "uploadImage": "画像をアップロード"
   },
   "DeploymentsPanel": {
@@ -112,7 +112,7 @@
     "enterSbomName": "サービス名を入力",
     "enterSbomNameHelp": "削除対象のサービス名を完全一致で入力してください。",
     "openDeleteDialog": "削除ダイアログを開く",
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "名称未設定のサービス"
   },
   "NewSbomRegistrationPanel": {
     "cancel": "キャンセル",
@@ -153,12 +153,12 @@
     "systemExposureTitle": "System Exposure"
   },
   "sharedUiParts": {
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "名称未設定のサービス"
   },
   "useSBOMManagementMutations": {
     "confirmRemoveDeployment": "このデプロイ先を削除します。よろしいですか？",
     "deleteFailed": "削除に失敗しました: {{error}}",
-    "deleteSuccess": "SBOMを削除しました",
+    "deleteSuccess": "サービスを削除しました",
     "imageProcessFailed": "画像の処理に失敗しました",
     "imageTooLarge": "画像サイズが大きすぎます",
     "imageTooLargeAfterConvert": "変換後の画像サイズが上限を超えました",
