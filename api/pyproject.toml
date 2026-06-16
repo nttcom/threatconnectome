@@ -17,7 +17,7 @@ dependencies = [
     "protobuf<7.0",
     "psycopg2",
     "pydantic",
-    "python-multipart>=0.0.27",
+    "python-multipart>=0.0.31",
     "requests",
     "sendgrid",
     "slack-sdk",
