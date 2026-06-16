@@ -37,10 +37,8 @@ def login(page: Page, user: dict):
     page.get_by_label("Password").fill(user["pass"])
     page.get_by_role("button", name="Log In with Email").click()
 
-    # Wait login process finish and print menu button
-    # https://playwright.dev/python/docs/api/class-locator#locator-wait-for
-    drawer_status = page.locator("text=Status")
-    drawer_status.wait_for(timeout=10000)
+    # Wait for user data to load so the team selector is ready.
+    expect(page.get_by_role("button", name="Team menu")).to_be_enabled(timeout=10000)
 
 
 def test_login_first_time(page: Page):
@@ -110,7 +108,7 @@ def test_show_package_page(page: Page):
     print_console(page)
     login(page, USER1)
 
-    page.locator("#team-selector-button").click()
+    page.get_by_role("button", name="Team menu").click()
     page.get_by_role("menuitem", name=str(PTEAM1["pteam_name"])).click()
     # status page
     package_row = page.get_by_role("button").filter(has_text=str(PACKAGE1["package_name"]))
