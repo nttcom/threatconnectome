@@ -24,8 +24,6 @@ def get_dependencies_by_service(
             )
         )
     return service.dependencies
-
-
 def has_dependency_by_service(
     db: Session,
     service: models.Service,
