@@ -106,7 +106,7 @@
     "close": "Close",
     "confirmDelete": "Delete",
     "dangerZone": "Danger Zone",
-    "dangerZoneDesc": "Delete the currently open SBOM tab.",
+    "dangerZoneDesc": "Delete the currently open service.",
     "deleteSbomTitle": "Delete SBOM",
     "deleteTarget": "Target",
     "enterSbomName": "Enter SBOM name",
