@@ -123,6 +123,22 @@ class TestGetVulnIdsTiedToServicePackage:
         assert response.status_code == 404
         assert response.json() == {"detail": "No such package"}
 
+    def test_it_should_return_404_with_wrong_package_version_id(self):
+        # Given
+        wrong_package_version_id = str(uuid4())
+
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response['pteam_id']}/vuln_ids"
+            f"?service_id={self.ticket_response['service_id']}"
+            f"&package_version_id={wrong_package_version_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json() == {"detail": "No such package version"}
+
     def test_it_should_return_404_with_valid_but_not_service_package(self, testdb):
         # Given
         # with valid but not service package
@@ -141,6 +157,28 @@ class TestGetVulnIdsTiedToServicePackage:
         # Then
         assert response.status_code == 404
         assert response.json() == {"detail": "No such service package"}
+
+    def test_it_should_return_vuln_ids_filtered_by_package_version_id(self):
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response['pteam_id']}/vuln_ids"
+            f"?service_id={self.ticket_response['service_id']}"
+            f"&package_id={self.ticket_response['package_id']}"
+            f"&package_version_id={self.ticket_response['package_version_id']}"
+            "&related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json() == {
+            "pteam_id": self.ticket_response["pteam_id"],
+            "service_id": self.ticket_response["service_id"],
+            "package_id": self.ticket_response["package_id"],
+            "package_version_id": self.ticket_response["package_version_id"],
+            "related_ticket_status": "unsolved",
+            "vuln_ids": [self.ticket_response["vuln_id"]],
+        }
 
     def test_it_should_return_404_with_wrong_related_ticket_status(self, testdb):
         # Given

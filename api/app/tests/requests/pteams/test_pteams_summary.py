@@ -98,7 +98,7 @@ class TestGetPTeamPackagesSummary:
         self.package_setup_with_single_service(testdb, test_service, test_target, test_version)
 
         # When
-        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{self.pteam1.pteam_id}/package_versions/summary"
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -114,10 +114,45 @@ class TestGetPTeamPackagesSummary:
             **self._get_ssvc_priority_count_zero(),
             "no_known_vulnerability": 1,
         }
+        assert summary["package_versions"] == [
+            {
+                "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
+                "package_name": PACKAGE1["package_name"],
+                "package_version": test_version,
+                "ecosystem": PACKAGE1["ecosystem"],
+                "package_managers": [PACKAGE1["package_manager"]],
+                "service_ids": [self.service1.service_id],
+                "ssvc_priority": "no_known_vulnerability",
+                "updated_at": None,
+                "status_count": {
+                    status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
+                },
+            }
+        ]
+
+    def test_returns_legacy_packages_summary_alias(self, testdb):
+        # Given
+        test_service = "test_service"
+        test_target = "test target"
+        test_version = "test version"
+
+        self.package_setup_with_single_service(testdb, test_service, test_target, test_version)
+
+        # When
+        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        response = client.get(url, headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        summary = response.json()
+        assert "package_versions" not in summary
         assert summary["packages"] == [
             {
                 "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": test_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
@@ -142,7 +177,7 @@ class TestGetPTeamPackagesSummary:
         create_vuln(USER1, VULN1)  # PACKAGE1
 
         # When
-        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{self.pteam1.pteam_id}/package_versions/summary"
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -158,10 +193,12 @@ class TestGetPTeamPackagesSummary:
             **self._get_ssvc_priority_count_zero(),
             "no_known_vulnerability": 1,
         }
-        assert summary["packages"] == [
+        assert summary["package_versions"] == [
             {
                 "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": test_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
@@ -190,7 +227,7 @@ class TestGetPTeamPackagesSummary:
         db_ticket1 = testdb.scalars(select(models.Ticket)).one()
 
         # When
-        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{self.pteam1.pteam_id}/package_versions/summary"
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -207,13 +244,15 @@ class TestGetPTeamPackagesSummary:
             **self._get_ssvc_priority_count_zero(),
             expected_ssvc_priority.value: 1,
         }
-        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
-            "Z", "+00:00"
-        )
-        assert summary["packages"] == [
+        summary["package_versions"][0]["updated_at"] = summary["package_versions"][0][
+            "updated_at"
+        ].replace("Z", "+00:00")
+        assert summary["package_versions"] == [
             {
                 "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": vulnerable_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],
@@ -228,6 +267,105 @@ class TestGetPTeamPackagesSummary:
                 },
             }
         ]
+
+    def test_returns_summary_grouped_by_package_version(self, testdb):
+        # Given
+        create_user(USER1)
+        pteam = create_pteam(USER1, PTEAM1)
+        service = models.Service(service_name="test_service", pteam_id=str(pteam.pteam_id))
+        testdb.add(service)
+        testdb.flush()
+
+        package = models.Package(
+            name=PACKAGE1["package_name"],
+            ecosystem=PACKAGE1["ecosystem"],
+        )
+        persistence.create_package(testdb, package)
+
+        vulnerable_package_version = models.PackageVersion(
+            package_id=package.package_id,
+            version="1.2",
+        )
+        safe_package_version = models.PackageVersion(
+            package_id=package.package_id,
+            version="2.1",
+        )
+        persistence.create_package_version(testdb, vulnerable_package_version)
+        persistence.create_package_version(testdb, safe_package_version)
+
+        vulnerable_dependency = models.Dependency(
+            target="requirements-vulnerable.txt",
+            package_manager=PACKAGE1["package_manager"],
+            package_version_id=vulnerable_package_version.package_version_id,
+            service=service,
+        )
+        safe_dependency = models.Dependency(
+            target="requirements-safe.txt",
+            package_manager=PACKAGE1["package_manager"],
+            package_version_id=safe_package_version.package_version_id,
+            service=service,
+        )
+        testdb.add(vulnerable_dependency)
+        testdb.add(safe_dependency)
+        testdb.flush()
+
+        create_vuln(USER1, VULN1)
+        db_ticket = testdb.scalars(select(models.Ticket)).one()
+        expected_ssvc_priority = calculate_ssvc_priority_by_ticket(db_ticket)
+
+        # When
+        url = f"/pteams/{pteam.pteam_id}/package_versions/summary"
+        response = client.get(url, headers=headers(USER1))
+
+        # Then
+        assert response.status_code == 200
+        summary = response.json()
+        assert summary["ssvc_priority_count"] == {
+            **self._get_ssvc_priority_count_zero(),
+            expected_ssvc_priority.value: 1,
+            "no_known_vulnerability": 1,
+        }
+
+        vulnerable_summary = next(
+            item
+            for item in summary["package_versions"]
+            if item["package_version_id"] == str(vulnerable_package_version.package_version_id)
+        )
+        safe_summary = next(
+            item
+            for item in summary["package_versions"]
+            if item["package_version_id"] == str(safe_package_version.package_version_id)
+        )
+        vulnerable_summary["updated_at"] = vulnerable_summary["updated_at"].replace("Z", "+00:00")
+        assert vulnerable_summary == {
+            "package_id": str(package.package_id),
+            "package_version_id": str(vulnerable_package_version.package_version_id),
+            "package_name": PACKAGE1["package_name"],
+            "package_version": vulnerable_package_version.version,
+            "ecosystem": PACKAGE1["ecosystem"],
+            "package_managers": [PACKAGE1["package_manager"]],
+            "service_ids": [service.service_id],
+            "ssvc_priority": expected_ssvc_priority.value,
+            "updated_at": datetime.isoformat(db_ticket.ticket_status.updated_at),
+            "status_count": {
+                **{status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)},
+                models.TicketHandlingStatusType.alerted.value: 1,
+            },
+        }
+        assert safe_summary == {
+            "package_id": str(package.package_id),
+            "package_version_id": str(safe_package_version.package_version_id),
+            "package_name": PACKAGE1["package_name"],
+            "package_version": safe_package_version.version,
+            "ecosystem": PACKAGE1["ecosystem"],
+            "package_managers": [PACKAGE1["package_manager"]],
+            "service_ids": [service.service_id],
+            "ssvc_priority": "no_known_vulnerability",
+            "updated_at": None,
+            "status_count": {
+                status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
+            },
+        }
 
     def test_returns_summary_even_if_multiple_services_are_registrered(self, testdb):
         # Given
@@ -285,7 +423,7 @@ class TestGetPTeamPackagesSummary:
         db_ticket_statuses = testdb.scalars(select(models.TicketStatus))
 
         # When
-        url = f"/pteams/{pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{pteam1.pteam_id}/package_versions/summary"
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -305,25 +443,27 @@ class TestGetPTeamPackagesSummary:
             expected_ssvc_priority: 1,
         }
 
-        assert len(summary["packages"][0]["service_ids"]) == 2
-        assert set(summary["packages"][0]["service_ids"]) == {
+        assert len(summary["package_versions"][0]["service_ids"]) == 2
+        assert set(summary["package_versions"][0]["service_ids"]) == {
             service1.service_id,
             service2.service_id,
         }
 
-        del summary["packages"][0]["service_ids"]
-        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
-            "Z", "+00:00"
-        )
+        del summary["package_versions"][0]["service_ids"]
+        summary["package_versions"][0]["updated_at"] = summary["package_versions"][0][
+            "updated_at"
+        ].replace("Z", "+00:00")
 
         updated_time = []
         for ticket_status in db_ticket_statuses:
             updated_time.append(ticket_status.updated_at)
 
-        assert summary["packages"] == [
+        assert summary["package_versions"] == [
             {
                 "package_id": str(package.package_id),
+                "package_version_id": str(package_version.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": vulnerable_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "ssvc_priority": expected_ssvc_priority.value,
@@ -359,7 +499,7 @@ class TestGetPTeamPackagesSummary:
         testdb.flush()
 
         # When
-        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{self.pteam1.pteam_id}/package_versions/summary"
         user1_access_token = self._get_access_token(USER1)
         _headers = {
             "Authorization": f"Bearer {user1_access_token}",
@@ -376,10 +516,12 @@ class TestGetPTeamPackagesSummary:
             "no_known_vulnerability": 1,
         }
 
-        assert summary["packages"] == [
+        assert summary["package_versions"] == [
             {
                 "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": test_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"], "pip"],
                 "service_ids": [self.service1.service_id],
@@ -425,7 +567,7 @@ class TestGetPTeamPackagesSummary:
         )
 
         # When
-        url = f"/pteams/{self.pteam1.pteam_id}/packages/summary"
+        url = f"/pteams/{self.pteam1.pteam_id}/package_versions/summary"
         response = client.get(url, headers=_headers)
 
         # Then
@@ -438,14 +580,16 @@ class TestGetPTeamPackagesSummary:
             **self._get_ssvc_priority_count_zero(),
             expected_ssvc_priority.value: 1,
         }
-        summary["packages"][0]["updated_at"] = summary["packages"][0]["updated_at"].replace(
-            "Z", "+00:00"
-        )
+        summary["package_versions"][0]["updated_at"] = summary["package_versions"][0][
+            "updated_at"
+        ].replace("Z", "+00:00")
 
-        assert summary["packages"] == [
+        assert summary["package_versions"] == [
             {
                 "package_id": str(self.package1.package_id),
+                "package_version_id": str(self.package_version1.package_version_id),
                 "package_name": PACKAGE1["package_name"],
+                "package_version": vulnerable_version,
                 "ecosystem": PACKAGE1["ecosystem"],
                 "package_managers": [PACKAGE1["package_manager"]],
                 "service_ids": [self.service1.service_id],

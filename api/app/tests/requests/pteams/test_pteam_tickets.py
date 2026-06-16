@@ -131,6 +131,22 @@ class TestGetTicketCountsTiedToServicePackage:
         assert response.status_code == 404
         assert response.json() == {"detail": "No such package"}
 
+    def test_it_should_return_404_with_wrong_package_version_id(self):
+        # Given
+        wrong_package_version_id = str(uuid4())
+
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response['pteam_id']}/ticket_counts"
+            f"?service_id={self.ticket_response['service_id']}"
+            f"&package_version_id={wrong_package_version_id}",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 404
+        assert response.json() == {"detail": "No such package version"}
+
     def test_it_should_return_404_with_valid_but_not_service_package(self, testdb):
         # Given
         # with valid but not service package
@@ -149,6 +165,33 @@ class TestGetTicketCountsTiedToServicePackage:
         # Then
         assert response.status_code == 404
         assert response.json() == {"detail": "No such service package"}
+
+    def test_it_should_return_ticket_counts_filtered_by_package_version_id(self, testdb):
+        # Given
+        ticket = testdb.scalars(select(models.Ticket)).one()
+        expected_counts = {priority.value: 0 for priority in list(models.SSVCDeployerPriorityEnum)}
+        expected_counts[ticket.ssvc_deployer_priority.value] = 1
+
+        # When
+        response = client.get(
+            f"/pteams/{self.ticket_response['pteam_id']}/ticket_counts"
+            f"?service_id={self.ticket_response['service_id']}"
+            f"&package_id={self.ticket_response['package_id']}"
+            f"&package_version_id={self.ticket_response['package_version_id']}"
+            "&related_ticket_status=unsolved",
+            headers=headers(USER1),
+        )
+
+        # Then
+        assert response.status_code == 200
+        assert response.json() == {
+            "pteam_id": self.ticket_response["pteam_id"],
+            "service_id": self.ticket_response["service_id"],
+            "package_id": self.ticket_response["package_id"],
+            "package_version_id": self.ticket_response["package_version_id"],
+            "related_ticket_status": "unsolved",
+            "ssvc_priority_count": expected_counts,
+        }
 
     def test_it_should_return_404_with_wrong_related_ticket_status(self, testdb):
         # Given
@@ -309,6 +352,32 @@ class TestGetTickets:
             # When
             response = client.get(
                 f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={self.package1.package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_200_when_package_version_id_is_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets"
+                f"?package_version_id={self.package_version1.package_version_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()[0] == self.expected_ticket_response1
+
+        def test_it_should_return_200_when_package_id_and_package_version_id_are_specified(self):
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?service_id={self.service1.service_id}"
+                f"&package_id={self.package1.package_id}"
+                f"&package_version_id={self.package_version1.package_version_id}"
+                f"&vuln_id={self.vuln1.vuln_id}",
                 headers=headers(USER1),
             )
 
@@ -577,6 +646,21 @@ class TestGetTickets:
             # Then
             assert response.status_code == 404
             assert response.json()["detail"] == "No such package"
+
+        def test_it_should_return_404_when_package_version_id_does_not_exist(self):
+            # Given
+            package_version_id = str(uuid4())
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets"
+                f"?package_version_id={package_version_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 404
+            assert response.json()["detail"] == "No such package version"
 
         def test_it_should_return_403_when_not_pteam_member(self):
             # Given

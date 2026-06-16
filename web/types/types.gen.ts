@@ -651,17 +651,25 @@ export type PTeamMemberUpdateResponse = {
 };
 
 /**
- * PTeamPackageSummary
+ * PTeamPackageVersionSummary
  */
-export type PTeamPackageSummary = {
+export type PTeamPackageVersionSummary = {
     /**
      * Package Id
      */
     package_id: string;
     /**
+     * Package Version Id
+     */
+    package_version_id: string;
+    /**
      * Package Name
      */
     package_name: string;
+    /**
+     * Package Version
+     */
+    package_version: string;
     /**
      * Ecosystem
      */
@@ -674,7 +682,7 @@ export type PTeamPackageSummary = {
      * Service Ids
      */
     service_ids: Array<string>;
-    ssvc_priority: SsvcDeployerPackagePriorityEnum | null;
+    ssvc_priority: SsvcDeployerPackagePriorityEnum;
     /**
      * Updated At
      */
@@ -685,6 +693,22 @@ export type PTeamPackageSummary = {
     status_count: {
         [key: string]: number;
     };
+};
+
+/**
+ * PTeamPackageVersionsSummary
+ */
+export type PTeamPackageVersionsSummary = {
+    /**
+     * Ssvc Priority Count
+     */
+    ssvc_priority_count: {
+        [key in SsvcDeployerPackagePriorityEnum]?: number;
+    };
+    /**
+     * Package Versions
+     */
+    package_versions: Array<PTeamPackageVersionSummary>;
 };
 
 /**
@@ -700,7 +724,7 @@ export type PTeamPackagesSummary = {
     /**
      * Packages
      */
-    packages: Array<PTeamPackageSummary>;
+    packages: Array<PTeamPackageVersionSummary>;
 };
 
 /**
@@ -966,6 +990,10 @@ export type ServicePackageTicketCountsSolvedUnsolved = {
      * Package Id
      */
     package_id: string | null;
+    /**
+     * Package Version Id
+     */
+    package_version_id?: string | null;
     related_ticket_status: RelatedTicketStatus | null;
     /**
      * Ssvc Priority Count
@@ -991,6 +1019,10 @@ export type ServicePackageVulnsSolvedUnsolved = {
      * Package Id
      */
     package_id: string | null;
+    /**
+     * Package Version Id
+     */
+    package_version_id?: string | null;
     related_ticket_status: RelatedTicketStatus | null;
     /**
      * Vuln Ids
@@ -1981,6 +2013,41 @@ export type UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostRes
     200: unknown;
 };
 
+export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetData = {
+    body?: never;
+    path: {
+        /**
+         * Pteam Id
+         */
+        pteam_id: string;
+    };
+    query?: {
+        /**
+         * Service Id
+         */
+        service_id?: string | null;
+    };
+    url: '/pteams/{pteam_id}/package_versions/summary';
+};
+
+export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetError = GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetErrors[keyof GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetErrors];
+
+export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: PTeamPackageVersionsSummary;
+};
+
+export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponse = GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponses[keyof GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponses];
+
 export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData = {
     body?: never;
     path: {
@@ -2041,6 +2108,10 @@ export type GetDependenciesPteamsPteamIdDependenciesGetData = {
          * Package Id
          */
         package_id?: string | null;
+        /**
+         * Package Version Id
+         */
+        package_version_id?: string | null;
     };
     url: '/pteams/{pteam_id}/dependencies';
 };
@@ -2117,6 +2188,10 @@ export type GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData = {
          */
         package_id?: string | null;
         /**
+         * Package Version Id
+         */
+        package_version_id?: string | null;
+        /**
          * Related Ticket Status
          */
         related_ticket_status?: RelatedTicketStatus | null;
@@ -2160,6 +2235,10 @@ export type GetTicketCountsTiedToServicePackagePteamsPteamIdTicketCountsGetData 
          */
         package_id?: string | null;
         /**
+         * Package Version Id
+         */
+        package_version_id?: string | null;
+        /**
          * Related Ticket Status
          */
         related_ticket_status?: RelatedTicketStatus | null;
@@ -2202,6 +2281,10 @@ export type GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetDat
          * Package Id
          */
         package_id?: string | null;
+        /**
+         * Package Version Id
+         */
+        package_version_id?: string | null;
         /**
          * Vuln Id
          */

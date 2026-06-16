@@ -443,6 +443,17 @@ def get_dependencies_from_service_id_and_package_id(
     ).all()
 
 
+def get_dependencies_from_service_id_and_package_version_id(
+    db: Session, service_id: UUID | str, package_version_id: UUID | str
+) -> Sequence[models.Dependency]:
+    return db.scalars(
+        select(models.Dependency).where(
+            models.Dependency.service_id == str(service_id),
+            models.Dependency.package_version_id == str(package_version_id),
+        )
+    ).all()
+
+
 ### Alert
 
 
