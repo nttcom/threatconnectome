@@ -442,7 +442,6 @@ def get_dependencies_from_service_id_and_package_id(
         )
     ).all()
 
-
 def exists_dependency_from_service_id_and_package_id(
     db: Session, service_id: UUID | str, package_id: UUID | str
 ) -> bool:
@@ -458,8 +457,6 @@ def exists_dependency_from_service_id_and_package_id(
         ).first()
         is not None
     )
-
-
 def get_dependencies_from_service_id_and_package_version_id(
     db: Session, service_id: UUID | str, package_version_id: UUID | str
 ) -> Sequence[models.Dependency]:
@@ -469,8 +466,6 @@ def get_dependencies_from_service_id_and_package_version_id(
             models.Dependency.package_version_id == str(package_version_id),
         )
     ).all()
-
-
 def exists_dependency_from_service_id_and_package_version_id(
     db: Session, service_id: UUID | str, package_version_id: UUID | str
 ) -> bool:
@@ -485,8 +480,6 @@ def exists_dependency_from_service_id_and_package_version_id(
         ).first()
         is not None
     )
-
-
 ### Alert
 
 
