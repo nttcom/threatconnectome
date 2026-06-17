@@ -58,10 +58,10 @@
     "deleteImage": "Delete image",
     "confirmRemoveImageTitle": "Remove image?",
     "confirmRemoveImageBody": "After removal it goes back to not set.",
-    "title": "Title",
-    "titlePlaceholder": "e.g. Payment Service SBOM",
+    "title": "Service Name",
+    "titlePlaceholder": "e.g. Payment Service",
     "description": "Description",
-    "descriptionPlaceholder": "Enter the target system or purpose of this SBOM",
+    "descriptionPlaceholder": "Enter the target system or purpose of this service",
     "tags": "Tags",
     "tagsPlaceholder": "backend, prod, critical",
     "copyServiceId": "Copy service ID",
@@ -70,7 +70,7 @@
     "tooLongKeyword": "Too long keyword. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "tooLongServiceName": "Too long service name. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width",
     "tooManyKeywords": "Too many tags. Max count is {{max}}.",
-    "untitledSbom": "Untitled SBOM",
+    "untitledSbom": "Untitled service",
     "details": "Details"
   },
   "DeploymentsPanel": {
@@ -106,13 +106,13 @@
     "close": "Close",
     "confirmDelete": "Delete",
     "dangerZone": "Danger Zone",
-    "dangerZoneDesc": "Delete the currently open SBOM tab.",
-    "deleteSbomTitle": "Delete SBOM",
+    "dangerZoneDesc": "Delete the currently open service.",
+    "deleteSbomTitle": "Delete service",
     "deleteTarget": "Target",
-    "enterSbomName": "Enter SBOM name",
-    "enterSbomNameHelp": "Type the SBOM name exactly to confirm deletion.",
+    "enterSbomName": "Enter service name",
+    "enterSbomNameHelp": "Type the service name exactly to confirm deletion.",
     "openDeleteDialog": "Open delete dialog",
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "Untitled service"
   },
   "NewSbomRegistrationPanel": {
     "cancel": "Cancel",
@@ -153,12 +153,12 @@
     "systemExposureTitle": "System Exposure"
   },
   "sharedUiParts": {
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "Untitled service"
   },
   "useSBOMManagementMutations": {
     "confirmRemoveDeployment": "Delete this deployment. Are you sure?",
     "deleteFailed": "Delete failed: {{error}}",
-    "deleteSuccess": "SBOM deleted",
+    "deleteSuccess": "Service deleted",
     "imageProcessFailed": "Failed to process image",
     "imageTooLarge": "Image is too large",
     "imageTooLargeAfterConvert": "Image size after conversion exceeds the limit",

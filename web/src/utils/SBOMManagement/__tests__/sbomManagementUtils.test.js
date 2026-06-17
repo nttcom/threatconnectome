@@ -4,6 +4,7 @@ import {
   buildCurrentServiceFromPTeam,
   buildDependencyRows,
   buildServiceTabsFromPTeam,
+  isDeleteConfirmationValid,
 } from "../sbomManagementUtils";
 
 const services = [
@@ -94,5 +95,27 @@ describe("sbomManagementUtils", () => {
         ssvcPriority: "no_known_vulnerability",
       },
     ]);
+  });
+});
+
+describe("isDeleteConfirmationValid", () => {
+  it("returns true when input matches title exactly", () => {
+    expect(isDeleteConfirmationValid("My Service", "My Service")).toBe(true);
+  });
+
+  it("returns false when input does not match title", () => {
+    expect(isDeleteConfirmationValid("Other Service", "My Service")).toBe(false);
+  });
+
+  it("trims leading and trailing whitespace from input", () => {
+    expect(isDeleteConfirmationValid("  My Service  ", "My Service")).toBe(true);
+  });
+
+  it("returns false when input is empty", () => {
+    expect(isDeleteConfirmationValid("", "My Service")).toBe(false);
+  });
+
+  it("returns false when input is only whitespace", () => {
+    expect(isDeleteConfirmationValid("   ", "My Service")).toBe(false);
   });
 });

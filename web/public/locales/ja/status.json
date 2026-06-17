@@ -50,7 +50,7 @@
     "delete": "削除",
     "deleteImage": "画像を削除",
     "description": "説明文",
-    "descriptionPlaceholder": "SBOMの対象システムや用途を入力",
+    "descriptionPlaceholder": "サービスの対象システムや用途を入力",
     "details": "詳細情報",
     "copyServiceId": "サービスIDをコピー",
     "copySuccess": "コピーしました！",
@@ -64,13 +64,13 @@
     "serviceNameRequired": "サービス名は空にできません。",
     "tags": "タグ",
     "tagsPlaceholder": "backend, prod, critical",
-    "title": "タイトル",
-    "titlePlaceholder": "例: Payment Service SBOM",
+    "title": "サービス名",
+    "titlePlaceholder": "例: Payment Service",
     "tooLongDescription": "説明が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooLongKeyword": "キーワードが長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooLongServiceName": "サービス名が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。",
     "tooManyKeywords": "タグは最大{{max}}個までです。",
-    "untitledSbom": "Untitled SBOM",
+    "untitledSbom": "名称未設定のサービス",
     "uploadImage": "画像をアップロード"
   },
   "DeploymentsPanel": {
@@ -106,13 +106,13 @@
     "close": "閉じる",
     "confirmDelete": "削除する",
     "dangerZone": "危険操作",
-    "dangerZoneDesc": "現在開いているSBOMタブを削除します。",
-    "deleteSbomTitle": "SBOMを削除",
+    "dangerZoneDesc": "現在開いているサービスを削除します。",
+    "deleteSbomTitle": "サービスを削除",
     "deleteTarget": "削除対象",
-    "enterSbomName": "SBOM名を入力",
-    "enterSbomNameHelp": "削除対象のSBOM名を完全一致で入力してください。",
+    "enterSbomName": "サービス名を入力",
+    "enterSbomNameHelp": "削除対象のサービス名を完全一致で入力してください。",
     "openDeleteDialog": "削除ダイアログを開く",
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "名称未設定のサービス"
   },
   "NewSbomRegistrationPanel": {
     "cancel": "キャンセル",
@@ -153,12 +153,12 @@
     "systemExposureTitle": "System Exposure"
   },
   "sharedUiParts": {
-    "untitledSbom": "Untitled SBOM"
+    "untitledSbom": "名称未設定のサービス"
   },
   "useSBOMManagementMutations": {
     "confirmRemoveDeployment": "このデプロイ先を削除します。よろしいですか？",
     "deleteFailed": "削除に失敗しました: {{error}}",
-    "deleteSuccess": "SBOMを削除しました",
+    "deleteSuccess": "サービスを削除しました",
     "imageProcessFailed": "画像の処理に失敗しました",
     "imageTooLarge": "画像サイズが大きすぎます",
     "imageTooLargeAfterConvert": "変換後の画像サイズが上限を超えました",

@@ -493,7 +493,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service SBOM"), {
+      fireEvent.change(screen.getByPlaceholderText("e.g. Payment Service"), {
         target: { value: "unsaved service title" },
       });
 
@@ -655,7 +655,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service");
       fireEvent.change(titleInput, { target: { value: "Updated service name" } });
 
       await ue.click(screen.getByRole("button", { name: "Done" }));
@@ -698,7 +698,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
-      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service");
       fireEvent.change(titleInput, { target: { value: "   " } });
 
       expect(screen.getByRole("button", { name: "Done" })).toBeDisabled();
@@ -752,11 +752,11 @@ describe("StatusPage", () => {
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
 
-      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service");
       fireEvent.change(titleInput, { target: { value: "Payment Service SBOM V2" } });
 
       const descriptionInput = screen.getByPlaceholderText(
-        "Enter the target system or purpose of this SBOM",
+        "Enter the target system or purpose of this service",
       );
       fireEvent.change(descriptionInput, {
         target: { value: "Updated service description" },
@@ -1005,7 +1005,7 @@ describe("StatusPage", () => {
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
 
-      const titleInput = screen.getByPlaceholderText("e.g. Payment Service SBOM");
+      const titleInput = screen.getByPlaceholderText("e.g. Payment Service");
       const validServiceName = "a".repeat(255);
       fireEvent.change(titleInput, { target: { value: validServiceName } });
       expect(titleInput).toHaveValue(validServiceName);
@@ -1013,7 +1013,7 @@ describe("StatusPage", () => {
       expect(titleInput).toHaveValue(validServiceName);
 
       const descriptionInput = screen.getByPlaceholderText(
-        "Enter the target system or purpose of this SBOM",
+        "Enter the target system or purpose of this service",
       );
       const validDescription = "b".repeat(300);
       fireEvent.change(descriptionInput, { target: { value: validDescription } });
