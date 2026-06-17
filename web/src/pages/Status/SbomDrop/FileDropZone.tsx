@@ -1,7 +1,11 @@
 import { UploadFile as UploadFileIcon } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { uiPalette, uiTransitions } from "../../../styles/designTokens";
+
+import { validateSbomFileSelection } from "./sbomFileValidation";
 
 type FileDropZoneProps = {
   onFileSelected: (file: File) => void;
@@ -17,19 +21,24 @@ export function FileDropZone({
   const { t } = useTranslation("status", { keyPrefix: "FileDropZone" });
   const dropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const validateAndSetFile = (files: FileList | null) => {
-    if (!files || !files.length) return;
+    const result = validateSbomFileSelection(files);
+    if (result.error) {
+      alert(t(result.error));
+      return;
+    }
+    if (result.file) {
+      onFileSelected(result.file);
+    }
+  };
 
-    if (files.length > 1) {
-      alert(t("alertOnlyOneFile"));
-      return;
-    }
-    if (!files[0].name.endsWith(".json")) {
-      alert(t("alertOnlyJson"));
-      return;
-    }
-    onFileSelected(files[0]);
+  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    dragCounterRef.current++;
+    setIsDragOver(true);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -37,9 +46,16 @@ export function FileDropZone({
     event.stopPropagation();
   };
 
+  const handleDragLeave = () => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  };
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
     validateAndSetFile(event.dataTransfer.files);
   };
 
@@ -55,6 +71,8 @@ export function FileDropZone({
   return (
     <Box
       ref={dropRef}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onClick={handleClick}
@@ -65,8 +83,12 @@ export function FileDropZone({
         flexDirection: "column",
         width: "100%",
         minHeight: "300px",
-        border: "4px dotted #888",
+        border: isDragOver
+          ? `4px dashed ${uiPalette.slate[600]}`
+          : `4px dotted ${uiPalette.slate[400]}`,
+        bgcolor: isDragOver ? uiPalette.slate[50] : "transparent",
         cursor: "pointer",
+        transition: uiTransitions.borderOnly,
       }}
     >
       <input

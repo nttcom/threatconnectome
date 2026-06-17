@@ -2,7 +2,10 @@
 import DescriptionIcon from "@mui/icons-material/Description";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { validateSbomFileSelection } from "../SbomDrop/sbomFileValidation";
 
 import { AppButton } from "./sharedUiParts";
 import {
@@ -14,8 +17,50 @@ import {
   uiTransitions,
 } from "./styleTokens";
 
-export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel = true }) {
+export function NewSbomRegistrationPanel({
+  onCancel,
+  onDropFile,
+  onUploadClick,
+  showCancel = true,
+}) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
+  const { t: tFileDropZone } = useTranslation("status", { keyPrefix: "FileDropZone" });
+
+  const dragCounterRef = useRef(0);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragEnter = (event) => {
+    event.preventDefault();
+    dragCounterRef.current++;
+    setIsDragOver(true);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDragLeave = () => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) setIsDragOver(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+
+    const result = validateSbomFileSelection(event.dataTransfer.files);
+    if (result.error) {
+      alert(tFileDropZone(result.error));
+      return;
+    }
+    if (result.file) {
+      onDropFile?.(result.file);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -24,11 +69,17 @@ export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel =
       }}
     >
       <Card
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         sx={{
           ...statusCardSx,
+          borderColor: isDragOver ? slate[400] : slate[200],
           maxWidth: 768,
           mx: "auto",
           overflow: "hidden",
+          transition: uiTransitions.borderOnly,
         }}
       >
         <Box sx={{ bgcolor: slate[50], px: { sm: 5, xs: 3 }, py: 5, textAlign: "center" }}>
