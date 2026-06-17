@@ -59,7 +59,7 @@
     "confirmRemoveImageTitle": "Remove image?",
     "confirmRemoveImageBody": "After removal it goes back to not set.",
     "title": "Service Name",
-    "titlePlaceholder": "e.g. Payment Service SBOM",
+    "titlePlaceholder": "e.g. Payment Service",
     "description": "Description",
     "descriptionPlaceholder": "Enter the target system or purpose of this service",
     "tags": "Tags",
