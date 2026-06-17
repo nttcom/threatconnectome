@@ -324,7 +324,7 @@ def get_vulns(
     return result
 
 
-def get_packages_summary(
+def get_package_versions_summary(
     db: Session, pteam_id: UUID | str, service_id: UUID | str | None
 ) -> list[dict]:
     unsolved_subq = (

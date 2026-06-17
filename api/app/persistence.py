@@ -443,6 +443,23 @@ def get_dependencies_from_service_id_and_package_id(
     ).all()
 
 
+def exists_dependency_from_service_id_and_package_id(
+    db: Session, service_id: UUID | str, package_id: UUID | str
+) -> bool:
+    return (
+        db.execute(
+            select(models.Dependency.dependency_id)
+            .join(models.PackageVersion)
+            .where(
+                models.Dependency.service_id == str(service_id),
+                models.PackageVersion.package_id == str(package_id),
+            )
+            .limit(1)
+        ).first()
+        is not None
+    )
+
+
 def get_dependencies_from_service_id_and_package_version_id(
     db: Session, service_id: UUID | str, package_version_id: UUID | str
 ) -> Sequence[models.Dependency]:
@@ -452,6 +469,22 @@ def get_dependencies_from_service_id_and_package_version_id(
             models.Dependency.package_version_id == str(package_version_id),
         )
     ).all()
+
+
+def exists_dependency_from_service_id_and_package_version_id(
+    db: Session, service_id: UUID | str, package_version_id: UUID | str
+) -> bool:
+    return (
+        db.execute(
+            select(models.Dependency.dependency_id)
+            .where(
+                models.Dependency.service_id == str(service_id),
+                models.Dependency.package_version_id == str(package_version_id),
+            )
+            .limit(1)
+        ).first()
+        is not None
+    )
 
 
 ### Alert

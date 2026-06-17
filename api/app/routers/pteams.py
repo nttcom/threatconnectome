@@ -166,16 +166,11 @@ def _validate_service_package_filter(
 ) -> None:
     if not package_id and not package_version_id:
         return
-    if (
-        len(
-            dependency_business.get_dependencies_by_service(
-                db,
-                service,
-                package_id,
-                package_version_id,
-            )
-        )
-        == 0
+    if not dependency_business.has_dependency_by_service(
+        db,
+        service,
+        package_id,
+        package_version_id,
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
@@ -656,7 +651,7 @@ def _get_pteam_package_version_summaries(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    package_versions_summary = command.get_packages_summary(db, pteam_id, service_id)
+    package_versions_summary = command.get_package_versions_summary(db, pteam_id, service_id)
 
     for package_version_summary in package_versions_summary:
         if package_version_summary.get("ssvc_priority") is None:
