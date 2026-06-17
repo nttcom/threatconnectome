@@ -46,8 +46,8 @@ import type {
   GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData,
   UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostData,
   RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteData,
-  PTeamPackagesSummary,
-  GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData,
+  PTeamPackageVersionsSummary,
+  GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetData,
   UploadPteamSbomFilePteamsPteamIdUploadSbomFilePostData,
   GetTicketsTicketsGetData,
   TicketListResponse,
@@ -135,6 +135,11 @@ type GetPTeamTicketCountsRequestParams = Pick<
 type GetPTeamServiceThumbnailRequestParams = Pick<
   GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData,
   "path"
+>;
+
+type GetPTeamPackageVersionsSummaryRequestParams = Pick<
+  GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetData,
+  "path" | "query"
 >;
 
 type GetSbomProgressRequestQuery = Pick<
@@ -513,13 +518,13 @@ export const tcApi = createApi({
       ],
     }),
 
-    /* PTeam packages Summary */
-    getPTeamPackagesSummary: builder.query<
-      PTeamPackagesSummary,
-      GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData
+    /* PTeam package versions Summary */
+    getPTeamPackageVersionsSummary: builder.query<
+      PTeamPackageVersionsSummary,
+      GetPTeamPackageVersionsSummaryRequestParams
     >({
       query: (arg) => ({
-        url: `pteams/${arg.path.pteam_id}/packages/summary`,
+        url: `pteams/${arg.path.pteam_id}/package_versions/summary`,
         method: "GET",
         params: { service_id: arg.query?.service_id },
       }),
@@ -738,7 +743,7 @@ export const {
   useGetPTeamServiceThumbnailQuery,
   useUpdatePTeamServiceThumbnailMutation,
   useDeletePTeamServiceThumbnailMutation,
-  useGetPTeamPackagesSummaryQuery,
+  useGetPTeamPackageVersionsSummaryQuery,
   useUploadSBOMFileMutation,
   useGetSbomUploadProgressQuery,
   useGetTicketsQuery,

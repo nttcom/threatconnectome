@@ -406,11 +406,6 @@ class PTeamPackageVersionsSummary(ORMModel):
     package_versions: list[PTeamPackageVersionSummary]
 
 
-class PTeamPackagesSummary(ORMModel):
-    ssvc_priority_count: dict[SSVCDeployerPackagePriorityEnum, int]  # priority: packages count
-    packages: list[PTeamPackageVersionSummary]
-
-
 class SlackCheckRequest(ORMModel):
     slack_webhook_url: str
 

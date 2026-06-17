@@ -712,22 +712,6 @@ export type PTeamPackageVersionsSummary = {
 };
 
 /**
- * PTeamPackagesSummary
- */
-export type PTeamPackagesSummary = {
-    /**
-     * Ssvc Priority Count
-     */
-    ssvc_priority_count: {
-        [key in SsvcDeployerPackagePriorityEnum]?: number;
-    };
-    /**
-     * Packages
-     */
-    packages: Array<PTeamPackageVersionSummary>;
-};
-
-/**
  * PTeamRole
  */
 export type PTeamRole = {
@@ -2047,41 +2031,6 @@ export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGet
 };
 
 export type GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponse = GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponses[keyof GetPteamPackageVersionsSummaryPteamsPteamIdPackageVersionsSummaryGetResponses];
-
-export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetData = {
-    body?: never;
-    path: {
-        /**
-         * Pteam Id
-         */
-        pteam_id: string;
-    };
-    query?: {
-        /**
-         * Service Id
-         */
-        service_id?: string | null;
-    };
-    url: '/pteams/{pteam_id}/packages/summary';
-};
-
-export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetError = GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetErrors[keyof GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetErrors];
-
-export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: PTeamPackagesSummary;
-};
-
-export type GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponse = GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponses[keyof GetPteamPackagesSummaryPteamsPteamIdPackagesSummaryGetResponses];
 
 export type GetDependenciesPteamsPteamIdDependenciesGetData = {
     body?: never;

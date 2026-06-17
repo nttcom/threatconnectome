@@ -68,7 +68,7 @@ export function buildDependencyRows(packages, currentServiceId) {
     packageId: pkg.package_id,
     serviceId: currentServiceId,
     name: pkg.package_name,
-    version: "",
+    version: pkg.package_version || "",
     type: pkg.ecosystem,
     license: "",
     ssvcPriority: pkg.ssvc_priority || "no_known_vulnerability",
