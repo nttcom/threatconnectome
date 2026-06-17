@@ -650,6 +650,7 @@ def _get_pteam_package_version_summaries(
         raise NO_SUCH_SERVICE
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
+
     package_versions_summary = command.get_package_versions_summary(db, pteam_id, service_id)
 
     for package_version_summary in package_versions_summary:
