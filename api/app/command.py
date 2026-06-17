@@ -52,6 +52,7 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
     service_id: UUID | str | None,
     package_id: UUID | str | None,
     vuln_id: UUID | str | None,
+    package_version_id: UUID | str | None = None,
     assigned_user_id: UUID | str | None = None,
 ) -> Sequence[models.Ticket]:
     select_stmt = select(models.Ticket)
@@ -77,14 +78,13 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
 
     if vuln_id:
         select_stmt = select_stmt.where(models.Threat.vuln_id == str(vuln_id))
-    if package_id:
+    if package_version_id:
+        select_stmt = select_stmt.where(models.Threat.package_version_id == str(package_version_id))
+    elif package_id:
         select_stmt = select_stmt.join(
             models.PackageVersion,
-            and_(
-                models.PackageVersion.package_version_id == models.Threat.package_version_id,
-                models.PackageVersion.package_id == str(package_id),
-            ),
-        )
+            models.PackageVersion.package_version_id == models.Threat.package_version_id,
+        ).where(models.PackageVersion.package_id == str(package_id))
     if service_id:
         select_stmt = select_stmt.join(
             models.Dependency,
@@ -324,7 +324,7 @@ def get_vulns(
     return result
 
 
-def get_packages_summary(
+def get_package_versions_summary(
     db: Session, pteam_id: UUID | str, service_id: UUID | str | None
 ) -> list[dict]:
     unsolved_subq = (
@@ -357,15 +357,21 @@ def get_packages_summary(
     summarize_stmt = (
         select(
             models.Package.package_id,
+            models.PackageVersion.package_version_id,
             models.Package.name,
+            models.PackageVersion.version,
             models.Package.ecosystem,
             package_managers,
             min_unsolved_ssvc_priority,
             max_unsolved_updated_at,
             service_ids,
         )
+        .select_from(models.Package)
         .join(models.PackageVersion, models.PackageVersion.package_id == models.Package.package_id)
-        .join(models.Dependency)
+        .join(
+            models.Dependency,
+            models.Dependency.package_version_id == models.PackageVersion.package_version_id,
+        )
         .join(
             models.Service,
             and_(
@@ -377,11 +383,12 @@ def get_packages_summary(
             unsolved_subq,
             unsolved_subq.c.dependency_id == models.Dependency.dependency_id,
         )
-        .group_by(models.Package.package_id)
+        .group_by(models.Package.package_id, models.PackageVersion.package_version_id)
         .order_by(
             min_unsolved_ssvc_priority.nullslast(),
             max_unsolved_updated_at.desc().nullslast(),
             models.Package.name,
+            models.PackageVersion.version,
             models.Package.ecosystem,
         )
     )
@@ -391,12 +398,15 @@ def get_packages_summary(
 
     count_status_stmt = (
         select(
-            models.Package.package_id,
+            models.PackageVersion.package_version_id,
             models.TicketStatus.ticket_handling_status,
             func.count(models.TicketStatus.ticket_handling_status).label("num_status"),
         )
-        .join(models.PackageVersion)
-        .join(models.Dependency)
+        .select_from(models.PackageVersion)
+        .join(
+            models.Dependency,
+            models.Dependency.package_version_id == models.PackageVersion.package_version_id,
+        )
         .join(
             models.Service,
             and_(
@@ -407,7 +417,7 @@ def get_packages_summary(
         .join(models.Ticket)
         .join(models.TicketStatus)
         .group_by(
-            models.Package.package_id,
+            models.PackageVersion.package_version_id,
             models.TicketStatus.ticket_handling_status,
         )
     )
@@ -416,20 +426,24 @@ def get_packages_summary(
         count_status_stmt = count_status_stmt.where(models.Dependency.service_id == str(service_id))
 
     status_count_dict = {
-        (row.package_id, row.ticket_handling_status): row.num_status
+        (row.package_version_id, row.ticket_handling_status): row.num_status
         for row in db.execute(count_status_stmt).all()
     }
     summary = [
         {
             "package_id": row.package_id,
+            "package_version_id": row.package_version_id,
             "package_name": row.name,
+            "package_version": row.version,
             "ecosystem": row.ecosystem,
             "package_managers": row.package_managers,
             "ssvc_priority": row.min_ssvc_priority,
             "updated_at": row.max_updated_at,
             "service_ids": row.service_ids,
             "status_count": {
-                status_type.value: status_count_dict.get((row.package_id, status_type.value), 0)
+                status_type.value: status_count_dict.get(
+                    (row.package_version_id, status_type.value), 0
+                )
                 for status_type in list(models.TicketHandlingStatusType)
             },
         }

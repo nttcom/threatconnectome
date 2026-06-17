@@ -92,6 +92,9 @@ NOT_HAVE_AUTH = HTTPException(
 NO_SUCH_PTEAM = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such pteam")
 NO_SUCH_VULN = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such vuln")
 NO_SUCH_PACKAGE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such package")
+NO_SUCH_PACKAGE_VERSION = HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND, detail="No such package version"
+)
 NO_SUCH_SERVICE = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service")
 NO_SUCH_TICKET = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such ticket")
 
@@ -137,6 +140,39 @@ def _to_pteam_info_response(pteam: models.PTeam) -> schemas.PTeamInfo:
             address=pteam.alert_mail.address,
         ),
     )
+
+
+def _validate_package_version_filter(
+    db: Session,
+    package_id: UUID | None,
+    package_version_id: UUID | None,
+) -> None:
+    if package_id and not persistence.get_package_by_id(db, package_id):
+        raise NO_SUCH_PACKAGE
+    if not package_version_id:
+        return
+    package_version = persistence.get_package_version_by_id(db, package_version_id)
+    if not package_version:
+        raise NO_SUCH_PACKAGE_VERSION
+    if package_id and package_version.package_id != str(package_id):
+        raise NO_SUCH_PACKAGE_VERSION
+
+
+def _validate_service_package_filter(
+    db: Session,
+    service: models.Service,
+    package_id: UUID | None,
+    package_version_id: UUID | None,
+) -> None:
+    if not package_id and not package_version_id:
+        return
+    if not dependency_business.has_dependency_by_service(
+        db,
+        service,
+        package_id,
+        package_version_id,
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
 
 
 @router.post("/apply_invitation", response_model=schemas.PTeamInfo)
@@ -600,16 +636,12 @@ def _count_ssvc_priority_from_summary(
     return ssvc_priority_count
 
 
-@router.get("/{pteam_id}/packages/summary", response_model=schemas.PTeamPackagesSummary)
-def get_pteam_packages_summary(
+def _get_pteam_package_version_summaries(
     pteam_id: UUID,
-    service_id: UUID | None = Query(None),
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get packages summary of the pteam service.
-    """
+    service_id: UUID | None,
+    current_user: models.Account,
+    db: Session,
+) -> list[dict]:
     if not (pteam := persistence.get_pteam_by_id(db, pteam_id)):
         raise NO_SUCH_PTEAM
     if service_id and not next(
@@ -619,23 +651,67 @@ def get_pteam_packages_summary(
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
 
-    packages_summary = command.get_packages_summary(db, pteam_id, service_id)
+    package_versions_summary = command.get_package_versions_summary(db, pteam_id, service_id)
 
-    for package_summary in packages_summary:
-        if package_summary.get("ssvc_priority") is None:
-            package_summary["ssvc_priority"] = (
+    for package_version_summary in package_versions_summary:
+        if package_version_summary.get("ssvc_priority") is None:
+            package_version_summary["ssvc_priority"] = (
                 schemas.SSVCDeployerPackagePriorityEnum.NO_KNOWN_VULNERABILITY
             )
         else:
-            package_summary["ssvc_priority"] = schemas.SSVCDeployerPackagePriorityEnum(
-                package_summary["ssvc_priority"].value
+            package_version_summary["ssvc_priority"] = schemas.SSVCDeployerPackagePriorityEnum(
+                package_version_summary["ssvc_priority"].value
             )
 
-    ssvc_priority_count = _count_ssvc_priority_from_summary(packages_summary)
+    return package_versions_summary
+
+
+@router.get(
+    "/{pteam_id}/package_versions/summary",
+    response_model=schemas.PTeamPackageVersionsSummary,
+)
+def get_pteam_package_versions_summary(
+    pteam_id: UUID,
+    service_id: UUID | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get package versions summary of the pteam service.
+    """
+    package_versions_summary = _get_pteam_package_version_summaries(
+        pteam_id, service_id, current_user, db
+    )
+    ssvc_priority_count = _count_ssvc_priority_from_summary(package_versions_summary)
 
     return {
         "ssvc_priority_count": ssvc_priority_count,
-        "packages": packages_summary,
+        "package_versions": package_versions_summary,
+    }
+
+
+@router.get(
+    "/{pteam_id}/packages/summary",
+    response_model=schemas.PTeamPackagesSummary,
+    deprecated=True,
+)
+def get_pteam_packages_summary(
+    pteam_id: UUID,
+    service_id: UUID | None = Query(None),
+    current_user: models.Account = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get packages summary of the pteam service.
+    """
+    package_versions_summary = _get_pteam_package_version_summaries(
+        pteam_id, service_id, current_user, db
+    )
+    ssvc_priority_count = _count_ssvc_priority_from_summary(package_versions_summary)
+
+    return {
+        "ssvc_priority_count": ssvc_priority_count,
+        "packages": package_versions_summary,
     }
 
 
@@ -649,6 +725,7 @@ def get_dependencies(
     limit: int = Query(100, ge=1, le=1000),
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
+    package_version_id: UUID | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -656,9 +733,7 @@ def get_dependencies(
         raise NO_SUCH_PTEAM
     if not check_pteam_membership(pteam, current_user):
         raise NOT_A_PTEAM_MEMBER
-    if package_id:
-        if not persistence.get_package_by_id(db, package_id):
-            raise NO_SUCH_PACKAGE
+    _validate_package_version_filter(db, package_id, package_version_id)
 
     dependencies = []
     if service_id:
@@ -666,11 +741,15 @@ def get_dependencies(
             service := next(filter(lambda x: x.service_id == str(service_id), pteam.services), None)
         ):
             raise NO_SUCH_SERVICE
-        dependencies = dependency_business.get_dependencies_by_service(db, service, package_id)
+        dependencies = dependency_business.get_dependencies_by_service(
+            db, service, package_id, package_version_id
+        )
     else:
         for service in pteam.services:
             dependencies.extend(
-                dependency_business.get_dependencies_by_service(db, service, package_id)
+                dependency_business.get_dependencies_by_service(
+                    db, service, package_id, package_version_id
+                )
             )
 
     dependencies.sort(key=lambda x: x.dependency_id)
@@ -751,6 +830,7 @@ def get_vuln_ids_tied_to_service_package(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
+    package_version_id: UUID | None = Query(None),
     related_ticket_status: schemas.RelatedTicketStatus | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -765,31 +845,24 @@ def get_vuln_ids_tied_to_service_package(
             raise NO_SUCH_SERVICE
         if service.pteam_id != str(pteam_id):
             raise NO_SUCH_SERVICE
-    if package_id and not persistence.get_package_by_id(db, package_id):
-        raise NO_SUCH_PACKAGE
-    if (
-        service_id
-        and package_id
-        and len(
-            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
-        )
-        == 0
-    ):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
+    _validate_package_version_filter(db, package_id, package_version_id)
+    if service:
+        _validate_service_package_filter(db, service, package_id, package_version_id)
 
     if service:
         vuln_ids_summary = get_vuln_ids_summary_by_service_and_package_id(
-            db, service, package_id, related_ticket_status
+            db, service, package_id, package_version_id, related_ticket_status
         )
     else:
         vuln_ids_summary = get_vuln_ids_summary_by_pteam_and_package_id(
-            db, pteam, package_id, related_ticket_status
+            db, pteam, package_id, package_version_id, related_ticket_status
         )
 
     return {
         "pteam_id": pteam_id,
         "service_id": service_id,
         "package_id": package_id,
+        "package_version_id": package_version_id,
         "related_ticket_status": related_ticket_status,
         **vuln_ids_summary,
     }
@@ -803,6 +876,7 @@ def get_ticket_counts_tied_to_service_package(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
+    package_version_id: UUID | None = Query(None),
     related_ticket_status: schemas.RelatedTicketStatus | None = Query(None),
     current_user: models.Account = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -817,31 +891,24 @@ def get_ticket_counts_tied_to_service_package(
             raise NO_SUCH_SERVICE
         if service.pteam_id != str(pteam_id):
             raise NO_SUCH_SERVICE
-    if package_id and not persistence.get_package_by_id(db, package_id):
-        raise NO_SUCH_PACKAGE
-    if (
-        service_id
-        and package_id
-        and len(
-            persistence.get_dependencies_from_service_id_and_package_id(db, service_id, package_id)
-        )
-        == 0
-    ):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such service package")
+    _validate_package_version_filter(db, package_id, package_version_id)
+    if service:
+        _validate_service_package_filter(db, service, package_id, package_version_id)
 
     if service:
         ticket_counts_summary = get_ticket_counts_summary_by_service_and_package_id(
-            db, service, package_id, related_ticket_status
+            db, service, package_id, package_version_id, related_ticket_status
         )
     else:
         ticket_counts_summary = get_ticket_counts_summary_by_pteam_and_package_id(
-            db, pteam, package_id, related_ticket_status
+            db, pteam, package_id, package_version_id, related_ticket_status
         )
 
     return {
         "pteam_id": pteam_id,
         "service_id": service_id,
         "package_id": package_id,
+        "package_version_id": package_version_id,
         "related_ticket_status": related_ticket_status,
         **ticket_counts_summary,
     }
@@ -855,6 +922,7 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
     pteam_id: UUID,
     service_id: UUID | None = Query(None),
     package_id: UUID | None = Query(None),
+    package_version_id: UUID | None = Query(None),
     vuln_id: UUID | None = Query(None),
     assigned_to_me: bool = Query(False),
     current_user: models.Account = Depends(get_current_user),
@@ -872,18 +940,17 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
             raise NO_SUCH_SERVICE
         if service.pteam_id != str(pteam_id):
             raise NO_SUCH_SERVICE
-    if package_id and not (persistence.get_package_by_id(db, package_id)):
-        raise NO_SUCH_PACKAGE
+    _validate_package_version_filter(db, package_id, package_version_id)
     if vuln_id and not (persistence.get_vuln_by_id(db, vuln_id)):
         raise NO_SUCH_VULN
 
     if assigned_to_me:
         tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id, current_user.user_id
+            db, service_id, package_id, vuln_id, package_version_id, current_user.user_id
         )
     else:
         tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id
+            db, service_id, package_id, vuln_id, package_version_id
         )
 
     ret = [

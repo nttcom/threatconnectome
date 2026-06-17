@@ -388,19 +388,27 @@ class SSVCDeployerPackagePriorityEnum(StrEnum):
     NO_KNOWN_VULNERABILITY = "no_known_vulnerability"
 
 
-class PTeamPackagesSummary(ORMModel):
-    class PTeamPackageSummary(ORMModel):
-        package_id: UUID
-        package_name: str
-        ecosystem: str
-        package_managers: list[str]
-        service_ids: list[UUID]
-        ssvc_priority: SSVCDeployerPackagePriorityEnum
-        updated_at: datetime | None
-        status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
+class PTeamPackageVersionSummary(ORMModel):
+    package_id: UUID
+    package_version_id: UUID
+    package_name: str
+    package_version: str
+    ecosystem: str
+    package_managers: list[str]
+    service_ids: list[UUID]
+    ssvc_priority: SSVCDeployerPackagePriorityEnum
+    updated_at: datetime | None
+    status_count: dict[str, int]  # TicketHandlingStatusType.value: tickets count
 
+
+class PTeamPackageVersionsSummary(ORMModel):
     ssvc_priority_count: dict[SSVCDeployerPackagePriorityEnum, int]  # priority: packages count
-    packages: list[PTeamPackageSummary]
+    package_versions: list[PTeamPackageVersionSummary]
+
+
+class PTeamPackagesSummary(ORMModel):
+    ssvc_priority_count: dict[SSVCDeployerPackagePriorityEnum, int]  # priority: packages count
+    packages: list[PTeamPackageVersionSummary]
 
 
 class SlackCheckRequest(ORMModel):
@@ -415,6 +423,7 @@ class ServicePackageVulnsSolvedUnsolved(ORMModel):
     pteam_id: UUID
     service_id: UUID | None
     package_id: UUID | None
+    package_version_id: UUID | None = None
     related_ticket_status: RelatedTicketStatus | None
     vuln_ids: list[UUID]
 
@@ -423,6 +432,7 @@ class ServicePackageTicketCountsSolvedUnsolved(ORMModel):
     pteam_id: UUID
     service_id: UUID | None
     package_id: UUID | None
+    package_version_id: UUID | None = None
     related_ticket_status: RelatedTicketStatus | None
     ssvc_priority_count: dict[str, int]
 
