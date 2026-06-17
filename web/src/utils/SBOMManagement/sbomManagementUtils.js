@@ -27,7 +27,7 @@ export function getNextActiveIdAfterRemoval(items, removedId) {
 }
 
 export function isDeleteConfirmationValid(input, title) {
-  return input.trim() === (title || "Untitled SBOM");
+  return input.trim() === title;
 }
 
 export function buildServiceTabsFromPTeam(services) {

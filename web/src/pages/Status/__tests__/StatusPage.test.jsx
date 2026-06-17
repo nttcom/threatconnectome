@@ -756,7 +756,7 @@ describe("StatusPage", () => {
       fireEvent.change(titleInput, { target: { value: "Payment Service SBOM V2" } });
 
       const descriptionInput = screen.getByPlaceholderText(
-        "Enter the target system or purpose of this SBOM",
+        "Enter the target system or purpose of this service",
       );
       fireEvent.change(descriptionInput, {
         target: { value: "Updated service description" },
@@ -1013,7 +1013,7 @@ describe("StatusPage", () => {
       expect(titleInput).toHaveValue(validServiceName);
 
       const descriptionInput = screen.getByPlaceholderText(
-        "Enter the target system or purpose of this SBOM",
+        "Enter the target system or purpose of this service",
       );
       const validDescription = "b".repeat(300);
       fireEvent.change(descriptionInput, { target: { value: validDescription } });

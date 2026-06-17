@@ -61,7 +61,7 @@
     "title": "Service Name",
     "titlePlaceholder": "e.g. Payment Service SBOM",
     "description": "Description",
-    "descriptionPlaceholder": "Enter the target system or purpose of this SBOM",
+    "descriptionPlaceholder": "Enter the target system or purpose of this service",
     "tags": "Tags",
     "tagsPlaceholder": "backend, prod, critical",
     "copyServiceId": "Copy service ID",

@@ -50,7 +50,7 @@
     "delete": "削除",
     "deleteImage": "画像を削除",
     "description": "説明文",
-    "descriptionPlaceholder": "SBOMの対象システムや用途を入力",
+    "descriptionPlaceholder": "サービスの対象システムや用途を入力",
     "details": "詳細情報",
     "copyServiceId": "サービスIDをコピー",
     "copySuccess": "コピーしました！",
