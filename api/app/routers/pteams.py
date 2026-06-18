@@ -946,11 +946,11 @@ def get_tickets_by_service_id_and_package_id_and_vuln_id(
 
     if assigned_to_me:
         tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id, package_version_id, current_user.user_id
+            db, pteam_id, service_id, package_id, vuln_id, package_version_id, current_user.user_id
         )
     else:
         tickets = command.get_sorted_tickets_related_to_service_and_package_and_vuln(
-            db, service_id, package_id, vuln_id, package_version_id
+            db, pteam_id, service_id, package_id, vuln_id, package_version_id
         )
 
     ret = [
