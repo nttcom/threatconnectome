@@ -1,11 +1,12 @@
 import { UploadFile as UploadFileIcon } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { uiPalette, uiTransitions } from "../../../styles/designTokens";
 
 import { validateSbomFileSelection } from "./sbomFileValidation";
+import { useSbomFileDrop } from "./useSbomFileDrop";
 
 type FileDropZoneProps = {
   onFileSelected: (file: File) => void;
@@ -21,10 +22,14 @@ export function FileDropZone({
   const { t } = useTranslation("status", { keyPrefix: "FileDropZone" });
   const dropRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragCounterRef = useRef(0);
-  const [isDragOver, setIsDragOver] = useState(false);
 
-  const validateAndSetFile = (files: FileList | null) => {
+  const { isDragOver, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } =
+    useSbomFileDrop({
+      onFile: onFileSelected,
+      onError: (key) => alert(t(key)),
+    });
+
+  const handleFileInputChange = (files: FileList | null) => {
     const result = validateSbomFileSelection(files);
     if (result.error) {
       alert(t(result.error));
@@ -35,36 +40,12 @@ export function FileDropZone({
     }
   };
 
-  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    dragCounterRef.current++;
-    setIsDragOver(true);
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  const handleDragLeave = () => {
-    dragCounterRef.current--;
-    if (dragCounterRef.current === 0) setIsDragOver(false);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounterRef.current = 0;
-    setIsDragOver(false);
-    validateAndSetFile(event.dataTransfer.files);
-  };
-
   const handleClick = () => {
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    validateAndSetFile(event.target.files);
+    handleFileInputChange(event.target.files);
     event.target.value = "";
   };
 

@@ -2,10 +2,9 @@
 import DescriptionIcon from "@mui/icons-material/Description";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
-import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { validateSbomFileSelection } from "../SbomDrop/sbomFileValidation";
+import { useSbomFileDrop } from "../SbomDrop/useSbomFileDrop";
 
 import { AppButton } from "./sharedUiParts";
 import {
@@ -26,40 +25,11 @@ export function NewSbomRegistrationPanel({
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   const { t: tFileDropZone } = useTranslation("status", { keyPrefix: "FileDropZone" });
 
-  const dragCounterRef = useRef(0);
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleDragEnter = (event) => {
-    event.preventDefault();
-    dragCounterRef.current++;
-    setIsDragOver(true);
-  };
-
-  const handleDragOver = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  const handleDragLeave = () => {
-    dragCounterRef.current--;
-    if (dragCounterRef.current === 0) setIsDragOver(false);
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounterRef.current = 0;
-    setIsDragOver(false);
-
-    const result = validateSbomFileSelection(event.dataTransfer.files);
-    if (result.error) {
-      alert(tFileDropZone(result.error));
-      return;
-    }
-    if (result.file) {
-      onDropFile?.(result.file);
-    }
-  };
+  const { isDragOver, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } =
+    useSbomFileDrop({
+      onFile: (file) => onDropFile?.(file),
+      onError: (key) => alert(tFileDropZone(key)),
+    });
 
   return (
     <Box
