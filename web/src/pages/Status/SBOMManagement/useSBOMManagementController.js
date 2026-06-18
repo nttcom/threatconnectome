@@ -100,6 +100,7 @@ export function useSBOMManagementController({
         ? undefined
         : state.serviceTabs.map((service) => service.title),
       onClose: () => state.setPendingUpload(null),
+      onCreateWithFile: (file) => state.setPendingUpload({ initialFile: file }),
       onUploaded: () => state.setPendingUpload(null),
       value: state.pendingUpload,
     },

@@ -4,6 +4,8 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useSbomFileDrop } from "../SbomDrop/useSbomFileDrop";
+
 import { AppButton } from "./sharedUiParts";
 import {
   slate,
@@ -14,8 +16,21 @@ import {
   uiTransitions,
 } from "./styleTokens";
 
-export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel = true }) {
+export function NewSbomRegistrationPanel({
+  onCancel,
+  onDropFile,
+  onUploadClick,
+  showCancel = true,
+}) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
+  const { t: tFileDropZone } = useTranslation("status", { keyPrefix: "FileDropZone" });
+
+  const { isDragOver, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } =
+    useSbomFileDrop({
+      onFile: (file) => onDropFile?.(file),
+      onError: (key) => alert(tFileDropZone(key)),
+    });
+
   return (
     <Box
       sx={{
@@ -24,11 +39,17 @@ export function NewSbomRegistrationPanel({ onCancel, onUploadClick, showCancel =
       }}
     >
       <Card
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         sx={{
           ...statusCardSx,
+          borderColor: isDragOver ? slate[400] : slate[200],
           maxWidth: 768,
           mx: "auto",
           overflow: "hidden",
+          transition: uiTransitions.borderOnly,
         }}
       >
         <Box sx={{ bgcolor: slate[50], px: { sm: 5, xs: 3 }, py: 5, textAlign: "center" }}>
