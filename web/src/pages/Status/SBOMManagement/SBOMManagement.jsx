@@ -111,7 +111,6 @@ export function SBOMManagement({
           <NewSbomRegistrationPanel
             onCancel={newSbom.onCancel}
             onDropFile={pendingUpload.onCreateWithFile}
-            onUploadClick={newSbom.onUploadClick}
             showCancel={!isEmpty}
           />
         ) : isActiveServicePending ? (

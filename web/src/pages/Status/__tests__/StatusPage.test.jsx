@@ -889,17 +889,24 @@ describe("StatusPage", () => {
       useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "New" }));
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
 
+      // Clicking the upload area opens the native file picker (hidden input), not the dialog directly.
       const uploadButton = screen.getByText("Upload an SBOM").closest("button");
       expect(uploadButton).not.toBeNull();
       await ue.click(uploadButton);
+      expect(screen.queryByRole("dialog")).toBeNull();
+
+      // Simulate selecting a file via the hidden file input — this triggers the upload dialog.
+      const fileInput = document.querySelector('input[type="file"][accept=".json"]');
+      expect(fileInput).not.toBeNull();
+      const testFile = new File(["{}"], "sbom.json", { type: "application/json" });
+      await ue.upload(fileInput, testFile);
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Upload SBOM")).toBeInTheDocument();
-      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
     });
 
     it("opens the upload dialog with warning text when the SBOM update button is clicked", async () => {

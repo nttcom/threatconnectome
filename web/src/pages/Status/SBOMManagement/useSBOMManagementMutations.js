@@ -240,16 +240,11 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     }
   };
 
-  const openCreateSbomDialog = () => {
-    setPendingUpload({});
-  };
-
   return {
     addDeployment,
     commitDeploymentsEdit,
     commitDetailsEdit,
     commitServiceImpactEdit,
-    openCreateSbomDialog,
     openUpdateSbomDialog,
     handleImageUpload,
     handleRemoveImage,

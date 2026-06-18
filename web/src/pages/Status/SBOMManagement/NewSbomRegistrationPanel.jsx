@@ -2,8 +2,10 @@
 import DescriptionIcon from "@mui/icons-material/Description";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { validateSbomFileSelection } from "../SbomDrop/sbomFileValidation";
 import { useSbomFileDrop } from "../SbomDrop/useSbomFileDrop";
 
 import { AppButton } from "./sharedUiParts";
@@ -16,20 +18,32 @@ import {
   uiTransitions,
 } from "./styleTokens";
 
-export function NewSbomRegistrationPanel({
-  onCancel,
-  onDropFile,
-  onUploadClick,
-  showCancel = true,
-}) {
+export function NewSbomRegistrationPanel({ onCancel, onDropFile, showCancel = true }) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   const { t: tFileDropZone } = useTranslation("status", { keyPrefix: "FileDropZone" });
+  const fileInputRef = useRef(null);
 
   const { isDragOver, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } =
     useSbomFileDrop({
       onFile: (file) => onDropFile?.(file),
       onError: (key) => alert(tFileDropZone(key)),
     });
+
+  const handleClickUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event) => {
+    const result = validateSbomFileSelection(event.target.files);
+    event.target.value = "";
+    if (result.error) {
+      alert(tFileDropZone(result.error));
+      return;
+    }
+    if (result.file) {
+      onDropFile?.(result.file);
+    }
+  };
 
   return (
     <Box
@@ -92,7 +106,7 @@ export function NewSbomRegistrationPanel({
           <Stack sx={{ gap: 2.5 }}>
             <Box
               component="button"
-              onClick={onUploadClick}
+              onClick={handleClickUpload}
               sx={{
                 "&:hover": { bgcolor: "white", borderColor: slate[400] },
                 alignItems: "center",
@@ -123,6 +137,13 @@ export function NewSbomRegistrationPanel({
                 CycloneDX JSON / SPDX JSON
               </Typography>
             </Box>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
             {showCancel && (
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <AppButton onClick={onCancel} variant="outlined">
