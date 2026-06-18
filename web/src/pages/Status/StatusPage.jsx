@@ -155,11 +155,11 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   );
 
   const handlePackageClick = useCallback(
-    (serviceId, packageId) => {
+    (serviceId, packageVersionId) => {
       const preservedParams = preserveParams(location.search);
       preservedParams.set("pteamId", pteamId);
       preservedParams.set("serviceId", serviceId);
-      navigate(`/packages/${packageId}?${preservedParams.toString()}`);
+      navigate(`/package_versions/${packageVersionId}?${preservedParams.toString()}`);
     },
     [location.search, navigate, pteamId],
   );

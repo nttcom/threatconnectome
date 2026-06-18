@@ -41,12 +41,14 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
   return (
     <Box>
       {dependencies.map((dependency, index) => {
-        const canNavigate = Boolean(onPackageClick && dependency.packageId && dependency.serviceId);
+        const canNavigate = Boolean(
+          onPackageClick && dependency.packageVersionId && dependency.serviceId,
+        );
         const handleNavigate = () => {
           if (!canNavigate) {
             return;
           }
-          onPackageClick(dependency.serviceId, dependency.packageId);
+          onPackageClick(dependency.serviceId, dependency.packageVersionId);
         };
 
         return (

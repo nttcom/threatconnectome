@@ -1,6 +1,6 @@
 from app import models
 from app.notification.slack import (
-    PACKAGE_URL,
+    PACKAGE_VERSION_URL,
     SSVC_PRIORITY_LABEL,
     create_slack_pteam_alert_blocks_for_new_vuln,
 )
@@ -11,7 +11,7 @@ def test_create_blocks_for_pteam():
         "pteam_id": " 70de29d6-2b33-4990-8d2a-657554335064",
         "pteam_name": "team1",
         "package_name": "package1",
-        "package_id": "dd313aab-68aa-4dc4-8362-cec093d5d49b",
+        "package_version_id": "72f764a3-f69e-4579-91fb-d80bc990cbf0",
         "vuln_id": "b1f74d1f-9360-4a8d-86ac-3cf5dd20c75c",
         "title": "test_title1",
         "ssvc_priority": models.SSVCDeployerPriorityEnum.IMMEDIATE,
@@ -24,7 +24,8 @@ def test_create_blocks_for_pteam():
     blocks = create_slack_pteam_alert_blocks_for_new_vuln(**notification_data)
     assert notification_data["pteam_name"] in blocks[0]["text"]["text"]
     package_page_url = (
-        f"{PACKAGE_URL}{notification_data['package_id']}?pteamId={notification_data['pteam_id']}&"
+        f"{PACKAGE_VERSION_URL}{notification_data['package_version_id']}?"
+        f"pteamId={notification_data['pteam_id']}&"
         f"serviceId={notification_data['service_id']}"
     )
     assert package_page_url in blocks[2]["text"]["text"]

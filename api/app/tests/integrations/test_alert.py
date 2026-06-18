@@ -131,7 +131,7 @@ class TestAlert:
                 self.package_version1.package.name,
                 self.package_version1.package.ecosystem,
                 dependencies[0].package_manager,
-                self.package_version1.package_id,
+                self.package_version1.package_version_id,
                 self.service1["service_id"],
                 [self.service1["service_name"]],
                 self.asset_ip_addresses,
@@ -167,7 +167,7 @@ class TestAlert:
             slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
                 self.pteam1.pteam_id,
                 PTEAM1["pteam_name"],
-                self.package_version1.package_id,
+                self.package_version1.package_version_id,
                 self.package_version1.package.name,
                 vuln1.vuln_id,
                 vuln1.title,
@@ -291,7 +291,7 @@ class TestAlert:
             slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
                 self.pteam1.pteam_id,
                 PTEAM1["pteam_name"],
-                self.package_version1.package_id,
+                self.package_version1.package_version_id,
                 self.package_version1.package.name,
                 self.vuln1.vuln_id,
                 self.vuln1.title,

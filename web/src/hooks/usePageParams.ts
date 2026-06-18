@@ -5,11 +5,11 @@ import { useParams, useSearchParams } from "react-router-dom";
  * Used across multiple pages: Package, Vulnerability, Status, etc.
  */
 export function usePageParams() {
-  const { packageId } = useParams();
+  const { packageVersionId } = useParams();
   const [searchParams] = useSearchParams();
 
   return {
-    packageId,
+    packageVersionId,
     pteamId: searchParams.get("pteamId"),
     serviceId: searchParams.get("serviceId"),
   };

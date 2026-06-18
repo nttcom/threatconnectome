@@ -31,7 +31,7 @@ const cases: TestCase[] = [
   },
   // navigate location.pathname in package page
   {
-    locationPathname: "/packages/dummyPackageId1",
+    locationPathname: "/package_versions/dummyPackageVersionId1",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [] },
     navigateCallCount: 1,

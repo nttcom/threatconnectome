@@ -10,7 +10,7 @@ import {
 export type PackageVulnCountsArgs = {
   pteamId: string;
   serviceId: string;
-  packageId: string;
+  packageVersionId: string;
   getVulnIdsReady: boolean;
 };
 
@@ -34,14 +34,14 @@ type PackageVulnIdsQueryOptions = NonNullable<
 export type VulnIdsArgs = {
   pteamId: string;
   serviceId: string;
-  packageId: string;
+  packageVersionId: string;
   relatedTicketStatus: RelatedTicketStatus;
 };
 
 export type DependenciesArgs = {
   pteamId: string;
   serviceId: string;
-  packageId: string;
+  packageVersionId: string;
   offset?: number;
   limit?: number;
 };
@@ -52,7 +52,7 @@ export type DependenciesArgs = {
 export function usePackageVulnCounts({
   pteamId,
   serviceId,
-  packageId,
+  packageVersionId,
   getVulnIdsReady,
 }: PackageVulnCountsArgs) {
   const {
@@ -60,7 +60,7 @@ export function usePackageVulnCounts({
     error: solvedError,
     isLoading: solvedLoading,
   } = usePackageVulnIds(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "solved" },
+    { pteamId, serviceId, packageVersionId, relatedTicketStatus: "solved" },
     {
       skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
@@ -75,7 +75,7 @@ export function usePackageVulnCounts({
     error: unsolvedError,
     isLoading: unsolvedLoading,
   } = usePackageVulnIds(
-    { pteamId, serviceId, packageId, relatedTicketStatus: "unsolved" },
+    { pteamId, serviceId, packageVersionId, relatedTicketStatus: "unsolved" },
     {
       skip: !getVulnIdsReady,
       selectFromResult: ({ data, error, isLoading }) => ({
@@ -125,18 +125,18 @@ export function usePackageService(
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageDependencies(
-  { pteamId, serviceId, packageId, offset = 0, limit = 1000 }: DependenciesArgs,
+  { pteamId, serviceId, packageVersionId, offset = 0, limit = 1000 }: DependenciesArgs,
   options: PackageDependenciesQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
   return useGetDependenciesQuery(
     {
       path: { pteam_id: pteamId },
-      query: { service_id: serviceId, package_id: packageId, offset, limit },
+      query: { service_id: serviceId, package_version_id: packageVersionId, offset, limit },
     },
     {
       ...options,
-      skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
+      skip: skipByAuth || !pteamId || !serviceId || !packageVersionId || options.skip,
     },
   );
 }
@@ -161,7 +161,7 @@ export function usePackagePTeam(pteamId: string, options: PackagePTeamQueryOptio
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageVulnIds(
-  { pteamId, serviceId, packageId, relatedTicketStatus }: VulnIdsArgs,
+  { pteamId, serviceId, packageVersionId, relatedTicketStatus }: VulnIdsArgs,
   options: PackageVulnIdsQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -170,13 +170,13 @@ export function usePackageVulnIds(
       path: { pteam_id: pteamId },
       query: {
         service_id: serviceId,
-        package_id: packageId,
+        package_version_id: packageVersionId,
         related_ticket_status: relatedTicketStatus,
       },
     },
     {
       ...options,
-      skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
+      skip: skipByAuth || !pteamId || !serviceId || !packageVersionId || options.skip,
     },
   );
 }
@@ -186,7 +186,7 @@ export function usePackageVulnIds(
  * Pass to the RTK Query hook using the new argument format ({ path: {}, query: {} })
  */
 export function usePackageTicketCounts(
-  { pteamId, serviceId, packageId, relatedTicketStatus }: VulnIdsArgs,
+  { pteamId, serviceId, packageVersionId, relatedTicketStatus }: VulnIdsArgs,
   options: PackageTicketCountsQueryOptions = {},
 ) {
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -195,13 +195,13 @@ export function usePackageTicketCounts(
       path: { pteam_id: pteamId },
       query: {
         service_id: serviceId,
-        package_id: packageId,
+        package_version_id: packageVersionId,
         related_ticket_status: relatedTicketStatus,
       },
     },
     {
       ...options,
-      skip: skipByAuth || !pteamId || !serviceId || !packageId || options.skip,
+      skip: skipByAuth || !pteamId || !serviceId || !packageVersionId || options.skip,
     },
   );
 }

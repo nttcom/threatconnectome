@@ -75,9 +75,9 @@ root.render(
                       <Route index element={<PTeam />} />
                       <Route path="join" element={<AcceptPTeamInvitation />} />
                     </Route>
-                    <Route path="packages">
+                    <Route path="package_versions">
                       <Route index element={<Navigate to="/" />} />
-                      <Route path=":packageId" element={<Package />} />
+                      <Route path=":packageVersionId" element={<Package />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" />} />
                     <Route path="vulns">
