@@ -4,7 +4,17 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SearchIcon from "@mui/icons-material/Search";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { Box, Card, CardContent, Chip, MenuItem, Select, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusChip";
@@ -74,9 +84,20 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
             >
               {dependency.name}
             </Typography>
-            <Typography noWrap sx={{ color: slate[600], fontSize: 14 }}>
-              {dependency.version || "-"}
-            </Typography>
+            <Tooltip title={dependency.version || ""}>
+              <Typography
+                sx={{
+                  color: slate[600],
+                  fontSize: 14,
+                  lineHeight: "18px",
+                  minWidth: 0,
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
+                }}
+              >
+                {dependency.version || "-"}
+              </Typography>
+            </Tooltip>
             <Box>
               <Chip
                 label={dependency.type}

@@ -344,6 +344,45 @@ describe("StatusPage", () => {
       expect(screen.getByText("0.5.3")).toBeInTheDocument();
     });
 
+    it("shows long dependency versions without applying no-wrap truncation", () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      const longVersion =
+        "1.0.0-alpha.20240618+build.0123456789abcdef0123456789abcdef0123456789abcdef";
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: {
+          ...testPackageVersionsData,
+          package_versions: [
+            {
+              ...testPackageVersionsData.package_versions[0],
+              package_version: longVersion,
+            },
+          ],
+        },
+        error: false,
+        isFetching: false,
+      });
+
+      renderStatusPage();
+
+      const versionText = screen.getByText(longVersion);
+      expect(versionText).toBeInTheDocument();
+      expect(versionText).not.toHaveClass("MuiTypography-noWrap");
+    });
+
     it("shows the numeric row count in the dependencies page-size selector", () => {
       const testLocation = {
         pathname: "/",
