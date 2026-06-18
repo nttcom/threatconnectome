@@ -23,7 +23,8 @@ export function useSbomFileDrop({ onFile, onError }: UseSbomFileDropOptions) {
   };
 
   const handleDragLeave = () => {
-    if (--dragCounterRef.current === 0) setIsDragOver(false);
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+    if (dragCounterRef.current === 0) setIsDragOver(false);
   };
 
   const handleDrop = (event: React.DragEvent) => {
