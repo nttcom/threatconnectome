@@ -155,4 +155,20 @@ describe("Package API hooks", () => {
       expect.any(Object),
     );
   });
+
+  it("skips package ticket requests until packageVersionId is available", () => {
+    renderHook(() => useGetTickets({ ...packageScope, packageVersionId: "", vulnId: "vuln-1" }));
+
+    expect(useGetPteamTicketsQuery).toHaveBeenCalledWith(
+      {
+        path: { pteam_id: "pteam-1" },
+        query: {
+          service_id: "service-1",
+          vuln_id: "vuln-1",
+          package_version_id: "",
+        },
+      },
+      expect.objectContaining({ skip: true }),
+    );
+  });
 });

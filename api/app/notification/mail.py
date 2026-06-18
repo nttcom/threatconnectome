@@ -8,10 +8,12 @@ from app import models
 def _package_page_link(
     pteam_id: UUID | str, package_version_id: UUID | str, service_id: UUID | str
 ) -> str:
+    baseurl = os.getenv("WEBUI_URL", "http://localhost")
+    baseurl += "" if baseurl.endswith("/") else "/"
     return urljoin(
-        os.getenv("WEBUI_URL", "http://localhost"),
+        baseurl,
         (
-            f"/package_versions/{str(package_version_id)}"
+            f"package_versions/{str(package_version_id)}"
             f"?pteamId={str(pteam_id)}&serviceId={str(service_id)}"
         ),
     )
