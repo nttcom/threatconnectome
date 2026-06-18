@@ -897,6 +897,7 @@ describe("StatusPage", () => {
       // Clicking the upload area opens the native file picker (hidden input), not the dialog directly.
       const uploadButton = screen.getByText("Upload an SBOM").closest("button");
       expect(uploadButton).not.toBeNull();
+      await ue.click(uploadButton);
       expect(screen.queryByRole("dialog")).toBeNull();
 
       // Simulate selecting a file via the hidden file input — this triggers the upload dialog.
