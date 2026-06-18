@@ -49,6 +49,7 @@ def expire_pteam_invitations(db: Session) -> None:
 
 def get_sorted_tickets_related_to_service_and_package_and_vuln(
     db: Session,
+    pteam_id: UUID | str,
     service_id: UUID | str | None,
     package_id: UUID | str | None,
     vuln_id: UUID | str | None,
@@ -92,6 +93,15 @@ def get_sorted_tickets_related_to_service_and_package_and_vuln(
                 models.Dependency.dependency_id == models.Ticket.dependency_id,
                 models.Dependency.service_id == str(service_id),
             ),
+        )
+    else:
+        select_stmt = (
+            select_stmt.join(
+                models.Dependency,
+                models.Dependency.dependency_id == models.Ticket.dependency_id,
+            )
+            .join(models.Service, models.Service.service_id == models.Dependency.service_id)
+            .where(models.Service.pteam_id == str(pteam_id))
         )
 
     select_stmt = select_stmt.order_by(

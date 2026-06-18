@@ -359,6 +359,35 @@ class TestGetTickets:
             assert response.status_code == 200
             assert response.json()[0] == self.expected_ticket_response1
 
+        def test_it_should_filter_by_pteam_when_service_id_is_not_specified(self, testdb):
+            # Given
+            pteam2 = create_pteam(USER1, PTEAM2)
+            service2 = models.Service(
+                service_name="test_service2",
+                pteam_id=str(pteam2.pteam_id),
+            )
+            testdb.add(service2)
+            testdb.flush()
+            dependency2 = models.Dependency(
+                target="test target 2",
+                package_manager="npm",
+                package_version_id=self.package_version1.package_version_id,
+                service=service2,
+            )
+            testdb.add(dependency2)
+            testdb.flush()
+            ticket_business.fix_ticket_by_threat(testdb, self.threat1)
+
+            # When
+            response = client.get(
+                f"/pteams/{self.pteam1.pteam_id}/tickets?package_id={self.package1.package_id}",
+                headers=headers(USER1),
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json() == [self.expected_ticket_response1]
+
         def test_it_should_return_200_when_package_version_id_is_specified(self):
             # When
             response = client.get(
