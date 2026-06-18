@@ -15,7 +15,7 @@ export class LocationReader {
   }
 
   isPackagePage(): boolean {
-    return /\/packages\//.test(this.location.pathname);
+    return /\/package_versions\//.test(this.location.pathname);
   }
 
   isPTeamPage(): boolean {

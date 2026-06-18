@@ -205,6 +205,7 @@ export const tcApi = createApi({
         params: {
           service_id: arg?.query?.service_id,
           package_id: arg?.query?.package_id,
+          package_version_id: arg?.query?.package_version_id,
           offset: arg?.query?.offset,
           limit: arg?.query?.limit,
         },
@@ -440,6 +441,7 @@ export const tcApi = createApi({
         params: {
           service_id: arg?.query?.service_id,
           package_id: arg?.query?.package_id,
+          package_version_id: arg?.query?.package_version_id,
           related_ticket_status: arg?.query?.related_ticket_status,
         },
       }),
@@ -462,6 +464,7 @@ export const tcApi = createApi({
         params: {
           service_id: arg?.query?.service_id,
           package_id: arg?.query?.package_id,
+          package_version_id: arg?.query?.package_version_id,
           related_ticket_status: arg?.query?.related_ticket_status,
         },
       }),
@@ -600,6 +603,7 @@ export const tcApi = createApi({
           service_id: arg.query?.service_id,
           vuln_id: arg.query?.vuln_id,
           package_id: arg.query?.package_id,
+          package_version_id: arg.query?.package_version_id,
         },
       }),
       providesTags: (_result, _error, _arg) => [

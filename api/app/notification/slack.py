@@ -11,7 +11,7 @@ from app import models
 WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
-PACKAGE_URL = urljoin(WEBUI_URL, "packages/")
+PACKAGE_VERSION_URL = urljoin(WEBUI_URL, "package_versions/")
 EOL_URL = urljoin(WEBUI_URL, "eol/")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
@@ -53,7 +53,7 @@ def send_slack(url: str, blocks: Sequence[dict]):
 def create_slack_pteam_alert_blocks_for_new_vuln(
     pteam_id: str,
     pteam_name: str,
-    package_id: str,
+    package_version_id: str,
     package_name: str,
     vuln_id: str,
     title: str,
@@ -77,7 +77,7 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                     "text": "\n".join(
                         [
                             (
-                                f"*Package URL*:<{PACKAGE_URL}{str(package_id)}"
+                                f"*Package URL*:<{PACKAGE_VERSION_URL}{str(package_version_id)}"
                                 f"?pteamId={pteam_id}&serviceId={service_id}|{package_name}>"
                             ),
                             f"*Title*:{title}",

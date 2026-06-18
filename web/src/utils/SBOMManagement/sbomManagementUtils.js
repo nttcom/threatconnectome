@@ -65,7 +65,7 @@ export function buildDependencyRows(packages, currentServiceId) {
   if (!Array.isArray(packages) || !currentServiceId) return [];
 
   return packages.map((pkg) => ({
-    packageId: pkg.package_id,
+    packageVersionId: pkg.package_version_id,
     serviceId: currentServiceId,
     name: pkg.package_name,
     version: pkg.package_version || "",

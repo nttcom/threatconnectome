@@ -1179,7 +1179,7 @@ describe("StatusPage", () => {
       await ue.click(screen.getByText("sqlparse"));
 
       expect(navigate).toHaveBeenCalledWith(
-        "/packages/685335c5-c6aa-47ed-87d9-ce1d3eeaf48d?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+        "/package_versions/98687b62-dae9-4ce3-9690-404d767f6ae0?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       );
     });
 

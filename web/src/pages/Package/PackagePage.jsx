@@ -33,13 +33,13 @@ import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
 
 export function Package() {
   const { t } = useTranslation("package", { keyPrefix: "PackagePage" });
-  const { packageId, pteamId, serviceId } = usePageParams();
+  const { packageVersionId, pteamId, serviceId } = usePageParams();
   const [tabValue, setTabValue] = useState(0);
   const [open, setOpen] = useState(false);
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const getVulnIdsReady = !skipByAuth && pteamId && serviceId && packageId;
+  const getVulnIdsReady = !skipByAuth && pteamId && serviceId && packageVersionId;
 
   const {
     service,
@@ -54,13 +54,13 @@ export function Package() {
     unsolvedError,
     solvedLoading,
     unsolvedLoading,
-  } = usePackageVulnCounts({ pteamId, serviceId, packageId, getVulnIdsReady });
+  } = usePackageVulnCounts({ pteamId, serviceId, packageVersionId, getVulnIdsReady });
 
   const {
     data: packageDependencies,
     error: packageDependenciesError,
     isLoading: packageDependenciesIsLoading,
-  } = usePackageDependencies({ pteamId, serviceId, packageId });
+  } = usePackageDependencies({ pteamId, serviceId, packageVersionId });
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -163,7 +163,7 @@ export function Package() {
             <Chip label={firstPackageDependency.package_ecosystem} sx={{ ml: 1 }} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
-            <UUIDTypography sx={{ mr: 2 }}>{packageId}</UUIDTypography>
+            <UUIDTypography sx={{ mr: 2 }}>{packageVersionId}</UUIDTypography>
           </Typography>
           <PackageReferences references={references} service={service} />
         </Box>

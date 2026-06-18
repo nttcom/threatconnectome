@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 
 import { Package } from "./PackagePage";
 import { createDefaultHandlers } from "./mocks/handlers";
-import { pteamId, serviceId, packageId } from "./mocks/mockData";
+import { pteamId, serviceId, packageVersionId } from "./mocks/mockData";
 
 const defaultHandlers = createDefaultHandlers();
 
@@ -18,9 +18,11 @@ export const Default = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -38,9 +40,11 @@ export const Loading = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -50,9 +54,9 @@ export const NoPTeamId = {
   parameters: {
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?serviceId=${serviceId}`],
+        initialEntries: [`/package_versions/${packageVersionId}?serviceId=${serviceId}`],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -75,9 +79,11 @@ export const NoVulnerabilities = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -95,9 +101,11 @@ export const NoDependencies = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -115,9 +123,11 @@ export const DependenciesError = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -135,9 +145,11 @@ export const PTeamError = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -147,9 +159,9 @@ export const NoServiceId = {
   parameters: {
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}`],
+        initialEntries: [`/package_versions/${packageVersionId}?pteamId=${pteamId}`],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -167,9 +179,11 @@ export const VulnIdsError = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
@@ -187,9 +201,11 @@ export const TicketCountsError = {
     },
     router: {
       memoryRouterProps: {
-        initialEntries: [`/packages/${packageId}?pteamId=${pteamId}&serviceId=${serviceId}`],
+        initialEntries: [
+          `/package_versions/${packageVersionId}?pteamId=${pteamId}&serviceId=${serviceId}`,
+        ],
       },
-      path: "/packages/:packageId",
+      path: "/package_versions/:packageVersionId",
       useRoutes: true,
     },
   },
