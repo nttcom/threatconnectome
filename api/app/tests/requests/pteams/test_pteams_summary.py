@@ -24,7 +24,7 @@ from app.tests.common.utils import (
 client = TestClient(app)
 
 
-class TestGetPTeamPackagesSummary:
+class TestGetPTeamPackageVersionsSummary:
     @staticmethod
     def _get_ssvc_priority_count_zero() -> dict[str, int]:
         return {
@@ -131,7 +131,7 @@ class TestGetPTeamPackagesSummary:
             }
         ]
 
-    def test_returns_legacy_packages_summary_alias(self, testdb):
+    def test_returns_404_for_removed_legacy_packages_summary_alias(self, testdb):
         # Given
         test_service = "test_service"
         test_target = "test target"
@@ -144,25 +144,7 @@ class TestGetPTeamPackagesSummary:
         response = client.get(url, headers=headers(USER1))
 
         # Then
-        assert response.status_code == 200
-        summary = response.json()
-        assert "package_versions" not in summary
-        assert summary["packages"] == [
-            {
-                "package_id": str(self.package1.package_id),
-                "package_version_id": str(self.package_version1.package_version_id),
-                "package_name": PACKAGE1["package_name"],
-                "package_version": test_version,
-                "ecosystem": PACKAGE1["ecosystem"],
-                "package_managers": [PACKAGE1["package_manager"]],
-                "service_ids": [self.service1.service_id],
-                "ssvc_priority": "no_known_vulnerability",
-                "updated_at": None,
-                "status_count": {
-                    status_type.value: 0 for status_type in list(models.TicketHandlingStatusType)
-                },
-            }
-        ]
+        assert response.status_code == 404
 
     def test_returns_summary_even_if_no_tickets(self, testdb):
         # Given
