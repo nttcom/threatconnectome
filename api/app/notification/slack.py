@@ -12,7 +12,7 @@ WEBUI_URL = os.getenv("WEBUI_URL", "http://localhost")
 WEBUI_URL += "" if WEBUI_URL.endswith("/") else "/"  # for the case baseurl has subpath
 # CAUTION: do *NOT* urljoin subpath which starts with "/"
 PACKAGE_VERSION_URL = urljoin(WEBUI_URL, "package_versions/")
-EOL_URL = urljoin(WEBUI_URL, "eol/")
+EOL_URL = urljoin(WEBUI_URL, "eol")
 SSVC_PRIORITY_LABEL = {
     models.SSVCDeployerPriorityEnum.IMMEDIATE: ":red_circle: Immediate",
     models.SSVCDeployerPriorityEnum.OUT_OF_CYCLE: ":large_orange_circle: Out-of-cycle",
