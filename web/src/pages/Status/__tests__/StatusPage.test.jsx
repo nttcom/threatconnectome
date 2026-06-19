@@ -1011,8 +1011,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1049,8 +1049,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1087,8 +1087,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
