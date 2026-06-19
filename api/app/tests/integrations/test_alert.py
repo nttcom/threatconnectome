@@ -68,7 +68,14 @@ class TestAlert:
 
             # Get dependency information from the database
             self.dependency1 = testdb.scalars(
-                select(models.Dependency).where(models.Dependency.service_id == str(service_id))
+                select(models.Dependency)
+                .join(models.Dependency.package_version)
+                .join(models.PackageVersion.package)
+                .where(
+                    models.Dependency.service_id == str(service_id),
+                    models.Package.name == "axios",
+                    models.PackageVersion.version == "1.6.7",
+                )
             ).one()
             self.package_version1 = self.dependency1.package_version
 
@@ -213,7 +220,14 @@ class TestAlert:
 
             # Get dependency information from the database
             self.dependency1 = testdb.scalars(
-                select(models.Dependency).where(models.Dependency.service_id == str(service_id))
+                select(models.Dependency)
+                .join(models.Dependency.package_version)
+                .join(models.PackageVersion.package)
+                .where(
+                    models.Dependency.service_id == str(service_id),
+                    models.Package.name == "axios",
+                    models.PackageVersion.version == "1.6.7",
+                )
             ).one()
             self.package_version1 = self.dependency1.package_version
 
