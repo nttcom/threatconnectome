@@ -29,13 +29,22 @@ def validate_slack_webhook_url(url: str):
         )
 
 
+def _mrkdwn_text(text: object) -> str:
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _package_version_page_url(package_version_id: str, pteam_id: str, service_id: str) -> str:
+    params = urlencode({"pteamId": str(pteam_id), "serviceId": str(service_id)})
+    return urljoin(PACKAGE_VERSION_URL, str(package_version_id)) + f"?{params}"
+
+
 def _block_header(text: str):
     return [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*{text}*",
+                "text": f"*{_mrkdwn_text(text)}*",
             },
         },
         {"type": "divider"},
@@ -65,9 +74,10 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
 ):
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
-    services_name = ",".join(services)
-    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
-    desc_str = asset_description if asset_description else "-"
+    package_url = _package_version_page_url(package_version_id, pteam_id, service_id)
+    services_name = ",".join(_mrkdwn_text(service) for service in services)
+    ip_str = ", ".join(_mrkdwn_text(ip_address) for ip_address in asset_ip_addresses or []) or "-"
+    desc_str = _mrkdwn_text(asset_description) if asset_description else "-"
     blocks.extend(
         [
             {
@@ -76,11 +86,8 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            (
-                                f"*Package URL*:<{PACKAGE_VERSION_URL}{str(package_version_id)}"
-                                f"?pteamId={pteam_id}&serviceId={service_id}|{package_name}>"
-                            ),
-                            f"*Title*:{title}",
+                            f"*Package URL*:<{package_url}|{_mrkdwn_text(package_name)}>",
+                            f"*Title*:{_mrkdwn_text(title)}",
                             f"*Services*:{services_name}",
                             f"*SSVC Priority*:{SSVC_PRIORITY_LABEL[ssvc_priority]}",
                             "*Asset*:",
@@ -119,7 +126,10 @@ def create_slack_blocks_to_notify_sbom_upload_succeeded(
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*<{service_url}|{service_name} ({pteam_name})>*",
+                    "text": (
+                        f"*<{service_url}|"
+                        f"{_mrkdwn_text(service_name)} ({_mrkdwn_text(pteam_name)})>*"
+                    ),
                 },
             }
         ]
@@ -169,9 +179,9 @@ def create_slack_blocks_to_notify_eol(
         text=":warning: Action Required: migrate/upgrade to a supported version"
     )
 
-    url = urljoin(EOL_URL, f"?pteamId={pteam_id}")
-    ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
-    desc_str = asset_description if asset_description else "-"
+    url = urljoin(EOL_URL, f"?{urlencode({'pteamId': str(pteam_id)})}")
+    ip_str = ", ".join(_mrkdwn_text(ip_address) for ip_address in asset_ip_addresses or []) or "-"
+    desc_str = _mrkdwn_text(asset_description) if asset_description else "-"
     blocks.extend(
         [
             {
@@ -179,16 +189,17 @@ def create_slack_blocks_to_notify_eol(
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"EOL (End of Life) reached on *<{eol_from}>* (no more security fixes)\n\n"
-                        f"*Service:* {service_name}\n"
-                        f"*Team:* {pteam_name}\n"
-                        f"*Product:* {product_name}\n"
-                        f"*Current Version:* {version}\n"
+                        f"EOL (End of Life) reached on *{_mrkdwn_text(eol_from)}* "
+                        "(no more security fixes)\n\n"
+                        f"*Service:* {_mrkdwn_text(service_name)}\n"
+                        f"*Team:* {_mrkdwn_text(pteam_name)}\n"
+                        f"*Product:* {_mrkdwn_text(product_name)}\n"
+                        f"*Current Version:* {_mrkdwn_text(version)}\n"
                         f"*Asset:*\n"
                         f" • IP Addresses: {ip_str}\n"
                         f" • Description: {desc_str}\n"
-                        f"*EOL Date:* {eol_from}\n"
-                        f"*Reference:* {url}"
+                        f"*EOL Date:* {_mrkdwn_text(eol_from)}\n"
+                        f"*Reference:* <{url}|{_mrkdwn_text(url)}>"
                     ),
                 },
             },

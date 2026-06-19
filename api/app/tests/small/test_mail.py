@@ -1,5 +1,8 @@
 from app import models
-from app.notification.mail import create_mail_alert_for_new_vuln
+from app.notification.mail import (
+    create_mail_alert_for_new_vuln,
+    create_mail_to_notify_sbom_upload_succeeded,
+)
 
 
 def test_create_mail_alert_for_new_vuln_links_to_package_version_page(monkeypatch):
@@ -27,4 +30,22 @@ def test_create_mail_alert_for_new_vuln_links_to_package_version_page(monkeypatc
         f"https://example.com/app/package_versions/{package_version_id}"
         f"?pteamId={pteam_id}&serviceId={service_id}"
     )
-    assert expected_url in body
+    expected_href = expected_url.replace("&", "&amp;")
+    assert f'<a href="{expected_href}">Link to Package page</a>' in body
+
+
+def test_create_mail_to_notify_sbom_upload_succeeded_quotes_link_href(monkeypatch):
+    monkeypatch.setenv("WEBUI_URL", "https://example.com/app/")
+    pteam_id = "70de29d6-2b33-4990-8d2a-657554335064"
+    service_id = "4e74fbde-82fe-4d0a-a2bf-3c405c3b0814"
+
+    _subject, body = create_mail_to_notify_sbom_upload_succeeded(
+        pteam_id=pteam_id,
+        pteam_name="team1",
+        service_id=service_id,
+        service_name="service1",
+        filename="test.cdx.json",
+    )
+
+    expected_href = f"https://example.com/app/?pteamId={pteam_id}&amp;serviceId={service_id}"
+    assert f'<a href="{expected_href}">Link to the service tab</a>' in body

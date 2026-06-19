@@ -1,8 +1,13 @@
 import os
+from html import escape
 from urllib.parse import urlencode, urljoin
 from uuid import UUID
 
 from app import models
+
+
+def _href_attr(url: str) -> str:
+    return escape(url, quote=True)
 
 
 def _package_page_link(
@@ -57,6 +62,7 @@ def create_mail_alert_for_new_vuln(
     ip_str = ", ".join(asset_ip_addresses) if asset_ip_addresses else "-"
     desc_str = asset_description if asset_description else "-"
     subject = f"[Tc Alert] {ssvc_priority_label}: {vuln_title}"
+    package_page_href = _href_attr(_package_page_link(pteam_id, package_version_id, service_id))
     body = "<br>".join(
         [
             "A new vuln created.",
@@ -71,10 +77,7 @@ def create_mail_alert_for_new_vuln(
             f"Package Manager: {package_manager}",
             f"Asset:<ul><li>IP Addresses: {ip_str}</li><li>Description: {desc_str}</li></ul>",
             "",
-            (
-                f"<a href={_package_page_link(pteam_id, package_version_id, service_id)}>Link to"
-                " Package page</a>"
-            ),
+            f'<a href="{package_page_href}">Link to Package page</a>',
         ]
     )
     return subject, body
@@ -88,6 +91,7 @@ def create_mail_to_notify_sbom_upload_succeeded(
     filename: str | None,
 ) -> tuple[str, str]:  # subject, body
     subject = f"[Tc Info] SBOM uploaded as a service: {service_name}"
+    service_tab_href = _href_attr(_pteam_service_tab_link(pteam_id, service_id))
     body = "<br>".join(
         [
             "SBOM upload successfully ended.",
@@ -95,7 +99,7 @@ def create_mail_to_notify_sbom_upload_succeeded(
             f"PTeamName: {pteam_name}",
             f"ServiceName: {service_name}",
             "",
-            f"<a href={_pteam_service_tab_link(pteam_id, service_id)}>Link to the service tab</a>",
+            f'<a href="{service_tab_href}">Link to the service tab</a>',
             "",
             f"UploadedFilename: {filename or '(unknown)'}",
         ]
@@ -145,7 +149,7 @@ def create_mail_to_notify_eol(
                 f"<li>Description: {desc_str}</li></ul>"
             ),
             f"<b>EOL Date:</b> {eol_from}",
-            f"<b>Reference:</b> <a href='{url}'>{url}</a>",
+            f'<b>Reference:</b> <a href="{_href_attr(url)}">{escape(url)}</a>',
         ]
     )
     return subject, body
