@@ -32,13 +32,17 @@ const services = [
 const packages = [
   {
     package_id: "package-1",
+    package_version_id: "package-version-1",
     package_name: "react",
+    package_version: "19.1.0",
     ecosystem: "npm",
     ssvc_priority: "scheduled",
   },
   {
     package_id: "package-2",
+    package_version_id: "package-version-2",
     package_name: "sqlparse",
+    package_version: "0.5.3",
     ecosystem: "pypi",
     ssvc_priority: null,
   },
@@ -77,19 +81,19 @@ describe("sbomManagementUtils", () => {
   it("builds dependency rows for only the current service", () => {
     expect(buildDependencyRows(packages, "service-1")).toEqual([
       {
-        packageId: "package-1",
+        packageVersionId: "package-version-1",
         serviceId: "service-1",
         name: "react",
-        version: "",
+        version: "19.1.0",
         type: "npm",
         license: "",
         ssvcPriority: "scheduled",
       },
       {
-        packageId: "package-2",
+        packageVersionId: "package-version-2",
         serviceId: "service-1",
         name: "sqlparse",
-        version: "",
+        version: "0.5.3",
         type: "pypi",
         license: "",
         ssvcPriority: "no_known_vulnerability",

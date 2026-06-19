@@ -35,7 +35,7 @@ import { ActionTypeIcon } from "../ActionTypeIcon.jsx";
 import { useVulnDialogContext } from "../VulnDialogContext.js";
 
 export function CompleteTicketDialog(props) {
-  const { pteamId, serviceId, packageId, ticketId, originalNote, onClose, show } = props;
+  const { pteamId, serviceId, packageVersionId, ticketId, originalNote, onClose, show } = props;
   const { vulnId } = useVulnDialogContext();
   const { t } = useTranslation("components", { keyPrefix: "Ticket.CompleteTicketDialog" });
 
@@ -60,7 +60,7 @@ export function CompleteTicketDialog(props) {
     pteamId,
     serviceId,
     vulnId,
-    packageId,
+    packageVersionId,
   });
 
   const selectedTicket =
@@ -273,7 +273,7 @@ export function CompleteTicketDialog(props) {
 CompleteTicketDialog.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
-  packageId: PropTypes.string.isRequired,
+  packageVersionId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   originalNote: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,

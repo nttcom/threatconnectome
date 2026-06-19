@@ -5,10 +5,17 @@ from uuid import UUID
 from app import models
 
 
-def _package_page_link(pteam_id: UUID | str, package_id: UUID | str, service_id: UUID | str) -> str:
+def _package_page_link(
+    pteam_id: UUID | str, package_version_id: UUID | str, service_id: UUID | str
+) -> str:
+    baseurl = os.getenv("WEBUI_URL", "http://localhost")
+    baseurl += "" if baseurl.endswith("/") else "/"
     return urljoin(
-        os.getenv("WEBUI_URL", "http://localhost"),
-        f"/packages/{str(package_id)}?pteamId={str(pteam_id)}&serviceId={str(service_id)}",
+        baseurl,
+        (
+            f"package_versions/{str(package_version_id)}"
+            f"?pteamId={str(pteam_id)}&serviceId={str(service_id)}"
+        ),
     )
 
 
@@ -35,7 +42,7 @@ def create_mail_alert_for_new_vuln(
     package_name: str,
     ecosystem: str,
     package_manager: str,
-    package_id: UUID | str,
+    package_version_id: UUID | str,
     service_id: UUID | str,
     services: list[str],
     asset_ip_addresses: list[str] | None,
@@ -65,7 +72,7 @@ def create_mail_alert_for_new_vuln(
             f"Asset:<ul><li>IP Addresses: {ip_str}</li><li>Description: {desc_str}</li></ul>",
             "",
             (
-                f"<a href={_package_page_link(pteam_id, package_id, service_id)}>Link to"
+                f"<a href={_package_page_link(pteam_id, package_version_id, service_id)}>Link to"
                 " Package page</a>"
             ),
         ]

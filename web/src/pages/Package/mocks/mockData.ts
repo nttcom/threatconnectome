@@ -11,6 +11,7 @@ import {
 export const pteamId = "pteam-abc-123";
 export const serviceId = "service-xyz-789";
 export const packageId = "pkg-uuid-456";
+export const packageVersionId = "pkg-ver-1";
 // === Common Mock Data ===
 export const mockPTeam: PTeamInfo = {
   pteam_id: pteamId,
@@ -41,8 +42,8 @@ export const mockDependencies: DependencyResponse[] = [
   {
     dependency_id: "dep-1",
     service_id: serviceId, // Added default
-    package_version_id: "pkg-ver-1", // Added default
-    package_id: "pkg-1", // Added default
+    package_version_id: packageVersionId, // Added default
+    package_id: packageId, // Added default
     target: "pom.xml",
     package_version: "2.14.1",
     package_name: "log4j-core",
@@ -108,6 +109,7 @@ export const mockVulnIdsUnsolved: ServicePackageVulnsSolvedUnsolved = {
   pteam_id: pteamId,
   service_id: serviceId,
   package_id: packageId,
+  package_version_id: packageVersionId,
   related_ticket_status: "unsolved",
   vuln_ids: ["vuln-001", "vuln-002", "vuln-004", "vuln-005"],
 };
@@ -115,6 +117,7 @@ export const mockVulnIdsSolved: ServicePackageVulnsSolvedUnsolved = {
   pteam_id: pteamId,
   service_id: serviceId,
   package_id: packageId,
+  package_version_id: packageVersionId,
   related_ticket_status: "solved",
   vuln_ids: ["vuln-003"],
 };
@@ -124,6 +127,7 @@ export const mockTicketCountsUnsolved: ServicePackageTicketCountsSolvedUnsolved 
   pteam_id: pteamId,
   service_id: serviceId,
   package_id: packageId,
+  package_version_id: packageVersionId,
   related_ticket_status: "unsolved",
   ssvc_priority_count: {
     immediate: 4,
@@ -137,6 +141,7 @@ export const mockTicketCountsSolved: ServicePackageTicketCountsSolvedUnsolved = 
   pteam_id: pteamId,
   service_id: serviceId,
   package_id: packageId,
+  package_version_id: packageVersionId,
   related_ticket_status: "solved",
   ssvc_priority_count: {
     immediate: 2,

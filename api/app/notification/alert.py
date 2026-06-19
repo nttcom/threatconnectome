@@ -58,7 +58,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
             slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
                 pteam.pteam_id,
                 pteam.pteam_name,
-                package.package_id,
+                threat.package_version.package_version_id,
                 package.name,
                 vuln.vuln_id,
                 vuln.title,  # WORKAROUND
@@ -82,7 +82,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 package.name,
                 package.ecosystem,
                 ticket.dependency.package_manager,
-                package.package_id,
+                threat.package_version.package_version_id,
                 service.service_id,
                 [service.service_name],  # WORKAROUND
                 asset_ip_addresses,

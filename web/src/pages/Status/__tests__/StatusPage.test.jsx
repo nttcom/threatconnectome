@@ -9,7 +9,7 @@ import {
   useDeletePTeamServiceMutation,
   useDeletePTeamServiceThumbnailMutation,
   useGetPTeamQuery,
-  useGetPTeamPackagesSummaryQuery,
+  useGetPTeamPackageVersionsSummaryQuery,
   useGetPTeamServiceThumbnailQuery,
   useGetSbomUploadProgressQuery,
   useUpdatePTeamServiceMutation,
@@ -69,7 +69,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
       isLoading: false,
     }),
     useGetPTeamQuery: vi.fn(),
-    useGetPTeamPackagesSummaryQuery: vi.fn(),
+    useGetPTeamPackageVersionsSummaryQuery: vi.fn(),
     useGetPTeamServiceThumbnailQuery: vi.fn(),
     useGetSbomUploadProgressQuery: vi.fn().mockReturnValue({
       data: [],
@@ -137,12 +137,14 @@ const testPTeamData = {
   ],
 };
 
-const testPackagesData = {
-  packages: [
+const testPackageVersionsData = {
+  package_versions: [
     {
       package_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
+      package_version_id: "98687b62-dae9-4ce3-9690-404d767f6ae0",
       package_name: "sqlparse",
-      package_manager: "",
+      package_version: "0.5.3",
+      package_managers: [""],
       ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
       updated_at: "2024-12-09T03:58:14.332885",
@@ -156,8 +158,10 @@ const testPackagesData = {
     },
     {
       package_id: "56cfb764-e0ae-4acd-ad14-72312a30e17a",
+      package_version_id: "de0e5bdd-c6c7-4de9-990f-27614a372b0f",
       package_name: "setuptools",
-      package_manager: "",
+      package_version: "75.8.0",
+      package_managers: [""],
       ecosystem: "pypi",
       ssvc_priority: "out_of_cycle",
       updated_at: "2024-12-03T09:18:46.131242",
@@ -240,7 +244,7 @@ describe("StatusPage", () => {
       navigate.mockClear();
       enqueueSnackbar.mockClear();
       useGetPTeamQuery.mockClear();
-      useGetPTeamPackagesSummaryQuery.mockClear();
+      useGetPTeamPackageVersionsSummaryQuery.mockClear();
       useGetPTeamServiceThumbnailQuery.mockClear();
       useUpdatePTeamServiceMutation.mockClear();
       useDeletePTeamServiceMutation.mockClear();
@@ -296,12 +300,12 @@ describe("StatusPage", () => {
 
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
-      const packagesSummary = {
+      const packageVersionsSummary = {
         currentData: null,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(packagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(packageVersionsSummary);
 
       renderStatusPage();
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
@@ -326,17 +330,57 @@ describe("StatusPage", () => {
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
-        currentData: testPackagesData,
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       renderStatusPage();
       expect(screen.queryByText("Drop or click to select")).toBeNull();
       expect(screen.getByText("Details")).toBeInTheDocument();
       expect(screen.getByText("Deployments")).toBeInTheDocument();
       expect(screen.getByText("Danger Zone")).toBeInTheDocument();
+      expect(screen.getByText("0.5.3")).toBeInTheDocument();
+    });
+
+    it("shows long dependency versions without applying no-wrap truncation", () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      const longVersion =
+        "1.0.0-alpha.20240618+build.0123456789abcdef0123456789abcdef0123456789abcdef";
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: {
+          ...testPackageVersionsData,
+          package_versions: [
+            {
+              ...testPackageVersionsData.package_versions[0],
+              package_version: longVersion,
+            },
+          ],
+        },
+        error: false,
+        isFetching: false,
+      });
+
+      renderStatusPage();
+
+      const versionText = screen.getByText(longVersion);
+      expect(versionText).toBeInTheDocument();
+      expect(versionText).not.toHaveClass("MuiTypography-noWrap");
     });
 
     it("shows the numeric row count in the dependencies page-size selector", () => {
@@ -355,8 +399,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -386,8 +430,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -423,8 +467,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -451,8 +495,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -483,8 +527,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -522,8 +566,8 @@ describe("StatusPage", () => {
         isLoading: false,
       }));
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -594,8 +638,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -638,8 +682,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -685,8 +729,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -725,8 +769,8 @@ describe("StatusPage", () => {
         isLoading: false,
       }));
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -787,7 +831,7 @@ describe("StatusPage", () => {
       expect(screen.getByText("prod")).toBeInTheDocument();
     });
 
-    it("redirects stale serviceId before loading packages summary", async () => {
+    it("redirects stale serviceId before loading package versions summary", async () => {
       const testLocation = {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=old-team-service-id",
@@ -811,10 +855,10 @@ describe("StatusPage", () => {
           "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
         );
       });
-      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
+      expect(useGetPTeamPackageVersionsSummaryQuery).not.toHaveBeenCalled();
     });
 
-    it("redirects missing serviceId before loading packages summary", async () => {
+    it("redirects missing serviceId before loading package versions summary", async () => {
       const testLocation = {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff",
@@ -836,10 +880,10 @@ describe("StatusPage", () => {
           "/?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
         );
       });
-      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
+      expect(useGetPTeamPackageVersionsSummaryQuery).not.toHaveBeenCalled();
     });
 
-    it("does not load packages summary while team data is stale", () => {
+    it("does not load package versions summary while team data is stale", () => {
       const testLocation = {
         pathname: "/",
         search:
@@ -860,7 +904,7 @@ describe("StatusPage", () => {
       renderStatusPage();
 
       expect(navigate).not.toHaveBeenCalled();
-      expect(useGetPTeamPackagesSummaryQuery).not.toHaveBeenCalled();
+      expect(useGetPTeamPackageVersionsSummaryQuery).not.toHaveBeenCalled();
     });
 
     it("show new SBOM registration panel when the new registration button is clicked", async () => {
@@ -882,11 +926,11 @@ describe("StatusPage", () => {
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
-        currentData: testPackagesData,
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       renderStatusPage();
@@ -927,11 +971,11 @@ describe("StatusPage", () => {
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
-        currentData: testPackagesData,
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       useGetPTeamServiceThumbnailQuery.mockReturnValue({
         data: testThumbnailDataUrl,
@@ -967,8 +1011,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1005,8 +1049,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1043,8 +1087,8 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1088,11 +1132,11 @@ describe("StatusPage", () => {
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
-        currentData: testPackagesData,
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       const renderResult = renderStatusPage();
@@ -1118,8 +1162,8 @@ describe("StatusPage", () => {
         isLoading: false,
       });
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1185,8 +1229,8 @@ describe("StatusPage", () => {
         isLoading: false,
       }));
 
-      useGetPTeamPackagesSummaryQuery.mockReturnValue({
-        currentData: testPackagesData,
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
@@ -1247,11 +1291,11 @@ describe("StatusPage", () => {
       useGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
-        currentData: testPackagesData,
+        currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackagesSummaryQuery.mockReturnValue(testPackagesSummary);
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       renderStatusPage();
@@ -1259,7 +1303,7 @@ describe("StatusPage", () => {
       await ue.click(screen.getByText("sqlparse"));
 
       expect(navigate).toHaveBeenCalledWith(
-        "/packages/685335c5-c6aa-47ed-87d9-ce1d3eeaf48d?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+        "/package_versions/98687b62-dae9-4ce3-9690-404d767f6ae0?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       );
     });
 

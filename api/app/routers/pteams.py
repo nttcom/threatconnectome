@@ -691,31 +691,6 @@ def get_pteam_package_versions_summary(
 
 
 @router.get(
-    "/{pteam_id}/packages/summary",
-    response_model=schemas.PTeamPackagesSummary,
-    deprecated=True,
-)
-def get_pteam_packages_summary(
-    pteam_id: UUID,
-    service_id: UUID | None = Query(None),
-    current_user: models.Account = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get packages summary of the pteam service.
-    """
-    package_versions_summary = _get_pteam_package_version_summaries(
-        pteam_id, service_id, current_user, db
-    )
-    ssvc_priority_count = _count_ssvc_priority_from_summary(package_versions_summary)
-
-    return {
-        "ssvc_priority_count": ssvc_priority_count,
-        "packages": package_versions_summary,
-    }
-
-
-@router.get(
     "/{pteam_id}/dependencies",
     response_model=list[schemas.DependencyResponse],
 )

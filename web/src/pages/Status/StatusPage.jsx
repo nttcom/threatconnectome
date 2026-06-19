@@ -8,7 +8,7 @@ import { PTeamLabel } from "../../components/PTeamLabel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import {
   useGetPTeamQuery,
-  useGetPTeamPackagesSummaryQuery,
+  useGetPTeamPackageVersionsSummaryQuery,
   useGetPTeamServiceThumbnailQuery,
 } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
@@ -115,8 +115,8 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
 
-  const { currentData: packagesSummary, error: packagesSummaryError } =
-    useGetPTeamPackagesSummaryQuery(
+  const { currentData: packageVersionsSummary, error: packageVersionsSummaryError } =
+    useGetPTeamPackageVersionsSummaryQuery(
       { path: { pteam_id: pteamId }, query: { service_id: serviceId } },
       { skip: skipByAuth || !pteamId },
     );
@@ -126,8 +126,10 @@ function StatusBody({ pteamId, pteam, serviceId }) {
     { skip: skipByAuth || !pteamId },
   );
 
-  if (packagesSummaryError)
-    throw new APIError(errorToString(packagesSummaryError), { api: "getPTeamPackagesSummary" });
+  if (packageVersionsSummaryError)
+    throw new APIError(errorToString(packageVersionsSummaryError), {
+      api: "getPTeamPackageVersionsSummary",
+    });
 
   const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
 
@@ -139,8 +141,8 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   );
 
   const currentDependencies = useMemo(
-    () => buildDependencyRows(packagesSummary?.packages ?? [], serviceId),
-    [packagesSummary, serviceId],
+    () => buildDependencyRows(packageVersionsSummary?.package_versions ?? [], serviceId),
+    [packageVersionsSummary, serviceId],
   );
 
   const handleActiveIdChange = useCallback(
@@ -153,11 +155,11 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   );
 
   const handlePackageClick = useCallback(
-    (serviceId, packageId) => {
+    (serviceId, packageVersionId) => {
       const preservedParams = preserveParams(location.search);
       preservedParams.set("pteamId", pteamId);
       preservedParams.set("serviceId", serviceId);
-      navigate(`/packages/${packageId}?${preservedParams.toString()}`);
+      navigate(`/package_versions/${packageVersionId}?${preservedParams.toString()}`);
     },
     [location.search, navigate, pteamId],
   );

@@ -13,7 +13,7 @@ import { ticketHandlingStatusProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
 export function TicketHandlingStatusSelector(props) {
-  const { pteamId, serviceId, vulnId, packageId, ticketId, currentStatus } = props;
+  const { pteamId, serviceId, vulnId, packageVersionId, ticketId, currentStatus } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "TicketHandlingStatusSelector" });
 
   const [open, setOpen] = useState(false);
@@ -89,7 +89,7 @@ export function TicketHandlingStatusSelector(props) {
     setOpen(false);
   };
 
-  if (!pteamId || !serviceId || !vulnId || !packageId || !currentStatus) return <></>;
+  if (!pteamId || !serviceId || !vulnId || !packageVersionId || !currentStatus) return <></>;
 
   const handleHideDatepicker = () => {
     setDatepickerOpen(false);
@@ -102,7 +102,7 @@ export function TicketHandlingStatusSelector(props) {
         <CompleteTicketDialog
           pteamId={pteamId}
           serviceId={serviceId}
-          packageId={packageId}
+          packageVersionId={packageVersionId}
           ticketId={ticketId}
           originalNote={currentStatus.note || ""}
           onClose={() => setCompleteDialogOpen(false)}
@@ -182,7 +182,7 @@ TicketHandlingStatusSelector.propTypes = {
   pteamId: PropTypes.string.isRequired,
   serviceId: PropTypes.string.isRequired,
   vulnId: PropTypes.string.isRequired,
-  packageId: PropTypes.string.isRequired,
+  packageVersionId: PropTypes.string.isRequired,
   ticketId: PropTypes.string.isRequired,
   currentStatus: PropTypes.object.isRequired,
 };

@@ -36,15 +36,14 @@ export function ToDoTableRow(props) {
   const packageName = serviceDependency?.package_name || "-";
 
   const handleRowClick = () => {
-    if (!serviceDependency?.package_id) {
-      console.warn("Package ID is not available.");
+    if (!serviceDependency?.package_version_id) {
+      console.warn("Package version ID is not available.");
       return;
     }
     const params = preserveParams(location.search);
     params.set("pteamId", ticket.pteam_id);
     params.set("serviceId", ticket.service_id);
-    const packageId = serviceDependency.package_id;
-    navigate(`/packages/${packageId}?` + params.toString());
+    navigate(`/package_versions/${serviceDependency.package_version_id}?` + params.toString());
   };
 
   return (

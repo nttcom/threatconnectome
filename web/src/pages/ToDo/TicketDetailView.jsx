@@ -144,8 +144,10 @@ export function TicketDetailView({ ticket }) {
       navigate("/?" + createNavigationParams().toString());
   };
   const handlePackageClick = () => {
-    if (ticket?.pteam_id && ticket?.service_id && dependency?.package_id) {
-      navigate(`/packages/${dependency.package_id}?` + createNavigationParams().toString());
+    if (ticket?.pteam_id && ticket?.service_id && dependency?.package_version_id) {
+      navigate(
+        `/package_versions/${dependency.package_version_id}?` + createNavigationParams().toString(),
+      );
     }
   };
 
@@ -225,7 +227,7 @@ export function TicketDetailView({ ticket }) {
                 pteamId={ticket.pteam_id}
                 serviceId={ticket.service_id}
                 vulnId={ticket.vuln_id}
-                packageId={dependency?.package_id}
+                packageVersionId={dependency?.package_version_id}
                 ticketId={ticket.ticket_id}
                 currentStatus={ticket.ticket_status}
               />
