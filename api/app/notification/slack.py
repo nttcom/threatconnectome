@@ -180,6 +180,7 @@ def create_slack_blocks_to_notify_eol(
     )
 
     url = urljoin(EOL_URL, f"?{urlencode({'pteamId': str(pteam_id)})}")
+    reference_label = f"{product_name} {version}"
     ip_str = ", ".join(_mrkdwn_text(ip_address) for ip_address in asset_ip_addresses or []) or "-"
     desc_str = _mrkdwn_text(asset_description) if asset_description else "-"
     blocks.extend(
@@ -199,7 +200,7 @@ def create_slack_blocks_to_notify_eol(
                         f" • IP Addresses: {ip_str}\n"
                         f" • Description: {desc_str}\n"
                         f"*EOL Date:* {_mrkdwn_text(eol_from)}\n"
-                        f"*Reference:* <{url}|{_mrkdwn_text(url)}>"
+                        f"*Reference:* <{url}|{_mrkdwn_text(reference_label)}>"
                     ),
                 },
             },

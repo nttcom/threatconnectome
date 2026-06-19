@@ -82,7 +82,10 @@ def test_create_blocks_to_notify_eol_escapes_text_and_encodes_reference_url():
     text = blocks[2]["text"]["text"]
     expected_params = urlencode({"pteamId": pteam_id})
     assert f"?{expected_params}" in text
-    assert f"*Reference:* <{WEBUI_URL}eol/?{expected_params}|" in text
+    assert (
+        f"*Reference:* <{WEBUI_URL}eol/?{expected_params}|"
+        "product &lt;1&gt; &amp; product 1.0 &lt;beta&gt; &amp; rc>"
+    ) in text
     assert "team &lt;1&gt; &amp; team" in text
     assert "service &lt;1&gt; &amp; service" in text
     assert "product &lt;1&gt; &amp; product" in text
