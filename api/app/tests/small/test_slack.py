@@ -16,6 +16,7 @@ def test_create_blocks_for_pteam():
         "pteam_id": "70de29d6-2b33-4990-8d2a-657554335064&team",
         "pteam_name": "team <1> & team",
         "package_name": "package <1> & package",
+        "package_version": "1.0 <beta> & rc",
         "package_version_id": "72f764a3-f69e-4579-91fb-d80bc990cbf0",
         "vuln_id": "b1f74d1f-9360-4a8d-86ac-3cf5dd20c75c",
         "title": "test <title> & title",
@@ -38,7 +39,7 @@ def test_create_blocks_for_pteam():
         f"{PACKAGE_VERSION_URL}{notification_data['package_version_id']}?{encoded_params}"
     )
     assert package_page_url in blocks[2]["text"]["text"]
-    assert "package &lt;1&gt; &amp; package" in blocks[2]["text"]["text"]
+    assert "package &lt;1&gt; &amp; package 1.0 &lt;beta&gt; &amp; rc" in blocks[2]["text"]["text"]
     assert "test &lt;title&gt; &amp; title" in blocks[2]["text"]["text"]
     assert SSVC_PRIORITY_LABEL[notification_data["ssvc_priority"]] in blocks[2]["text"]["text"]
     assert "test1 &lt;service&gt;" in blocks[2]["text"]["text"]

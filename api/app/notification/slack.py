@@ -64,6 +64,7 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
     pteam_name: str,
     package_version_id: str,
     package_name: str,
+    package_version: str,
     vuln_id: str,
     title: str,
     ssvc_priority: models.SSVCDeployerPriorityEnum,
@@ -75,6 +76,7 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
     blocks: list[dict[str, str | dict[str, str] | list[dict[str, str]]]]
     blocks = _block_header(text=pteam_name)
     package_url = _package_version_page_url(package_version_id, pteam_id, service_id)
+    package_label = f"{package_name} {package_version}"
     services_name = ",".join(_mrkdwn_text(service) for service in services)
     ip_str = ", ".join(_mrkdwn_text(ip_address) for ip_address in asset_ip_addresses or []) or "-"
     desc_str = _mrkdwn_text(asset_description) if asset_description else "-"
@@ -86,7 +88,7 @@ def create_slack_pteam_alert_blocks_for_new_vuln(
                     "type": "mrkdwn",
                     "text": "\n".join(
                         [
-                            f"*Package URL*:<{package_url}|{_mrkdwn_text(package_name)}>",
+                            f"*Package URL*:<{package_url}|{_mrkdwn_text(package_label)}>",
                             f"*Title*:{_mrkdwn_text(title)}",
                             f"*Services*:{services_name}",
                             f"*SSVC Priority*:{SSVC_PRIORITY_LABEL[ssvc_priority]}",

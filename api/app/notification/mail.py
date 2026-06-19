@@ -77,7 +77,7 @@ def create_mail_alert_for_new_vuln(
             f"Package Manager: {package_manager}",
             f"Asset:<ul><li>IP Addresses: {ip_str}</li><li>Description: {desc_str}</li></ul>",
             "",
-            f'<a href="{package_page_href}">Link to Package page</a>',
+            f'<a href="{package_page_href}">Link to Package version page</a>',
         ]
     )
     return subject, body
@@ -149,7 +149,7 @@ def create_mail_to_notify_eol(
                 f"<li>Description: {desc_str}</li></ul>"
             ),
             f"<b>EOL Date:</b> {eol_from}",
-            f'<b>Reference:</b> <a href="{_href_attr(url)}">{escape(url)}</a>',
+            f'<b>Reference:</b> <a href="{_href_attr(url)}">Link to EOL page</a>',
         ]
     )
     return subject, body

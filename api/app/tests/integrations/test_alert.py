@@ -160,7 +160,7 @@ class TestAlert:
             assert f"pteamId={self.pteam1.pteam_id}" in message_text
             assert f"serviceId={self.service1['service_id']}" in message_text
             assert f"*Title*:{vuln1.title}" in message_text
-            assert "|axios>" in message_text
+            assert "|axios 1.6.7>" in message_text
 
         def test_it_should_not_alert_by_mail_and_slack_when_alert_enable_is_false(self, mocker):
             # Given
@@ -286,7 +286,7 @@ class TestAlert:
             assert f"pteamId={self.pteam1.pteam_id}" in message_text
             assert f"serviceId={self.service1['service_id']}" in message_text
             assert f"*Title*:{self.vuln1.title}" in message_text
-            assert "|axios>" in message_text
+            assert "|axios 1.6.7>" in message_text
 
         def test_it_should_not_alert_when_ssvc_not_exceeds_threshold(self, mocker):
             # Given
