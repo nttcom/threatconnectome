@@ -93,13 +93,13 @@ export function useSBOMManagementController({
     isEmpty: state.isEmpty,
     newSbom: {
       onCancel: state.cancelCreateSbom,
-      onUploadClick: mutations.openCreateSbomDialog,
     },
     pendingUpload: {
       existingServiceNames: state.pendingUpload?.serviceName
         ? undefined
         : state.serviceTabs.map((service) => service.title),
       onClose: () => state.setPendingUpload(null),
+      onCreateWithFile: (file) => state.setPendingUpload({ initialFile: file }),
       onUploaded: () => state.setPendingUpload(null),
       value: state.pendingUpload,
     },

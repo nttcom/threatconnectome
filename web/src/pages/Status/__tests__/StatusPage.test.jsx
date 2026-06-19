@@ -933,17 +933,24 @@ describe("StatusPage", () => {
       useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "New" }));
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
 
+      // Clicking the upload area opens the native file picker (hidden input), not the dialog directly.
       const uploadButton = screen.getByText("Upload an SBOM").closest("button");
       expect(uploadButton).not.toBeNull();
       await ue.click(uploadButton);
+      expect(screen.queryByRole("dialog")).toBeNull();
+
+      // Simulate selecting a file via the hidden file input — this triggers the upload dialog.
+      const fileInput = document.querySelector('input[type="file"][accept=".json"]');
+      expect(fileInput).not.toBeNull();
+      const testFile = new File(["{}"], "sbom.json", { type: "application/json" });
+      await ue.upload(fileInput, testFile);
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Upload SBOM")).toBeInTheDocument();
-      expect(screen.getByText("Drop or click to select")).toBeInTheDocument();
     });
 
     it("opens the upload dialog with warning text when the SBOM update button is clicked", async () => {
@@ -987,6 +994,123 @@ describe("StatusPage", () => {
           "Important: Uploading an incorrect SBOM may delete related tickets. Please ensure the SBOM is correct before uploading.",
         ),
       ).toBeInTheDocument();
+    });
+
+    it("opens upload dialog with dropped file when a json is dropped on the upload box in new SBOM panel", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "New" }));
+      expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
+
+      const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      const file = new File(["{}"], "sbom.json", { type: "application/json" });
+      fireEvent.drop(uploadBox, { dataTransfer: { files: [file] } });
+
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByText("Upload SBOM")).toBeInTheDocument();
+      expect(screen.getByText("sbom.json")).toBeInTheDocument();
+    });
+
+    it("shows alert and does not open dialog when a non-json is dropped on the upload box in new SBOM panel", async () => {
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "New" }));
+
+      const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      fireEvent.drop(uploadBox, {
+        dataTransfer: { files: [new File(["text"], "sbom.txt", { type: "text/plain" })] },
+      });
+
+      expect(alertSpy).toHaveBeenCalledWith("Only *.json is supported");
+      expect(screen.queryByRole("dialog")).toBeNull();
+      alertSpy.mockRestore();
+    });
+
+    it("shows alert and does not open dialog when multiple files are dropped on the upload box in new SBOM panel", async () => {
+      const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      useGetPTeamQuery.mockReturnValue({
+        data: testPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      });
+      useGetPTeamPackagesSummaryQuery.mockReturnValue({
+        currentData: testPackagesData,
+        error: false,
+        isFetching: false,
+      });
+
+      const ue = userEvent.setup();
+      renderStatusPage();
+
+      await ue.click(screen.getByRole("button", { name: "New" }));
+
+      const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      fireEvent.drop(uploadBox, {
+        dataTransfer: {
+          files: [
+            new File(["{}"], "first.json", { type: "application/json" }),
+            new File(["{}"], "second.json", { type: "application/json" }),
+          ],
+        },
+      });
+
+      expect(alertSpy).toHaveBeenCalledWith("Please select only 1 file");
+      expect(screen.queryByRole("dialog")).toBeNull();
+      alertSpy.mockRestore();
     });
 
     it("show SBOM upload progress button when the service is registered", async () => {

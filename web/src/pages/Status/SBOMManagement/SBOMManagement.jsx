@@ -110,7 +110,7 @@ export function SBOMManagement({
         {isCreatingSbom ? (
           <NewSbomRegistrationPanel
             onCancel={newSbom.onCancel}
-            onUploadClick={newSbom.onUploadClick}
+            onDropFile={pendingUpload.onCreateWithFile}
             showCancel={!isEmpty}
           />
         ) : isActiveServicePending ? (
@@ -216,6 +216,7 @@ export function SBOMManagement({
         )}
       </Box>
       <SBOMUpdateDialog
+        initialFile={pendingUpload.value?.initialFile}
         open={!!pendingUpload.value}
         onClose={pendingUpload.onClose}
         pteamId={pteamId}

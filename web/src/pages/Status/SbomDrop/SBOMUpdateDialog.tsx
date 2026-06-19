@@ -31,6 +31,7 @@ type Props = {
   onUploaded?: () => void;
   existingServiceNames?: string[];
   showWarning?: boolean;
+  initialFile?: File | null;
 };
 
 export function SBOMUpdateDialog({
@@ -41,6 +42,7 @@ export function SBOMUpdateDialog({
   onUploaded,
   existingServiceNames,
   showWarning = true,
+  initialFile = null,
 }: Props) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMUpdateDialog" });
   const { enqueueSnackbar } = useSnackbar();
@@ -59,10 +61,10 @@ export function SBOMUpdateDialog({
 
   useEffect(() => {
     if (open) {
-      setSbomFile(null);
+      setSbomFile(initialFile);
       setServiceNameInput("");
     }
-  }, [open]);
+  }, [initialFile, open]);
 
   const [uploadSBOMFile] = useUploadSBOMFileMutation();
 
