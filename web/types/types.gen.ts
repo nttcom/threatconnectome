@@ -118,6 +118,14 @@ export type AssetInfo = {
      */
     ip_addresses?: Array<string> | null;
     /**
+     * Country Code
+     */
+    country_code?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
      * Description
      */
     description?: string | null;

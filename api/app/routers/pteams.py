@@ -105,6 +105,8 @@ def _to_asset_info(asset: models.Asset | None) -> schemas.AssetInfo | None:
 
     return schemas.AssetInfo(
         ip_addresses=cast(list[IPvAnyNetwork] | None, asset.ip_addresses),
+        country_code=asset.country_code,
+        address=asset.address,
         description=asset.description,
     )
 
@@ -307,6 +309,8 @@ def update_pteam_service(
     max_keywords = 5
     max_keyword_length_in_half = 20
     max_description_length_in_half = 300
+    max_asset_country_code_length_in_half = 2
+    max_asset_address_length_in_half = 255
     max_asset_description_length_in_half = 255
     error_too_long_service_name = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -338,6 +342,20 @@ def update_pteam_service(
         detail=(
             f"Too long asset description. Max length is {max_asset_description_length_in_half} in "
             f"half-width or {int(max_asset_description_length_in_half / 2)} in full-width"
+        ),
+    )
+    error_too_long_asset_country_code = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            "Too long asset country code. "
+            f"Max length is {max_asset_country_code_length_in_half} in half-width"
+        ),
+    )
+    error_too_long_asset_address = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=(
+            f"Too long asset address. Max length is {max_asset_address_length_in_half} in "
+            f"half-width or {int(max_asset_address_length_in_half / 2)} in full-width"
         ),
     )
 
@@ -441,6 +459,28 @@ def update_pteam_service(
                 if data.asset.ip_addresses is not None
                 else None
             )
+        if "country_code" in asset_update_data:
+            if data.asset.country_code is None:
+                service.asset.country_code = None
+            else:
+                asset_country_code = data.asset.country_code
+                if (
+                    unicode_tool.count_full_width_and_half_width_characters(asset_country_code)
+                    > max_asset_country_code_length_in_half
+                ):
+                    raise error_too_long_asset_country_code
+                service.asset.country_code = asset_country_code
+        if "address" in asset_update_data:
+            if data.asset.address is None:
+                service.asset.address = None
+            else:
+                asset_address = data.asset.address
+                if (
+                    unicode_tool.count_full_width_and_half_width_characters(asset_address)
+                    > max_asset_address_length_in_half
+                ):
+                    raise error_too_long_asset_address
+                service.asset.address = asset_address
         if "description" in asset_update_data:
             if data.asset.description is None:
                 service.asset.description = None
