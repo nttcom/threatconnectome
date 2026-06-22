@@ -493,7 +493,7 @@ class Asset(Base):
     )
     ip_addresses: Mapped[list[Str255] | None] = mapped_column(nullable=True)
     country_code: Mapped[Str2 | None] = mapped_column(nullable=True)
-    adress: Mapped[Str255 | None] = mapped_column(nullable=True)
+    address: Mapped[Str255 | None] = mapped_column(nullable=True)
     description: Mapped[Str255 | None] = mapped_column(nullable=True)
 
     service = relationship("Service", back_populates="asset")
