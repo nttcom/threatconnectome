@@ -241,7 +241,7 @@ class AccountDefaultPTeam(Base):
     __tablename__ = "accountdefaultpteam"
 
     user_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True, index=True
+        ForeignKey("account.user_id", ondelete="CASCADE"), primary_key=True
     )
     default_pteam_id: Mapped[StrUUID] = mapped_column(
         ForeignKey("pteam.pteam_id", ondelete="CASCADE"), index=True
@@ -499,7 +499,7 @@ class ServiceThumbnail(Base):
     __tablename__ = "servicethumbnail"
 
     service_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True, index=True
+        ForeignKey("service.service_id", ondelete="CASCADE"), primary_key=True
     )
     media_type: Mapped[Str255]
     image_data: Mapped[bytes]
@@ -662,7 +662,7 @@ class PTeamMail(Base):
     __tablename__ = "pteammail"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True
     )
     enable: Mapped[bool]
     address: Mapped[Str255]
@@ -674,7 +674,7 @@ class PTeamSlack(Base):
     __tablename__ = "pteamslack"
 
     pteam_id: Mapped[StrUUID] = mapped_column(
-        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True, index=True
+        ForeignKey("pteam.pteam_id", ondelete="CASCADE"), primary_key=True
     )
     enable: Mapped[bool] = mapped_column(default=True)
     webhook_url: Mapped[Str255]
