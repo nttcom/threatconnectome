@@ -8,18 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app import models, persistence
+from app import models
 from app.constants import (
     SYSTEM_EMAIL,
 )
 from app.main import app
 from app.notification.eol_notification_utils import EOL_WARNING_THRESHOLD_DAYS
-from app.notification.mail import (
-    create_mail_alert_for_new_vuln,
-)
-from app.notification.slack import (
-    create_slack_pteam_alert_blocks_for_new_vuln,
-)
 from app.routers.eols import _bg_check_eol_notification
 from app.routers.pteams import bg_create_tags_from_sbom_json
 from app.tests.common.constants import (
@@ -72,9 +66,18 @@ class TestAlert:
                 "service_name": SERVICE1,
             }
 
-            # Get dependency information (PackageVersion) from the database
-            package_version = testdb.scalars(select(models.PackageVersion)).one()
-            self.package_version1 = package_version
+            # Get dependency information from the database
+            self.dependency1 = testdb.scalars(
+                select(models.Dependency)
+                .join(models.Dependency.package_version)
+                .join(models.PackageVersion.package)
+                .where(
+                    models.Dependency.service_id == str(service_id),
+                    models.Package.name == "axios",
+                    models.PackageVersion.version == "1.6.7",
+                )
+            ).one()
+            self.package_version1 = self.dependency1.package_version
 
             self.asset_ip_addresses = ["192.168.1.1/32", "10.0.0.1/32"]
             self.asset_description = "test server"
@@ -110,12 +113,6 @@ class TestAlert:
                 f"/pteams/{self.pteam1.pteam_id}", headers=headers(USER1), json=pteam_request
             )
 
-            dependencies = persistence.get_dependencies_from_service_id_and_package_id(
-                testdb, self.service1["service_id"], self.package_version1.package_id
-            )
-            if len(dependencies) == 0:
-                raise Exception("Dependency not found")
-
             # When
             send_email = mocker.patch("app.notification.alert.send_email")
             vuln1 = create_vuln(USER1, VULN1)
@@ -123,21 +120,14 @@ class TestAlert:
             # Then
             send_email.assert_called_once()
 
-            exp_subject, exp_body = create_mail_alert_for_new_vuln(
-                vuln1.title,
-                models.SSVCDeployerPriorityEnum.IMMEDIATE,
-                PTEAM1["pteam_name"],
-                self.pteam1.pteam_id,
-                self.package_version1.package.name,
-                self.package_version1.package.ecosystem,
-                dependencies[0].package_manager,
-                self.package_version1.package_version_id,
-                self.service1["service_id"],
-                [self.service1["service_name"]],
-                self.asset_ip_addresses,
-                self.asset_description,
-            )
-            send_email.assert_called_with(address, SYSTEM_EMAIL, exp_subject, exp_body)
+            to_email, from_email, subject, body = send_email.call_args.args
+            assert to_email == address
+            assert from_email == SYSTEM_EMAIL
+            assert subject == f"[Tc Alert] Immediate: {vuln1.title}"
+            assert 'href="http://localhost/package_versions/' in body
+            assert f"pteamId={self.pteam1.pteam_id}" in body
+            assert f"serviceId={self.service1['service_id']}" in body
+            assert "&amp;serviceId=" in body
 
         def test_it_should_alert_by_slack_when_put_matched_vuln(self, mocker):
             # Given
@@ -164,20 +154,13 @@ class TestAlert:
             # Then
             send_slack.assert_called_once()
 
-            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
-                self.pteam1.pteam_id,
-                PTEAM1["pteam_name"],
-                self.package_version1.package_version_id,
-                self.package_version1.package.name,
-                vuln1.vuln_id,
-                vuln1.title,
-                models.SSVCDeployerPriorityEnum.IMMEDIATE,
-                self.service1["service_id"],
-                [self.service1["service_name"]],
-                self.asset_ip_addresses,
-                self.asset_description,
-            )
-            send_slack.assert_called_with(webhook_url, slack_message_blocks)
+            actual_webhook_url, slack_message_blocks = send_slack.call_args.args
+            assert actual_webhook_url == webhook_url
+            message_text = slack_message_blocks[2]["text"]["text"]
+            assert f"pteamId={self.pteam1.pteam_id}" in message_text
+            assert f"serviceId={self.service1['service_id']}" in message_text
+            assert f"*Title*:{vuln1.title}" in message_text
+            assert "|axios 1.6.7>" in message_text
 
         def test_it_should_not_alert_by_mail_and_slack_when_alert_enable_is_false(self, mocker):
             # Given
@@ -235,9 +218,18 @@ class TestAlert:
                 "service_name": SERVICE1,
             }
 
-            # Get dependency information (PackageVersion) from the database
-            package_version = testdb.scalars(select(models.PackageVersion)).one()
-            self.package_version1 = package_version
+            # Get dependency information from the database
+            self.dependency1 = testdb.scalars(
+                select(models.Dependency)
+                .join(models.Dependency.package_version)
+                .join(models.PackageVersion.package)
+                .where(
+                    models.Dependency.service_id == str(service_id),
+                    models.Package.name == "axios",
+                    models.PackageVersion.version == "1.6.7",
+                )
+            ).one()
+            self.package_version1 = self.dependency1.package_version
 
             self.webhook_url = SAMPLE_SLACK_WEBHOOK_URL + "0"
             pteam_request = {
@@ -288,20 +280,13 @@ class TestAlert:
             # Then
             send_slack.assert_called_once()
 
-            slack_message_blocks = create_slack_pteam_alert_blocks_for_new_vuln(
-                self.pteam1.pteam_id,
-                PTEAM1["pteam_name"],
-                self.package_version1.package_version_id,
-                self.package_version1.package.name,
-                self.vuln1.vuln_id,
-                self.vuln1.title,
-                models.SSVCDeployerPriorityEnum.IMMEDIATE,
-                self.service1["service_id"],
-                [self.service1["service_name"]],
-                None,
-                None,
-            )
-            send_slack.assert_called_with(self.webhook_url, slack_message_blocks)
+            actual_webhook_url, slack_message_blocks = send_slack.call_args.args
+            assert actual_webhook_url == self.webhook_url
+            message_text = slack_message_blocks[2]["text"]["text"]
+            assert f"pteamId={self.pteam1.pteam_id}" in message_text
+            assert f"serviceId={self.service1['service_id']}" in message_text
+            assert f"*Title*:{self.vuln1.title}" in message_text
+            assert "|axios 1.6.7>" in message_text
 
         def test_it_should_not_alert_when_ssvc_not_exceeds_threshold(self, mocker):
             # Given

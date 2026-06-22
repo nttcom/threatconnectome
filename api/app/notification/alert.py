@@ -60,6 +60,7 @@ def send_alert_to_pteam(alert: models.Alert) -> None:
                 pteam.pteam_name,
                 threat.package_version.package_version_id,
                 package.name,
+                threat.package_version.version,
                 vuln.vuln_id,
                 vuln.title,  # WORKAROUND
                 ticket.ssvc_deployer_priority,
