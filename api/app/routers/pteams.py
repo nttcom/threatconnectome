@@ -348,7 +348,8 @@ def update_pteam_service(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail=(
             "Too long asset country code. "
-            f"Max length is {max_asset_country_code_length_in_half} in half-width"
+            f"Max length is {max_asset_country_code_length_in_half} in half-width "
+            f"or {int(max_asset_country_code_length_in_half / 2)} in full-width"
         ),
     )
     error_too_long_asset_address = HTTPException(
@@ -462,25 +463,27 @@ def update_pteam_service(
         if "country_code" in asset_update_data:
             if data.asset.country_code is None:
                 service.asset.country_code = None
-            else:
-                asset_country_code = data.asset.country_code
+            elif asset_country_code := data.asset.country_code.strip():
                 if (
                     unicode_tool.count_full_width_and_half_width_characters(asset_country_code)
                     > max_asset_country_code_length_in_half
                 ):
                     raise error_too_long_asset_country_code
                 service.asset.country_code = asset_country_code
+            else:
+                service.asset.country_code = None
         if "address" in asset_update_data:
             if data.asset.address is None:
                 service.asset.address = None
-            else:
-                asset_address = data.asset.address
+            elif asset_address := data.asset.address.strip():
                 if (
                     unicode_tool.count_full_width_and_half_width_characters(asset_address)
                     > max_asset_address_length_in_half
                 ):
                     raise error_too_long_asset_address
                 service.asset.address = asset_address
+            else:
+                service.asset.address = None
         if "description" in asset_update_data:
             if data.asset.description is None:
                 service.asset.description = None

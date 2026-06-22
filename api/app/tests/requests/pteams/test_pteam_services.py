@@ -1745,7 +1745,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["asset"]["country_code"] == request["asset"]["country_code"]
 
-        def test_it_should_return_200_with_blank_asset_country_code(self):
+        def test_it_should_return_200_with_blank_asset_country_code_as_null(self):
             # Given
             request = {"asset": {"country_code": "  "}}
 
@@ -1758,7 +1758,7 @@ class TestUpdatePTeamService:
 
             # Then
             assert response.status_code == 200
-            assert response.json()["asset"]["country_code"] == request["asset"]["country_code"]
+            assert response.json()["asset"]["country_code"] is None
 
         def test_it_should_return_400_with_asset_country_code_exceeding_limit(self):
             # Given
@@ -1775,7 +1775,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 400
             assert (
                 response.json()["detail"]
-                == "Too long asset country code. Max length is 2 in half-width"
+                == "Too long asset country code. Max length is 2 in half-width or 1 in full-width"
             )
 
     class TestAssetAddress(Common):
@@ -1794,7 +1794,7 @@ class TestUpdatePTeamService:
             assert response.status_code == 200
             assert response.json()["asset"]["address"] == request["asset"]["address"]
 
-        def test_it_should_return_200_with_blank_asset_address(self):
+        def test_it_should_return_200_with_blank_asset_address_as_null(self):
             # Given
             request = {"asset": {"address": "  "}}
 
@@ -1807,7 +1807,7 @@ class TestUpdatePTeamService:
 
             # Then
             assert response.status_code == 200
-            assert response.json()["asset"]["address"] == request["asset"]["address"]
+            assert response.json()["asset"]["address"] is None
 
         def test_it_should_return_400_with_asset_address_exceeding_limit(self):
             # Given
