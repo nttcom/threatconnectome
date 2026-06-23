@@ -121,7 +121,7 @@ def get_pteam_package_versions_summary(
     response = requests.get(
         f"{api_url}/pteams/{pteam_id}/package_versions/summary",
         headers=file_upload_headers(user),
-        params={"service_id": service_id},
+        params={"service_id": str(service_id)},
     )
     if response.status_code != 200:
         raise HTTPError(response)
