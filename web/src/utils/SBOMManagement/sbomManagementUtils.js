@@ -4,18 +4,15 @@ export function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-export function normalizeTags(value) {
-  return value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-}
-
 export function normalizeCommaSeparatedValues(value) {
   return value
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export function normalizeTags(value) {
+  return normalizeCommaSeparatedValues(value);
 }
 
 export function getNextActiveIdAfterRemoval(items, removedId) {

@@ -5,6 +5,7 @@ import {
   buildDependencyRows,
   buildServiceTabsFromPTeam,
   isDeleteConfirmationValid,
+  normalizeCommaSeparatedValues,
 } from "../sbomManagementUtils";
 
 const services = [
@@ -51,6 +52,10 @@ const packages = [
 ];
 
 describe("sbomManagementUtils", () => {
+  it("normalizes comma-separated values by trimming and dropping empty items", () => {
+    expect(normalizeCommaSeparatedValues(" a, ,b ,")).toEqual(["a", "b"]);
+  });
+
   it("builds tab data without per-service details", () => {
     expect(buildServiceTabsFromPTeam(services)).toEqual([
       { id: "service-1", title: "Service One" },
