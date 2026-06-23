@@ -94,7 +94,7 @@ def _create_vuln_ids_summary(vuln_ids_dict: dict) -> dict:
     vuln_ids_sorted = sorted(
         vuln_ids_dict.values(),
         key=lambda x: (
-            x["highest_ssvc_priority"].value,
+            x["highest_ssvc_priority"],
             -(_dt.timestamp() if (_dt := x["vuln_updated_at"]) else 0),
         ),
     )
