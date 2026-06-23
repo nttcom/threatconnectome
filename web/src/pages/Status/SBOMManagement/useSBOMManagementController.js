@@ -61,11 +61,9 @@ export function useSBOMManagementController({
         state.setDeploymentsOpen(true);
         state.setDeploymentsEditing(true);
       },
-      onAdd: mutations.addDeployment,
       onCommit: mutations.commitDeploymentsEdit,
-      onRemove: mutations.removeDeployment,
       onToggle: () => state.setDeploymentsOpen((open) => !open),
-      onUpdate: mutations.updateDeployment,
+      onUpdate: mutations.updateDeploymentSettings,
       open: state.deploymentsOpen,
     },
     details: {

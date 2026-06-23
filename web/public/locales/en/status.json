@@ -80,11 +80,19 @@
     "deploymentN": "Deployment {{n}}",
     "done": "Done",
     "edit": "Edit",
+    "address": "Address",
+    "addressPlaceholder": "Tokyo office, production region, etc.",
+    "countryCode": "Country Code",
+    "countryCodePlaceholder": "JP",
     "ipAddress": "IP Address",
+    "ipAddresses": "IP Addresses",
+    "ipAddressesPlaceholder": "192.168.0.1, 10.0.0.0/24",
     "location": "Location",
+    "noIpAddresses": "No IP addresses registered.",
     "noDeployments": "No deployments registered.",
     "notSet": "Not set",
-    "removeDeployment": "Remove deployment"
+    "removeDeployment": "Remove deployment",
+    "tooLongAssetAddress": "Too long asset address. Max length is {{maxHalf}} in half-width or {{maxFull}} in full-width"
   },
   "DependenciesCard": {
     "license": "License",

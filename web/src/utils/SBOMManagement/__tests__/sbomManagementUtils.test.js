@@ -5,6 +5,7 @@ import {
   buildDependencyRows,
   buildServiceTabsFromPTeam,
   isDeleteConfirmationValid,
+  normalizeCommaSeparatedValues,
 } from "../sbomManagementUtils";
 
 const services = [
@@ -17,6 +18,8 @@ const services = [
     service_mission_impact: "mef_failure",
     asset: {
       ip_addresses: ["10.0.0.1", "10.0.0.2"],
+      country_code: "JP",
+      address: "Tokyo",
     },
   },
   {
@@ -49,6 +52,10 @@ const packages = [
 ];
 
 describe("sbomManagementUtils", () => {
+  it("normalizes comma-separated values by trimming and dropping empty items", () => {
+    expect(normalizeCommaSeparatedValues(" a, ,b ,")).toEqual(["a", "b"]);
+  });
+
   it("builds tab data without per-service details", () => {
     expect(buildServiceTabsFromPTeam(services)).toEqual([
       { id: "service-1", title: "Service One" },
@@ -67,10 +74,17 @@ describe("sbomManagementUtils", () => {
       systemExposure: "controlled",
       missionImpact: "mef_failure",
       imageUrl: "data:image/png;base64,abc",
-      deployments: [
-        { id: "dep-service-1-0", ip: "10.0.0.1", location: "" },
-        { id: "dep-service-1-1", ip: "10.0.0.2", location: "" },
-      ],
+      ipAddresses: ["10.0.0.1", "10.0.0.2"],
+      countryCode: "JP",
+      address: "Tokyo",
+    });
+  });
+
+  it("builds empty asset details when the current service has no asset", () => {
+    expect(buildCurrentServiceFromPTeam(services, "service-2")).toMatchObject({
+      ipAddresses: [],
+      countryCode: "",
+      address: "",
     });
   });
 

@@ -4,10 +4,10 @@ export function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-export function normalizeTags(value) {
+export function normalizeCommaSeparatedValues(value) {
   return value
     .split(",")
-    .map((tag) => tag.trim())
+    .map((item) => item.trim())
     .filter(Boolean);
 }
 
@@ -53,11 +53,9 @@ export function buildCurrentServiceFromPTeam(services, currentServiceId, imageUr
     systemExposure: service.system_exposure ?? "open",
     missionImpact: service.service_mission_impact ?? "mission_failure",
     imageUrl,
-    deployments: (service.asset?.ip_addresses || []).map((ip, index) => ({
-      id: `dep-${service.service_id}-${index}`,
-      ip,
-      location: "",
-    })),
+    ipAddresses: Array.isArray(service.asset?.ip_addresses) ? service.asset.ip_addresses : [],
+    countryCode: service.asset?.country_code || "",
+    address: service.asset?.address || "",
   };
 }
 

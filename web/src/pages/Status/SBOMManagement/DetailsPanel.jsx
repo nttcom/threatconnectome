@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { maxDescriptionLengthInHalf, maxServiceNameLengthInHalf } from "../../../utils/const";
 import { collapseSpaces } from "../../../utils/displayText";
 import { getLengthError, getTagsError } from "../../../utils/SBOMManagement/formValidation";
-import { normalizeTags } from "../../../utils/SBOMManagement/sbomManagementUtils";
+import { normalizeCommaSeparatedValues } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
 import { ServiceIdCopyButton } from "./ServiceIdCopyButton";
 import { AccordionHeader, AppButton, HeaderActionButton } from "./sharedUiParts";
@@ -345,7 +345,7 @@ function DetailsForm({ editing, onUpdate, open, sbom }) {
           fullWidth
           onChange={(event) => {
             const raw = event.target.value;
-            const nextTags = normalizeTags(raw);
+            const nextTags = normalizeCommaSeparatedValues(raw);
             const error = getTagsError(t, nextTags);
             if (error) {
               showInputError(error);
