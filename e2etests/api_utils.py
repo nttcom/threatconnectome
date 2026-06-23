@@ -113,3 +113,16 @@ def get_pteam_services(user: dict, pteam_id: UUID | str):
     if response.status_code != 200:
         raise HTTPError(response)
     return response.json()
+
+
+def get_pteam_package_versions_summary(
+    user: dict, pteam_id: UUID | str, service_id: UUID | str
+) -> dict:
+    response = requests.get(
+        f"{api_url}/pteams/{pteam_id}/package_versions/summary",
+        headers=file_upload_headers(user),
+        params={"service_id": str(service_id)},
+    )
+    if response.status_code != 200:
+        raise HTTPError(response)
+    return response.json()

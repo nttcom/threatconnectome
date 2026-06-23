@@ -4,7 +4,13 @@ from urllib.parse import urlencode, urljoin
 
 from playwright.sync_api import Page, expect
 
-from api_utils import create_pteam, create_vuln, get_pteam_services, upload_pteam_packages
+from api_utils import (
+    create_pteam,
+    create_vuln,
+    get_pteam_package_versions_summary,
+    get_pteam_services,
+    upload_pteam_packages,
+)
 from constants import PACKAGE1, PACKAGE2, PTEAM1, USER1, VULN1, VULN2
 
 base_url = os.getenv("BASE_URL", "http://localhost")
@@ -68,7 +74,7 @@ def test_show_package_page_directly(page: Page):
             "references": [{"target": "target1", "version": "1.0"}],
         },
     ]
-    packages = upload_pteam_packages(USER1, pteam1["pteam_id"], "repoA", ext_packages)
+    upload_pteam_packages(USER1, pteam1["pteam_id"], "repoA", ext_packages)
     create_vuln(USER1, VULN1)
     create_vuln(USER1, VULN2)
 
@@ -76,10 +82,19 @@ def test_show_package_page_directly(page: Page):
     services = get_pteam_services(USER1, pteam1["pteam_id"])
     service_id = services[0]["service_id"]
 
-    # goto tag page directly
+    # goto package page directly
+    package_versions_summary = get_pteam_package_versions_summary(
+        USER1, pteam1["pteam_id"], service_id
+    )
+    package_version = next(
+        package_version
+        for package_version in package_versions_summary["package_versions"]
+        if package_version["package_name"] == PACKAGE2["package_name"]
+        and package_version["ecosystem"] == PACKAGE2["ecosystem"]
+        and package_version["package_version"] == "1.0"
+    )
+    path = "/package_versions/" + package_version["package_version_id"]
     params = urlencode({"pteamId": pteam1["pteam_id"], "serviceId": service_id})
-    # packages[0] is PACKAGE2 because sort by package name and ecosystem
-    path = "/packages/" + packages[0]["package_id"]
     url = urljoin(base_url, path) + "?" + params
     page.goto(url)
 
@@ -92,7 +107,7 @@ def test_show_package_page_directly(page: Page):
     # package page
     expect(page).to_have_url(re.compile(path))
 
-    package_title = packages[0]["package_name"]
+    package_title = package_version["package_name"]
     heading = page.get_by_role("heading", name=package_title)
     heading.wait_for(timeout=10000)
     expect(heading).to_have_text(package_title)
