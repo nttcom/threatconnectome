@@ -169,6 +169,7 @@ class ProductCategoryEnum(str, enum.Enum):
 
 StrUUID = Annotated[str, 36]
 Str255 = Annotated[str, 255]
+Str2 = Annotated[str, 2]
 
 
 class Base(DeclarativeBase):
@@ -177,6 +178,7 @@ class Base(DeclarativeBase):
             str: Text,
             StrUUID: String(36),
             Str255: String(255),
+            Str2: String(2),
             dict: JSON,
             list[dict]: ARRAY(JSON),
             list[str]: ARRAY(Text),
@@ -490,6 +492,8 @@ class Asset(Base):
         ForeignKey("service.service_id", ondelete="CASCADE"), index=True, unique=True
     )
     ip_addresses: Mapped[list[Str255] | None] = mapped_column(nullable=True)
+    country_code: Mapped[Str2 | None] = mapped_column(nullable=True)
+    address: Mapped[Str255 | None] = mapped_column(nullable=True)
     description: Mapped[Str255 | None] = mapped_column(nullable=True)
 
     service = relationship("Service", back_populates="asset")

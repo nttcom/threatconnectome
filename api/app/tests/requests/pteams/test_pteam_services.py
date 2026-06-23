@@ -186,6 +186,8 @@ class TestGetPTeamServices:
         request = {
             "asset": {
                 "ip_addresses": ["192.168.0.1"],
+                "country_code": "JP",
+                "address": "Tokyo",
                 "description": "test asset description",
             }
         }
@@ -1726,6 +1728,136 @@ class TestUpdatePTeamService:
             assert response.status_code == 422
             detail = response.json()["detail"]
             assert detail[0]["msg"] == "value is not a valid IPv4 or IPv6 network"
+
+    class TestAssetCountryCode(Common):
+        def test_it_should_return_200_with_valid_asset_country_code(self):
+            # Given
+            request = {"asset": {"country_code": "JP"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["country_code"] == request["asset"]["country_code"]
+
+        def test_it_should_return_200_with_lowercase_asset_country_code_as_uppercase(self):
+            # Given
+            request = {"asset": {"country_code": "jp"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["country_code"] == "JP"
+
+        def test_it_should_return_200_with_blank_asset_country_code_as_null(self):
+            # Given
+            request = {"asset": {"country_code": "  "}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["country_code"] is None
+
+        def test_it_should_return_400_with_invalid_asset_country_code_exceeding_limit(self):
+            # Given
+            request = {"asset": {"country_code": "JPN"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 400
+            assert response.json()["detail"] == "Invalid asset country code. Use ISO 3166-1 alpha-2"
+
+        def test_it_should_return_400_with_invalid_asset_country_code(self):
+            # Given
+            request = {"asset": {"country_code": "ZZ"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 400
+            assert response.json()["detail"] == "Invalid asset country code. Use ISO 3166-1 alpha-2"
+
+    class TestAssetAddress(Common):
+        def test_it_should_return_200_with_valid_asset_address(self):
+            # Given
+            request = {"asset": {"address": "Tokyo"}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["address"] == request["asset"]["address"]
+
+        def test_it_should_return_200_with_blank_asset_address_as_null(self):
+            # Given
+            request = {"asset": {"address": "  "}}
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 200
+            assert response.json()["asset"]["address"] is None
+
+        def test_it_should_return_400_with_asset_address_exceeding_limit(self):
+            # Given
+            request = {
+                "asset": {
+                    "address": "a" * 256,
+                }
+            }
+
+            # When
+            response = client.put(
+                f"/pteams/{self.pteam1.pteam_id}/services/{self.service_id1}",
+                headers=headers(USER1),
+                json=request,
+            )
+
+            # Then
+            assert response.status_code == 400
+            detail = response.json()["detail"]
+            assert (
+                detail == "Too long asset address. "
+                "Max length is 255 in half-width or 127 in full-width"
+            )
 
     class TestAssetDescription(Common):
         def test_it_should_return_200_with_valid_asset_description(self):

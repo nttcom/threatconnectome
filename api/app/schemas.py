@@ -114,6 +114,8 @@ class PackageFileResponse(ORMModel):
 
 class AssetInfo(ORMModel):
     ip_addresses: list[IPvAnyNetwork] | None = None
+    country_code: str | None = None
+    address: str | None = None
     description: str | None = None
 
 

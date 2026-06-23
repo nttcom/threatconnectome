@@ -109,6 +109,8 @@ class TestGetPteam:
         request = {
             "asset": {
                 "ip_addresses": ["192.168.0.1"],
+                "country_code": "JP",
+                "address": "Tokyo",
                 "description": "test asset description",
             }
         }
