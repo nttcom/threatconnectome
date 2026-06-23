@@ -1,84 +1,99 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 
-import { navigateSpecifiedPteam } from "../locationNavigator";
+import { getSpecifiedPteamNavigationTarget } from "../locationNavigator";
 
 type TestCase = {
   locationPathname: string;
   locationSearch: string;
   pteamRoles: {
     pteam_roles: Array<{ pteam: { pteam_id: string } }>;
+    default_pteam_id?: string | null;
   };
-  navigateCallCount: number;
-  expectedParam: string;
+  expectedTarget: string | null;
 };
 
 const cases: TestCase[] = [
-  // not navigate
   {
     locationPathname: "/",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [{ pteam: { pteam_id: "dummyPteamId1" } }] },
-    navigateCallCount: 0,
-    expectedParam: "",
+    expectedTarget: null,
   },
-  // navigate location.pathname in status page
   {
     locationPathname: "/",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [] },
-    navigateCallCount: 1,
-    expectedParam: "",
+    expectedTarget: "/",
   },
-  // navigate location.pathname in package page
   {
     locationPathname: "/package_versions/dummyPackageVersionId1",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [] },
-    navigateCallCount: 1,
-    expectedParam: "",
+    expectedTarget: "/package_versions/dummyPackageVersionId1",
   },
-  // navigate location.pathname in pteam page
   {
     locationPathname: "/pteam",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [] },
-    navigateCallCount: 1,
-    expectedParam: "",
+    expectedTarget: "/pteam",
   },
-  // not navigate in other page
   {
     locationPathname: "/other",
     locationSearch: "?pteamId=dummyPteamId1",
     pteamRoles: { pteam_roles: [] },
-    navigateCallCount: 0,
-    expectedParam: "",
+    expectedTarget: null,
   },
-  // navigate location.pathname and pteamId in status page
   {
     locationPathname: "/",
     locationSearch: "",
     pteamRoles: { pteam_roles: [{ pteam: { pteam_id: "pteamId1" } }] },
-    navigateCallCount: 1,
-    expectedParam: "pteamId=pteamId1",
+    expectedTarget: "/?pteamId=pteamId1",
+  },
+  {
+    locationPathname: "/pteam",
+    locationSearch: "?pteamId=removedPteamId",
+    pteamRoles: { pteam_roles: [] },
+    expectedTarget: "/pteam",
+  },
+  {
+    locationPathname: "/pteam",
+    locationSearch: "?pteamId=removedPteamId&serviceId=serviceId1",
+    pteamRoles: {
+      pteam_roles: [{ pteam: { pteam_id: "defaultPteamId" } }],
+      default_pteam_id: "defaultPteamId",
+    },
+    expectedTarget: "/pteam?pteamId=defaultPteamId&serviceId=serviceId1",
+  },
+  {
+    locationPathname: "/pteam",
+    locationSearch: "?pteamId=removedPteamId",
+    pteamRoles: {
+      pteam_roles: [{ pteam: { pteam_id: "fallbackPteamId" } }],
+      default_pteam_id: "removedPteamId",
+    },
+    expectedTarget: "/pteam?pteamId=fallbackPteamId",
   },
 ];
 
 test.each(cases)(
-  "navigateSpecifiedPteam test",
-  ({ locationPathname, locationSearch, pteamRoles, navigateCallCount, expectedParam }) => {
+  "getSpecifiedPteamNavigationTarget returns the correction target",
+  ({ locationPathname, locationSearch, pteamRoles, expectedTarget }) => {
     const location = {
       pathname: locationPathname,
       search: locationSearch,
     };
-    const mockNavigate = vi.fn();
 
-    navigateSpecifiedPteam(location, pteamRoles, mockNavigate);
+    const target = getSpecifiedPteamNavigationTarget(location, pteamRoles);
 
-    expect(mockNavigate).toBeCalledTimes(navigateCallCount);
-    if (navigateCallCount === 1) {
-      const expectNavigatePath =
-        expectedParam === "" ? locationPathname : locationPathname + "?" + expectedParam;
-      expect(mockNavigate).toHaveBeenCalledWith(expectNavigatePath);
-    }
+    expect(target).toBe(expectedTarget);
   },
 );
+
+test("getSpecifiedPteamNavigationTarget returns null when pteam does not need correction", () => {
+  const target = getSpecifiedPteamNavigationTarget(
+    { pathname: "/pteam", search: "?pteamId=pteamId1" },
+    { pteam_roles: [{ pteam: { pteam_id: "pteamId1" } }] },
+  );
+
+  expect(target).toBeNull();
+});

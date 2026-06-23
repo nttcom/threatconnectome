@@ -6,7 +6,7 @@ import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
-import { navigateSpecifiedPteam } from "../../utils/locationNavigator";
+import { getSpecifiedPteamNavigationTarget } from "../../utils/locationNavigator";
 
 export function OutletWithCheckedParams() {
   const { t } = useTranslation("app", { keyPrefix: "OutletWithCheckedParams" });
@@ -22,14 +22,17 @@ export function OutletWithCheckedParams() {
     isFetching: userMeIsFetching,
   } = useGetUserMeQuery(undefined, { skip });
 
+  const navigationTarget =
+    userMe && !userMeIsFetching ? getSpecifiedPteamNavigationTarget(location, userMe) : null;
+
   useEffect(() => {
-    if (!userMe || userMeIsFetching) return;
-    navigateSpecifiedPteam(location, userMe, navigate);
-  }, [navigate, location, userMe, userMeIsFetching]);
+    if (navigationTarget) navigate(navigationTarget);
+  }, [navigate, navigationTarget]);
 
   if (skip) return <></>;
   if (userMeError) throw new APIError(errorToString(userMeError), { api: "getUserMe" });
   if (userMeIsLoading) return <>{t("loading")}</>;
+  if (navigationTarget) return <></>;
 
   return <Outlet />;
 }
