@@ -17,6 +17,7 @@ dependencies = [
     "protobuf<7.0",
     "psycopg2",
     "pydantic",
+    "pycountry",
     "python-multipart>=0.0.31",
     "requests",
     "sendgrid",

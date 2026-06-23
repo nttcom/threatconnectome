@@ -7,6 +7,7 @@ from io import DEFAULT_BUFFER_SIZE, BytesIO
 from typing import cast
 from uuid import UUID
 
+import pycountry
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -309,7 +310,6 @@ def update_pteam_service(
     max_keywords = 5
     max_keyword_length_in_half = 20
     max_description_length_in_half = 300
-    max_asset_country_code_length_in_half = 2
     max_asset_address_length_in_half = 255
     max_asset_description_length_in_half = 255
     error_too_long_service_name = HTTPException(
@@ -344,13 +344,9 @@ def update_pteam_service(
             f"half-width or {int(max_asset_description_length_in_half / 2)} in full-width"
         ),
     )
-    error_too_long_asset_country_code = HTTPException(
+    error_invalid_asset_country_code = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail=(
-            "Too long asset country code. "
-            f"Max length is {max_asset_country_code_length_in_half} in half-width "
-            f"or {int(max_asset_country_code_length_in_half / 2)} in full-width"
-        ),
+        detail="Invalid asset country code. Use ISO 3166-1 alpha-2",
     )
     error_too_long_asset_address = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -464,11 +460,9 @@ def update_pteam_service(
             if data.asset.country_code is None:
                 service.asset.country_code = None
             elif asset_country_code := data.asset.country_code.strip():
-                if (
-                    unicode_tool.count_full_width_and_half_width_characters(asset_country_code)
-                    > max_asset_country_code_length_in_half
-                ):
-                    raise error_too_long_asset_country_code
+                asset_country_code = asset_country_code.upper()
+                if pycountry.countries.get(alpha_2=asset_country_code) is None:
+                    raise error_invalid_asset_country_code
                 service.asset.country_code = asset_country_code
             else:
                 service.asset.country_code = None
