@@ -208,7 +208,7 @@ const updateServiceInPTeamData = (serviceId, patch) => {
   };
 };
 
-const updateServiceAssetInPTeamData = (serviceId, ipAddresses) => {
+const updateServiceAssetInPTeamData = (serviceId, assetPatch) => {
   queryPTeamData = {
     ...queryPTeamData,
     services: queryPTeamData.services.map((service) =>
@@ -217,7 +217,7 @@ const updateServiceAssetInPTeamData = (serviceId, ipAddresses) => {
             ...service,
             asset: {
               ...service.asset,
-              ip_addresses: ipAddresses,
+              ...(Array.isArray(assetPatch) ? { ip_addresses: assetPatch } : assetPatch),
             },
           }
         : service,
@@ -1272,6 +1272,107 @@ describe("StatusPage", () => {
       });
     });
 
+    it("updates ip addresses and one service location from deployments settings", async () => {
+      const testLocation = {
+        pathname: "/",
+        search:
+          "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
+      };
+      useLocation.mockReturnValue(testLocation);
+      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+
+      const testPTeamWithAsset = {
+        ...testPTeamData,
+        services: [
+          {
+            ...testPTeamData.services[0],
+            asset: {
+              ip_addresses: ["10.0.0.1", "10.0.0.2"],
+              country_code: "JP",
+              address: "Tokyo",
+            },
+          },
+          testPTeamData.services[1],
+        ],
+      };
+
+      queryPTeamData = structuredClone(testPTeamWithAsset);
+      useGetPTeamQuery.mockImplementation(() => ({
+        data: queryPTeamData,
+        error: false,
+        isFetching: false,
+        isLoading: false,
+      }));
+
+      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+        currentData: testPackageVersionsData,
+        error: false,
+        isFetching: false,
+      });
+
+      const updateService = createResolvedMutation(undefined, () =>
+        updateServiceAssetInPTeamData(testPTeamData.services[0].service_id, {
+          ip_addresses: ["192.168.0.1/32", "10.0.0.0/24"],
+          country_code: "US",
+          address: "New York",
+        }),
+      );
+      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+
+      const ue = userEvent.setup();
+      const renderResult = renderStatusPage();
+
+      expect(screen.getByText("10.0.0.1")).toBeInTheDocument();
+      expect(screen.getByText("10.0.0.2")).toBeInTheDocument();
+      expect(screen.getByText("JP")).toBeInTheDocument();
+      expect(screen.getByText("Tokyo")).toBeInTheDocument();
+
+      await ue.click(screen.getAllByRole("button", { name: "Edit" })[2]);
+      await ue.clear(screen.getByPlaceholderText("192.168.0.1, 10.0.0.0/24"));
+      await ue.type(
+        screen.getByPlaceholderText("192.168.0.1, 10.0.0.0/24"),
+        "192.168.0.1, 10.0.0.0/24",
+      );
+      await ue.clear(screen.getByPlaceholderText("JP"));
+      await ue.type(screen.getByPlaceholderText("JP"), "us");
+      await ue.clear(screen.getByPlaceholderText("Tokyo office, production region, etc."));
+      await ue.type(
+        screen.getByPlaceholderText("Tokyo office, production region, etc."),
+        "New York",
+      );
+
+      await ue.click(screen.getByRole("button", { name: "Done" }));
+
+      await waitFor(() => {
+        expect(updateService).toHaveBeenCalledWith({
+          path: {
+            pteam_id: testPTeamData.pteam_id,
+            service_id: testPTeamData.services[0].service_id,
+          },
+          body: {
+            asset: {
+              ip_addresses: ["192.168.0.1", "10.0.0.0/24"],
+              country_code: "US",
+              address: "New York",
+            },
+          },
+        });
+      });
+
+      renderResult.rerender(
+        <Provider store={store}>
+          <Status />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("192.168.0.1/32")).toBeInTheDocument();
+      });
+      expect(screen.getByText("10.0.0.0/24")).toBeInTheDocument();
+      expect(screen.getByText("US")).toBeInTheDocument();
+      expect(screen.getByText("New York")).toBeInTheDocument();
+    });
+
     it("navigate to package detail when a package row is clicked", async () => {
       const testLocation = {
         pathname: "/",
@@ -1318,7 +1419,9 @@ describe("StatusPage", () => {
           systemExposure: "small",
           missionImpact: "mef_support_crippled",
           imageUrl: "",
-          deployments: [],
+          ipAddresses: [],
+          countryCode: "",
+          address: "",
         },
         pteamId: testPTeamData.pteam_id,
         serviceTabs: [
@@ -1348,7 +1451,9 @@ describe("StatusPage", () => {
           systemExposure: "small",
           missionImpact: "mef_support_crippled",
           imageUrl: "",
-          deployments: [],
+          ipAddresses: [],
+          countryCode: "",
+          address: "",
         },
         onActiveIdChange,
         pteamId: testPTeamData.pteam_id,

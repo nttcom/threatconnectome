@@ -11,6 +11,13 @@ export function normalizeTags(value) {
     .filter(Boolean);
 }
 
+export function normalizeCommaSeparatedValues(value) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export function getNextActiveIdAfterRemoval(items, removedId) {
   const removedIndex = items.findIndex((item) => item.id === removedId);
   const remaining = items.filter((item) => item.id !== removedId);
@@ -53,11 +60,9 @@ export function buildCurrentServiceFromPTeam(services, currentServiceId, imageUr
     systemExposure: service.system_exposure ?? "open",
     missionImpact: service.service_mission_impact ?? "mission_failure",
     imageUrl,
-    deployments: (service.asset?.ip_addresses || []).map((ip, index) => ({
-      id: `dep-${service.service_id}-${index}`,
-      ip,
-      location: "",
-    })),
+    ipAddresses: Array.isArray(service.asset?.ip_addresses) ? service.asset.ip_addresses : [],
+    countryCode: service.asset?.country_code || "",
+    address: service.asset?.address || "",
   };
 }
 

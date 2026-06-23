@@ -173,9 +173,10 @@ export function SBOMManagement({
               <RiskSettingsCard onSave={riskSettings.onSave} sbom={activeService} />
 
               <DeploymentsPanel
-                deployments={activeService.deployments}
+                ipAddresses={activeService.ipAddresses}
+                countryCode={activeService.countryCode}
+                address={activeService.address}
                 editing={deployments.editing}
-                onAdd={deployments.onAdd}
                 onCommit={() => {
                   if (deployments.editing) {
                     deployments.onCommit();
@@ -183,7 +184,6 @@ export function SBOMManagement({
                     deployments.beginEditing();
                   }
                 }}
-                onRemove={deployments.onRemove}
                 onToggle={deployments.onToggle}
                 onUpdate={deployments.onUpdate}
                 open={deployments.open}

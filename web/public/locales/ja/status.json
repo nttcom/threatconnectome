@@ -80,11 +80,19 @@
     "deployments": "デプロイ先",
     "done": "完了",
     "edit": "編集",
+    "address": "住所",
+    "addressPlaceholder": "東京オフィス、本番リージョンなど",
+    "countryCode": "国コード",
+    "countryCodePlaceholder": "JP",
     "ipAddress": "IPアドレス",
+    "ipAddresses": "IPアドレス",
+    "ipAddressesPlaceholder": "192.168.0.1, 10.0.0.0/24",
     "location": "ロケーション",
+    "noIpAddresses": "IPアドレスが未登録です。",
     "noDeployments": "デプロイ先が未登録です。",
     "notSet": "未設定",
-    "removeDeployment": "デプロイ先を削除"
+    "removeDeployment": "デプロイ先を削除",
+    "tooLongAssetAddress": "アセットの住所が長すぎます。最大長は半角で{{maxHalf}}文字、全角で{{maxFull}}文字です。"
   },
   "DependenciesCard": {
     "license": "ライセンス",

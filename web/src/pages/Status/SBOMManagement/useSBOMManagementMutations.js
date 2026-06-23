@@ -8,9 +8,9 @@ import {
   useUpdatePTeamServiceThumbnailMutation,
 } from "../../../services/tcApi";
 import {
-  createId,
   getNextActiveIdAfterRemoval,
   NEW_SBOM_ID,
+  normalizeCommaSeparatedValues,
 } from "../../../utils/SBOMManagement/sbomManagementUtils";
 import { serviceImageMaxSize } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
@@ -57,42 +57,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     resetUiState();
   };
 
-  const addDeployment = () => {
+  const updateDeploymentSettings = (patch) => {
     if (!activeService) {
       return;
     }
 
-    updateActiveService({
-      deployments: [...activeService.deployments, { id: createId("dep"), ip: "", location: "" }],
-    });
-  };
-
-  const updateDeployment = (deploymentId, patch) => {
-    if (!activeService) {
-      return;
-    }
-
-    updateActiveService({
-      deployments: activeService.deployments.map((deployment) =>
-        deployment.id === deploymentId ? { ...deployment, ...patch } : deployment,
-      ),
-    });
-  };
-
-  const removeDeployment = (deploymentId) => {
-    if (!activeService) {
-      return;
-    }
-
-    const confirmed = typeof window === "undefined" || window.confirm(t("confirmRemoveDeployment"));
-
-    if (!confirmed) {
-      return;
-    }
-
-    updateActiveService({
-      deployments: activeService.deployments.filter((deployment) => deployment.id !== deploymentId),
-    });
+    updateActiveService(patch);
   };
 
   const openUpdateSbomDialog = () => {
@@ -194,14 +164,20 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       return;
     }
 
-    const ipAddresses = activeService.deployments
-      .map((deployment) => deployment.ip.trim())
-      .filter(Boolean);
+    const ipAddresses = normalizeCommaSeparatedValues((activeService.ipAddresses || []).join(","));
+    const countryCode = (activeService.countryCode || "").trim().toUpperCase();
+    const address = (activeService.address || "").trim();
 
     try {
       await updatePTeamService({
         path: { pteam_id: pteamId, service_id: activeService.id },
-        body: { asset: { ip_addresses: ipAddresses } },
+        body: {
+          asset: {
+            ip_addresses: ipAddresses,
+            country_code: countryCode || null,
+            address: address || null,
+          },
+        },
       }).unwrap();
       enqueueSnackbar(t("updateDeploymentsSuccess"), { variant: "success" });
       setDeploymentsEditing(false);
@@ -241,7 +217,6 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
   };
 
   return {
-    addDeployment,
     commitDeploymentsEdit,
     commitDetailsEdit,
     commitServiceImpactEdit,
@@ -249,7 +224,6 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     handleImageUpload,
     handleRemoveImage,
     removeActiveSbom,
-    removeDeployment,
-    updateDeployment,
+    updateDeploymentSettings,
   };
 }

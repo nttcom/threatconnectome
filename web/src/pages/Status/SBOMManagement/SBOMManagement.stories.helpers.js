@@ -64,10 +64,9 @@ export function createDefaultSboms() {
       tags: ["backend", "api", "critical"],
       imageUrl:
         "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=900&auto=format&fit=crop",
-      deployments: [
-        { id: "dep-1", ip: "10.24.8.15", location: "Tokyo / prod-a" },
-        { id: "dep-2", ip: "10.24.8.16", location: "Tokyo / prod-b" },
-      ],
+      ipAddresses: ["10.24.8.15", "10.24.8.16"],
+      countryCode: "JP",
+      address: "Tokyo / prod-a",
       dependencies: generateDependencies(97, "maven"),
     },
     {
@@ -77,7 +76,9 @@ export function createDefaultSboms() {
       tags: ["frontend", "react"],
       imageUrl:
         "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=900&auto=format&fit=crop",
-      deployments: [{ id: "dep-3", ip: "172.18.0.42", location: "Osaka / staging" }],
+      ipAddresses: ["172.18.0.42"],
+      countryCode: "JP",
+      address: "Osaka / staging",
       dependencies: generateDependencies(7, "npm"),
     },
   ];
