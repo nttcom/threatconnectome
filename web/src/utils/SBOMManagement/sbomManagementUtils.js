@@ -11,10 +11,6 @@ export function normalizeCommaSeparatedValues(value) {
     .filter(Boolean);
 }
 
-export function normalizeTags(value) {
-  return normalizeCommaSeparatedValues(value);
-}
-
 export function getNextActiveIdAfterRemoval(items, removedId) {
   const removedIndex = items.findIndex((item) => item.id === removedId);
   const remaining = items.filter((item) => item.id !== removedId);
