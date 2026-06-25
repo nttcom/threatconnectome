@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetVulnQuery } from "../../services/tcApi";
+import type { VulnResponse } from "../../../types/types.gen";
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func";
 import { getUpdateActions } from "../../utils/vulnUtils";
@@ -10,7 +11,7 @@ import { getUpdateActions } from "../../utils/vulnUtils";
 import { VulnDetailView } from "./VulnDetailView";
 
 export function VulnDetail() {
-  const { vulnId } = useParams();
+  const { vulnId = "" } = useParams();
   const { t } = useTranslation("vulnDetail", { keyPrefix: "VulnDetailPage" });
 
   const skip = useSkipUntilAuthUserIsReady();
@@ -24,7 +25,8 @@ export function VulnDetail() {
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
   if (vulnIsLoading) return <>{t("loadingVuln")}</>;
 
-  const updateActions = getUpdateActions(vuln);
+  const vulnResponse = vuln as VulnResponse;
+  const updateActions = getUpdateActions(vulnResponse);
 
-  return <VulnDetailView vuln={vuln} updateActions={updateActions} />;
+  return <VulnDetailView vuln={vulnResponse} updateActions={updateActions} />;
 }

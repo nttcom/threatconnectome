@@ -1,10 +1,15 @@
 import { Box, Grid } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
+import type { AutomatableEnum, ExploitationEnum } from "../../../types/types.gen";
 import { VulnSSVCElement } from "./VulnSSVCElement";
 
-export function VulnSSVCCards(props) {
+type VulnSSVCCardsProps = {
+  exploitation?: ExploitationEnum | null;
+  automatable?: AutomatableEnum | null;
+};
+
+export function VulnSSVCCards(props: VulnSSVCCardsProps) {
   const { exploitation, automatable } = props;
   const { t } = useTranslation("vulnDetail", { keyPrefix: "VulnSSVCCards" });
 
@@ -66,7 +71,3 @@ export function VulnSSVCCards(props) {
     </Box>
   );
 }
-VulnSSVCCards.propTypes = {
-  exploitation: PropTypes.string.isRequired,
-  automatable: PropTypes.string.isRequired,
-};
