@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../../../hooks/auth";
+import { authErrorToString } from "../../../../../utils/authErrorUtils";
 
 import { DisabledMfaConfirmDialog } from "./DisabledMfaConfirmDialog";
 import { MfaSetupDialog } from "./MfaSetupDialog";
@@ -39,7 +40,7 @@ export function TwoFactorAuthSection({ onShowSnackbar }) {
         onShowSnackbar(t("disabledInfo"), "info");
       })
       .catch((error) => {
-        onShowSnackbar(error.message, "error");
+        onShowSnackbar(authErrorToString(error), "error");
       });
   };
 

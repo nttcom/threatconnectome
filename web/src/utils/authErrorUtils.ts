@@ -53,6 +53,11 @@ export function getAuthErrorLogMessage(error: AuthErrorSource): string | undefin
   return undefined;
 }
 
+export function authErrorToString(error: unknown): string {
+  const normalized = normalizeAuthErrorSource(error);
+  return getAuthErrorLogMessage(normalized) ?? String(error);
+}
+
 export function getAuthErrorMessage(
   error: AuthErrorSource,
   options: GetAuthErrorMessageOptions = {},

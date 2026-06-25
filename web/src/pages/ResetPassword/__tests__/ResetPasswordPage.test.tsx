@@ -1,14 +1,16 @@
 import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
+import { describe, expect, it, vi } from "vitest";
 
 import { useAuth } from "../../../hooks/auth";
 import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { ResetPassword } from "../ResetPasswordPage";
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -20,15 +22,7 @@ const renderResetPassword = () => {
   render(
     <Provider store={store}>
       <AuthProvider>
-        <BrowserRouter
-          future={{
-            /* to prevent React Router Future Flag Warning.
-             * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
-             */
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
+        <BrowserRouter>
           <ResetPassword />
         </BrowserRouter>
       </AuthProvider>
@@ -36,18 +30,13 @@ const renderResetPassword = () => {
   );
 };
 
-const genApiMock = (isSuccess = true, returnValue = undefined) => {
-  const mockUnwrap = isSuccess
-    ? vi.fn().mockResolvedValue(returnValue)
-    : vi.fn().mockRejectedValue(returnValue);
-  return vi.fn().mockReturnValue({ unwrap: mockUnwrap });
-};
-
 describe("ResetPassword Component", () => {
   describe("Rendering", () => {
     it("should render ResetPassword form", () => {
-      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
+        sendPasswordResetEmail: mockSendPasswordResetEmail,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderResetPassword();
 
@@ -59,8 +48,10 @@ describe("ResetPassword Component", () => {
 
   it("should call auth API with correct parameters", async () => {
     const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-    const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
-    useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+    const mockSendPasswordResetEmail = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(useAuth).mockReturnValue({
+      sendPasswordResetEmail: mockSendPasswordResetEmail,
+    } as unknown as ReturnType<typeof useAuth>);
 
     renderResetPassword();
 
@@ -89,7 +80,9 @@ describe("ResetPassword Component", () => {
         code: "auth/invalid-email",
         message: "Invalid email format.",
       });
-      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+      vi.mocked(useAuth).mockReturnValue({
+        sendPasswordResetEmail: mockSendPasswordResetEmail,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderResetPassword();
 
@@ -108,7 +101,9 @@ describe("ResetPassword Component", () => {
         code: "auth/user-not-found",
         message: "User not found.",
       });
-      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+      vi.mocked(useAuth).mockReturnValue({
+        sendPasswordResetEmail: mockSendPasswordResetEmail,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderResetPassword();
 
@@ -125,8 +120,10 @@ describe("ResetPassword Component", () => {
   describe("Email trimming", () => {
     it("should trim surrounding whitespace from email before calling sendPasswordResetEmail", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
+        sendPasswordResetEmail: mockSendPasswordResetEmail,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderResetPassword();
 
@@ -147,8 +144,10 @@ describe("ResetPassword Component", () => {
   describe("Form Validation", () => {
     it("should not call the callback when the Reset Password button is clicked and email is empty", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({ sendPasswordResetEmail: mockSendPasswordResetEmail });
+      const mockSendPasswordResetEmail = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
+        sendPasswordResetEmail: mockSendPasswordResetEmail,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderResetPassword();
 

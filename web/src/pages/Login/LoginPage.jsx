@@ -22,6 +22,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import Firebase from "../../utils/Firebase";
+import { authErrorToString } from "../../utils/authErrorUtils";
 
 import { TwoFactorAuth } from "./TwoFactorAuth";
 
@@ -98,7 +99,7 @@ export function Login() {
       password,
       recaptchaId: recaptchaId,
     }).catch((authError) => {
-      showMessage(authError.message);
+      showMessage(authErrorToString(authError));
       return undefined;
     });
   };
@@ -116,7 +117,7 @@ export function Login() {
           const actionCodeSettings = { url: `${window.location.origin}/login` };
           await sendEmailVerification({ actionCodeSettings })
             .then(() => showMessage(t("emailNotVerified"), "info"))
-            .catch((error) => showMessage(error.message));
+            .catch((error) => showMessage(authErrorToString(error)));
           break;
         }
         case "No such user":
@@ -185,7 +186,7 @@ export function Login() {
     const redirectTo = `${window.location.origin}/auth_keycloak_callback`;
     await signInWithRedirect({ provider: "keycloak", redirectTo })
       .catch((authError) => {
-        showMessage(authError.message);
+        showMessage(authErrorToString(authError));
         console.error(authError);
       })
       .finally(() => setIsLoggingIn(false));

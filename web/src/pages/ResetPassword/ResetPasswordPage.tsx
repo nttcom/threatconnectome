@@ -8,24 +8,24 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
+import { authErrorToString } from "../../utils/authErrorUtils";
 
 export function ResetPassword() {
   const { t } = useTranslation("resetPassword", { keyPrefix: "ResetPasswordPage" });
   const [disabled, setDisabled] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const { sendPasswordResetEmail } = useAuth();
 
   const handleBackToLogIn = () => navigate("/login");
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setDisabled(true);
     setMessage(t("processing"));
@@ -40,7 +40,7 @@ export function ResetPassword() {
       `${window.location.origin}${import.meta.env.VITE_PUBLIC_URL}` +
       "/email_verification?mode=resetPassword";
     await sendPasswordResetEmail({
-      email: data.get("email").trim(),
+      email: String(data.get("email") ?? "").trim(),
       actionCodeSettings,
       redirectTo,
     })
@@ -54,9 +54,9 @@ export function ResetPassword() {
         }
         setMessage(msg);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         setDisabled(false);
-        setMessage(error.message);
+        setMessage(authErrorToString(error));
       });
   };
 

@@ -19,6 +19,7 @@ import { SmsTroubleshootingTips } from "../../components/SmsTroubleshootingTips"
 import { SmsTroubleshootingToggleButton } from "../../components/SmsTroubleshootingToggleButton";
 import { useAuth } from "../../hooks/auth";
 import { useActionLock } from "../../hooks/useActionLock";
+import { authErrorToString } from "../../utils/authErrorUtils";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
 export function TwoFactorAuth(props) {
@@ -57,7 +58,7 @@ export function TwoFactorAuth(props) {
         navigateInternalPage();
       })
       .catch((error) => {
-        setCodeError(error.message);
+        setCodeError(authErrorToString(error));
       });
   };
 
@@ -75,7 +76,7 @@ export function TwoFactorAuth(props) {
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
-        setCodeError(error.message);
+        setCodeError(authErrorToString(error));
       });
   };
 

@@ -2,10 +2,12 @@ import { Link, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
+import type { RootState } from "../../store";
 import Supabase from "../../utils/Supabase";
+import { authErrorToString } from "../../utils/authErrorUtils";
 import { errorToString } from "../../utils/func";
 
 /* Note: currently, work with supabase only. */
@@ -15,11 +17,8 @@ const supabase =
 export function AuthKeycloakCallback() {
   const { t } = useTranslation("authKeycloakCallback", { keyPrefix: "AuthKeycloakCallbackPage" });
   const navigate = useNavigate();
-  const location = useLocation();
   const [message, setMessage] = useState(t("checkingAuthCode"));
-  const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
-
-  const params = new URLSearchParams(location.search);
+  const redirectedFrom = useSelector((state: RootState) => state.auth.redirectedFrom);
 
   const [tryLogin] = useTryLoginMutation();
   const [createUser] = useCreateUserMutation();
@@ -30,6 +29,10 @@ export function AuthKeycloakCallback() {
         pathname: redirectedFrom.from || "/",
         search: redirectedFrom.search ?? "",
       };
+      if (!supabase) {
+        setMessage(t("somethingWentWrong", { error: "Supabase is not configured" }));
+        return;
+      }
       const { data, error } = await supabase.auth.getSession();
       if (!data?.session) {
         console.log(error);
@@ -39,13 +42,17 @@ export function AuthKeycloakCallback() {
       try {
         await tryLogin()
           .unwrap()
-          .catch(async (error) => {
+          .catch(async (error: { data?: { detail?: string } }) => {
             switch (error.data?.detail) {
               case "No such user": {
                 await createUser({ body: {} })
                   .unwrap()
-                  .catch((error2) => {
-                    throw new Error(t("cannotCreateUser", { error: errorToString(error2) }));
+                  .catch((error2: unknown) => {
+                    throw new Error(
+                      t("cannotCreateUser", {
+                        error: errorToString(error2 as Parameters<typeof errorToString>[0]),
+                      }),
+                    );
                   });
                 if (navigateTo.pathname === "/") {
                   navigateTo.pathname = "/account";
@@ -54,11 +61,15 @@ export function AuthKeycloakCallback() {
                 break;
               }
               default:
-                throw new Error(t("somethingWentWrong", { error: errorToString(error) }));
+                throw new Error(
+                  t("somethingWentWrong", {
+                    error: errorToString(error as Parameters<typeof errorToString>[0]),
+                  }),
+                );
             }
           });
       } catch (error) {
-        setMessage(error.message);
+        setMessage(authErrorToString(error));
         console.error(error);
         return;
       }
