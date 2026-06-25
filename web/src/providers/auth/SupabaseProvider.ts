@@ -11,8 +11,8 @@ import type {
 import i18n from "../../i18n/config";
 import Supabase from "../../utils/Supabase";
 import {
+  authErrorToString,
   getAuthErrorCode,
-  getAuthErrorLogMessage,
   getAuthErrorMessage,
   type AuthErrorSource,
 } from "../../utils/authErrorUtils";
@@ -47,7 +47,7 @@ function _errorToMessage(error: AuthErrorSource): string {
 class SupabaseAuthError extends AuthError {
   constructor(error: AuthErrorSource) {
     super(error, getAuthErrorCode(error), _errorToMessage(error));
-    console.error("Authentication error:", getAuthErrorLogMessage(error) ?? this.message);
+    console.error("Authentication error:", authErrorToString(error) ?? this.message);
   }
 }
 

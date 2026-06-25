@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/auth";
-import { authErrorToString } from "../../utils/authErrorUtils";
+import { authErrorToString, normalizeAuthErrorSource } from "../../utils/authErrorUtils";
 
 export function ResetPassword() {
   const { t } = useTranslation("resetPassword", { keyPrefix: "ResetPasswordPage" });
@@ -56,7 +56,7 @@ export function ResetPassword() {
       })
       .catch((error: unknown) => {
         setDisabled(false);
-        setMessage(authErrorToString(error));
+        setMessage(authErrorToString(normalizeAuthErrorSource(error)) ?? "An error occurred.");
       });
   };
 

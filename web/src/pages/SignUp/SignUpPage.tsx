@@ -15,7 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 import { getBearerToken } from "../../services/tcApi";
-import { authErrorToString } from "../../utils/authErrorUtils";
+import { authErrorToString, normalizeAuthErrorSource } from "../../utils/authErrorUtils";
 
 type MessageState = {
   text: string;
@@ -109,7 +109,7 @@ export function SignUp() {
       await signOut();
     } catch (error) {
       console.error(error);
-      showMessage(authErrorToString(error));
+      showMessage(authErrorToString(normalizeAuthErrorSource(error)) ?? "An error occurred.");
       setDisabled(false);
 
       /**

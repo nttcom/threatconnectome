@@ -43,7 +43,7 @@ export function getAuthErrorCode(error: AuthErrorSource): string | undefined {
   return undefined;
 }
 
-export function getAuthErrorLogMessage(error: AuthErrorSource): string | undefined {
+export function authErrorToString(error: AuthErrorSource): string | undefined {
   if (typeof error === "object" && error !== null && "message" in error) {
     return typeof error.message === "string" ? error.message : undefined;
   }
@@ -51,11 +51,6 @@ export function getAuthErrorLogMessage(error: AuthErrorSource): string | undefin
     return error;
   }
   return undefined;
-}
-
-export function authErrorToString(error: unknown): string {
-  const normalized = normalizeAuthErrorSource(error);
-  return getAuthErrorLogMessage(normalized) ?? String(error);
 }
 
 export function getAuthErrorMessage(

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
 import type { RootState } from "../../store";
 import Supabase from "../../utils/Supabase";
-import { authErrorToString } from "../../utils/authErrorUtils";
+import { authErrorToString, normalizeAuthErrorSource } from "../../utils/authErrorUtils";
 import { errorToString } from "../../utils/func";
 
 /* Note: currently, work with supabase only. */
@@ -69,7 +69,7 @@ export function AuthKeycloakCallback() {
             }
           });
       } catch (error) {
-        setMessage(authErrorToString(error));
+        setMessage(authErrorToString(normalizeAuthErrorSource(error)) ?? "An error occurred.");
         console.error(error);
         return;
       }
