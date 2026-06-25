@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import type { GetVulnsVulnsGetData } from "../../../types/types.gen";
 
 import { Android12Switch } from "../../components/Android12Switch";
 import styles from "../../cssModule/button.module.css";
@@ -25,6 +26,9 @@ import { createUpdateParamsFunction } from "../../utils/urlUtils";
 import { VulnManagementCardList } from "./VulnManagementCardList";
 import { VulnManagementTable } from "./VulnManagementTable";
 import { VulnSearchModal } from "./VulnSearchModal";
+import type { VulnSearchParams } from "./VulnSearchModal";
+
+type GetVulnsQuery = NonNullable<GetVulnsVulnsGetData["query"]>;
 
 export function VulnManagement() {
   const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementPage" });
@@ -36,10 +40,10 @@ export function VulnManagement() {
   const params = new URLSearchParams(useLocation().search);
   const pteamId = params.get("pteamId");
   const checkedPteam = params.get("related") !== "off" && pteamId ? true : false;
-  const page = parseInt(params.get("page")) || 1;
-  const perPage = parseInt(params.get("perPage")) || perPageItems[0];
-  const getSearchConditionsFromURL = () => {
-    const conditions = {};
+  const page = parseInt(params.get("page") ?? "", 10) || 1;
+  const perPage = parseInt(params.get("perPage") ?? "", 10) || perPageItems[0];
+  const getSearchConditionsFromURL = (): Partial<GetVulnsQuery> => {
+    const conditions: Partial<GetVulnsQuery> = {};
 
     // titleWords
     const titleWords = params.get("titleWords");
@@ -96,7 +100,7 @@ export function VulnManagement() {
 
   const skip = useSkipUntilAuthUserIsReady();
 
-  const getVulnsParams = {
+  const getVulnsParams: GetVulnsQuery = {
     offset: perPage * (page - 1),
     limit: perPage,
     sort_keys: ["-updated_at", "-cvss_v3_score"],
@@ -118,10 +122,11 @@ export function VulnManagement() {
       api: "getVulns",
     });
   if (vulnsIsLoading) return <>{t("loadingVulns")}</>;
+  if (!vulnsList) return <>{t("loadingVulns")}</>;
 
   const pageMax = Math.ceil((vulnsList?.num_vulns ?? 0) / perPage);
 
-  const handleSearch = (params) => {
+  const handleSearch = (params: VulnSearchParams) => {
     setSearchMenuOpen(false);
 
     const newParams = {
@@ -164,7 +169,7 @@ export function VulnManagement() {
         count={pageMax}
         siblingCount={isMdDown ? 1 : undefined}
         boundaryCount={isMdDown ? 0 : undefined}
-        onChange={(event, value) => {
+        onChange={(_event, value) => {
           updateParams({ page: value });
         }}
       />

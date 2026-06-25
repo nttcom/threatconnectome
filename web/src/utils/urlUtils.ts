@@ -1,4 +1,4 @@
-import { NavigateFunction } from "react-router-dom";
+import type { Location, NavigateFunction } from "react-router-dom";
 import { preserveKeys } from "./const";
 
 export const preserveParams = (currentParams: string) => {

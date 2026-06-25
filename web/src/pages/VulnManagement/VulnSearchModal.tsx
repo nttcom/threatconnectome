@@ -18,12 +18,13 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { addDays } from "date-fns";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import type { ChangeEvent, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../components/Android12Switch";
@@ -31,7 +32,27 @@ import dialogStyle from "../../cssModule/dialog.module.css";
 import { cvssRatings, cvssConvertToScore } from "../../utils/cvssUtils";
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
-export function VulnSearchModal(props) {
+type CvssRatingName = keyof typeof cvssRatings;
+type DateFormList = "" | "range" | "since" | "until" | "in24hours" | "in7days";
+
+export type VulnSearchParams = {
+  titleWords: string;
+  cveIds: string;
+  vulnIds: string;
+  creatorIds: string;
+  updatedAfter?: string;
+  updatedBefore?: string;
+  minCvssV3Score: string;
+  maxCvssV3Score: string;
+};
+
+type VulnSearchModalProps = {
+  show: boolean;
+  onSearch: (params: VulnSearchParams) => void;
+  onCancel: () => void;
+};
+
+export function VulnSearchModal(props: VulnSearchModalProps) {
   const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnSearchModal" });
   const { show, onSearch, onCancel } = props;
 
@@ -39,19 +60,19 @@ export function VulnSearchModal(props) {
   const [cveIds, setCveIds] = useState("");
   const [creatorIds, setCreatorIds] = useState("");
   const [vulnIds, setVulnIds] = useState("");
-  const [updatedAfter, setUpdatedAfter] = useState(null); // Date object
-  const [updatedBefore, setUpdatedBefore] = useState(null); // Date object
+  const [updatedAfter, setUpdatedAfter] = useState<Date | null>(null);
+  const [updatedBefore, setUpdatedBefore] = useState<Date | null>(null);
   const [adModeChange, setAdModeChange] = useState(false);
-  const [dateFormList, setDateFormList] = useState("");
-  const [cvssName, setCvssName] = useState("");
+  const [dateFormList, setDateFormList] = useState<DateFormList>("");
+  const [cvssName, setCvssName] = useState<CvssRatingName | null>(null);
   const [minCvssScore, setMinCvssScore] = useState("");
   const [maxCvssScore, setMaxCvssScore] = useState("");
   const { enqueueSnackbar } = useSnackbar();
 
   const now = new Date();
-  const cvssRatingsKeys = Object.keys(cvssRatings);
+  const cvssRatingsKeys = Object.keys(cvssRatings) as CvssRatingName[];
 
-  const advancedChange = (event) => {
+  const advancedChange = (event: ChangeEvent<HTMLInputElement>) => {
     setAdModeChange(event.target.checked);
     if (!event.target.checked) clearAdvancedParams(); // clear on close
   };
@@ -69,7 +90,7 @@ export function VulnSearchModal(props) {
       });
       return;
     }
-    const params = {
+    const params: VulnSearchParams = {
       titleWords: titleWords.trim(),
       cveIds: trimmedCveIds,
       vulnIds: vulnIds.trim(),
@@ -89,7 +110,7 @@ export function VulnSearchModal(props) {
     setUpdatedAfter(null);
     setUpdatedBefore(null);
     setDateFormList("");
-    setCvssName("");
+    setCvssName(null);
     setMinCvssScore("");
     setMaxCvssScore("");
   };
@@ -100,7 +121,7 @@ export function VulnSearchModal(props) {
     clearAdvancedParams();
   };
 
-  const dateFormChange = (event) => {
+  const dateFormChange = (event: SelectChangeEvent<DateFormList>) => {
     setUpdatedBefore(null);
     switch (event.target.value) {
       case "":
@@ -121,24 +142,29 @@ export function VulnSearchModal(props) {
     setDateFormList(event.target.value);
   };
 
-  const handleCvssName = (event, newCvssName) => {
+  const handleCvssName = (_event: MouseEvent<HTMLElement>, newCvssName: CvssRatingName | null) => {
     setCvssName(newCvssName);
+    if (!newCvssName) {
+      setMinCvssScore("");
+      setMaxCvssScore("");
+      return;
+    }
     const score = cvssConvertToScore(newCvssName);
     setMinCvssScore(String(score[0]));
     setMaxCvssScore(String(score[1]));
   };
 
-  const handleMinCvssScore = (event) => {
-    setCvssName("");
+  const handleMinCvssScore = (event: ChangeEvent<HTMLInputElement>) => {
+    setCvssName(null);
     setMinCvssScore(event.target.value);
   };
 
-  const handleMaxCvssScore = (event) => {
-    setCvssName("");
+  const handleMaxCvssScore = (event: ChangeEvent<HTMLInputElement>) => {
+    setCvssName(null);
     setMaxCvssScore(event.target.value);
   };
 
-  const isValidCvssScore = (cvssScore) => {
+  const isValidCvssScore = (cvssScore: string) => {
     const trimmed = cvssScore.trim();
     const regex = /^\d+(\.\d{1})?$/; // Regular expression to allow only numbers to one decimal place
     const value = parseFloat(trimmed);
@@ -231,7 +257,7 @@ export function VulnSearchModal(props) {
       </Grid>
       <Grid size={{ xs: 10, md: 10 }} display="flex" flexDirection="column">
         <FormControl variant="standard" sx={{ m: 1, maxWidth: 200 }}>
-          <Select value={dateFormList} onChange={dateFormChange}>
+          <Select<DateFormList> value={dateFormList} onChange={dateFormChange}>
             <MenuItem value="">{t("none")}</MenuItem>
             <MenuItem value="in24hours">{t("last24h")}</MenuItem>
             <MenuItem value="in7days">{t("last7days")}</MenuItem>
@@ -244,7 +270,6 @@ export function VulnSearchModal(props) {
           <Grid size={{ xs: 5 }}>
             <DateTimePicker
               format="yyyy/MM/dd HH:mm"
-              mask="____/__/__ __:__"
               maxDateTime={now}
               value={dateFormList === "since" ? updatedAfter : updatedBefore}
               onChange={(newDate) =>
@@ -259,8 +284,7 @@ export function VulnSearchModal(props) {
         {dateFormList === "range" && (
           <Grid size={{ xs: 11.4 }} display="flex">
             <DateTimePicker
-              inputFormat="yyyy/MM/dd HH:mm"
-              mask="____/__/__ __:__"
+              format="yyyy/MM/dd HH:mm"
               maxDateTime={updatedBefore || now}
               value={updatedAfter}
               onChange={(newDate) => setUpdatedAfter(newDate)}
@@ -270,9 +294,8 @@ export function VulnSearchModal(props) {
             />
             <Typography sx={{ margin: "20px" }}>~</Typography>
             <DateTimePicker
-              inputFormat="yyyy/MM/dd HH:mm"
-              mask="____/__/__ __:__"
-              minDateTime={updatedAfter}
+              format="yyyy/MM/dd HH:mm"
+              minDateTime={updatedAfter ?? undefined}
               maxDateTime={now}
               value={updatedBefore}
               onChange={(newDate) => setUpdatedBefore(newDate)}
@@ -368,8 +391,3 @@ export function VulnSearchModal(props) {
     </>
   );
 }
-VulnSearchModal.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onSearch: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-};
