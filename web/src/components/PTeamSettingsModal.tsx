@@ -10,8 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import type { SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TabPanel } from "../components/TabPanel";
@@ -24,7 +24,14 @@ import { a11yProps, errorToString } from "../utils/func";
 import { PTeamGeneralSetting } from "./PTeamGeneralSetting";
 import { PTeamNotificationSetting } from "./PTeamNotificationSetting";
 
-export function PTeamSettingsModal(props) {
+type PTeamSettingsModalProps = {
+  pteamId: string;
+  onSetShow: (show: boolean) => void;
+  show: boolean;
+  defaultTabIndex?: number;
+};
+
+export function PTeamSettingsModal(props: PTeamSettingsModalProps) {
   const { pteamId, onSetShow, show, defaultTabIndex } = props;
   const { t } = useTranslation("components", { keyPrefix: "PTeamSettingsModal" });
   const [tab, setTab] = useState(defaultTabIndex ?? 0);
@@ -43,10 +50,11 @@ export function PTeamSettingsModal(props) {
       api: "getPTeam",
     });
   if (pteamIsLoading) return <>{t("loadingTeam")}</>;
+  if (!pteam) return <></>;
 
   const handleClose = () => onSetShow(false);
 
-  const handleChangeTab = (_, newTab) => setTab(newTab);
+  const handleChangeTab = (_: SyntheticEvent, newTab: number) => setTab(newTab);
 
   return (
     <Dialog open={show} onClose={handleClose} fullWidth maxWidth="sm">
@@ -62,12 +70,11 @@ export function PTeamSettingsModal(props) {
       </DialogTitle>
       <DialogContent sx={{ px: 2 }}>
         <Box
-          borderBottom={1}
-          borderBottomColor="divider"
           position="sticky"
           top={0}
           bgcolor="background.paper"
           zIndex={1}
+          sx={{ borderBottom: 1, borderColor: "divider" }}
         >
           <Tabs aria-label="tabs" onChange={handleChangeTab} value={tab}>
             <Tab label={t("tabGeneral")} {...a11yProps(0)} />
@@ -84,9 +91,3 @@ export function PTeamSettingsModal(props) {
     </Dialog>
   );
 }
-PTeamSettingsModal.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  onSetShow: PropTypes.func.isRequired,
-  show: PropTypes.bool.isRequired,
-  defaultTabIndex: PropTypes.number,
-};

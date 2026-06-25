@@ -14,8 +14,8 @@ import { grey } from "@mui/material/colors";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TabPanel } from "../../components/TabPanel.jsx";
-import { UUIDTypography } from "../../components/UUIDTypography.jsx";
+import { TabPanel } from "../../components/TabPanel";
+import { UUIDTypography } from "../../components/UUIDTypography";
 import {
   usePackageDependencies,
   usePackageService,

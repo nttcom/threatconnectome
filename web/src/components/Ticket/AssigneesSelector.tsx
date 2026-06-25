@@ -17,7 +17,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,23 +25,28 @@ import { usePageParams } from "../../hooks/usePageParams.js";
 import { useUpdateTicketMutation } from "../../services/tcApi.js";
 import { errorToString, setEquals } from "../../utils/func.js";
 
-export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
+type AssigneesSelectorProps = {
+  ticketId: string;
+  currentAssigneeIds: Array<string>;
+};
+
+export function AssigneesSelector({ ticketId, currentAssigneeIds }: AssigneesSelectorProps) {
   const { t } = useTranslation("components", { keyPrefix: "Ticket.AssigneesSelector" });
   const { pteamId } = usePageParams();
   const {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetMembers(pteamId);
+  } = useGetMembers(pteamId ?? "");
 
   const [isFocused, setIsFocused] = useState(false);
   const [search, setSearch] = useState("");
-  const [updatingUserId, setUpdatingUserId] = useState(null);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
   const [updateTicket] = useUpdateTicketMutation();
 
-  const updateAssignees = async (newAssigneeIds) => {
+  const updateAssignees = async (newAssigneeIds: Array<string>) => {
     if (!members || !pteamId || !ticketId) return;
     if (setEquals(new Set(newAssigneeIds), new Set(currentAssigneeIds || []))) return;
 
@@ -61,7 +65,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
       );
   };
 
-  const handleRemoveMember = async (userId) => {
+  const handleRemoveMember = async (userId: string) => {
     if (updatingUserId) return;
     setUpdatingUserId(userId);
     const newIds = (currentAssigneeIds || []).filter((id) => id !== userId);
@@ -69,7 +73,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
     setUpdatingUserId(null);
   };
 
-  const handleAddMember = async (userId) => {
+  const handleAddMember = async (userId: string) => {
     if (updatingUserId) return;
     if (!(currentAssigneeIds || []).includes(userId)) {
       setUpdatingUserId(userId);
@@ -204,7 +208,7 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
                 "aria-label": t("searchPlaceholder"),
                 disableUnderline: true,
                 startAdornment: (
-                  <InputAdornment>
+                  <InputAdornment position="start">
                     <SearchIcon
                       color={Object.keys(members || {}).length === 0 ? "disabled" : "action"}
                       fontSize="small"
@@ -348,8 +352,3 @@ export function AssigneesSelector({ ticketId, currentAssigneeIds }) {
     </Box>
   );
 }
-
-AssigneesSelector.propTypes = {
-  ticketId: PropTypes.string.isRequired,
-  currentAssigneeIds: PropTypes.array.isRequired,
-};

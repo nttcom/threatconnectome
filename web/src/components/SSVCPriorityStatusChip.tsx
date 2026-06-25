@@ -1,11 +1,13 @@
 import { Paper, Tooltip } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { getSsvcPriorityProps } from "../utils/ssvcUtils";
 
-export function SSVCPriorityStatusChip(props) {
+type SSVCPriorityStatusChipProps = {
+  displaySSVCPriority: keyof ReturnType<typeof getSsvcPriorityProps>;
+};
+
+export function SSVCPriorityStatusChip(props: SSVCPriorityStatusChipProps) {
   const { displaySSVCPriority } = props;
   // Calling useTranslation() ensures this component re-renders when the language changes.
   useTranslation();
@@ -14,17 +16,19 @@ export function SSVCPriorityStatusChip(props) {
   const ssvcPriorityProp = ssvcPriorityProps[displaySSVCPriority];
 
   const Icon = ssvcPriorityProp.icon;
-  const StyledTooltip = styled((styledProps) => (
-    <Tooltip classes={{ popper: styledProps.className }} {...styledProps} />
-  ))`
-    & .MuiTooltip-tooltip {
-      background-color: ${ssvcPriorityProp.style.bgcolor};
-      color: ${ssvcPriorityProp.style.color};
-    }
-  `;
 
   return (
-    <StyledTooltip title={ssvcPriorityProp.statusLabel}>
+    <Tooltip
+      title={ssvcPriorityProp.statusLabel}
+      slotProps={{
+        tooltip: {
+          sx: {
+            backgroundColor: ssvcPriorityProp.style.bgcolor,
+            color: ssvcPriorityProp.style.color,
+          },
+        },
+      }}
+    >
       <Paper
         variant="outlined"
         sx={{
@@ -39,10 +43,6 @@ export function SSVCPriorityStatusChip(props) {
       >
         <Icon style={{ color: "white", fontSize: "20px" }} />
       </Paper>
-    </StyledTooltip>
+    </Tooltip>
   );
 }
-
-SSVCPriorityStatusChip.propTypes = {
-  displaySSVCPriority: PropTypes.string.isRequired,
-};

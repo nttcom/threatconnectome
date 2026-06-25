@@ -3,7 +3,25 @@ import {
   VisibilityOff as VisibilityOffIcon,
 } from "@mui/icons-material";
 import { Tooltip, TextField, InputAdornment, IconButton } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ChangeEvent } from "react";
+
+type PasswordFieldProps = {
+  name: string;
+  label: string;
+  value: string;
+  edited: Set<string>;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  isVisible: boolean;
+  onToggle: () => void;
+  minLength?: number;
+  tooltipTitle: string;
+};
+
+function isInputChangeEvent(
+  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+): event is ChangeEvent<HTMLInputElement> {
+  return event.currentTarget instanceof HTMLInputElement;
+}
 
 export function PasswordField({
   name,
@@ -15,8 +33,13 @@ export function PasswordField({
   onToggle,
   minLength = 8,
   tooltipTitle,
-}) {
+}: PasswordFieldProps) {
   const error = edited.has(name) && value.length < minLength;
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (isInputChangeEvent(event)) {
+      onChange(event);
+    }
+  };
 
   return (
     <Tooltip arrow placement="bottom-end" title={tooltipTitle}>
@@ -26,7 +49,7 @@ export function PasswordField({
         fullWidth
         label={label}
         margin="normal"
-        onChange={onChange}
+        onChange={handleChange}
         required
         type={isVisible ? "text" : "password"}
         value={value}
@@ -46,15 +69,3 @@ export function PasswordField({
     </Tooltip>
   );
 }
-
-PasswordField.propTypes = {
-  name: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  edited: PropTypes.instanceOf(Set).isRequired,
-  onChange: PropTypes.func.isRequired,
-  isVisible: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  minLength: PropTypes.number,
-  tooltipTitle: PropTypes.string.isRequired,
-};

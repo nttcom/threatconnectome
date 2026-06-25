@@ -1,7 +1,13 @@
 import { Box } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ComponentProps, ReactNode } from "react";
 
-export function TabPanel(props) {
+type TabPanelProps = ComponentProps<typeof Box> & {
+  children?: ReactNode;
+  index: number;
+  value: number;
+};
+
+export function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -17,9 +23,3 @@ export function TabPanel(props) {
     </Box>
   );
 }
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};

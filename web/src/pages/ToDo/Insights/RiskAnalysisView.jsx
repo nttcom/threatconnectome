@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CustomTabPanel } from "../../../components/CustomTabPanel.jsx";
+import { CustomTabPanel } from "../../../components/CustomTabPanel";
 
 import { AffectedObject } from "./AffectedObject.jsx";
 import { InsightReference } from "./InsightReference.jsx";

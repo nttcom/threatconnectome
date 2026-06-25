@@ -16,7 +16,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { CustomTabPanel } from "../../components/CustomTabPanel.jsx";
+import { CustomTabPanel } from "../../components/CustomTabPanel";
 import { AssigneesSelector } from "../../components/Ticket/AssigneesSelector";
 import {
   useGetDependencyQuery,

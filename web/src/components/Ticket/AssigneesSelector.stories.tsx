@@ -1,6 +1,7 @@
 import { http, HttpResponse, delay } from "msw";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { AssigneesSelector } from "./AssigneesSelector.jsx";
+import { AssigneesSelector } from "./AssigneesSelector";
 
 const pteamId = "pteam-abc-123";
 const ticketId = "ticket-xyz-789";
@@ -34,7 +35,7 @@ const mockMembersArray = [
   },
 ];
 
-export default {
+const meta = {
   component: AssigneesSelector,
   tags: ["autodocs"],
   decorators: [
@@ -53,11 +54,15 @@ export default {
       useRoutes: true,
     },
   },
-};
+} satisfies Meta<typeof AssigneesSelector>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
 
 // === Basic States ===
 
-export const NoAssignees = {
+export const NoAssignees: Story = {
   args: {
     ticketId,
     currentAssigneeIds: [],
@@ -78,7 +83,7 @@ export const NoAssignees = {
   },
 };
 
-export const OneAssignee = {
+export const OneAssignee: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1"],
@@ -98,7 +103,7 @@ export const OneAssignee = {
   },
 };
 
-export const MultipleAssignees = {
+export const MultipleAssignees: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1", "user-2", "user-3"],
@@ -118,7 +123,7 @@ export const MultipleAssignees = {
   },
 };
 
-export const AllMembersAssigned = {
+export const AllMembersAssigned: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1", "user-2", "user-3", "user-4", "user-5"],
@@ -140,7 +145,7 @@ export const AllMembersAssigned = {
 
 // === Loading States ===
 
-export const LoadingMembers = {
+export const LoadingMembers: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1"],
@@ -156,7 +161,7 @@ export const LoadingMembers = {
   },
 };
 
-export const SlowUpdate = {
+export const SlowUpdate: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1", "user-2"],
@@ -178,7 +183,7 @@ export const SlowUpdate = {
 
 // === Error States ===
 
-export const UpdateError = {
+export const UpdateError: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1"],
@@ -198,7 +203,7 @@ export const UpdateError = {
   },
 };
 
-export const LoadMembersError = {
+export const LoadMembersError: Story = {
   args: {
     ticketId,
     currentAssigneeIds: [],
@@ -216,7 +221,7 @@ export const LoadMembersError = {
 
 // === Edge Cases ===
 
-export const EmptyTeam = {
+export const EmptyTeam: Story = {
   args: {
     ticketId,
     currentAssigneeIds: [],
@@ -236,7 +241,7 @@ export const EmptyTeam = {
   },
 };
 
-export const LargeTeam = {
+export const LargeTeam: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1", "user-5"],
@@ -245,7 +250,7 @@ export const LargeTeam = {
     msw: {
       handlers: [
         http.get("*/api/pteams/:pteamId/members", () => {
-          const largeTeam = [];
+          const largeTeam: Array<{ user_id: string; uid: string; email: string }> = [];
           for (let i = 1; i <= 50; i++) {
             largeTeam.push({
               user_id: `user-${i}`,
@@ -264,7 +269,7 @@ export const LargeTeam = {
   },
 };
 
-export const LongEmailAddresses = {
+export const LongEmailAddresses: Story = {
   args: {
     ticketId,
     currentAssigneeIds: ["user-1"],

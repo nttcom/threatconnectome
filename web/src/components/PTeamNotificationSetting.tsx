@@ -23,10 +23,11 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { PTeamInfo, SsvcDeployerPriorityEnum } from "../../types/types.gen";
 import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useViewportOffset } from "../hooks/useViewportOffset";
 import {
@@ -44,7 +45,11 @@ import {
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
 import { getSsvcPriorityProps, sortedSSVCPriorities } from "../utils/ssvcUtils";
 
-export function PTeamNotificationSetting(props) {
+type PTeamNotificationSettingProps = {
+  pteam: PTeamInfo;
+};
+
+export function PTeamNotificationSetting(props: PTeamNotificationSettingProps) {
   const { pteam } = props;
   const { t } = useTranslation("components", { keyPrefix: "PTeamNotificationSetting" });
 
@@ -56,8 +61,8 @@ export function PTeamNotificationSetting(props) {
   const [alertThreshold, setAlertThreshold] = useState(pteam.alert_ssvc_priority);
   const [checkSlack, setCheckSlack] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
-  const [slackMessage, setSlackMessage] = useState();
-  const [emailMessage, setEmailMessage] = useState();
+  const [slackMessage, setSlackMessage] = useState<ReactNode>();
+  const [emailMessage, setEmailMessage] = useState<ReactNode>();
 
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
@@ -80,6 +85,7 @@ export function PTeamNotificationSetting(props) {
     });
 
   if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+  if (!userMe) return <></>;
 
   const user = userMe.pteam_roles.find(
     (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
@@ -91,10 +97,10 @@ export function PTeamNotificationSetting(props) {
     });
   }
 
-  const operationError = (error) =>
+  const operationError = (error: Parameters<typeof errorToString>[0]) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
-  const handleMailAddressSetting = (string) => {
+  const handleMailAddressSetting = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxEmailAddressLengthInHalf) {
       enqueueSnackbar(
         t("emailTooLong", {
@@ -113,7 +119,7 @@ export function PTeamNotificationSetting(props) {
     }
   };
 
-  const handleSlackUrlSetting = (string) => {
+  const handleSlackUrlSetting = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxSlackWebhookUrlLengthInHalf) {
       enqueueSnackbar(
         t("slackUrlTooLong", {
@@ -141,7 +147,7 @@ export function PTeamNotificationSetting(props) {
     );
   };
 
-  const connectFailMessage = (error) => {
+  const connectFailMessage = (error: Parameters<typeof errorToString>[0]) => {
     return (
       <Box display="flex" sx={{ color: "error.main" }}>
         <ErrorOutlineIcon />
@@ -166,7 +172,7 @@ export function PTeamNotificationSetting(props) {
 
   const handleCheckSlack = async () => {
     setCheckSlack(true);
-    setSlackMessage();
+    setSlackMessage(undefined);
     await postCheckSlack({ body: { slack_webhook_url: slackUrl.trim() } })
       .unwrap()
       .then(() => {
@@ -181,7 +187,7 @@ export function PTeamNotificationSetting(props) {
 
   const handleCheckMail = async () => {
     setCheckEmail(true);
-    setEmailMessage();
+    setEmailMessage(undefined);
     await postCheckMail({ body: { email: mailAddress.trim() } })
       .unwrap()
       .then(() => {
@@ -233,7 +239,7 @@ export function PTeamNotificationSetting(props) {
         <FormLabel sx={{ fontWeight: "medium" }}>{t("alertThreshold")}</FormLabel>
         <Select
           value={alertThreshold}
-          onChange={(event) => setAlertThreshold(String(event.target.value))}
+          onChange={(event) => setAlertThreshold(event.target.value as SsvcDeployerPriorityEnum)}
           // use String() to prevent undefined from setting alertimpact
           size="small"
           fullWidth
@@ -241,7 +247,11 @@ export function PTeamNotificationSetting(props) {
         >
           {sortedSSVCPriorities.map((ssvcPriority) => (
             <MenuItem key={ssvcPriority} value={ssvcPriority}>
-              {getSsvcPriorityProps()[ssvcPriority].displayName}
+              {
+                getSsvcPriorityProps()[
+                  ssvcPriority as keyof ReturnType<typeof getSsvcPriorityProps>
+                ].displayName
+              }
             </MenuItem>
           ))}
         </Select>
@@ -375,6 +385,3 @@ export function PTeamNotificationSetting(props) {
     </Box>
   );
 }
-PTeamNotificationSetting.propTypes = {
-  pteam: PropTypes.object.isRequired,
-};

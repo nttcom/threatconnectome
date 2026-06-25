@@ -1,10 +1,11 @@
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { PTeamLabel } from "../PTeamLabel";
 
-vi.mock("../../hooks/auth", async (importOriginal) => {
+vi.mock("../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -12,7 +13,7 @@ vi.mock("../../hooks/auth", async (importOriginal) => {
   };
 });
 
-vi.mock("../../services/tcApi", async (importOriginal) => {
+vi.mock("../../services/tcApi", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -26,7 +27,7 @@ vi.mock("../PTeamSettingsModal", () => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: (key: string) => key,
   }),
 }));
 
@@ -46,7 +47,7 @@ describe("PTeamLabel", () => {
       },
       error: undefined,
       isLoading: false,
-    });
+    } as unknown as ReturnType<typeof useGetUserMeQuery>);
 
     render(<PTeamLabel pteamId="team-1" />);
 

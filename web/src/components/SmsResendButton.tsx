@@ -1,9 +1,20 @@
 import { Refresh } from "@mui/icons-material";
 import { Button, Stack } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-export function SmsResendButton({ canExecute, isBusy, timer, onResend }) {
+type SmsResendButtonProps = {
+  canExecute: boolean;
+  isBusy?: boolean;
+  timer: number;
+  onResend: () => void;
+};
+
+export function SmsResendButton({
+  canExecute,
+  isBusy = false,
+  timer,
+  onResend,
+}: SmsResendButtonProps) {
   const { t } = useTranslation("components", { keyPrefix: "SmsResendButton" });
   const disabled = !canExecute || isBusy;
 
@@ -20,14 +31,3 @@ export function SmsResendButton({ canExecute, isBusy, timer, onResend }) {
     </Button>
   );
 }
-
-SmsResendButton.propTypes = {
-  canExecute: PropTypes.bool.isRequired,
-  isBusy: PropTypes.bool,
-  timer: PropTypes.number.isRequired,
-  onResend: PropTypes.func.isRequired,
-};
-
-SmsResendButton.defaultProps = {
-  isBusy: false,
-};
