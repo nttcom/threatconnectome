@@ -12,7 +12,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// @ts-expect-error TS7016
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 import { getBearerToken } from "../../services/tcApi";

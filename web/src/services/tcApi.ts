@@ -147,6 +147,12 @@ type GetSbomProgressRequestQuery = Pick<
   "path"
 >["path"];
 
+type CreateActionLogRequestParams = Pick<CreateLogActionlogsPostData, "body">;
+
+type UpdatePTeamRequestParams = Pick<UpdatePteamPteamsPteamIdPutData, "body" | "path">;
+
+type DeletePTeamRequestParams = Pick<DeletePteamPteamsPteamIdDeleteData, "path">;
+
 type GetPteamTicketsRequestParams = Pick<
   GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
   "path" | "query"
@@ -156,6 +162,10 @@ type UpdateTicketRequestParams = Pick<
   UpdateTicketPteamsPteamIdTicketsTicketIdPutData,
   "body" | "path"
 >;
+
+type CheckMailRequestParams = Pick<CheckEmailExternalEmailCheckPostData, "body">;
+
+type CheckSlackRequestParams = Pick<CheckWebhookUrlExternalSlackCheckPostData, "body">;
 
 type GetVulnRequestParams = Pick<GetVulnVulnsVulnIdGetData, "path">;
 
@@ -189,7 +199,7 @@ export const tcApi = createApi({
   tagTypes: TAG_TYPES_LIST,
   endpoints: (builder) => ({
     /* Action Log */
-    createActionLog: builder.mutation<ActionLogResponse, CreateLogActionlogsPostData>({
+    createActionLog: builder.mutation<ActionLogResponse, CreateActionLogRequestParams>({
       query: (arg) => ({
         url: "actionlogs",
         method: "POST",
@@ -263,7 +273,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamAccountRole", id: "ALL" }],
     }),
-    updatePTeam: builder.mutation<PTeamInfo, UpdatePteamPteamsPteamIdPutData>({
+    updatePTeam: builder.mutation<PTeamInfo, UpdatePTeamRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}`,
         method: "PUT",
@@ -274,7 +284,7 @@ export const tcApi = createApi({
         { type: "PTeam", id: "ALL" },
       ],
     }),
-    deletePTeam: builder.mutation<void, DeletePteamPteamsPteamIdDeleteData>({
+    deletePTeam: builder.mutation<void, DeletePTeamRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}`,
         method: "DELETE",
@@ -635,7 +645,7 @@ export const tcApi = createApi({
     }),
 
     /* User */
-    getUserMe: builder.query<UserResponse, GetMyUserInfoUsersMeGetData>({
+    getUserMe: builder.query<UserResponse, void>({
       query: () => "users/me",
       providesTags: (_result, _error, _arg) => [
         { type: "Account", id: _result?.user_id },
@@ -703,14 +713,14 @@ export const tcApi = createApi({
     }),
 
     /* External */
-    checkMail: builder.mutation<void, CheckEmailExternalEmailCheckPostData>({
+    checkMail: builder.mutation<void, CheckMailRequestParams>({
       query: (arg) => ({
         url: "external/email/check",
         method: "POST",
         body: arg.body,
       }),
     }),
-    checkSlack: builder.mutation<void, CheckWebhookUrlExternalSlackCheckPostData>({
+    checkSlack: builder.mutation<void, CheckSlackRequestParams>({
       query: (arg) => ({
         url: "external/slack/check",
         method: "POST",

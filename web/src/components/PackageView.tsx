@@ -1,9 +1,14 @@
 import { Recommend as RecommendIcon, Warning as WarningIcon } from "@mui/icons-material";
 import { Box, Card, Typography, Tooltip, Grid } from "@mui/material";
 import { green, yellow } from "@mui/material/colors";
-import PropTypes from "prop-types";
 
-export function PackageView(props) {
+import type { VulnerablePackageResponse } from "../../types/types.gen";
+
+type PackageViewProps = {
+  vulnPackage: VulnerablePackageResponse;
+};
+
+export function PackageView(props: PackageViewProps) {
   const { vulnPackage } = props;
   const nameWithEcosystem = `${vulnPackage.affected_name}:${vulnPackage.ecosystem}`;
   const affectedVersions = vulnPackage?.affected_versions ?? [];
@@ -106,7 +111,3 @@ export function PackageView(props) {
     </Card>
   );
 }
-
-PackageView.propTypes = {
-  vulnPackage: PropTypes.object.isRequired,
-};

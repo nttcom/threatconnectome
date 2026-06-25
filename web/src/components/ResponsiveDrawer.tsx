@@ -1,8 +1,15 @@
 import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArrowRight";
 import { Box, Drawer, IconButton, Tooltip, Typography } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ReactNode } from "react";
 
-export function ResponsiveDrawer({ open, onClose, title, children }) {
+type ResponsiveDrawerProps = {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+};
+
+export function ResponsiveDrawer({ open, onClose, title, children }: ResponsiveDrawerProps) {
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box>
@@ -21,10 +28,3 @@ export function ResponsiveDrawer({ open, onClose, title, children }) {
     </Drawer>
   );
 }
-
-ResponsiveDrawer.propTypes = {
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-};

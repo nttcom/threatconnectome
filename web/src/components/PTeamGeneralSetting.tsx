@@ -11,11 +11,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import type { PTeamInfo } from "../../types/types.gen";
 import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
 import { useViewportOffset } from "../hooks/useViewportOffset";
 import {
@@ -31,7 +31,11 @@ import {
 } from "../utils/const";
 import { errorToString, countFullWidthAndHalfWidthCharacters } from "../utils/func";
 
-export function PTeamGeneralSetting(props) {
+type PTeamGeneralSettingProps = {
+  pteam: PTeamInfo;
+};
+
+export function PTeamGeneralSetting(props: PTeamGeneralSettingProps) {
   const { pteam } = props;
   const { t } = useTranslation("components", { keyPrefix: "PTeamGeneralSetting" });
 
@@ -61,6 +65,7 @@ export function PTeamGeneralSetting(props) {
     });
 
   if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+  if (!userMe) return <></>;
 
   const user = userMe.pteam_roles.find(
     (pteam_role) => pteam_role.pteam.pteam_id === pteam.pteam_id,
@@ -72,10 +77,10 @@ export function PTeamGeneralSetting(props) {
     });
   }
 
-  const operationError = (error) =>
+  const operationError = (error: Parameters<typeof errorToString>[0]) =>
     enqueueSnackbar(t("operationFailed", { error: errorToString(error) }), { variant: "error" });
 
-  const handlePTeamNameSetting = (string) => {
+  const handlePTeamNameSetting = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxPTeamNameLengthInHalf) {
       enqueueSnackbar(
         t("teamNameTooLong", {
@@ -94,7 +99,7 @@ export function PTeamGeneralSetting(props) {
     }
   };
 
-  const handleContactInfoSetting = (string) => {
+  const handleContactInfoSetting = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxContactInfoLengthInHalf) {
       enqueueSnackbar(
         t("contactInfoTooLong", {
@@ -142,7 +147,7 @@ export function PTeamGeneralSetting(props) {
       enqueueSnackbar(t("deleteSucceeded"), { variant: "success" });
       navigate("/");
     } catch (error) {
-      operationError(error);
+      operationError(error as Parameters<typeof errorToString>[0]);
     }
   };
 
@@ -267,6 +272,3 @@ export function PTeamGeneralSetting(props) {
     </Box>
   );
 }
-PTeamGeneralSetting.propTypes = {
-  pteam: PropTypes.object.isRequired,
-};

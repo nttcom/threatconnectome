@@ -1,6 +1,5 @@
 import { Settings as SettingsIcon } from "@mui/icons-material";
 import { Box, IconButton, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 
 import { useSkipUntilAuthUserIsReady } from "../hooks/auth";
@@ -11,7 +10,12 @@ import { errorToString } from "../utils/func";
 import { PTeamSettingsModal } from "./PTeamSettingsModal";
 import { UUIDTypography } from "./UUIDTypography";
 
-export function PTeamLabel(props) {
+type PTeamLabelProps = {
+  pteamId: string;
+  defaultTabIndex?: number;
+};
+
+export function PTeamLabel(props: PTeamLabelProps) {
   const { pteamId, defaultTabIndex = 0 } = props;
 
   const [pteamSettingsModalOpen, setPTeamSettingsModalOpen] = useState(false);
@@ -30,6 +34,7 @@ export function PTeamLabel(props) {
       api: "getUserMe",
     });
   if (userMeIsLoading) return <>Now loading UserInfo...</>;
+  if (!userMe) return <></>;
 
   const pteamName =
     userMe.pteam_roles.find((pteam_role) => pteam_role.pteam.pteam_id === pteamId)?.pteam
@@ -57,8 +62,3 @@ export function PTeamLabel(props) {
     </>
   );
 }
-
-PTeamLabel.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  defaultTabIndex: PropTypes.number,
-};

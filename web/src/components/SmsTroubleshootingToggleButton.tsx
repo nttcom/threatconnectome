@@ -1,9 +1,18 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Button } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-export function SmsTroubleshootingToggleButton({ expanded, onToggle, disabled }) {
+type SmsTroubleshootingToggleButtonProps = {
+  expanded: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+};
+
+export function SmsTroubleshootingToggleButton({
+  expanded,
+  onToggle,
+  disabled = false,
+}: SmsTroubleshootingToggleButtonProps) {
   const { t } = useTranslation("components", { keyPrefix: "SmsTroubleshootingToggleButton" });
 
   return (
@@ -27,13 +36,3 @@ export function SmsTroubleshootingToggleButton({ expanded, onToggle, disabled })
     </Button>
   );
 }
-
-SmsTroubleshootingToggleButton.propTypes = {
-  expanded: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-};
-
-SmsTroubleshootingToggleButton.defaultProps = {
-  disabled: false,
-};

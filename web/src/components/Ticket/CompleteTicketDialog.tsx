@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,16 +30,26 @@ import {
 import { APIError } from "../../utils/APIError";
 import { errorToString } from "../../utils/func.js";
 import { createUpdateAction, findMatchedVulnPackage } from "../../utils/vulnUtils.js";
-import { ActionTypeIcon } from "../ActionTypeIcon.jsx";
+import { ActionTypeIcon } from "../ActionTypeIcon";
 import { useVulnDialogContext } from "../VulnDialogContext.js";
 
-export function CompleteTicketDialog(props) {
+type CompleteTicketDialogProps = {
+  pteamId: string;
+  serviceId: string;
+  packageVersionId: string;
+  ticketId: string;
+  originalNote: string;
+  onClose: () => void;
+  show: boolean;
+};
+
+export function CompleteTicketDialog(props: CompleteTicketDialogProps) {
   const { pteamId, serviceId, packageVersionId, ticketId, originalNote, onClose, show } = props;
   const { vulnId } = useVulnDialogContext();
   const { t } = useTranslation("components", { keyPrefix: "Ticket.CompleteTicketDialog" });
 
   const [note, setNote] = useState(originalNote);
-  const [selectedUpdateAction, setSelectedUpdateAction] = useState([]);
+  const [selectedUpdateAction, setSelectedUpdateAction] = useState<Array<string>>([]);
   const [activeStep, setActiveStep] = useState(0);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -64,7 +73,7 @@ export function CompleteTicketDialog(props) {
   });
 
   const selectedTicket =
-    isLoadingTickets || ticketsError ? [] : tickets.find((t) => t.ticket_id === ticketId);
+    isLoadingTickets || ticketsError ? undefined : tickets.find((t) => t.ticket_id === ticketId);
 
   // Get dependency info
   const {
@@ -73,7 +82,7 @@ export function CompleteTicketDialog(props) {
     isLoading: isLoadingDependency,
   } = useGetDependency({
     pteamId,
-    dependencyId: selectedTicket?.dependency_id,
+    dependencyId: selectedTicket?.dependency_id ?? "",
   });
 
   // Get user info
@@ -91,7 +100,7 @@ export function CompleteTicketDialog(props) {
   if (vulnError) throw new APIError(errorToString(vulnError), { api: "getVuln" });
 
   // Generate updateAction
-  let updateAction = null;
+  let updateAction: string | null = null;
   if (dependency && vuln?.vulnerable_packages) {
     const currentPackage = {
       package_name: dependency.package_name,
@@ -115,7 +124,7 @@ export function CompleteTicketDialog(props) {
     onClose();
   };
 
-  const handleSelectUpdateAction = (action) => {
+  const handleSelectUpdateAction = (action: string) => {
     if (selectedUpdateAction.includes(action)) {
       setSelectedUpdateAction(selectedUpdateAction.filter((a) => a !== action));
     } else {
@@ -132,6 +141,8 @@ export function CompleteTicketDialog(props) {
   };
 
   const handleSubmit = async () => {
+    if (!updateAction || !userMe?.user_id) return;
+
     // Create ActionLog
     await createActionLog({
       body: {
@@ -269,13 +280,3 @@ export function CompleteTicketDialog(props) {
     </Dialog>
   );
 }
-
-CompleteTicketDialog.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
-  packageVersionId: PropTypes.string.isRequired,
-  ticketId: PropTypes.string.isRequired,
-  originalNote: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired,
-  show: PropTypes.bool.isRequired,
-};
