@@ -2,9 +2,11 @@ import type { ChangeEvent, MouseEvent } from "react";
 import { useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import type { TicketHandlingStatusType } from "../../../types/types.gen";
+
 export type SortConfig = {
   key: string;
-  direction: string;
+  direction: "asc" | "desc";
 };
 
 export type TodoApiParams = {
@@ -14,12 +16,12 @@ export type TodoApiParams = {
   limit: number;
   sort_keys: string[];
   assigned_to_me: boolean;
-  exclude_statuses: string[];
+  exclude_statuses: TicketHandlingStatusType[];
   cve_ids: string[];
 };
 
 type UpdateParamValue = string | number | null | undefined;
-type PageChangeEvent = ChangeEvent<HTMLElement> | MouseEvent<HTMLButtonElement> | null;
+type PageChangeEvent = ChangeEvent<unknown> | MouseEvent<HTMLButtonElement> | null;
 
 export type UseTodoStateReturn = {
   apiParams: TodoApiParams;
@@ -42,7 +44,7 @@ export const useTodoState = (): UseTodoStateReturn => {
   const sortConfig = useMemo<SortConfig>(
     () => ({
       key: params.get("sortKey") || "ssvc_deployer_priority",
-      direction: params.get("sortDirection") || "desc",
+      direction: params.get("sortDirection") === "asc" ? "asc" : "desc",
     }),
     [params],
   );

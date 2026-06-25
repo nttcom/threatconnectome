@@ -1,10 +1,14 @@
 import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-import { impactCategoryIcons } from "./insightConst.js";
+import type { ThreatScenario as ThreatScenarioType } from "../../../../types/types.gen";
+import { impactCategoryIcons } from "./insightConst";
 
-export function ThreatScenario(props) {
+type ThreatScenarioProps = {
+  threatScenarios: ThreatScenarioType[];
+};
+
+export function ThreatScenario(props: ThreatScenarioProps) {
   const { threatScenarios } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "Insights.ThreatScenario" });
 
@@ -20,7 +24,7 @@ export function ThreatScenario(props) {
     <>
       <Grid container spacing={2} sx={{ flexDirection: "column" }}>
         {threatScenarios.map((scenario, index) => {
-          const ImpactCategoryIcon = impactCategoryIcons[scenario.impact_category].icon;
+          const ImpactCategoryIcon = impactCategoryIcons[scenario.impact_category]?.icon;
           return (
             <Grid size={12} key={index}>
               <Card variant="outlined">
@@ -33,7 +37,9 @@ export function ThreatScenario(props) {
                         height: { xs: 32, md: 40 },
                       }}
                     >
-                      <ImpactCategoryIcon sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }} />
+                      {ImpactCategoryIcon ? (
+                        <ImpactCategoryIcon sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }} />
+                      ) : null}
                     </Avatar>
                   }
                   title={scenario.title}
@@ -61,7 +67,3 @@ export function ThreatScenario(props) {
     </>
   );
 }
-
-ThreatScenario.propTypes = {
-  threatScenarios: PropTypes.arrayOf(PropTypes.object).isRequired,
-};

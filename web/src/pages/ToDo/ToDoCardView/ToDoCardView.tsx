@@ -9,13 +9,13 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
+import type { TodoViewProps } from "../todoViewProps";
 import { CVESearchField } from "../CVESearchField";
 
 import { DisplayOptionsController } from "./DisplayOptionsController";
@@ -29,7 +29,7 @@ export default function ToDoCardView({
   onSortConfigChange,
   onItemsPerPageChange,
   onPageChange,
-}) {
+}: TodoViewProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoCardView.ToDoCardView" });
   const {
     page,
@@ -119,13 +119,3 @@ export default function ToDoCardView({
     </Box>
   );
 }
-
-ToDoCardView.propTypes = {
-  pteamIds: PropTypes.arrayOf(PropTypes.string),
-  apiParams: PropTypes.object.isRequired,
-  onMyTasksChange: PropTypes.func.isRequired,
-  onCveSearch: PropTypes.func.isRequired,
-  onSortConfigChange: PropTypes.func.isRequired,
-  onItemsPerPageChange: PropTypes.func.isRequired,
-  onPageChange: PropTypes.func.isRequired,
-};

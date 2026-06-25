@@ -1,11 +1,12 @@
+import type { Meta, StoryObj } from "@storybook/react";
 import { http, HttpResponse } from "msw";
 
 import emptyInsightData from "../../../mocks/emptyInsightData.json";
 import generalInsightData from "../../../mocks/generalInsightData.json";
 
-import { RiskAnalysis } from "./RiskAnalysis.jsx";
+import { RiskAnalysis } from "./RiskAnalysis";
 
-export default {
+const meta = {
   component: RiskAnalysis,
   args: {
     ticketId: "ticket-123",
@@ -23,11 +24,15 @@ export default {
       ],
     },
   },
-};
+} satisfies Meta<typeof RiskAnalysis>;
 
-export const Default = {};
+export default meta;
 
-export const EmptyState = {
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const EmptyState: Story = {
   parameters: {
     msw: {
       handlers: [
@@ -39,7 +44,7 @@ export const EmptyState = {
   },
 };
 
-export const NotFoundError = {
+export const NotFoundError: Story = {
   parameters: {
     msw: {
       handlers: [

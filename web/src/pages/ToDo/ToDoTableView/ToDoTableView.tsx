@@ -1,9 +1,9 @@
 import { Typography, Box } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import { Android12Switch } from "../../../components/Android12Switch";
 import { CVESearchField } from "../CVESearchField";
+import type { TodoViewProps } from "../todoViewProps";
 
 import { ToDoTable } from "./ToDoTable";
 
@@ -15,7 +15,7 @@ export function ToDoTableView({
   onSortConfigChange,
   onPageChange,
   onItemsPerPageChange,
-}) {
+}: TodoViewProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTableView" });
   const { assigned_to_me: myTasks, cve_ids: cveIds } = apiParams;
   const cveId = cveIds?.[0] ?? "";
@@ -39,13 +39,3 @@ export function ToDoTableView({
     </>
   );
 }
-
-ToDoTableView.propTypes = {
-  pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  apiParams: PropTypes.object.isRequired,
-  onMyTasksChange: PropTypes.func.isRequired,
-  onCveSearch: PropTypes.func.isRequired,
-  onSortConfigChange: PropTypes.func.isRequired,
-  onPageChange: PropTypes.func.isRequired,
-  onItemsPerPageChange: PropTypes.func.isRequired,
-};

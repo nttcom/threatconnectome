@@ -20,7 +20,14 @@ import VideogameAssetOffIcon from "@mui/icons-material/VideogameAssetOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-export const impactCategoryIcons = {
+import type { ImpactCategoryEnum, ObjectCategoryEnum } from "../../../../types/types.gen";
+
+type IconComponent = typeof BrokenImageIcon;
+
+export const impactCategoryIcons: Record<
+  ImpactCategoryEnum,
+  { icon: IconComponent; text: string }
+> = {
   damage_to_property: { icon: BrokenImageIcon, text: "Damage to Property" },
   denial_of_control: { icon: DoNotTouchIcon, text: "Denial of Control" },
   denial_of_view: { icon: DisabledVisibleIcon, text: "Denial of View" },
@@ -41,7 +48,7 @@ export const impactCategoryIcons = {
   },
 };
 
-export const objectCategoryIcons = {
+export const objectCategoryIcons: Record<ObjectCategoryEnum, IconComponent> = {
   server: DnsIcon,
   client_device: LaptopIcon,
   mobile_device: SmartphoneIcon,

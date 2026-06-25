@@ -10,10 +10,16 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-export function InsightReference(props) {
+import type { InsightReference as InsightReferenceType } from "../../../../types/types.gen";
+
+type InsightReferenceProps = {
+  dataProcessingStrategy: string;
+  insightReferences: InsightReferenceType[];
+};
+
+export function InsightReference(props: InsightReferenceProps) {
   const { dataProcessingStrategy, insightReferences } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "Insights.InsightReference" });
 
@@ -77,8 +83,3 @@ export function InsightReference(props) {
     </>
   );
 }
-
-InsightReference.propTypes = {
-  dataProcessingStrategy: PropTypes.string.isRequired,
-  insightReferences: PropTypes.arrayOf(PropTypes.object).isRequired,
-};

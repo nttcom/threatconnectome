@@ -1,13 +1,18 @@
 import SearchIcon from "@mui/icons-material/Search";
 import { InputAdornment, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { isValidCVEFormat } from "../../utils/vulnUtils";
 
-export function CVESearchField({ word, onApply, variant = "default" }) {
+type CVESearchFieldProps = {
+  word: string;
+  onApply: (word: string) => void;
+  variant?: "default" | "mobile";
+};
+
+export function CVESearchField({ word, onApply, variant = "default" }: CVESearchFieldProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "CVESearchField" });
   const [newWord, setNewWord] = useState("");
   const { enqueueSnackbar } = useSnackbar();
@@ -16,7 +21,7 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
     setNewWord(word);
   }, [word]);
 
-  const handleApply = (value) => {
+  const handleApply = (value: string) => {
     const trimmedValue = value.trim();
     const success = isValidCVEFormat(trimmedValue);
     if (!success) {
@@ -47,7 +52,7 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
       value={newWord}
       onChange={(event) => setNewWord(event.target.value)}
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
+        if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
           handleApply(event.target.value);
         }
       }}
@@ -66,9 +71,3 @@ export function CVESearchField({ word, onApply, variant = "default" }) {
     />
   );
 }
-
-CVESearchField.propTypes = {
-  word: PropTypes.string.isRequired,
-  onApply: PropTypes.func.isRequired,
-  variant: PropTypes.oneOf(["default", "mobile"]),
-};

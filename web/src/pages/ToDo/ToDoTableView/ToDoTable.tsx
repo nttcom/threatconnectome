@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
-import PropTypes from "prop-types";
+import type { ChangeEvent, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
@@ -20,8 +20,14 @@ import { useGetTicketsQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
 import { getSsvcPriorityProps } from "../../../utils/ssvcUtils";
+import type { TodoViewProps } from "../todoViewProps";
 
 import { ToDoTableRow } from "./ToDoTableRow";
+
+type ToDoTableProps = Pick<
+  TodoViewProps,
+  "pteamIds" | "apiParams" | "onSortConfigChange" | "onItemsPerPageChange" | "onPageChange"
+>;
 
 export function ToDoTable({
   pteamIds,
@@ -29,7 +35,7 @@ export function ToDoTable({
   onSortConfigChange,
   onPageChange,
   onItemsPerPageChange,
-}) {
+}: ToDoTableProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTable" });
   const skip = useSkipUntilAuthUserIsReady();
 
@@ -46,18 +52,18 @@ export function ToDoTable({
   const { page, limit: rowsPerPage } = apiParams;
   const { key: sortKey, direction: sortDirection } = apiParams.sortConfig || {};
 
-  const handleRequestSort = (event, property) => {
+  const handleRequestSort = (_event: MouseEvent<unknown>, property: string) => {
     const isAsc = sortKey === property && sortDirection === "asc"; // Determines if the column currently in ascending order is clicked again
     const newDirection = isAsc ? "desc" : "asc";
     onSortConfigChange({ key: property, direction: newDirection });
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (event: MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     onPageChange(event, newPage + 1);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    onItemsPerPageChange(event.target.value);
+  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
+    onItemsPerPageChange(Number(event.target.value));
   };
 
   const headCells = [
@@ -110,8 +116,9 @@ export function ToDoTable({
           <TableBody>
             {tickets.length > 0 ? (
               tickets.map((ticket) => {
-                const ssvcPriority =
-                  ssvcPriorityProps[ticket.ssvc_deployer_priority] || ssvcPriorityProps["defer"];
+                const ssvcKey = (ticket.ssvc_deployer_priority ??
+                  "defer") as keyof typeof ssvcPriorityProps;
+                const ssvcPriority = ssvcPriorityProps[ssvcKey] || ssvcPriorityProps["defer"];
                 return (
                   <ToDoTableRow
                     key={ticket.ticket_id}
@@ -147,11 +154,3 @@ export function ToDoTable({
     </Paper>
   );
 }
-
-ToDoTable.propTypes = {
-  pteamIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-  apiParams: PropTypes.object.isRequired,
-  onSortConfigChange: PropTypes.func.isRequired,
-  onPageChange: PropTypes.func.isRequired,
-  onItemsPerPageChange: PropTypes.func.isRequired,
-};

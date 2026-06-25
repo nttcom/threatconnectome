@@ -163,6 +163,8 @@ type GetPteamTicketsRequestParams = Pick<
   "path" | "query"
 >;
 
+type GetTicketsRequestParams = Pick<GetTicketsTicketsGetData, "query">;
+
 type UpdateTicketRequestParams = Pick<
   UpdateTicketPteamsPteamIdTicketsTicketIdPutData,
   "body" | "path"
@@ -188,6 +190,8 @@ type CreateUserRequestParams = Pick<CreateUserUsersPostData, "body">;
 type CheckMailRequestParams = Pick<CheckEmailExternalEmailCheckPostData, "body">;
 
 type CheckSlackRequestParams = Pick<CheckWebhookUrlExternalSlackCheckPostData, "body">;
+
+type GetInsightRequestParams = Pick<GetInsightTicketsTicketIdInsightGetData, "path">;
 
 export const getBearerToken =
   {
@@ -265,7 +269,7 @@ export const tcApi = createApi({
     }),
 
     /* Insight  */
-    getInsight: builder.query<InsightResponse, GetInsightTicketsTicketIdInsightGetData>({
+    getInsight: builder.query<InsightResponse, GetInsightRequestParams>({
       query: (arg) => `tickets/${arg.path.ticket_id}/insight`,
       providesTags: (_result, _error, _arg) => [
         { type: "Service", id: "ALL" },
@@ -591,7 +595,7 @@ export const tcApi = createApi({
     ),
 
     /* Ticket */
-    getTickets: builder.query<TicketListResponse, GetTicketsTicketsGetData>({
+    getTickets: builder.query<TicketListResponse, GetTicketsRequestParams>({
       query: (arg) => ({
         url: "tickets",
         method: "GET",

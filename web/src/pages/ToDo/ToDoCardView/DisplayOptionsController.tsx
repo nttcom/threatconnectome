@@ -1,10 +1,10 @@
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import DnsOutlinedIcon from "@mui/icons-material/DnsOutlined"; // 👈 追加
+import DnsOutlinedIcon from "@mui/icons-material/DnsOutlined";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"; // 👈 追加
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import TuneIcon from "@mui/icons-material/Tune";
 import {
   Box,
@@ -21,11 +21,13 @@ import {
   Typography,
 } from "@mui/material";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
-import PropTypes from "prop-types";
+import type { MouseEvent, ReactNode } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const sortableKeys = [
+import type { SortConfig } from "../../../hooks/ToDo/useTodoState";
+
+const sortableKeys: Array<{ key: string; icon: ReactNode }> = [
   { key: "cve_id", icon: <FingerprintIcon /> },
   { key: "pteam_name", icon: <GroupOutlinedIcon /> },
   { key: "service_name", icon: <DnsOutlinedIcon /> },
@@ -33,26 +35,36 @@ const sortableKeys = [
   { key: "ssvc_deployer_priority", icon: <FlagOutlinedIcon /> },
 ];
 
+type DisplayOptionsControllerProps = {
+  sortConfig: SortConfig;
+  onSortConfigChange: (newConfig: SortConfig) => void;
+  itemsPerPage: number;
+  onItemsPerPageChange: (newValue: number) => void;
+};
+
 export function DisplayOptionsController({
   sortConfig,
   onSortConfigChange,
   itemsPerPage,
   onItemsPerPageChange,
-}) {
+}: DisplayOptionsControllerProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoCardView.DisplayOptionsController" });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleSortKeyChange = (key) => {
+  const handleSortKeyChange = (key: string) => {
     onSortConfigChange({ ...sortConfig, key });
   };
 
-  const handleSortDirectionChange = (event, newDirection) => {
-    if (newDirection !== null) {
+  const handleSortDirectionChange = (
+    _event: MouseEvent<HTMLElement>,
+    newDirection: string | null,
+  ) => {
+    if (newDirection === "asc" || newDirection === "desc") {
       onSortConfigChange({ ...sortConfig, direction: newDirection });
     }
   };
 
-  const handleItemsPerPageChange = (event, newValue) => {
+  const handleItemsPerPageChange = (_event: MouseEvent<HTMLElement>, newValue: number | null) => {
     if (newValue !== null) {
       onItemsPerPageChange(newValue);
     }
@@ -159,10 +171,3 @@ export function DisplayOptionsController({
     </>
   );
 }
-
-DisplayOptionsController.propTypes = {
-  sortConfig: PropTypes.object.isRequired,
-  onSortConfigChange: PropTypes.func.isRequired,
-  itemsPerPage: PropTypes.number.isRequired,
-  onItemsPerPageChange: PropTypes.func.isRequired,
-};

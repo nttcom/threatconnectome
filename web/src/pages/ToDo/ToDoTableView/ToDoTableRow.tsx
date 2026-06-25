@@ -1,16 +1,26 @@
 import KeyboardDoubleArrowLeftIcon from "@mui/icons-material/KeyboardDoubleArrowLeft";
 import { Box, Button, TableCell, TableRow, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import type { TicketResponse } from "../../../../types/types.gen";
 import { ResponsiveDrawer } from "../../../components/ResponsiveDrawer";
 import { useTodoItemState } from "../../../hooks/ToDo/useTodoItemState";
+import type { getSsvcPriorityProps } from "../../../utils/ssvcUtils";
 import { preserveParams } from "../../../utils/urlUtils";
 import { TicketDetailView } from "../TicketDetailView";
 
-export function ToDoTableRow(props) {
+type SsvcPriority = ReturnType<typeof getSsvcPriorityProps>[keyof ReturnType<
+  typeof getSsvcPriorityProps
+>];
+
+type ToDoTableRowProps = {
+  ticket: TicketResponse;
+  ssvcPriority: SsvcPriority;
+};
+
+export function ToDoTableRow(props: ToDoTableRowProps) {
   const { ticket, ssvcPriority } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoTableView.ToDoTableRow" });
   const Icon = ssvcPriority.icon;
@@ -98,12 +108,3 @@ export function ToDoTableRow(props) {
     </>
   );
 }
-
-ToDoTableRow.propTypes = {
-  ticket: PropTypes.object.isRequired,
-  ssvcPriority: PropTypes.shape({
-    icon: PropTypes.elementType.isRequired,
-    displayName: PropTypes.string.isRequired,
-    style: PropTypes.object.isRequired,
-  }).isRequired,
-};
