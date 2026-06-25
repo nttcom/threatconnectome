@@ -13,7 +13,7 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
-import PropTypes from "prop-types";
+import type { Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { UUIDTypography } from "../../components/UUIDTypography";
@@ -22,18 +22,24 @@ import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
 import { experienceColors } from "../../utils/const";
 import { errorToString } from "../../utils/func";
+import type { PteamMemberGetResponse } from "../../../types/types.gen";
 
 import { InvitationManageDialog } from "./InvitationManageDialog";
 import { PTeamMemberMenu } from "./PTeamMemberMenu";
 
-export function PTeamMember(props) {
+type PTeamMemberProps = {
+  pteamId: string;
+  members: Array<PteamMemberGetResponse>;
+};
+
+export function PTeamMember(props: PTeamMemberProps) {
   const { pteamId, members } = props;
   const { t } = useTranslation("pteam", { keyPrefix: "PTeamMember" });
-  const isMdDown = useMediaQuery((theme) => theme.breakpoints.down("md"));
+  const isMdDown = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
 
   const filteredMembers = members
     ? [...members]
-        .sort((memberA, memberB) => memberB.email < memberA.email)
+        .sort((memberA, memberB) => memberB.email.localeCompare(memberA.email))
         .sort((memberA, memberB) => memberB.years - memberA.years)
         .filter((member) => member.disabled === false)
     : [];
@@ -53,6 +59,8 @@ export function PTeamMember(props) {
     });
 
   if (userMeIsLoading) return <>{t("loadingUserInfo")}</>;
+
+  if (!userMe) return <>{t("loadingUserInfo")}</>;
 
   const currentMember = members.find((member) => member.user_id === userMe.user_id);
   if (!currentMember) {
@@ -112,7 +120,7 @@ export function PTeamMember(props) {
                   variant="rounded"
                   sizes="small"
                   sx={{
-                    bgcolor: experienceColors[member.years],
+                    bgcolor: experienceColors[member.years as keyof typeof experienceColors],
                     color: "black",
                     ml: 1,
                     width: 30,
@@ -156,7 +164,7 @@ export function PTeamMember(props) {
                       <Avatar
                         variant="rounded"
                         sx={{
-                          bgcolor: experienceColors[member.years],
+                          bgcolor: experienceColors[member.years as keyof typeof experienceColors],
                           color: "black",
                           m: 0.5,
                         }}
@@ -184,17 +192,3 @@ export function PTeamMember(props) {
     </>
   );
 }
-
-PTeamMember.propTypes = {
-  pteamId: PropTypes.string,
-  members: PropTypes.arrayOf(
-    PropTypes.shape({
-      user_id: PropTypes.string.isRequired,
-      uid: PropTypes.string,
-      email: PropTypes.string.isRequired,
-      disabled: PropTypes.bool,
-      years: PropTypes.number.isRequired,
-      is_admin: PropTypes.bool.isRequired,
-    }),
-  ).isRequired,
-};

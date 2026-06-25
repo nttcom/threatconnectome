@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
+import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,7 +22,16 @@ import { errorToString } from "../../utils/func";
 import { AuthAdminCheckbox } from "./AuthAdminCheckbox";
 import { UpdateAuthButton } from "./UpdateAuthButton";
 
-export function PTeamAuthEditor(props) {
+type PTeamAuthEditorProps = {
+  pteamId: string;
+  memberUserId: string;
+  userEmail: string;
+  isTargetMemberAdmin: boolean;
+  isCurrentUserAdmin: boolean;
+  onClose?: () => void;
+};
+
+export function PTeamAuthEditor(props: PTeamAuthEditorProps) {
   const { pteamId, memberUserId, userEmail, isTargetMemberAdmin, isCurrentUserAdmin, onClose } =
     props;
   const { t } = useTranslation("pteam", { keyPrefix: "PTeamAuthEditor" });
@@ -33,15 +42,15 @@ export function PTeamAuthEditor(props) {
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const handleCheckedChange = (event) => {
+  const handleCheckedChange = (event: ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked);
   };
 
   const handleSave = async () => {
-    function onSuccess(success) {
+    function onSuccess() {
       enqueueSnackbar(t("updateSucceeded"), { variant: "success" });
     }
-    function onError(error) {
+    function onError(error: Parameters<typeof errorToString>[0]) {
       enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), {
         variant: "error",
       });
@@ -51,8 +60,8 @@ export function PTeamAuthEditor(props) {
 
     await updatePTeamMember({ path: { pteam_id: pteamId, user_id: memberUserId }, body: data })
       .unwrap()
-      .then((success) => onSuccess(success))
-      .catch((error) => onError(error));
+      .then(() => onSuccess())
+      .catch((error: Parameters<typeof errorToString>[0]) => onError(error));
   };
 
   return (
@@ -102,12 +111,3 @@ export function PTeamAuthEditor(props) {
     </>
   );
 }
-
-PTeamAuthEditor.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  memberUserId: PropTypes.string.isRequired,
-  userEmail: PropTypes.string.isRequired,
-  isTargetMemberAdmin: PropTypes.bool.isRequired,
-  isCurrentUserAdmin: PropTypes.bool.isRequired,
-  onClose: PropTypes.func,
-};

@@ -1,10 +1,14 @@
 import { Button } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
 import dialogStyle from "../../cssModule/dialog.module.css";
 
-export function UpdateAuthButton(props) {
+type UpdateAuthButtonProps = {
+  disabled: boolean;
+  onUpdate: () => void;
+};
+
+export function UpdateAuthButton(props: UpdateAuthButtonProps) {
   const { disabled, onUpdate } = props;
   const { t } = useTranslation("pteam", { keyPrefix: "UpdateAuthButton" });
 
@@ -14,8 +18,3 @@ export function UpdateAuthButton(props) {
     </Button>
   );
 }
-
-UpdateAuthButton.propTypes = {
-  disabled: PropTypes.bool.isRequired,
-  onUpdate: PropTypes.func.isRequired,
-};

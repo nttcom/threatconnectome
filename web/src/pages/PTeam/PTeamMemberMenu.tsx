@@ -4,8 +4,8 @@ import {
   PersonOff as PersonOffIcon,
 } from "@mui/icons-material";
 import { Dialog, DialogContent, IconButton, Menu, MenuItem } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
@@ -16,7 +16,16 @@ import { errorToString } from "../../utils/func";
 import { PTeamAuthEditor } from "./PTeamAuthEditor";
 import { PTeamMemberRemoveModal } from "./PTeamMemberRemoveModal";
 
-export function PTeamMemberMenu(props) {
+type PTeamMemberMenuProps = {
+  pteamId: string;
+  memberUserId: string;
+  userEmail: string;
+  isTargetMemberAdmin: boolean;
+  currentUserId: string;
+  isCurrentUserAdmin: boolean;
+};
+
+export function PTeamMemberMenu(props: PTeamMemberMenuProps) {
   const {
     pteamId,
     memberUserId,
@@ -29,7 +38,7 @@ export function PTeamMemberMenu(props) {
 
   const [openAuth, setOpenAuth] = useState(false);
   const [openRemove, setOpenRemove] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
 
   const skip = useSkipUntilAuthUserIsReady() || !pteamId;
@@ -44,9 +53,9 @@ export function PTeamMemberMenu(props) {
     throw new APIError(errorToString(pteamError), {
       api: "getPTeam",
     });
-  if (pteamIsLoading) return <>{t("nowLoadingTeam")}</>;
+  if (pteamIsLoading || !pteam) return <>{t("nowLoadingTeam")}</>;
 
-  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
   const handleAuthorities = () => {
     handleClose();
@@ -114,12 +123,3 @@ export function PTeamMemberMenu(props) {
     </>
   );
 }
-
-PTeamMemberMenu.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  memberUserId: PropTypes.string.isRequired,
-  userEmail: PropTypes.string.isRequired,
-  isTargetMemberAdmin: PropTypes.bool.isRequired,
-  currentUserId: PropTypes.string.isRequired,
-  isCurrentUserAdmin: PropTypes.bool.isRequired,
-};

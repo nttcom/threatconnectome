@@ -1,12 +1,16 @@
 import { createTheme, ThemeProvider } from "@mui/material";
 import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import type { Mock } from "vitest";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import { useGetPTeamQuery, useGetUserMeQuery } from "../../../services/tcApi";
 import { PTeamMember } from "../PTeamMember";
+import type { PteamMemberGetResponse, UserResponse } from "../../../../types/types.gen";
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -14,7 +18,7 @@ vi.mock("../../../hooks/auth", async (importOriginal) => {
   };
 });
 
-vi.mock("../../../services/tcApi", async (importOriginal) => {
+vi.mock("../../../services/tcApi", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -25,7 +29,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: (key: string) => key,
   }),
 }));
 
@@ -34,7 +38,7 @@ vi.mock("../InvitationManageDialog", () => ({
 }));
 
 vi.mock("../PTeamAuthEditor", () => ({
-  PTeamAuthEditor: ({ isCurrentUserAdmin }) => (
+  PTeamAuthEditor: ({ isCurrentUserAdmin }: { isCurrentUserAdmin: boolean }) => (
     <label>
       admin authority
       <input type="checkbox" disabled={!isCurrentUserAdmin} />
@@ -50,9 +54,10 @@ const pteamId = "pteam-1";
 const currentUserId = "user-current";
 const theme = createTheme();
 
-const members = [
+const members: Array<PteamMemberGetResponse> = [
   {
     user_id: currentUserId,
+    uid: "uid-current",
     email: "current@example.com",
     disabled: false,
     years: 3,
@@ -60,6 +65,7 @@ const members = [
   },
   {
     user_id: "user-member",
+    uid: "uid-member",
     email: "member@example.com",
     disabled: false,
     years: 1,
@@ -67,19 +73,32 @@ const members = [
   },
 ];
 
-const renderPTeamMember = ({ userMe = {}, memberOverrides = {} } = {}) => {
+type RenderPTeamMemberOptions = {
+  userMe?: Partial<UserResponse>;
+  memberOverrides?: Record<string, Partial<PteamMemberGetResponse>>;
+};
+
+const renderPTeamMember = ({
+  userMe = {},
+  memberOverrides = {},
+}: RenderPTeamMemberOptions = {}) => {
   vi.mocked(useSkipUntilAuthUserIsReady).mockReturnValue(false);
-  vi.mocked(useGetUserMeQuery).mockReturnValue({
+  (useGetUserMeQuery as Mock).mockReturnValue({
     data: {
       user_id: currentUserId,
+      uid: "uid-current",
+      email: "current@example.com",
+      disabled: false,
+      years: 3,
       pteam_roles: [],
+      default_pteam_id: null,
       ...userMe,
     },
     error: undefined,
     isLoading: false,
     isFetching: false,
   });
-  vi.mocked(useGetPTeamQuery).mockReturnValue({
+  (useGetPTeamQuery as Mock).mockReturnValue({
     data: {
       pteam_id: pteamId,
       pteam_name: "Test PTeam",
@@ -120,6 +139,7 @@ describe("PTeamMember", () => {
 
     const memberMenuButton = container.querySelector("#pteam-member-button-user-member");
     expect(memberMenuButton).not.toBeNull();
+    if (!memberMenuButton) throw new Error("member menu button was not found");
     await ue.click(memberMenuButton);
 
     expect(screen.getByText("removeFromTeam")).toBeInTheDocument();

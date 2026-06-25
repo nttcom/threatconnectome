@@ -1,5 +1,6 @@
 import { Avatar, Box, Tab, Tabs, Tooltip } from "@mui/material";
 import { useState } from "react";
+import type { SyntheticEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
@@ -11,7 +12,7 @@ import { APIError } from "../../utils/APIError";
 import { experienceColors, getNoPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func";
 
-import { PTeamMember } from "./PTeamMember.jsx";
+import { PTeamMember } from "./PTeamMember";
 
 export function PTeam() {
   const { t } = useTranslation("pteam", { keyPrefix: "PTeamPage" });
@@ -26,7 +27,7 @@ export function PTeam() {
     data: members,
     error: membersError,
     isLoading: membersIsLoading,
-  } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId } }, { skip });
+  } = useGetPTeamMembersQuery({ path: { pteam_id: pteamId ?? "" } }, { skip });
 
   if (!pteamId) return <>{getNoPTeamMessage()}</>;
   if (skip) return <></>;
@@ -36,9 +37,9 @@ export function PTeam() {
       api: "getPTeamMembers",
     });
 
-  if (membersIsLoading) return <>{t("nowLoadingMembers")}</>;
+  if (membersIsLoading || !members) return <>{t("nowLoadingMembers")}</>;
 
-  const tabHandleChange = (event, newValue) => {
+  const tabHandleChange = (_event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
@@ -60,7 +61,7 @@ export function PTeam() {
                     <Avatar
                       variant="rounded"
                       sx={{
-                        bgcolor: experienceColors[maxYears],
+                        bgcolor: experienceColors[maxYears as keyof typeof experienceColors],
                         color: "black",
                         m: 0.5,
                       }}

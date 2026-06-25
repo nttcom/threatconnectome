@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { UpdateAuthButton } from "../UpdateAuthButton";
 

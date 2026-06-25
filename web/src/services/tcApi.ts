@@ -120,6 +120,16 @@ type DeleteInvitationRequestParams = Pick<
 
 type GetPTeamMembersRequestParams = Pick<GetPteamMembersPteamsPteamIdMembersGetData, "path">;
 
+type DeletePTeamMemberRequestParams = Pick<
+  DeleteMemberPteamsPteamIdMembersUserIdDeleteData,
+  "path"
+>;
+
+type UpdatePTeamMemberRequestParams = Pick<
+  UpdatePteamMemberPteamsPteamIdMembersUserIdPutData,
+  "body" | "path"
+>;
+
 type GetPTeamServicesRequestParams = Pick<GetPteamServicesPteamsPteamIdServicesGetData, "path">;
 
 type GetPTeamVulnIdsRequestParams = Pick<
@@ -372,7 +382,7 @@ export const tcApi = createApi({
           : []),
       ],
     }),
-    deletePTeamMember: builder.mutation<void, DeleteMemberPteamsPteamIdMembersUserIdDeleteData>({
+    deletePTeamMember: builder.mutation<void, DeletePTeamMemberRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/members/${arg.path.user_id}`,
         method: "DELETE",
@@ -382,10 +392,7 @@ export const tcApi = createApi({
         { type: "PTeamAccountRole", id: "ALL" },
       ],
     }),
-    updatePTeamMember: builder.mutation<
-      PTeamMemberUpdateResponse,
-      UpdatePteamMemberPteamsPteamIdMembersUserIdPutData
-    >({
+    updatePTeamMember: builder.mutation<PTeamMemberUpdateResponse, UpdatePTeamMemberRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/members/${arg.path.user_id}`,
         method: "PUT",

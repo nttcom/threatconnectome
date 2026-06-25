@@ -1,7 +1,14 @@
 import { Box, Checkbox } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ChangeEvent } from "react";
 
-export function AuthAdminCheckbox(props) {
+type AuthAdminCheckboxProps = {
+  checked: boolean;
+  editable: boolean;
+  modified: boolean;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+};
+
+export function AuthAdminCheckbox(props: AuthAdminCheckboxProps) {
   const { checked, editable, modified, onChange } = props;
 
   return (
@@ -18,10 +25,3 @@ export function AuthAdminCheckbox(props) {
     </>
   );
 }
-
-AuthAdminCheckbox.propTypes = {
-  checked: PropTypes.bool.isRequired,
-  editable: PropTypes.bool.isRequired,
-  modified: PropTypes.bool.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
