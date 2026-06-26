@@ -9,7 +9,7 @@ import { TabPanel } from "../../components/TabPanel";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetPTeamMembersQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { experienceColors, getNoPTeamMessage } from "../../utils/const";
+import { experienceColors, getExperienceBucket, getNoPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func";
 
 import { PTeamMember } from "./PTeamMember";
@@ -61,7 +61,7 @@ export function PTeam() {
                     <Avatar
                       variant="rounded"
                       sx={{
-                        bgcolor: experienceColors[maxYears as keyof typeof experienceColors],
+                        bgcolor: experienceColors[getExperienceBucket(maxYears)],
                         color: "black",
                         m: 0.5,
                       }}
