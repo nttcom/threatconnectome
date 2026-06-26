@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
+import { authErrorToString } from "../../utils/authErrorUtils";
 
 export default function VerifyEmail(props) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "VerifyEmail" });
@@ -21,7 +22,7 @@ export default function VerifyEmail(props) {
       })
       .catch((error) => {
         console.error(error);
-        setMessage(error.message);
+        setMessage(authErrorToString(error));
       });
   }
 

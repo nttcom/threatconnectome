@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
+import { authErrorToString } from "../../utils/authErrorUtils";
 
 export default function ResetPasswordForm(props) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
@@ -40,7 +41,7 @@ export default function ResetPasswordForm(props) {
       .then(() => showMessage(t("success"), "info"))
       .catch((error) => {
         console.error(error);
-        showMessage(error.message);
+        showMessage(authErrorToString(error));
         setDisabled(false);
       });
     setIsLoading(false);

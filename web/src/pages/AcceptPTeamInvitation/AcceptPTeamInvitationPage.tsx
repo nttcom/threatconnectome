@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -21,13 +22,14 @@ export function AcceptPTeamInvitation() {
 
   const params = new URLSearchParams(useLocation().search);
   const tokenId = params.get("token");
+  const invitationId = tokenId ?? "";
 
-  const skip = useSkipUntilAuthUserIsReady();
+  const skip = useSkipUntilAuthUserIsReady() || !tokenId;
   const {
     data: detail,
     error: detailError,
     isLoading: detailIsLoading,
-  } = useGetPTeamInvitationQuery({ path: { invitation_id: tokenId } }, { skip });
+  } = useGetPTeamInvitationQuery({ path: { invitation_id: invitationId } }, { skip });
 
   if (skip) return <></>;
   if (detailError)
@@ -35,21 +37,28 @@ export function AcceptPTeamInvitation() {
       api: "getPTeamInvitation",
     });
   if (detailIsLoading) return <>{t("loadingUserInfo")}</>;
+  if (!detail) return <></>;
+  const invitationDetail = detail;
 
-  const handleAccept = async (event) => {
+  const handleAccept = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    async function onSuccess(success) {
-      enqueueSnackbar(t("nowMember", { pteamName: detail.pteam_name }), { variant: "info" });
+    async function onSuccess() {
+      enqueueSnackbar(t("nowMember", { pteamName: invitationDetail.pteam_name }), {
+        variant: "info",
+      });
       params.delete("token");
-      params.set("pteamId", detail.pteam_id);
+      params.set("pteamId", invitationDetail.pteam_id);
       navigate("/pteam?" + params.toString());
     }
-    function onError(error) {
-      enqueueSnackbar(t("acceptFailed", { error: errorToString(error) }), { variant: "error" });
+    function onError(error: unknown) {
+      enqueueSnackbar(
+        t("acceptFailed", { error: errorToString(error as Parameters<typeof errorToString>[0]) }),
+        { variant: "error" },
+      );
     }
-    await applyPTeamInvitation({ body: { invitation_id: tokenId } })
+    await applyPTeamInvitation({ body: { invitation_id: invitationId } })
       .unwrap()
-      .then((success) => onSuccess(success))
+      .then(() => onSuccess())
       .catch((error) => onError(error));
   };
 
@@ -57,16 +66,16 @@ export function AcceptPTeamInvitation() {
     <>
       <Typography variant="h6">{t("title")}</Typography>
       <Typography>
-        {t("teamName")}: {detail.pteam_name}
+        {t("teamName")}: {invitationDetail.pteam_name}
       </Typography>
       <Typography>
-        {t("teamId")}: {detail.pteam_id}
+        {t("teamId")}: {invitationDetail.pteam_id}
       </Typography>
       <Typography>
-        {t("invitationCreatedBy")}: {detail.email} ({detail.user_id})
+        {t("invitationCreatedBy")}: {invitationDetail.email} ({invitationDetail.user_id})
       </Typography>
       <Box display="flex" flexDirection="row">
-        <Button onClick={handleAccept} disabled={!detail.pteam_id} sx={commonButtonStyle}>
+        <Button onClick={handleAccept} disabled={!invitationDetail.pteam_id} sx={commonButtonStyle}>
           {t("accept")}
         </Button>
       </Box>

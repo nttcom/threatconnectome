@@ -43,7 +43,7 @@ export function getAuthErrorCode(error: AuthErrorSource): string | undefined {
   return undefined;
 }
 
-export function getAuthErrorLogMessage(error: AuthErrorSource): string | undefined {
+export function authErrorToString(error: AuthErrorSource): string | undefined {
   if (typeof error === "object" && error !== null && "message" in error) {
     return typeof error.message === "string" ? error.message : undefined;
   }

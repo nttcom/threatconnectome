@@ -20,7 +20,6 @@ import type {
   PTeamMemberUpdateResponse,
   UpdatePteamServicePteamsPteamIdServicesServiceIdPutData,
   PTeamServiceUpdateResponse,
-  GetMyUserInfoUsersMeGetData,
   TicketResponse,
   UpdateUserUsersUserIdPutData,
   UserResponse,
@@ -157,12 +156,6 @@ type GetSbomProgressRequestQuery = Pick<
   "path"
 >["path"];
 
-type CreateActionLogRequestParams = Pick<CreateLogActionlogsPostData, "body">;
-
-type UpdatePTeamRequestParams = Pick<UpdatePteamPteamsPteamIdPutData, "body" | "path">;
-
-type DeletePTeamRequestParams = Pick<DeletePteamPteamsPteamIdDeleteData, "path">;
-
 type GetPteamTicketsRequestParams = Pick<
   GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
   "path" | "query"
@@ -173,11 +166,26 @@ type UpdateTicketRequestParams = Pick<
   "body" | "path"
 >;
 
+type GetVulnRequestParams = Pick<GetVulnVulnsVulnIdGetData, "path">;
+
+type CreateActionLogRequestParams = Pick<CreateLogActionlogsPostData, "body">;
+
+type UpdatePTeamRequestParams = Pick<UpdatePteamPteamsPteamIdPutData, "body" | "path">;
+
+type DeletePTeamRequestParams = Pick<DeletePteamPteamsPteamIdDeleteData, "path">;
+
+type GetPTeamInvitationRequestParams = Pick<
+  InvitedPteamPteamsInvitationInvitationIdGetData,
+  "path"
+>;
+
+type ApplyPTeamInvitationRequestParams = Pick<ApplyInvitationPteamsApplyInvitationPostData, "body">;
+
+type CreateUserRequestParams = Pick<CreateUserUsersPostData, "body">;
+
 type CheckMailRequestParams = Pick<CheckEmailExternalEmailCheckPostData, "body">;
 
 type CheckSlackRequestParams = Pick<CheckWebhookUrlExternalSlackCheckPostData, "body">;
-
-type GetVulnRequestParams = Pick<GetVulnVulnsVulnIdGetData, "path">;
 
 export const getBearerToken =
   {
@@ -317,10 +325,7 @@ export const tcApi = createApi({
     }),
 
     /* PTeam Invitation */
-    getPTeamInvitation: builder.query<
-      PTeamInviterResponse,
-      InvitedPteamPteamsInvitationInvitationIdGetData
-    >({
+    getPTeamInvitation: builder.query<PTeamInviterResponse, GetPTeamInvitationRequestParams>({
       query: (arg) => ({
         url: `pteams/invitation/${arg.path.invitation_id}`,
       }),
@@ -347,19 +352,17 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (_result, _error, _arg) => [{ type: "PTeamInvitation", id: "ALL" }],
     }),
-    applyPTeamInvitation: builder.mutation<PTeamInfo, ApplyInvitationPteamsApplyInvitationPostData>(
-      {
-        query: (arg) => ({
-          url: "pteams/apply_invitation",
-          method: "POST",
-          body: arg.body,
-        }),
-        invalidatesTags: (_result, _error, _arg) => [
-          { type: "PTeamAccountRole", id: "ALL" },
-          { type: "PTeamInvitation", id: "ALL" },
-        ],
-      },
-    ),
+    applyPTeamInvitation: builder.mutation<PTeamInfo, ApplyPTeamInvitationRequestParams>({
+      query: (arg) => ({
+        url: "pteams/apply_invitation",
+        method: "POST",
+        body: arg.body,
+      }),
+      invalidatesTags: (_result, _error, _arg) => [
+        { type: "PTeamAccountRole", id: "ALL" },
+        { type: "PTeamInvitation", id: "ALL" },
+      ],
+    }),
     getInvitationList: builder.query<Array<PTeamInvitationResponse>, GetInvitationListQuery>({
       query: (arg) => ({
         url: `pteams/${arg.pteam_id}/invitation`,
@@ -666,13 +669,13 @@ export const tcApi = createApi({
         ) ?? []),
       ],
     }),
-    tryLogin: builder.mutation<UserResponse, GetMyUserInfoUsersMeGetData>({
+    tryLogin: builder.mutation<UserResponse, void>({
       query: () => ({
         url: "users/me",
         method: "GET",
       }),
     }),
-    createUser: builder.mutation<UserResponse, CreateUserUsersPostData>({
+    createUser: builder.mutation<UserResponse, CreateUserRequestParams>({
       query: (arg) => ({
         url: "users",
         method: "POST",

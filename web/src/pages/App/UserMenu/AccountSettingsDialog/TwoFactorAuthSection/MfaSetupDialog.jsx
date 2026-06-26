@@ -23,6 +23,7 @@ import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshoo
 import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTroubleshootingToggleButton";
 import { useAuth } from "../../../../../hooks/auth";
 import { useActionLock } from "../../../../../hooks/useActionLock";
+import { authErrorToString } from "../../../../../utils/authErrorUtils";
 import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
 import {
   getNationalPhoneNumber,
@@ -157,7 +158,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         setStep(1);
       })
       .catch((error) => {
-        setError(error.message);
+        setError(authErrorToString(error));
         setLoading(false);
       });
   };
@@ -172,7 +173,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         setLoading(false);
       })
       .catch((error) => {
-        setError(error.message);
+        setError(authErrorToString(error));
         setLoading(false);
       });
   };
@@ -222,7 +223,7 @@ export function MfaSetupDialog({ open, onClose, onSuccess }) {
         setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
       })
       .catch((error) => {
-        setError(error.message);
+        setError(authErrorToString(error));
         setLoading(false);
       });
   };
