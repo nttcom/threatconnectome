@@ -1,9 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
+import type { ChangeEvent } from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import { AuthAdminCheckbox } from "../AuthAdminCheckbox";
 
-const mockTemplate = () => {
+const mockTemplate = (_event: ChangeEvent<HTMLInputElement>) => {
   throw new Error("Not implemented: You should override mock using vi.fn().");
 };
 

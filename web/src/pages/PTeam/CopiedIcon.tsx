@@ -1,10 +1,13 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { IconButton, Tooltip } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function CopiedIcon(props) {
+type CopiedIconProps = {
+  invitationLink: string;
+};
+
+export function CopiedIcon(props: CopiedIconProps) {
   const { invitationLink } = props;
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -43,7 +46,3 @@ export function CopiedIcon(props) {
     </>
   );
 }
-
-CopiedIcon.propTypes = {
-  invitationLink: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
-};
