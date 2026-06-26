@@ -158,6 +158,12 @@ type GetSbomProgressRequestQuery = Pick<
   "path"
 >["path"];
 
+type CreatePTeamRequestParams = Pick<CreatePteamPteamsPostData, "body">;
+
+type UpdateUserRequestParams = Pick<UpdateUserUsersUserIdPutData, "body" | "path">;
+
+type DeleteUserRequestParams = Pick<DeleteUserUsersMeDeleteData, "body" | "path" | "query">;
+
 type GetPteamTicketsRequestParams = Pick<
   GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
   "path" | "query"
@@ -289,7 +295,7 @@ export const tcApi = createApi({
         ) ?? []),
       ],
     }),
-    createPTeam: builder.mutation<PTeamInfo, CreatePteamPteamsPostData>({
+    createPTeam: builder.mutation<PTeamInfo, CreatePTeamRequestParams>({
       query: (arg) => ({
         url: "pteams",
         method: "POST",
@@ -688,7 +694,7 @@ export const tcApi = createApi({
         body: arg.body,
       }),
     }),
-    updateUser: builder.mutation<UserResponse, UpdateUserUsersUserIdPutData>({
+    updateUser: builder.mutation<UserResponse, UpdateUserRequestParams>({
       query: (arg) => ({
         url: `users/${arg.path.user_id}`,
         method: "PUT",
@@ -696,7 +702,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (_result, _error, _arg) => [{ type: "Account", id: _arg.path.user_id }],
     }),
-    deleteUser: builder.mutation<void, DeleteUserUsersMeDeleteData>({
+    deleteUser: builder.mutation<void, DeleteUserRequestParams | void>({
       query: () => ({
         url: "users/me",
         method: "DELETE",
