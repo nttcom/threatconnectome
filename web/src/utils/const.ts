@@ -26,6 +26,7 @@ export const experienceColors = {
 
 export type ExperienceBucket = 0 | 2 | 5 | 7;
 
+// Use the lower-bound bucket that matches the displayed labels: 0+, 2+, 5+, 7+.
 export const getExperienceBucket = (years: number): ExperienceBucket => {
   if (years >= 7) return 7;
   if (years >= 5) return 5;
