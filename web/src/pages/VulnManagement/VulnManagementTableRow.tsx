@@ -21,7 +21,8 @@ export function VulnManagementTableRow(props: VulnManagementTableRowProps) {
 
   const params = new URLSearchParams(location.search);
 
-  const cvss = cvssConvertToName(vuln.cvss_v3_score ?? 0) as keyof typeof cvssProps;
+  const cvssScore = vuln.cvss_v3_score == null ? "N/A" : vuln.cvss_v3_score;
+  const cvss = cvssConvertToName(cvssScore);
   const cveId = vuln.cve_id == null ? t("noKnownCve") : vuln.cve_id;
 
   return (

@@ -23,7 +23,8 @@ export function VulnManagementCardList({ vulns }: VulnManagementCardListProps) {
     <Stack spacing={2} sx={{ mt: 1 }}>
       {vulns?.length > 0 ? (
         vulns.map((vuln) => {
-          const cvss = cvssConvertToName(vuln.cvss_v3_score ?? 0) as keyof typeof cvssProps;
+          const cvssScore = vuln.cvss_v3_score == null ? "N/A" : vuln.cvss_v3_score;
+          const cvss = cvssConvertToName(cvssScore);
           const cveId = vuln.cve_id == null ? t("noKnownCve") : vuln.cve_id;
 
           const handleCardClick = () => {

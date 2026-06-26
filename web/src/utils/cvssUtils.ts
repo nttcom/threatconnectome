@@ -39,16 +39,18 @@ export const getCvssColor = (score: number | null | undefined) => {
   return "success.main";
 };
 
-export const cvssConvertToName = (cvssScore: number) => {
+export type CVSSRatingName = keyof typeof cvssRatings;
+
+export const cvssConvertToName = (cvssScore: number | "N/A" | null | undefined): CVSSRatingName => {
+  if (typeof cvssScore !== "number") return "None";
+
   for (const [name, range] of Object.entries(cvssRatings)) {
     if (range.min <= cvssScore && cvssScore <= range.max) {
-      return name;
+      return name as CVSSRatingName;
     }
   }
   return "None";
 };
-
-type CVSSRatingName = "None" | "Low" | "Medium" | "High" | "Critical";
 
 export const cvssConvertToScore = (cvssName: CVSSRatingName) => {
   const rating = cvssRatings[cvssName];
