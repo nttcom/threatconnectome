@@ -24,6 +24,15 @@ export const experienceColors = {
   7: red[500],
 };
 
+export type ExperienceBucket = 0 | 2 | 5 | 7;
+
+export const getExperienceBucket = (years: number): ExperienceBucket => {
+  if (years >= 7) return 7;
+  if (years >= 5) return 5;
+  if (years >= 2) return 2;
+  return 0;
+};
+
 /* Safety Impact */
 export const sortedSafetyImpacts = [
   // should match with strings which api returns

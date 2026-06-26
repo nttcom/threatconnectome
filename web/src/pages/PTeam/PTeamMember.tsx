@@ -20,7 +20,7 @@ import { UUIDTypography } from "../../components/UUIDTypography";
 import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { useGetUserMeQuery } from "../../services/tcApi";
 import { APIError } from "../../utils/APIError";
-import { experienceColors } from "../../utils/const";
+import { experienceColors, getExperienceBucket } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 import type { PteamMemberGetResponse } from "../../../types/types.gen";
 
@@ -120,7 +120,7 @@ export function PTeamMember(props: PTeamMemberProps) {
                   variant="rounded"
                   sizes="small"
                   sx={{
-                    bgcolor: experienceColors[member.years as keyof typeof experienceColors],
+                    bgcolor: experienceColors[getExperienceBucket(member.years)],
                     color: "black",
                     ml: 1,
                     width: 30,
@@ -164,7 +164,7 @@ export function PTeamMember(props: PTeamMemberProps) {
                       <Avatar
                         variant="rounded"
                         sx={{
-                          bgcolor: experienceColors[member.years as keyof typeof experienceColors],
+                          bgcolor: experienceColors[getExperienceBucket(member.years)],
                           color: "black",
                           m: 0.5,
                         }}

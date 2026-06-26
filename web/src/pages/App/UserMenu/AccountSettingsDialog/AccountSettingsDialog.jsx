@@ -21,6 +21,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../../../hooks/auth";
+import { getExperienceBucket } from "../../../../utils/const";
 import { DeleteAccountDialog } from "../DeleteAccountDialog";
 
 import { TwoFactorAuthSection } from "./TwoFactorAuthSection/TwoFactorAuthSection";
@@ -89,9 +90,9 @@ export function AccountSettingsDialog(props) {
                 </Box>
                 <Select
                   size="small"
-                  value={userMe.years}
+                  value={getExperienceBucket(userMe.years)}
                   onChange={(e) => {
-                    onUpdateUser({ years: e.target.value });
+                    onUpdateUser({ years: Number(e.target.value) });
                   }}
                   sx={{ minWidth: 130 }}
                 >
