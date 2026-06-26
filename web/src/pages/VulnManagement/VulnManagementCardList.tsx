@@ -1,16 +1,20 @@
 import UpdateIcon from "@mui/icons-material/Update";
 import { Card, CardContent, Chip, Box, Typography, Stack } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
+import type { VulnResponse } from "../../../types/types.gen";
 
 import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 import { preserveParams } from "../../utils/urlUtils";
 
 import { FormattedDateTimeWithTooltip } from "./FormattedDateTimeWithTooltip";
 
-export function VulnManagementCardList({ vulns }) {
+type VulnManagementCardListProps = {
+  vulns: VulnResponse[];
+};
+
+export function VulnManagementCardList({ vulns }: VulnManagementCardListProps) {
   const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementCardList" });
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,13 +23,9 @@ export function VulnManagementCardList({ vulns }) {
     <Stack spacing={2} sx={{ mt: 1 }}>
       {vulns?.length > 0 ? (
         vulns.map((vuln) => {
-          const cvssScore =
-            vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null
-              ? "N/A"
-              : vuln.cvss_v3_score;
-
+          const cvssScore = vuln.cvss_v3_score == null ? "N/A" : vuln.cvss_v3_score;
           const cvss = cvssConvertToName(cvssScore);
-          const cveId = vuln.cve_id === null ? t("noKnownCve") : vuln.cve_id;
+          const cveId = vuln.cve_id == null ? t("noKnownCve") : vuln.cve_id;
 
           const handleCardClick = () => {
             const preservedParams = preserveParams(location.search);
@@ -65,7 +65,3 @@ export function VulnManagementCardList({ vulns }) {
     </Stack>
   );
 }
-
-VulnManagementCardList.propTypes = {
-  vulns: PropTypes.array.isRequired,
-};

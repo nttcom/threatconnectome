@@ -12,12 +12,16 @@ import {
   Paper,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
+import type { VulnResponse } from "../../../types/types.gen";
 
 import { VulnManagementTableRow } from "./VulnManagementTableRow";
 
-export function VulnManagementTable(props) {
+type VulnManagementTableProps = {
+  vulns: VulnResponse[];
+};
+
+export function VulnManagementTable(props: VulnManagementTableProps) {
   const { t } = useTranslation("vulnManagement", { keyPrefix: "VulnManagementTable" });
   const { vulns } = props;
 
@@ -60,6 +64,3 @@ export function VulnManagementTable(props) {
     </TableContainer>
   );
 }
-VulnManagementTable.propTypes = {
-  vulns: PropTypes.array.isRequired,
-};

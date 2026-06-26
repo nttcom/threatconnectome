@@ -1,9 +1,16 @@
 import { Tooltip, Typography } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material";
 import { format } from "date-fns";
-import PropTypes from "prop-types";
 
-export function FormattedDateTimeWithTooltip(props) {
+type FormattedDateTimeWithTooltipProps = {
+  utcString?: string | null;
+  formatString?: string;
+  sx?: SxProps<Theme>;
+};
+
+export function FormattedDateTimeWithTooltip(props: FormattedDateTimeWithTooltipProps) {
   const { utcString, formatString = "PPp", sx } = props; // see https://date-fns.org/v3.0.0/docs/format for details
+  const typographySx = [{ overflowWrap: "anywhere" }, ...(Array.isArray(sx) ? sx : [sx])];
 
   try {
     if (!utcString) throw new Error("empty string");
@@ -12,15 +19,10 @@ export function FormattedDateTimeWithTooltip(props) {
     const formattedDate = format(localDate, formatString);
     return (
       <Tooltip title={tipTitle}>
-        <Typography sx={{ overflowWrap: "anywhere", ...sx }}>{formattedDate}</Typography>
+        <Typography sx={typographySx}>{formattedDate}</Typography>
       </Tooltip>
     );
   } catch (error) {
-    return <Typography sx={{ overflowWrap: "anywhere", ...sx }}> - </Typography>;
+    return <Typography sx={typographySx}> - </Typography>;
   }
 }
-FormattedDateTimeWithTooltip.propTypes = {
-  utcString: PropTypes.string,
-  formatString: PropTypes.string,
-  sx: PropTypes.object,
-};

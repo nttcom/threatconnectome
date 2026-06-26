@@ -93,6 +93,8 @@ type GetDependenciesRequestParams = Pick<
   "path" | "query"
 >;
 
+type GetVulnsRequestParams = Pick<GetVulnsVulnsGetData, "query">;
+
 type GetDependencyRequestParams = Pick<
   GetDependencyPteamsPteamIdDependenciesDependencyIdGetData,
   "path"
@@ -698,7 +700,7 @@ export const tcApi = createApi({
     }),
 
     /* Vuln */
-    getVulns: builder.query<VulnsListResponse, GetVulnsVulnsGetData>({
+    getVulns: builder.query<VulnsListResponse, GetVulnsRequestParams>({
       query: (arg) => ({
         url: "vulns",
         params: arg.query,
