@@ -701,7 +701,7 @@ class Vuln(Base):
     vuln_id: Mapped[StrUUID] = mapped_column(primary_key=True)
     cve_id: Mapped[str | None] = mapped_column(nullable=True)
     detail: Mapped[str]
-    title: Mapped[Str255]
+    title: Mapped[str]
     created_by: Mapped[StrUUID | None] = mapped_column(
         ForeignKey("account.user_id", ondelete="SET NULL"), index=True, nullable=True
     )
