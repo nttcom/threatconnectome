@@ -1,10 +1,14 @@
 import { List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-import { objectCategoryIcons } from "./insightConst.js";
+import type { AffectedObject as AffectedObjectType } from "../../../../types/types.gen";
+import { objectCategoryIcons } from "./insightConst";
 
-export function AffectedObject(props) {
+type AffectedObjectProps = {
+  affectedObjects: AffectedObjectType[];
+};
+
+export function AffectedObject(props: AffectedObjectProps) {
   const { affectedObjects } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "Insights.AffectedObject" });
 
@@ -37,7 +41,3 @@ export function AffectedObject(props) {
     </>
   );
 }
-
-AffectedObject.propTypes = {
-  affectedObjects: PropTypes.arrayOf(PropTypes.object).isRequired,
-};

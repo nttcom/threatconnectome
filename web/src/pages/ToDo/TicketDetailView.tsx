@@ -11,11 +11,12 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ReactNode, SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import type { DependencyResponse, TicketResponse } from "../../../types/types.gen";
 import { CustomTabPanel } from "../../components/CustomTabPanel";
 import { AssigneesSelector } from "../../components/Ticket/AssigneesSelector";
 import {
@@ -27,14 +28,28 @@ import {
 import { APIError } from "../../utils/APIError";
 import { errorToString, utcStringToLocalDate } from "../../utils/func";
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
-import { preserveParams } from "../../utils/urlUtils.js";
-import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis.jsx";
+import { preserveParams } from "../../utils/urlUtils";
+import { RiskAnalysis } from "../ToDo/Insights/RiskAnalysis";
 
-import { SafetyImpactSelector } from "./SafetyImpactSelector.jsx";
-import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector.jsx";
-import { VulnerabilityView } from "./VulnerabilityView.jsx";
+import { SafetyImpactSelector } from "./SafetyImpactSelector";
+import { TicketHandlingStatusSelector } from "./TicketHandlingStatusSelector";
+import { VulnerabilityView } from "./VulnerabilityView";
 
-function DetailRow({ label, children }) {
+type DetailRowProps = {
+  label: string;
+  children: ReactNode;
+};
+
+type TicketDetailViewProps = {
+  ticket: TicketResponse;
+};
+
+type CurrentPackage = Pick<
+  DependencyResponse,
+  "package_name" | "package_source_name" | "package_ecosystem" | "vuln_matching_ecosystem"
+>;
+
+function DetailRow({ label, children }: DetailRowProps) {
   return (
     <Stack
       spacing={{ xs: 0.5, sm: 2 }}
@@ -54,7 +69,7 @@ function DetailRow({ label, children }) {
   );
 }
 
-export function TicketDetailView({ ticket }) {
+export function TicketDetailView({ ticket }: TicketDetailViewProps) {
   const { t } = useTranslation("toDo", { keyPrefix: "TicketDetailView" });
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
@@ -117,7 +132,8 @@ export function TicketDetailView({ ticket }) {
 
   const ssvc = ticket.ssvc_deployer_priority;
   const ssvcPriorityProps = getSsvcPriorityProps();
-  const ssvcPriority = ssvcPriorityProps[ssvc?.toLowerCase()] || ssvcPriorityProps["defer"];
+  const ssvcKey = (ssvc?.toLowerCase() ?? "defer") as keyof typeof ssvcPriorityProps;
+  const ssvcPriority = ssvcPriorityProps[ssvcKey] || ssvcPriorityProps["defer"];
 
   const dueDate = useMemo(() => {
     if (!ticket.ticket_status?.scheduled_at) return "-";
@@ -159,17 +175,25 @@ export function TicketDetailView({ ticket }) {
     );
   }
 
-  const currentPackage = {
-    package_name: dependency?.package_name,
-    package_source_name: dependency?.package_source_name,
-    package_ecosystem: dependency?.package_ecosystem,
-    vuln_matching_ecosystem: dependency?.vuln_matching_ecosystem,
-  };
+  const currentPackage: CurrentPackage | null = dependency
+    ? {
+        package_name: dependency?.package_name,
+        package_source_name: dependency?.package_source_name,
+        package_ecosystem: dependency?.package_ecosystem,
+        vuln_matching_ecosystem: dependency?.vuln_matching_ecosystem,
+      }
+    : null;
+  const cvssScore = vuln?.cvss_v3_score;
+  const cvss =
+    typeof cvssScore === "number" && Number.isFinite(cvssScore) ? cvssScore.toFixed(1) : "N/A";
 
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
+        <Tabs
+          value={tabValue}
+          onChange={(_event: SyntheticEvent, value: number) => setTabValue(value)}
+        >
           <Tab label={t("tabTicket")} />
           <Tab label={t("tabVuln")} />
           <Tab label={t("tabInsights")} />
@@ -257,7 +281,11 @@ export function TicketDetailView({ ticket }) {
         </Stack>
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
-        <VulnerabilityView vuln={vuln} currentPackage={currentPackage} />
+        {vuln && currentPackage ? (
+          <VulnerabilityView vuln={vuln} currentPackage={currentPackage} />
+        ) : (
+          <Typography>-</Typography>
+        )}
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={2}>
         <RiskAnalysis
@@ -265,18 +293,9 @@ export function TicketDetailView({ ticket }) {
           serviceName={service?.service_name || "-"}
           ecosystem={dependency?.package_ecosystem || "-"}
           cveId={vuln?.cve_id || "No Known CVE"}
-          cvss={Number.isFinite(vuln?.cvss_v3_score) ? vuln.cvss_v3_score.toFixed(1) : "N/A"}
+          cvss={cvss}
         />
       </CustomTabPanel>
     </>
   );
 }
-
-TicketDetailView.propTypes = {
-  ticket: PropTypes.object.isRequired,
-};
-
-DetailRow.propTypes = {
-  label: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-};

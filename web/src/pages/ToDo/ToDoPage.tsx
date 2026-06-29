@@ -1,4 +1,5 @@
 import { useMediaQuery } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 
 import { useTodoState } from "../../hooks/ToDo/useTodoState";
@@ -12,7 +13,7 @@ import { ToDoTableView } from "./ToDoTableView/ToDoTableView";
 
 export function ToDo() {
   const { t } = useTranslation("toDo", { keyPrefix: "ToDoPage" });
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
 
   // All URL state management for the ToDo page is encapsulated in this custom hook.
   // It includes ToDo-specific logic, such as resetting the page on filter/sort changes,

@@ -1,10 +1,15 @@
 import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
 import { Button, ClickAwayListener, Grow, MenuItem, MenuList, Paper, Popper } from "@mui/material";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
+import type {
+  TicketHandlingStatusType,
+  TicketStatusRequest,
+  TicketStatusResponse,
+} from "../../../types/types.gen";
 import { CompleteTicketDialog } from "../../components/Ticket/CompleteTicketDialog";
 import { ScheduleTicketDialog } from "../../components/Ticket/ScheduleTicketDialog";
 import VulnDialogContext from "../../components/VulnDialogContext";
@@ -12,22 +17,36 @@ import { useUpdateTicketMutation } from "../../services/tcApi";
 import { ticketHandlingStatusProps } from "../../utils/const";
 import { errorToString } from "../../utils/func";
 
-export function TicketHandlingStatusSelector(props) {
+type TicketHandlingStatusSelectorProps = {
+  pteamId: string;
+  serviceId: string;
+  vulnId: string;
+  packageVersionId?: string;
+  ticketId: string;
+  currentStatus: TicketStatusResponse;
+};
+
+type SelectableStatusItem = {
+  display: string;
+  rawStatus: Exclude<TicketHandlingStatusType, "alerted">;
+  disabled: boolean;
+};
+
+export function TicketHandlingStatusSelector(props: TicketHandlingStatusSelectorProps) {
   const { pteamId, serviceId, vulnId, packageVersionId, ticketId, currentStatus } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "TicketHandlingStatusSelector" });
 
   const [open, setOpen] = useState(false);
-  const anchorRef = useRef(null);
+  const anchorRef = useRef<HTMLButtonElement | null>(null);
   const [datepickerOpen, setDatepickerOpen] = useState(false);
-  const [schedule, setSchedule] = useState(null); // Date object
+  const [schedule, setSchedule] = useState<Date | null>(null);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
   const [updateTicket] = useUpdateTicketMutation();
 
-  const dateFormat = "yyyy/MM/dd HH:mm";
-  const selectableItems = [
+  const selectableItems: SelectableStatusItem[] = [
     {
       display: "Acknowledge",
       rawStatus: "acknowledged",
@@ -41,13 +60,13 @@ export function TicketHandlingStatusSelector(props) {
     },
   ];
 
-  const modifyTicketStatus = async (selectedStatus) => {
-    let requestParams = { ticket_handling_status: selectedStatus };
+  const modifyTicketStatus = async (selectedStatus: TicketHandlingStatusType) => {
+    const requestParams: TicketStatusRequest = { ticket_handling_status: selectedStatus };
     if (selectedStatus === "scheduled") {
       if (!schedule) return;
-      requestParams["scheduled_at"] = schedule.toISOString();
+      requestParams.scheduled_at = schedule.toISOString();
     } else if (selectedStatus === "acknowledged") {
-      requestParams["scheduled_at"] = null;
+      requestParams.scheduled_at = null;
     }
     await updateTicket({
       path: { pteam_id: pteamId, ticket_id: ticketId },
@@ -64,7 +83,10 @@ export function TicketHandlingStatusSelector(props) {
       );
   };
 
-  const handleUpdateStatus = async (event, item) => {
+  const handleUpdateStatus = async (
+    _event: ReactMouseEvent<HTMLElement>,
+    item: SelectableStatusItem,
+  ) => {
     setOpen(false);
     switch (item.rawStatus) {
       case "completed":
@@ -84,8 +106,8 @@ export function TicketHandlingStatusSelector(props) {
     modifyTicketStatus("scheduled");
   };
 
-  const handleClose = (event) => {
-    if (anchorRef.current?.contains(event.target)) return;
+  const handleClose = (event: MouseEvent | TouchEvent) => {
+    if (event.target instanceof Node && anchorRef.current?.contains(event.target)) return;
     setOpen(false);
   };
 
@@ -94,8 +116,6 @@ export function TicketHandlingStatusSelector(props) {
   const handleHideDatepicker = () => {
     setDatepickerOpen(false);
   };
-  const now = new Date();
-
   return (
     <>
       <VulnDialogContext value={{ vulnId }}>
@@ -177,12 +197,3 @@ export function TicketHandlingStatusSelector(props) {
     </>
   );
 }
-
-TicketHandlingStatusSelector.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  serviceId: PropTypes.string.isRequired,
-  vulnId: PropTypes.string.isRequired,
-  packageVersionId: PropTypes.string.isRequired,
-  ticketId: PropTypes.string.isRequired,
-  currentStatus: PropTypes.object.isRequired,
-};

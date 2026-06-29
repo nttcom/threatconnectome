@@ -13,32 +13,49 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import PropTypes from "prop-types";
+import type { SyntheticEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type {
+  InsightResponse,
+  ThreatScenario as ThreatScenarioType,
+} from "../../../../types/types.gen";
 import { CustomTabPanel } from "../../../components/CustomTabPanel";
 
-import { AffectedObject } from "./AffectedObject.jsx";
-import { InsightReference } from "./InsightReference.jsx";
-import { ThreatScenario } from "./ThreatScenario.jsx";
-import { impactCategoryIcons } from "./insightConst.js";
+import { AffectedObject } from "./AffectedObject";
+import { InsightReference } from "./InsightReference";
+import { ThreatScenario } from "./ThreatScenario";
+import { impactCategoryIcons } from "./insightConst";
 
-export function RiskAnalysisView(props) {
+type RiskAnalysisViewProps = {
+  insight: InsightResponse;
+  serviceName: string;
+  ecosystem: string;
+  cveId: string;
+  cvss: string;
+};
+
+export function RiskAnalysisView(props: RiskAnalysisViewProps) {
   const { insight, serviceName, ecosystem, cveId, cvss } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "Insights.RiskAnalysisView" });
 
   const [tabValue, setTabValue] = useState(0);
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-  const uniqueThreatScenarios = insight.threat_scenarios.filter(
+  const threatScenarios = insight.threat_scenarios ?? [];
+  const affectedObjects = insight.affected_objects ?? [];
+  const insightReferences = insight.insight_references ?? [];
+
+  const uniqueThreatScenarios = threatScenarios.filter(
     (scenario, index, self) =>
       index === self.findIndex((s) => s.impact_category === scenario.impact_category),
   );
 
-  const isIconValid = (scenario) => Boolean(impactCategoryIcons[scenario.impact_category]?.icon);
+  const isIconValid = (scenario: ThreatScenarioType) =>
+    Boolean(impactCategoryIcons[scenario.impact_category]?.icon);
   if (!uniqueThreatScenarios.every((scenario) => isIconValid(scenario))) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -139,17 +156,17 @@ export function RiskAnalysisView(props) {
               </Tabs>
             </Box>
             <CustomTabPanel value={tabValue} index={0}>
-              <ThreatScenario threatScenarios={insight.threat_scenarios} />
+              <ThreatScenario threatScenarios={threatScenarios} />
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={1}>
-              <AffectedObject affectedObjects={insight.affected_objects} />
+              <AffectedObject affectedObjects={affectedObjects} />
             </CustomTabPanel>
 
             <CustomTabPanel value={tabValue} index={2}>
               <InsightReference
                 dataProcessingStrategy={insight.data_processing_strategy}
-                insightReferences={insight.insight_references}
+                insightReferences={insightReferences}
               />
             </CustomTabPanel>
           </Grid>
@@ -176,11 +193,3 @@ export function RiskAnalysisView(props) {
     </>
   );
 }
-
-RiskAnalysisView.propTypes = {
-  insight: PropTypes.object.isRequired,
-  serviceName: PropTypes.string.isRequired,
-  ecosystem: PropTypes.string.isRequired,
-  cveId: PropTypes.string.isRequired,
-  cvss: PropTypes.string.isRequired,
-};

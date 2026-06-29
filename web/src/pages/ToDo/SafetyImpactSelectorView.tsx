@@ -16,13 +16,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material";
 import { tooltipClasses } from "@mui/material/Tooltip";
+import type { TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { useSnackbar } from "notistack";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { SafetyImpactEnum } from "../../../types/types.gen";
 import { useViewportOffset } from "../../hooks/useViewportOffset";
 import {
   safetyImpactProps,
@@ -32,29 +34,52 @@ import {
 import { countFullWidthAndHalfWidthCharacters } from "../../utils/func";
 
 const TOOLTIP_TEXT_LIMIT = 150;
+const DEFAULT_SAFETY_IMPACT_ITEM = "Default";
 
-export function SafetyImpactSelectorView(props) {
+type SafetyImpactSelectorViewProps = {
+  fixedTicketSafetyImpact: SafetyImpactEnum | null;
+  fixedTicketSafetyImpactChangeReason: string | null;
+  onSave: (safetyImpact: SafetyImpactEnum | null, reason: string) => void;
+};
+
+const StyledTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} leaveDelay={500} />
+))(() => ({
+  [`& .${tooltipClasses.arrow}`]: {
+    "&:before": {
+      border: "1px solid #dadde9",
+    },
+    color: "#f5f5f9",
+  },
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "#f5f5f9",
+    color: "rgba(0, 0, 0, 0.87)",
+    border: "1px solid #dadde9",
+  },
+}));
+
+export function SafetyImpactSelectorView(props: SafetyImpactSelectorViewProps) {
   const { fixedTicketSafetyImpact, fixedTicketSafetyImpactChangeReason, onSave } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "SafetyImpactSelectorView" });
 
-  const [pendingSafetyImpact, setPendingSafetyImpact] = useState("");
+  const [pendingSafetyImpact, setPendingSafetyImpact] = useState<
+    SafetyImpactEnum | typeof DEFAULT_SAFETY_IMPACT_ITEM
+  >(DEFAULT_SAFETY_IMPACT_ITEM);
   const [pendingReasonSafetyImpact, setPendingReasonSafetyImpact] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [readMoreDialogOpen, setReadMoreDialogOpen] = useState(false);
-
-  const defaultSafetyImpactItem = "Default";
 
   const { enqueueSnackbar } = useSnackbar();
   const viewportOffsetTop = useViewportOffset();
 
   const handleOpenDialog = () => {
-    setPendingSafetyImpact(fixedTicketSafetyImpact || defaultSafetyImpactItem);
+    setPendingSafetyImpact(fixedTicketSafetyImpact || DEFAULT_SAFETY_IMPACT_ITEM);
     setPendingReasonSafetyImpact(fixedTicketSafetyImpactChangeReason || "");
     setOpenDialog(true);
   };
 
-  const handleSelectSafetyImpact = (e) => {
-    setPendingSafetyImpact(e.target.value);
+  const handleSelectSafetyImpact = (e: SelectChangeEvent) => {
+    setPendingSafetyImpact(e.target.value as SafetyImpactEnum | typeof DEFAULT_SAFETY_IMPACT_ITEM);
   };
 
   const handleClose = () => {
@@ -63,13 +88,13 @@ export function SafetyImpactSelectorView(props) {
 
   const handleSave = () => {
     onSave(
-      pendingSafetyImpact === defaultSafetyImpactItem ? null : pendingSafetyImpact,
+      pendingSafetyImpact === DEFAULT_SAFETY_IMPACT_ITEM ? null : pendingSafetyImpact,
       pendingReasonSafetyImpact,
     );
     setOpenDialog(false);
   };
 
-  const handleReasonSafetyImpactLengthCheck = (string) => {
+  const handleReasonSafetyImpactLengthCheck = (string: string) => {
     if (countFullWidthAndHalfWidthCharacters(string.trim()) > maxReasonSafetyImpactLengthInHalf) {
       enqueueSnackbar(
         t("reasonTooLong", {
@@ -89,24 +114,8 @@ export function SafetyImpactSelectorView(props) {
   };
 
   const isSaveDisabled =
-    (fixedTicketSafetyImpact || defaultSafetyImpactItem) === pendingSafetyImpact &&
+    (fixedTicketSafetyImpact || DEFAULT_SAFETY_IMPACT_ITEM) === pendingSafetyImpact &&
     (fixedTicketSafetyImpactChangeReason || "") === pendingReasonSafetyImpact;
-
-  const StyledTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} classes={{ popper: className }} leaveDelay={500} />
-  ))(() => ({
-    [`& .${tooltipClasses.arrow}`]: {
-      "&:before": {
-        border: "1px solid #dadde9",
-      },
-      color: "#f5f5f9",
-    },
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: "#f5f5f9",
-      color: "rgba(0, 0, 0, 0.87)",
-      border: "1px solid #dadde9",
-    },
-  }));
 
   const handleOpenReadMoreDialog = () => {
     setReadMoreDialogOpen(true);
@@ -144,13 +153,13 @@ export function SafetyImpactSelectorView(props) {
       <FormControl size="small" variant="standard">
         <Select
           open={false}
-          value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : defaultSafetyImpactItem}
+          value={fixedTicketSafetyImpact ? fixedTicketSafetyImpact : DEFAULT_SAFETY_IMPACT_ITEM}
           onOpen={handleOpenDialog}
         >
-          <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
-            {defaultSafetyImpactItem}
+          <MenuItem key={DEFAULT_SAFETY_IMPACT_ITEM} value={DEFAULT_SAFETY_IMPACT_ITEM}>
+            {DEFAULT_SAFETY_IMPACT_ITEM}
           </MenuItem>
-          {sortedSafetyImpacts.map((safetyImpact) => (
+          {(sortedSafetyImpacts as SafetyImpactEnum[]).map((safetyImpact) => (
             <MenuItem key={safetyImpact} value={safetyImpact}>
               {safetyImpactProps[safetyImpact].displayName}
             </MenuItem>
@@ -174,10 +183,10 @@ export function SafetyImpactSelectorView(props) {
                 onChange={handleSelectSafetyImpact}
                 inputProps={{ "aria-label": "Safety Impact" }}
               >
-                <MenuItem key={defaultSafetyImpactItem} value={defaultSafetyImpactItem}>
-                  {defaultSafetyImpactItem}
+                <MenuItem key={DEFAULT_SAFETY_IMPACT_ITEM} value={DEFAULT_SAFETY_IMPACT_ITEM}>
+                  {DEFAULT_SAFETY_IMPACT_ITEM}
                 </MenuItem>
-                {sortedSafetyImpacts.map((safetyImpact) => (
+                {(sortedSafetyImpacts as SafetyImpactEnum[]).map((safetyImpact) => (
                   <MenuItem key={safetyImpact} value={safetyImpact}>
                     {safetyImpactProps[safetyImpact]?.displayName}
                   </MenuItem>
@@ -224,8 +233,3 @@ export function SafetyImpactSelectorView(props) {
     </Box>
   );
 }
-SafetyImpactSelectorView.propTypes = {
-  fixedTicketSafetyImpact: PropTypes.string,
-  fixedTicketSafetyImpactChangeReason: PropTypes.string,
-  onSave: PropTypes.func.isRequired,
-};

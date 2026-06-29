@@ -1,14 +1,26 @@
-import PropTypes from "prop-types";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { useTranslation } from "react-i18next";
 
-import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth.js";
-import { useGetInsightQuery } from "../../../services/tcApi.js";
+import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
+import { useGetInsightQuery } from "../../../services/tcApi";
 import { APIError } from "../../../utils/APIError";
 import { errorToString } from "../../../utils/func";
 
-import { RiskAnalysisView } from "./RiskAnalysisView.jsx";
+import { RiskAnalysisView } from "./RiskAnalysisView";
 
-export function RiskAnalysis(props) {
+type RiskAnalysisProps = {
+  ticketId: string;
+  serviceName: string;
+  ecosystem: string;
+  cveId: string;
+  cvss: string;
+};
+
+function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
+  return typeof error === "object" && error !== null && "status" in error;
+}
+
+export function RiskAnalysis(props: RiskAnalysisProps) {
   const { ticketId, serviceName, ecosystem, cveId, cvss } = props;
   const { t } = useTranslation("toDo", { keyPrefix: "Insights.RiskAnalysis" });
 
@@ -28,7 +40,7 @@ export function RiskAnalysis(props) {
 
   if (skip) return <></>;
   if (insightError) {
-    if (insightError.status === 404) {
+    if (isFetchBaseQueryError(insightError) && insightError.status === 404) {
       return <>{t("noInsight")}</>;
     }
     throw new APIError(errorToString(insightError), {
@@ -36,6 +48,7 @@ export function RiskAnalysis(props) {
     });
   }
   if (insightIsLoading) return <>{t("loadingInsight")}</>;
+  if (!insight) return <>{t("noInsight")}</>;
 
   return (
     <RiskAnalysisView
@@ -47,11 +60,3 @@ export function RiskAnalysis(props) {
     />
   );
 }
-
-RiskAnalysis.propTypes = {
-  ticketId: PropTypes.string.isRequired,
-  serviceName: PropTypes.string.isRequired,
-  ecosystem: PropTypes.string.isRequired,
-  cveId: PropTypes.string.isRequired,
-  cvss: PropTypes.string.isRequired,
-};
