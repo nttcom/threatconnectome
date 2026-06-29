@@ -8,9 +8,21 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import PropTypes from "prop-types";
 
-export function VulnSSVCElement(props) {
+type SSVCValue = {
+  key: string;
+  name: string;
+  valueDescription: string;
+};
+
+type VulnSSVCElementProps = {
+  title: string;
+  titleDescription: string;
+  values: SSVCValue[];
+  value?: string | null;
+};
+
+export function VulnSSVCElement(props: VulnSSVCElementProps) {
   const { title, titleDescription, values, value } = props;
 
   const filterValue = values.filter((item) => value === item.key)[0];
@@ -46,9 +58,3 @@ export function VulnSSVCElement(props) {
     </Grid>
   );
 }
-VulnSSVCElement.propTypes = {
-  title: PropTypes.string.isRequired,
-  titleDescription: PropTypes.string.isRequired,
-  values: PropTypes.array.isRequired,
-  value: PropTypes.string.isRequired,
-};

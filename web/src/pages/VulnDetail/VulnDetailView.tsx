@@ -3,27 +3,33 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
 } from "@mui/icons-material";
 import { Badge, Box, Button, Card, Chip, MenuItem, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ActionTypeIcon } from "../../components/ActionTypeIcon";
 import { PackageView } from "../../components/PackageView";
+import type { VulnResponse } from "../../../types/types.gen";
 import { utcStringToLocalDate } from "../../utils/func";
 
 import { VulnCVSSCard } from "./VulnCVSSCard";
 import { VulnSSVCCards } from "./VulnSSVCCards";
 
-const packageChip = (chipNumber) => {
+type VulnDetailViewProps = {
+  vuln: VulnResponse;
+  updateActions: string[];
+};
+
+const packageChip = (chipNumber: number) => {
   const packageMax = 99;
   return chipNumber <= packageMax ? chipNumber : `${packageMax}+`;
 };
 
-export function VulnDetailView(props) {
+export function VulnDetailView(props: VulnDetailViewProps) {
   const { vuln, updateActions } = props;
   const { t } = useTranslation("vulnDetail", { keyPrefix: "VulnDetailView" });
 
   const [showAllPackages, setShowAllPackages] = useState(false);
+  const vulnerablePackages = vuln.vulnerable_packages ?? [];
 
   return (
     <>
@@ -33,7 +39,7 @@ export function VulnDetailView(props) {
         <Card variant="outlined" sx={{ margin: 1 }}>
           <Box sx={{ margin: 3 }}>
             <Typography sx={{ fontWeight: "bold" }}>{t("package")}</Typography>
-            {vuln.vulnerable_packages
+            {vulnerablePackages
               .filter((_, index) => (showAllPackages ? true : index === 0))
               .map((vulnPackage) => (
                 <PackageView
@@ -42,7 +48,7 @@ export function VulnDetailView(props) {
                 />
               ))}
             {/* hide or more button if needed */}
-            {vuln.vulnerable_packages.length > 1 && (
+            {vulnerablePackages.length > 1 && (
               <Box display="flex" justifyContent="center" sx={{ mr: 3 }}>
                 {showAllPackages ? (
                   <Button
@@ -56,7 +62,7 @@ export function VulnDetailView(props) {
                   </Button>
                 ) : (
                   <Badge
-                    badgeContent={packageChip(vuln.vulnerable_packages.length - 1)}
+                    badgeContent={packageChip(vulnerablePackages.length - 1)}
                     color="primary"
                     sx={{ mt: 1 }}
                   >
@@ -151,7 +157,3 @@ export function VulnDetailView(props) {
     </>
   );
 }
-VulnDetailView.propTypes = {
-  vuln: PropTypes.object.isRequired,
-  updateActions: PropTypes.array.isRequired,
-};

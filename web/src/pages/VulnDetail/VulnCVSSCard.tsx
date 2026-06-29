@@ -1,15 +1,22 @@
 import { Avatar, Box, Card, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 
+import type { VulnResponse } from "../../../types/types.gen";
 import { cvssProps, cvssConvertToName } from "../../utils/cvssUtils";
 
-export function VulnCVSSCard(props) {
+type CVSSName = keyof typeof cvssProps;
+
+type VulnCVSSCardProps = {
+  vuln: VulnResponse;
+};
+
+export function VulnCVSSCard(props: VulnCVSSCardProps) {
   const { vuln } = props;
   const cvssScore =
-    vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? "N/A" : vuln.cvss_v3_score;
+    vuln.cvss_v3_score === undefined || vuln.cvss_v3_score === null ? null : vuln.cvss_v3_score;
 
-  const cvss = cvssConvertToName(cvssScore);
+  const cvss = (cvssScore === null ? "None" : cvssConvertToName(cvssScore)) as CVSSName;
+  const displayCvssScore = cvssScore === null ? "N/A" : cvssScore.toFixed(1);
 
   return (
     <Card variant="outlined" sx={{ margin: 1, backgroundColor: cvssProps[cvss].threatCardBgcolor }}>
@@ -25,7 +32,7 @@ export function VulnCVSSCard(props) {
             }}
             variant="rounded"
           >
-            {cvssScore === "N/A" ? cvssScore : cvssScore.toFixed(1)}
+            {displayCvssScore}
           </Avatar>
           <Typography variant="h5">{vuln.title}</Typography>
         </Box>
@@ -36,6 +43,3 @@ export function VulnCVSSCard(props) {
     </Card>
   );
 }
-VulnCVSSCard.propTypes = {
-  vuln: PropTypes.object,
-};
