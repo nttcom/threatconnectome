@@ -23,6 +23,13 @@ import {
 // Delay setting (ms) - set to 0 to disable delay
 const MOCK_DELAY = 500;
 
+type JsonObject = Record<string, unknown>;
+
+function getStringParam(value: string | ReadonlyArray<string> | undefined): string {
+  if (typeof value === "string") return value;
+  return value?.[0] ?? "";
+}
+
 // === MSW Handler Factory ===
 /**
  * Create common default handlers for PackagePage and VulnerabilityTable
@@ -77,7 +84,7 @@ export function createDefaultHandlers() {
     // getDependency
     http.get(`*/pteams/${pteamId}/dependencies/:dependencyId`, async ({ params }) => {
       await delay(MOCK_DELAY);
-      const { dependencyId } = params;
+      const dependencyId = getStringParam(params.dependencyId);
       const dependency = mockDependencies.find((dep) => dep.dependency_id === dependencyId);
       if (dependency) {
         return HttpResponse.json(dependency);
@@ -87,14 +94,14 @@ export function createDefaultHandlers() {
     // getVuln
     http.get("*/vulns/:vulnId", async ({ params }) => {
       await delay(MOCK_DELAY);
-      const vulnId = params.vulnId;
-      const vulnDetail = mockVulnDetails[vulnId];
+      const vulnId = getStringParam(params.vulnId);
+      const vulnDetail = (mockVulnDetails as JsonObject)[vulnId];
       if (vulnDetail) {
         return HttpResponse.json(vulnDetail);
       }
       // Dynamic generation for pagination testing
       if (vulnId.startsWith("vuln-extra-")) {
-        const index = parseInt(vulnId.split("-").pop());
+        const index = parseInt(vulnId.split("-").pop() ?? "0");
         return HttpResponse.json({
           vuln_id: vulnId,
           title: `Additional Vulnerability ${index + 1}`,
@@ -121,8 +128,8 @@ export function createDefaultHandlers() {
     // getVulnActions
     http.get("*/vulns/:vulnId/actions", async ({ params }) => {
       await delay(MOCK_DELAY);
-      const { vulnId } = params;
-      const actionsData = mockVulnActions?.[vulnId];
+      const vulnId = getStringParam(params.vulnId);
+      const actionsData = (mockVulnActions as JsonObject)?.[vulnId];
       if (actionsData) {
         return HttpResponse.json(actionsData);
       }
@@ -186,8 +193,8 @@ export function createDefaultHandlers() {
     // updateTicket - Update ticket
     http.put(`*/pteams/${pteamId}/tickets/:ticketId`, async ({ request, params }) => {
       await delay(MOCK_DELAY);
-      const { ticketId } = params;
-      const body = await request.json();
+      const ticketId = getStringParam(params.ticketId);
+      const body = (await request.json()) as JsonObject;
 
       // Find existing ticket data
       const allTickets = [...mockTicketsVuln001, ...mockTicketsVuln002, ...mockTicketsVuln003];
@@ -197,13 +204,18 @@ export function createDefaultHandlers() {
         return HttpResponse.json({ detail: "Ticket not found" }, { status: 404 });
       }
 
+      const bodyTicketStatus =
+        body.ticket_status && typeof body.ticket_status === "object"
+          ? (body.ticket_status as JsonObject)
+          : {};
+
       // Return success response (merge request body content)
       const updatedTicket = {
         ...existingTicket,
         ...body,
         ticket_status: {
           ...existingTicket.ticket_status,
-          ...(body.ticket_status || {}),
+          ...bodyTicketStatus,
           updated_at: new Date().toISOString(),
         },
       };
@@ -214,7 +226,7 @@ export function createDefaultHandlers() {
     // createActionLog - Create action log
     http.post(`*/actionlogs`, async ({ request }) => {
       await delay(MOCK_DELAY);
-      const body = await request.json();
+      const body = (await request.json()) as JsonObject;
 
       // Return success response
       const actionLog = {

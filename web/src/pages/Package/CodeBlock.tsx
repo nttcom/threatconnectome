@@ -1,11 +1,13 @@
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Box, IconButton, Paper, Tooltip, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function CodeBlock(props) {
-  const { visible = true } = props;
+type CodeBlockProps = {
+  visible?: boolean;
+};
+
+export function CodeBlock({ visible = true }: CodeBlockProps) {
   const { t } = useTranslation("package", { keyPrefix: "CodeBlock" });
   const [tooltipTitle, setTooltipTitle] = useState(t("copy"));
   const handleCloseTip = () => {
@@ -19,7 +21,7 @@ export function CodeBlock(props) {
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography variant="h6" gutterBottom visible={false}>
+      <Typography variant="h6" gutterBottom>
         {t("install")}
       </Typography>
       <Paper
@@ -49,6 +51,3 @@ export function CodeBlock(props) {
     </Box>
   );
 }
-CodeBlock.propTypes = {
-  visible: PropTypes.bool,
-};

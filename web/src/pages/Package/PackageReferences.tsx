@@ -1,24 +1,29 @@
 import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 import {
   Accordion,
-  AccordionSummary,
   AccordionDetails,
-  Typography,
-  TableContainer,
-  TableRow,
-  TableHead,
-  TableCell,
   Paper,
   Table,
   TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  AccordionSummary,
+  Typography,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import PropTypes from "prop-types";
 import { useTranslation } from "react-i18next";
 
-export function PackageReferences(props) {
+import type { PackageReference, PackageReferenceService } from "./PackagePageTypes";
+
+type PackageReferencesProps = {
+  references: Array<PackageReference>;
+  service?: PackageReferenceService;
+};
+
+export function PackageReferences({ references, service }: PackageReferencesProps) {
   const { t } = useTranslation("package", { keyPrefix: "PackageReferences" });
-  const { references, service } = props;
 
   return (
     <div>
@@ -30,7 +35,7 @@ export function PackageReferences(props) {
         }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h7">{t("references")}</Typography>
+          <Typography variant="subtitle1">{t("references")}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           {references.length === 0 ? (
@@ -65,8 +70,3 @@ export function PackageReferences(props) {
     </div>
   );
 }
-
-PackageReferences.propTypes = {
-  references: PropTypes.arrayOf(PropTypes.object).isRequired,
-  service: PropTypes.object.isRequired,
-};
