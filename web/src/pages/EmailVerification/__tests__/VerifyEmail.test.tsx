@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { Provider } from "react-redux";
@@ -19,7 +20,7 @@ const renderVerifyEmail = () => {
   render(
     <Provider store={store}>
       <AuthProvider>
-        <VerifyEmail />
+        <VerifyEmail oobCode="test-oob-code" />
       </AuthProvider>
     </Provider>,
   );

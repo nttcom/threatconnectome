@@ -1,23 +1,29 @@
 import { Box, Button, Typography } from "@mui/material";
-import PropTypes from "prop-types";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../hooks/auth";
 import { authErrorToString } from "../../utils/authErrorUtils";
 
-export default function VerifyEmail(props) {
+export type VerifyEmailProps = {
+  oobCode: string | null;
+};
+
+export default function VerifyEmail({ oobCode }: VerifyEmailProps) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "VerifyEmail" });
-  const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<string | undefined>();
 
   const { applyActionCode } = useAuth();
 
   function handleVerifyEmail() {
+    if (!oobCode) {
+      return;
+    }
+
     setDisabled(true);
     applyActionCode({ actionCode: oobCode })
-      .then((resp) => {
+      .then(() => {
         setMessage(t("success"));
       })
       .catch((error) => {
@@ -47,7 +53,3 @@ export default function VerifyEmail(props) {
     </Box>
   );
 }
-
-VerifyEmail.propTypes = {
-  oobCode: PropTypes.string,
-};

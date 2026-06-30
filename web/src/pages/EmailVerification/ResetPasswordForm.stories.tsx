@@ -2,7 +2,6 @@ import type { Meta } from "@storybook/react-vite";
 
 import { AuthContext, type AuthContextValue } from "../../hooks/auth";
 import { AuthData } from "../../providers/auth/AuthProvider";
-// @ts-expect-error TS7016
 import ResetPasswordForm from "./ResetPasswordForm";
 
 const meta = {

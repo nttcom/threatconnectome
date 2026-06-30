@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { render, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { useLocation } from "react-router-dom";

@@ -1,5 +1,6 @@
 import {
   Alert,
+  type AlertColor,
   Box,
   Button,
   CircularProgress,
@@ -10,28 +11,42 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ChangeEvent, FormEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SmsResendButton } from "../../components/SmsResendButton";
 import { SmsTroubleshootingTips } from "../../components/SmsTroubleshootingTips";
 import { SmsTroubleshootingToggleButton } from "../../components/SmsTroubleshootingToggleButton";
-import { useAuth } from "../../hooks/auth";
+import { useAuth, type SmsLoginFlow } from "../../hooks/auth";
 import { useActionLock } from "../../hooks/useActionLock";
 import { authErrorToString } from "../../utils/authErrorUtils";
 import { normalizeFullwidthDigits } from "../../utils/normalizeInput";
 
-export function TwoFactorAuth(props) {
+type TwoFactorAuthProps = {
+  authData: SmsLoginFlow;
+  navigateInternalPage: () => Promise<void>;
+};
+
+type NotificationState = {
+  open: boolean;
+  message: string;
+  type: AlertColor;
+};
+
+export function TwoFactorAuth({ authData, navigateInternalPage }: TwoFactorAuthProps) {
   const { t } = useTranslation("login", { keyPrefix: "TwoFactorAuth" });
-  const { authData, navigateInternalPage } = props;
 
   const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
-  const [codeError, setCodeError] = useState(null);
+  const [codeError, setCodeError] = useState<string | undefined>();
   const [verificationId, setVerificationId] = useState(authData.verificationId);
   const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
-  const [notification, setNotification] = useState({ open: false, message: "", type: "info" });
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: "",
+    type: "info",
+  });
   const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
   const { verifySmsForLogin, sendSmsCodeAgain } = useAuth();
@@ -40,18 +55,18 @@ export function TwoFactorAuth(props) {
 
   const recaptchaId = "recaptcha-container-invisible-resend";
 
-  const handleCodeChange = (e) => {
+  const handleCodeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const normalized = normalizeFullwidthDigits(e.target.value);
     const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
     setCode(sanitized);
     if (codeError) {
-      setCodeError(null);
+      setCodeError(undefined);
     }
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setCodeError(null);
+    setCodeError(undefined);
     verifySmsForLogin(authData.resolver, verificationId, code)
       .then(() => {
         setIsLoading(true);
@@ -186,8 +201,3 @@ export function TwoFactorAuth(props) {
     </Box>
   );
 }
-
-TwoFactorAuth.propTypes = {
-  authData: PropTypes.object.isRequired,
-  navigateInternalPage: PropTypes.func.isRequired,
-};

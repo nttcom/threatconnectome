@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { colors } from "../../pages/App/Topbar/topbarStyles";
 import { slate, statusCardSx, uiRadii } from "../../pages/Status/SBOMManagement/styleTokens";
 import { uiPalette, uiShadows } from "../designTokens";

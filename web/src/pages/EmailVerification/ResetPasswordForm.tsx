@@ -1,5 +1,5 @@
 import { Box, Button, Typography, Container, CircularProgress } from "@mui/material";
-import PropTypes from "prop-types";
+import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,14 +7,20 @@ import { PasswordField } from "../../components/PasswordField";
 import { useAuth } from "../../hooks/auth";
 import { authErrorToString } from "../../utils/authErrorUtils";
 
-export default function ResetPasswordForm(props) {
+type ResetPasswordFormProps = {
+  oobCode: string | null;
+};
+
+type ResetFormField = "password" | "confirmPassword";
+type ResetFormVisibilityField = "isVisible" | "isConfirmVisible";
+
+export default function ResetPasswordForm({ oobCode }: ResetPasswordFormProps) {
   const { t } = useTranslation("emailVerification", { keyPrefix: "ResetPasswordForm" });
-  const { oobCode } = props;
   const [disabled, setDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [resetForm, setResetForm] = useState({
-    edited: new Set(),
+    edited: new Set<string>(),
     password: "",
     confirmPassword: "",
     isVisible: false,
@@ -23,11 +29,16 @@ export default function ResetPasswordForm(props) {
 
   const { verifyPasswordResetCode, confirmPasswordReset } = useAuth();
 
-  const showMessage = (text, type = "error") => {
-    setMessage({ text, type });
+  const showMessage = (text: string | undefined, type = "error") => {
+    setMessage({ text: text ?? "", type });
   };
 
   async function handleResetPassword() {
+    if (!oobCode) {
+      showMessage(t("missingCode"));
+      return;
+    }
+
     if (resetForm.password !== resetForm.confirmPassword) {
       showMessage(t("passwordsDoNotMatch"));
       return;
@@ -47,14 +58,16 @@ export default function ResetPasswordForm(props) {
     setIsLoading(false);
   }
 
-  const handleVisibility = (prop) => {
+  const handleVisibility = (prop: ResetFormVisibilityField) => {
     setResetForm((prev) => ({ ...prev, [prop]: !prev[prop] }));
   };
 
-  const handleFormChange = (prop) => (event) => {
-    resetForm.edited.add(prop);
+  const handleFormChange = (prop: ResetFormField) => (event: ChangeEvent<HTMLInputElement>) => {
+    const edited = new Set(resetForm.edited);
+    edited.add(prop);
     setResetForm({
       ...resetForm,
+      edited,
       [prop]: event.target.value,
     });
   };
@@ -112,7 +125,3 @@ export default function ResetPasswordForm(props) {
     </Container>
   );
 }
-
-ResetPasswordForm.propTypes = {
-  oobCode: PropTypes.string,
-};
