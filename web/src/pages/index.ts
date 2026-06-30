@@ -1,5 +1,4 @@
 import { AcceptPTeamInvitation } from "./AcceptPTeamInvitation/AcceptPTeamInvitationPage";
-// @ts-expect-error handled by PR #1357
 import { App } from "./App/AppPage";
 import { AuthKeycloakCallback } from "./AuthKeycloakCallback/AuthKeycloakCallbackPage";
 import { EmailVerification } from "./EmailVerification/EmailVerificationPage";
