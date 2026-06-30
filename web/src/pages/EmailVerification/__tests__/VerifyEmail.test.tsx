@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { Provider } from "react-redux";
@@ -8,7 +7,7 @@ import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import VerifyEmail from "../VerifyEmail";
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -29,8 +28,10 @@ const renderVerifyEmail = () => {
 describe("TestVerifyEmail", () => {
   describe("Rendering", () => {
     beforeEach(() => {
-      const mockApplyActionCode = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
+      const mockApplyActionCode = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
+        applyActionCode: mockApplyActionCode,
+      } as unknown as ReturnType<typeof useAuth>);
     });
 
     afterEach(() => {
@@ -51,8 +52,10 @@ describe("TestVerifyEmail", () => {
   describe("Verify email button behavior", () => {
     it("triggers verification when the verify email button is clicked", async () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
-      const mockApplyActionCode = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
+      const mockApplyActionCode = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
+        applyActionCode: mockApplyActionCode,
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderVerifyEmail();
       await ue.click(screen.getByRole("button", { name: "Verify Email" }));
@@ -67,7 +70,9 @@ describe("TestVerifyEmail", () => {
       const mockApplyActionCode = vi
         .fn()
         .mockRejectedValue({ code: errorCode, message: errorMessage });
-      useAuth.mockReturnValue({ applyActionCode: mockApplyActionCode });
+      vi.mocked(useAuth).mockReturnValue({
+        applyActionCode: mockApplyActionCode,
+      } as unknown as ReturnType<typeof useAuth>);
       const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderVerifyEmail();

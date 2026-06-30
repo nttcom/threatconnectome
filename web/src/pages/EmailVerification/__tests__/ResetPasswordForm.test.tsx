@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { Provider } from "react-redux";
@@ -8,7 +7,7 @@ import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import ResetPasswordForm from "../ResetPasswordForm";
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -16,7 +15,7 @@ vi.mock("../../../hooks/auth", async (importOriginal) => {
   };
 });
 
-const renderVerifyEmail = (oobCode) => {
+const renderVerifyEmail = (oobCode: string) => {
   render(
     <Provider store={store}>
       <AuthProvider>
@@ -31,10 +30,10 @@ describe("TestResetPasswordForm", () => {
     beforeEach(() => {
       const mockVerifyPasswordResetCode = vi.fn();
       const mockConfirmPasswordReset = vi.fn();
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         verifyPasswordResetCode: mockVerifyPasswordResetCode,
         confirmPasswordReset: mockConfirmPasswordReset,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
     });
 
     afterEach(() => {
@@ -69,20 +68,20 @@ describe("TestResetPasswordForm", () => {
       const validPassword = "Password1234@";
       const confirmPassword = "Password1234@";
 
-      const mockVerifyPasswordResetCode = vi.fn().mockResolvedValue();
-      const mockConfirmPasswordReset = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
+      const mockVerifyPasswordResetCode = vi.fn().mockResolvedValue(undefined);
+      const mockConfirmPasswordReset = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
         verifyPasswordResetCode: mockVerifyPasswordResetCode,
         confirmPasswordReset: mockConfirmPasswordReset,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderVerifyEmail(oobCodeExample);
 
       const passwordFields = screen.getAllByLabelText(/^New Password/);
-      const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+      const passwordField = passwordFields.find((el) => el.tagName === "INPUT")!;
 
       const confirmInputs = screen.getAllByLabelText(/^Confirm Password/);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT")!;
 
       await ue.type(passwordField, validPassword);
       await ue.type(confirmField, confirmPassword);
@@ -114,19 +113,19 @@ describe("TestResetPasswordForm", () => {
         message: errorMessage,
       });
       const mockConfirmPasswordReset = vi.fn();
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         verifyPasswordResetCode: mockVerifyPasswordResetCode,
         confirmPasswordReset: mockConfirmPasswordReset,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
       const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderVerifyEmail(oobCodeExample);
 
       const passwordFields = screen.getAllByLabelText(/^New Password/);
-      const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+      const passwordField = passwordFields.find((el) => el.tagName === "INPUT")!;
 
       const confirmInputs = screen.getAllByLabelText(/^Confirm Password/);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT")!;
 
       await ue.type(passwordField, validPassword);
       await ue.type(confirmField, confirmPassword);
