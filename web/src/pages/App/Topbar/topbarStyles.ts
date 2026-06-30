@@ -1,4 +1,5 @@
 import { uiPalette, uiRadii, uiShadows } from "../../../styles/designTokens";
+import type { MenuWidth } from "./topbarTypes";
 
 export const colors = {
   ink900: uiPalette.gray[900],
@@ -38,7 +39,7 @@ export const tonePalette = {
 export const menuWidths = {
   page: { xs: "calc(100vw - 16px)", sm: 336 },
   default: { xs: "calc(100vw - 16px)", sm: 288 },
-};
+} satisfies Record<string, MenuWidth>;
 
 export const menuPaperSx = {
   mt: 1,
