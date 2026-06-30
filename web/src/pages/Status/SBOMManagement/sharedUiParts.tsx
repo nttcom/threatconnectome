@@ -1,6 +1,8 @@
-/* eslint-disable react/prop-types */
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import type { SvgIconComponent } from "@mui/icons-material";
 import { Box, Button, Stack, Typography } from "@mui/material";
+import type { ButtonProps, SxProps, Theme } from "@mui/material";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { collapseSpaces } from "../../../utils/displayText";
@@ -14,8 +16,9 @@ import {
   uiRadii,
   uiTransitions,
 } from "./styleTokens";
+import type { SbomServiceTab } from "./SBOMManagementTypes";
 
-export function CountBadge({ children }) {
+export function CountBadge({ children }: { children: ReactNode }) {
   return (
     <Box
       component="span"
@@ -39,7 +42,20 @@ export function CountBadge({ children }) {
   );
 }
 
-export function HeaderActionButton({ active = false, children, icon: Icon, sx, ...props }) {
+type HeaderActionButtonProps = Omit<ComponentPropsWithoutRef<"button">, "children"> & {
+  active?: boolean;
+  children: ReactNode;
+  icon?: SvgIconComponent;
+  sx?: SxProps<Theme>;
+};
+
+export function HeaderActionButton({
+  active = false,
+  children,
+  icon: Icon,
+  sx,
+  ...props
+}: HeaderActionButtonProps) {
   return (
     <Box
       component="button"
@@ -79,26 +95,40 @@ export function HeaderActionButton({ active = false, children, icon: Icon, sx, .
   );
 }
 
-export function AppButton({ size = "medium", sx, variant = "contained", ...props }) {
-  const muiSize = size === "xs" || size === "sm" ? "small" : size;
+type AppButtonProps = Omit<ButtonProps, "size" | "sx"> & {
+  size?: ButtonProps["size"] | "xs" | "sm";
+  sx?: SxProps<Theme>;
+};
 
-  return (
-    <Button
-      size={muiSize}
-      sx={{
-        ...textButtonSx,
-        height: size === "xs" ? 32 : muiSize === "small" ? 34 : 40,
-        minHeight: size === "xs" ? 32 : muiSize === "small" ? 34 : 40,
-        px: size === "xs" ? 1.25 : muiSize === "small" ? 1.5 : 2,
-        ...sx,
-      }}
-      variant={variant}
-      {...props}
-    />
-  );
+export function AppButton({
+  size = "medium",
+  sx,
+  variant = "contained",
+  ...props
+}: AppButtonProps) {
+  const muiSize = size === "xs" || size === "sm" ? "small" : size;
+  const buttonSx: SxProps<Theme> = [
+    textButtonSx,
+    {
+      height: size === "xs" ? 32 : muiSize === "small" ? 34 : 40,
+      minHeight: size === "xs" ? 32 : muiSize === "small" ? 34 : 40,
+      px: size === "xs" ? 1.25 : muiSize === "small" ? 1.5 : 2,
+    },
+    ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+  ];
+
+  return <Button size={muiSize} sx={buttonSx} variant={variant} {...props} />;
 }
 
-export function TabButton({ active, onClick, sbom }) {
+export function TabButton({
+  active,
+  onClick,
+  sbom,
+}: {
+  active: boolean;
+  onClick: () => void;
+  sbom: SbomServiceTab;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "sharedUiParts" });
   return (
     <Box
@@ -129,7 +159,19 @@ export function TabButton({ active, onClick, sbom }) {
   );
 }
 
-export function AccordionHeader({ action, icon: Icon, onToggle, open, title }) {
+export function AccordionHeader({
+  action,
+  icon: Icon,
+  onToggle,
+  open,
+  title,
+}: {
+  action: ReactNode;
+  icon: SvgIconComponent;
+  onToggle: () => void;
+  open: boolean;
+  title: string;
+}) {
   return (
     <Box sx={{ alignItems: "center", display: "flex", gap: 1.5, height: 44, px: 2 }}>
       <Box

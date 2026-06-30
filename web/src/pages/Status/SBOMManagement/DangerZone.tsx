@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types, jsx-a11y/no-autofocus */
+/* eslint-disable jsx-a11y/no-autofocus */
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -31,7 +31,19 @@ import {
   uiTransitions,
 } from "./styleTokens";
 
-export function DangerZone({ disabled = false, onDelete, onToggle, open, sbomTitle }) {
+export function DangerZone({
+  disabled = false,
+  onDelete,
+  onToggle,
+  open,
+  sbomTitle,
+}: {
+  disabled?: boolean;
+  onDelete: () => void;
+  onToggle: () => void;
+  open: boolean;
+  sbomTitle: string;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "DangerZone" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmationName, setConfirmationName] = useState("");

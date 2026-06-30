@@ -2,7 +2,32 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { NEW_SBOM_ID } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
-function createEditorState(currentService) {
+import type {
+  PendingThumbnail,
+  PendingUpload,
+  SbomDependency,
+  SbomService,
+  SbomServicePatch,
+  SbomServiceTab,
+} from "./SBOMManagementTypes";
+
+type EditorState = {
+  activeServiceDraft: SbomService | null;
+  deploymentsEditing: boolean;
+  detailsEditing: boolean;
+  isDirty: boolean;
+};
+
+type EditorAction =
+  | { type: "syncCurrentService"; currentService: SbomService | null }
+  | { type: "replaceCurrentService"; currentService: SbomService | null }
+  | { type: "resetUi" }
+  | { type: "updateActiveService"; activeId: string; patch: SbomServicePatch }
+  | { type: "markClean" }
+  | { type: "setDetailsEditing"; value: boolean }
+  | { type: "setDeploymentsEditing"; value: boolean };
+
+function createEditorState(currentService: SbomService | null): EditorState {
   return {
     activeServiceDraft: currentService,
     deploymentsEditing: false,
@@ -11,7 +36,7 @@ function createEditorState(currentService) {
   };
 }
 
-function editorStateReducer(state, action) {
+function editorStateReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
     case "syncCurrentService":
       return {
@@ -60,6 +85,10 @@ export function useSBOMManagementState({
   currentDependencies = [],
   currentService,
   serviceTabs = [],
+}: {
+  currentDependencies?: SbomDependency[];
+  currentService: SbomService | null;
+  serviceTabs?: SbomServiceTab[];
 }) {
   const selectedServiceId = currentService?.id ?? null;
   const [activeId, setActiveId] = useState(selectedServiceId ?? NEW_SBOM_ID);
@@ -74,8 +103,8 @@ export function useSBOMManagementState({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deploymentsOpen, setDeploymentsOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
-  const [pendingThumbnail, setPendingThumbnail] = useState(null);
-  const [pendingUpload, setPendingUpload] = useState(null);
+  const [pendingThumbnail, setPendingThumbnail] = useState<PendingThumbnail | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
 
   useEffect(() => {
     if (!serviceTabs.length) {
@@ -145,15 +174,15 @@ export function useSBOMManagementState({
   const pageEndIndex = Math.min(pageStartIndex + pageSize, filteredDependencies.length);
   const paginatedDependencies = filteredDependencies.slice(pageStartIndex, pageEndIndex);
 
-  const updateActiveService = (patch) => {
+  const updateActiveService = (patch: SbomServicePatch) => {
     dispatchEditorState({ type: "updateActiveService", activeId, patch });
   };
 
-  const setDetailsEditing = (value) => {
+  const setDetailsEditing = (value: boolean) => {
     dispatchEditorState({ type: "setDetailsEditing", value });
   };
 
-  const setDeploymentsEditing = (value) => {
+  const setDeploymentsEditing = (value: boolean) => {
     dispatchEditorState({ type: "setDeploymentsEditing", value });
   };
 
@@ -173,7 +202,7 @@ export function useSBOMManagementState({
     resetUiState();
   };
 
-  const selectService = (serviceId) => {
+  const selectService = (serviceId: string) => {
     setActiveId(serviceId);
     resetUiState();
   };

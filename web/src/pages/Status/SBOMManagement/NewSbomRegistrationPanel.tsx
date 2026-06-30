@@ -1,7 +1,7 @@
-/* eslint-disable react/prop-types */
 import DescriptionIcon from "@mui/icons-material/Description";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import type { ChangeEvent } from "react";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,10 +18,18 @@ import {
   uiTransitions,
 } from "./styleTokens";
 
-export function NewSbomRegistrationPanel({ onCancel, onDropFile, showCancel = true }) {
+export function NewSbomRegistrationPanel({
+  onCancel,
+  onDropFile,
+  showCancel = true,
+}: {
+  onCancel: () => void;
+  onDropFile?: (file: File) => void;
+  showCancel?: boolean;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "NewSbomRegistrationPanel" });
   const { t: tFileDropZone } = useTranslation("status", { keyPrefix: "FileDropZone" });
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { isDragOver, handleDragEnter, handleDragOver, handleDragLeave, handleDrop } =
     useSbomFileDrop({
@@ -33,7 +41,7 @@ export function NewSbomRegistrationPanel({ onCancel, onDropFile, showCancel = tr
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const result = validateSbomFileSelection(event.target.files);
     event.target.value = "";
     if (result.error) {
