@@ -53,7 +53,6 @@ import type {
   GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
   UpdateTicketPteamsPteamIdTicketsTicketIdPutData,
   CreateUserUsersPostData,
-  DeleteUserUsersMeDeleteData,
   VulnsListResponse,
   GetVulnsVulnsGetData,
   CheckEmailExternalEmailCheckPostData,
@@ -161,8 +160,6 @@ type GetSbomProgressRequestQuery = Pick<
 type CreatePTeamRequestParams = Pick<CreatePteamPteamsPostData, "body">;
 
 type UpdateUserRequestParams = Pick<UpdateUserUsersUserIdPutData, "body" | "path">;
-
-type DeleteUserRequestParams = Pick<DeleteUserUsersMeDeleteData, "body" | "path" | "query">;
 
 type GetPteamTicketsRequestParams = Pick<
   GetTicketsByServiceIdAndPackageIdAndVulnIdPteamsPteamIdTicketsGetData,
@@ -702,7 +699,7 @@ export const tcApi = createApi({
       }),
       invalidatesTags: (_result, _error, _arg) => [{ type: "Account", id: _arg.path.user_id }],
     }),
-    deleteUser: builder.mutation<void, DeleteUserRequestParams | void>({
+    deleteUser: builder.mutation<void, void>({
       query: () => ({
         url: "users/me",
         method: "DELETE",
