@@ -3,7 +3,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export function ServiceIdCopyButton({ serviceId }) {
+export function ServiceIdCopyButton({ serviceId }: { serviceId?: string }) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
   const [tooltipKey, setTooltipKey] = useState("copyServiceId");
 

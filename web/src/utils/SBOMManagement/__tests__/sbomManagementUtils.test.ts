@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { PTeamPackageVersionSummary, PTeamServiceResponse } from "../../../../types/types.gen";
 import {
   buildCurrentServiceFromPTeam,
   buildDependencyRows,
@@ -8,7 +9,7 @@ import {
   normalizeCommaSeparatedValues,
 } from "../sbomManagementUtils";
 
-const services = [
+const services: PTeamServiceResponse[] = [
   {
     service_id: "service-1",
     service_name: "Service One",
@@ -16,6 +17,7 @@ const services = [
     keywords: ["prod", "api"],
     system_exposure: "controlled",
     service_mission_impact: "mef_failure",
+    service_safety_impact: "negligible",
     asset: {
       ip_addresses: ["10.0.0.1", "10.0.0.2"],
       country_code: "JP",
@@ -29,17 +31,22 @@ const services = [
     keywords: [],
     system_exposure: "open",
     service_mission_impact: "mission_failure",
+    service_safety_impact: "negligible",
   },
 ];
 
-const packages = [
+const packages: PTeamPackageVersionSummary[] = [
   {
     package_id: "package-1",
     package_version_id: "package-version-1",
     package_name: "react",
     package_version: "19.1.0",
     ecosystem: "npm",
+    package_managers: [],
+    service_ids: [],
     ssvc_priority: "scheduled",
+    updated_at: null,
+    status_count: {},
   },
   {
     package_id: "package-2",
@@ -47,7 +54,12 @@ const packages = [
     package_name: "sqlparse",
     package_version: "0.5.3",
     ecosystem: "pypi",
-    ssvc_priority: null,
+    package_managers: [],
+    service_ids: [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ssvc_priority: null as any,
+    updated_at: null,
+    status_count: {},
   },
 ];
 

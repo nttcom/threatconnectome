@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -21,8 +20,17 @@ import { SSVCPriorityStatusChip } from "../../../components/SSVCPriorityStatusCh
 
 import { AppButton } from "./sharedUiParts";
 import { compactSelectSx, slate, statusCardSx, surfaceShadowSx, uiRadii } from "./styleTokens";
+import type { OnPackageClick, SbomDependency, SetNumberState } from "./SBOMManagementTypes";
 
-function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
+function DependencyTable({
+  dependencies,
+  onPackageClick,
+  pageStartIndex,
+}: {
+  dependencies: SbomDependency[];
+  onPackageClick?: OnPackageClick;
+  pageStartIndex: number;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "DependenciesCard" });
   if (dependencies.length === 0) {
     return (
@@ -45,7 +53,7 @@ function DependencyTable({ dependencies, onPackageClick, pageStartIndex }) {
           onPackageClick && dependency.packageVersionId && dependency.serviceId,
         );
         const handleNavigate = () => {
-          if (!canNavigate) {
+          if (!onPackageClick || !dependency.serviceId || !dependency.packageVersionId) {
             return;
           }
           onPackageClick(dependency.serviceId, dependency.packageVersionId);
@@ -131,6 +139,20 @@ export function DependenciesCard({
   setPageSize,
   setQuery,
   totalPages,
+}: {
+  filteredDependencies: SbomDependency[];
+  onUpdateClick: () => void;
+  onPackageClick?: OnPackageClick;
+  pageEndIndex: number;
+  pageSize: number;
+  pageStartIndex: number;
+  paginatedDependencies: SbomDependency[];
+  query: string;
+  safeCurrentPage: number;
+  setCurrentPage: SetNumberState;
+  setPageSize: (value: number) => void;
+  setQuery: (value: string) => void;
+  totalPages: number;
 }) {
   const { t } = useTranslation("status", { keyPrefix: "DependenciesCard" });
 

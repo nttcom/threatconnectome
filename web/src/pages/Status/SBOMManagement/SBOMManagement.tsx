@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -13,6 +12,13 @@ import { NewSbomRegistrationPanel } from "./NewSbomRegistrationPanel";
 import { RiskSettingsCard } from "./RiskSettingsCard";
 import { TabButton } from "./sharedUiParts";
 import { slate, tabButtonSx, tabPanelSx, uiRadii } from "./styleTokens";
+import type {
+  OnActiveIdChange,
+  OnPackageClick,
+  SbomDependency,
+  SbomService,
+  SbomServiceTab,
+} from "./SBOMManagementTypes";
 import { useSBOMManagementController } from "./useSBOMManagementController";
 
 export function SBOMManagement({
@@ -22,6 +28,13 @@ export function SBOMManagement({
   onPackageClick,
   pteamId,
   serviceTabs = [],
+}: {
+  currentDependencies?: SbomDependency[];
+  currentService: SbomService | null;
+  onActiveIdChange?: OnActiveIdChange;
+  onPackageClick?: OnPackageClick;
+  pteamId: string;
+  serviceTabs?: SbomServiceTab[];
 }) {
   const { t } = useTranslation("status", { keyPrefix: "SBOMManagement" });
   const {
@@ -167,15 +180,15 @@ export function SBOMManagement({
                 onToggle={details.onToggle}
                 onUpdate={details.onUpdate}
                 open={details.open}
-                sbom={activeService}
+                sbom={activeService!}
               />
 
-              <RiskSettingsCard onSave={riskSettings.onSave} sbom={activeService} />
+              <RiskSettingsCard onSave={riskSettings.onSave} sbom={activeService!} />
 
               <DeploymentsPanel
-                ipAddresses={activeService.ipAddresses}
-                countryCode={activeService.countryCode}
-                address={activeService.address}
+                ipAddresses={activeService!.ipAddresses}
+                countryCode={activeService!.countryCode}
+                address={activeService!.address}
                 editing={deployments.editing}
                 onCommit={() => {
                   if (deployments.editing) {
@@ -193,7 +206,7 @@ export function SBOMManagement({
                 onDelete={dangerZone.onDelete}
                 onToggle={dangerZone.onToggle}
                 open={dangerZone.open}
-                sbomTitle={activeService.title}
+                sbomTitle={activeService!.title}
               />
             </Box>
 

@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import CheckIcon from "@mui/icons-material/Check";
 import EditIcon from "@mui/icons-material/Edit";
 import StorageRoundedIcon from "@mui/icons-material/StorageRounded";
@@ -8,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { DeploymentsContent } from "./DeploymentsContent";
 import { AccordionHeader, CountBadge, HeaderActionButton } from "./sharedUiParts";
 import { statusCardSx } from "./styleTokens";
+import type { SbomServicePatch } from "./SBOMManagementTypes";
 
 export function DeploymentsPanel({
   ipAddresses,
@@ -18,6 +18,15 @@ export function DeploymentsPanel({
   onToggle,
   onUpdate,
   open,
+}: {
+  ipAddresses: string[];
+  countryCode: string;
+  address: string;
+  editing: boolean;
+  onCommit: () => void;
+  onToggle: () => void;
+  onUpdate: (patch: SbomServicePatch) => void;
+  open: boolean;
 }) {
   const { t } = useTranslation("status", { keyPrefix: "DeploymentsPanel" });
 

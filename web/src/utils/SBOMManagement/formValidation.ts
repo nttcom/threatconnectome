@@ -1,14 +1,21 @@
+import type { TFunction } from "i18next";
+
 import { maxKeywordLengthInHalf, maxKeywords } from "../const";
 import { countFullWidthAndHalfWidthCharacters } from "../func";
 
-function maxLengthParams(maxHalf) {
+function maxLengthParams(maxHalf: number) {
   return {
     maxFull: Math.floor(maxHalf / 2),
     maxHalf,
   };
 }
 
-export function getLengthError(t, value, maxHalf, translationKey) {
+export function getLengthError(
+  t: TFunction,
+  value: string | null | undefined,
+  maxHalf: number,
+  translationKey: string,
+) {
   if (countFullWidthAndHalfWidthCharacters((value ?? "").trim()) <= maxHalf) {
     return "";
   }
@@ -16,7 +23,7 @@ export function getLengthError(t, value, maxHalf, translationKey) {
   return t(translationKey, maxLengthParams(maxHalf));
 }
 
-export function getTagsError(t, tags) {
+export function getTagsError(t: TFunction, tags: string[]) {
   if (tags.length > maxKeywords) {
     return t("tooManyKeywords", { max: maxKeywords });
   }

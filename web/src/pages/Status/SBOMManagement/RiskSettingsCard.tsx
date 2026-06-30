@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import CheckIcon from "@mui/icons-material/Check";
 import EditIcon from "@mui/icons-material/Edit";
 import { Box, Card, CardContent, Stack, Typography } from "@mui/material";
@@ -14,8 +13,25 @@ import {
   uiRadii,
   uiTransitions,
 } from "./styleTokens";
+import type { MissionImpactEnum, SystemExposureEnum } from "../../../../types/types.gen";
+import type { SbomService } from "./SBOMManagementTypes";
 
-function ImpactOptionButton({ onSelect, option, selected }) {
+type ImpactOption<T extends string> = {
+  description: string;
+  label: string;
+  summary: string;
+  value: T;
+};
+
+function ImpactOptionButton<T extends string>({
+  onSelect,
+  option,
+  selected,
+}: {
+  onSelect: (value: T) => void;
+  option: ImpactOption<T>;
+  selected: boolean;
+}) {
   return (
     <Box
       aria-pressed={selected}
@@ -95,7 +111,19 @@ function ImpactOptionButton({ onSelect, option, selected }) {
   );
 }
 
-function ServiceImpactOptionGroup({ description, onSelect, options, selectedValue, title }) {
+function ServiceImpactOptionGroup<T extends string>({
+  description,
+  onSelect,
+  options,
+  selectedValue,
+  title,
+}: {
+  description: string;
+  onSelect: (value: T) => void;
+  options: ImpactOption<T>[];
+  selectedValue: T;
+  title: string;
+}) {
   return (
     <Box>
       <Typography sx={{ ...labelSx, color: slate[700] }}>{title}</Typography>
@@ -126,11 +154,19 @@ function ServiceImpactOptionGroup({ description, onSelect, options, selectedValu
   );
 }
 
-function getImpactOption(options, value) {
+function getImpactOption<T extends string>(options: ImpactOption<T>[], value: T) {
   return options.find((option) => option.value === value) || options[0];
 }
 
-function ServiceImpactSummaryRow({ option, summaryLabel, title }) {
+function ServiceImpactSummaryRow<T extends string>({
+  option,
+  summaryLabel,
+  title,
+}: {
+  option: ImpactOption<T>;
+  summaryLabel: string;
+  title: string;
+}) {
   return (
     <Box
       sx={{
@@ -197,11 +233,19 @@ function ServiceImpactSummaryRow({ option, summaryLabel, title }) {
   );
 }
 
-export function RiskSettingsCard({ onSave, sbom }) {
+export function RiskSettingsCard({
+  onSave,
+  sbom,
+}: {
+  onSave?: (
+    values: Pick<SbomService, "missionImpact" | "systemExposure">,
+  ) => boolean | Promise<boolean>;
+  sbom: SbomService | null;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "RiskSettingsCard" });
   const currentSystemExposure = sbom?.systemExposure || "open";
   const currentMissionImpact = sbom?.missionImpact || "mission_failure";
-  const systemExposureOptions = [
+  const systemExposureOptions: ImpactOption<SystemExposureEnum>[] = [
     {
       description: t("systemExposureSmallDescription"),
       label: t("small"),
@@ -221,7 +265,7 @@ export function RiskSettingsCard({ onSave, sbom }) {
       value: "open",
     },
   ];
-  const missionImpactOptions = [
+  const missionImpactOptions: ImpactOption<MissionImpactEnum>[] = [
     {
       description: t("missionImpactDegradedDescription"),
       label: t("degraded"),

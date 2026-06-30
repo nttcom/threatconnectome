@@ -1,4 +1,5 @@
 import { useSnackbar } from "notistack";
+import type { ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -16,7 +17,43 @@ import { serviceImageMaxSize } from "../../../utils/const";
 import { errorToString } from "../../../utils/func";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
 
-export function useSBOMManagementMutations({ actions, callbacks, state }) {
+import type {
+  OnActiveIdChange,
+  PendingThumbnail,
+  SbomService,
+  SbomServicePatch,
+  SbomServiceTab,
+} from "./SBOMManagementTypes";
+
+type MutationActions = {
+  markClean: () => void;
+  resetUiState: () => void;
+  setActiveId: (serviceId: string) => void;
+  setDeploymentsEditing: (value: boolean) => void;
+  setDetailsEditing: (value: boolean) => void;
+  setPendingThumbnail: (value: PendingThumbnail | null) => void;
+  setPendingUpload: (value: { initialFile?: File; serviceName?: string } | null) => void;
+  updateActiveService: (patch: SbomServicePatch) => void;
+};
+
+type MutationState = {
+  activeId: string;
+  activeService: SbomService | null;
+  isCreatingSbom: boolean;
+  pendingThumbnail: PendingThumbnail | null;
+  pteamId: string;
+  serviceTabs: SbomServiceTab[];
+};
+
+export function useSBOMManagementMutations({
+  actions,
+  callbacks,
+  state,
+}: {
+  actions: MutationActions;
+  callbacks: { onActiveIdChange?: OnActiveIdChange };
+  state: MutationState;
+}) {
   const { activeId, activeService, isCreatingSbom, pendingThumbnail, pteamId, serviceTabs } = state;
   const {
     markClean,
@@ -47,7 +84,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       }).unwrap();
       enqueueSnackbar(t("deleteSuccess"), { variant: "success" });
     } catch (error) {
-      enqueueSnackbar(t("deleteFailed", { error: errorToString(error) }), { variant: "error" });
+      enqueueSnackbar(
+        t("deleteFailed", { error: errorToString(error as Parameters<typeof errorToString>[0]) }),
+        {
+          variant: "error",
+        },
+      );
       return;
     }
 
@@ -57,7 +99,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     resetUiState();
   };
 
-  const updateDeploymentSettings = (patch) => {
+  const updateDeploymentSettings = (patch: SbomServicePatch) => {
     if (!activeService) {
       return;
     }
@@ -73,7 +115,7 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
     setPendingUpload({ serviceName: activeService.title });
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.target;
     const file = input.files?.[0];
     input.value = "";
@@ -154,7 +196,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       setDetailsEditing(false);
       markClean();
     } catch (error) {
-      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
+      enqueueSnackbar(
+        t("updateFailed", { error: errorToString(error as Parameters<typeof errorToString>[0]) }),
+        {
+          variant: "error",
+        },
+      );
     }
   };
 
@@ -183,11 +230,19 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       setDeploymentsEditing(false);
       markClean();
     } catch (error) {
-      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
+      enqueueSnackbar(
+        t("updateFailed", { error: errorToString(error as Parameters<typeof errorToString>[0]) }),
+        {
+          variant: "error",
+        },
+      );
     }
   };
 
-  const commitServiceImpactEdit = async ({ missionImpact, systemExposure }) => {
+  const commitServiceImpactEdit = async ({
+    missionImpact,
+    systemExposure,
+  }: Pick<SbomService, "missionImpact" | "systemExposure">) => {
     if (!activeService || !pteamId) {
       return true;
     }
@@ -211,7 +266,12 @@ export function useSBOMManagementMutations({ actions, callbacks, state }) {
       markClean();
       return true;
     } catch (error) {
-      enqueueSnackbar(t("updateFailed", { error: errorToString(error) }), { variant: "error" });
+      enqueueSnackbar(
+        t("updateFailed", { error: errorToString(error as Parameters<typeof errorToString>[0]) }),
+        {
+          variant: "error",
+        },
+      );
       return false;
     }
   };

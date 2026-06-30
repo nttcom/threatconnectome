@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { Box, CardContent, Stack, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -10,8 +9,23 @@ import { getLengthError } from "../../../utils/SBOMManagement/formValidation";
 import { normalizeCommaSeparatedValues } from "../../../utils/SBOMManagement/sbomManagementUtils";
 
 import { fieldSx, labelSx, slate, uiRadii } from "./styleTokens";
+import type { SbomServicePatch } from "./SBOMManagementTypes";
 
-export function DeploymentsContent({ ipAddresses, address, countryCode, editing, onUpdate, open }) {
+export function DeploymentsContent({
+  ipAddresses,
+  address,
+  countryCode,
+  editing,
+  onUpdate,
+  open,
+}: {
+  ipAddresses: string[];
+  address: string;
+  countryCode: string;
+  editing: boolean;
+  onUpdate: (patch: SbomServicePatch) => void;
+  open: boolean;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "DeploymentsPanel" });
   const { enqueueSnackbar } = useSnackbar();
   const [ipAddressesText, setIpAddressesText] = useState(ipAddresses.join(", "));

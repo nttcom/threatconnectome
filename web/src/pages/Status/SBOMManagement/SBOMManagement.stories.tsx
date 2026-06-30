@@ -1,3 +1,5 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
 import { SBOMManagement } from "./SBOMManagement";
 import { createDefaultSboms } from "./SBOMManagement.stories.helpers";
 
@@ -16,22 +18,26 @@ const meta = {
     layout: "fullscreen",
   },
   tags: ["autodocs"],
-};
+} satisfies Meta<typeof SBOMManagement>;
 
 export default meta;
 
-export const Default = {
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
   args: {
     currentDependencies: defaultDependencies,
     currentService: defaultCurrentService,
+    pteamId: "storybook-pteam",
     serviceTabs: defaultSboms.map((sbom) => ({ id: sbom.id, title: sbom.title })),
   },
 };
 
-export const EmptyState = {
+export const EmptyState: Story = {
   args: {
     currentDependencies: [],
     currentService: null,
+    pteamId: "storybook-pteam",
     serviceTabs: [],
   },
 };

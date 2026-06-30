@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types, jsx-a11y/no-autofocus */
+/* eslint-disable jsx-a11y/no-autofocus */
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -8,6 +8,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Box, Card, CardContent, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
+import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,11 +20,24 @@ import { normalizeCommaSeparatedValues } from "../../../utils/SBOMManagement/sbo
 import { ServiceIdCopyButton } from "./ServiceIdCopyButton";
 import { AccordionHeader, AppButton, HeaderActionButton } from "./sharedUiParts";
 import { fieldSx, floatingSurfaceSx, labelSx, slate, statusCardSx, uiRadii } from "./styleTokens";
+import type { SbomService, SbomServicePatch } from "./SBOMManagementTypes";
 
-function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
+function SbomImage({
+  editing,
+  imageUrl,
+  onImageUpload,
+  onRemoveImage,
+  title,
+}: {
+  editing: boolean;
+  imageUrl: string;
+  onImageUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
+  title: string;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
   const [confirmingRemove, setConfirmingRemove] = useState(false);
-  const imageInputRef = useRef(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const openImagePicker = () => {
     setConfirmingRemove(false);
@@ -192,14 +206,24 @@ function SbomImage({ editing, imageUrl, onImageUpload, onRemoveImage, title }) {
   );
 }
 
-function DetailsForm({ editing, onUpdate, open, sbom }) {
+function DetailsForm({
+  editing,
+  onUpdate,
+  open,
+  sbom,
+}: {
+  editing: boolean;
+  onUpdate: (patch: SbomServicePatch) => void;
+  open: boolean;
+  sbom: SbomService;
+}) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
   const { enqueueSnackbar } = useSnackbar();
   const [tagsText, setTagsText] = useState(sbom.tags.join(", "));
   const [titleInput, setTitleInput] = useState(sbom.title);
   const isTitleBlank = editing && !titleInput.trim();
 
-  const showInputError = (message) => {
+  const showInputError = (message: string) => {
     enqueueSnackbar(message, { variant: "error" });
   };
 
@@ -374,6 +398,16 @@ export function DetailsPanel({
   onUpdate,
   open,
   sbom,
+}: {
+  editing: boolean;
+  imageUrl: string;
+  onCommit: () => void;
+  onImageUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
+  onToggle: () => void;
+  onUpdate: (patch: SbomServicePatch) => void;
+  open: boolean;
+  sbom: SbomService;
 }) {
   const { t } = useTranslation("status", { keyPrefix: "DetailsPanel" });
 

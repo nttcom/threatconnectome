@@ -1,5 +1,11 @@
 import { useSBOMManagementMutations } from "./useSBOMManagementMutations";
 import { useSBOMManagementState } from "./useSBOMManagementState";
+import type {
+  OnActiveIdChange,
+  SbomDependency,
+  SbomService,
+  SbomServiceTab,
+} from "./SBOMManagementTypes";
 
 export function useSBOMManagementController({
   currentDependencies = [],
@@ -7,6 +13,12 @@ export function useSBOMManagementController({
   onActiveIdChange,
   pteamId,
   serviceTabs = [],
+}: {
+  currentDependencies?: SbomDependency[];
+  currentService: SbomService | null;
+  onActiveIdChange?: OnActiveIdChange;
+  pteamId: string;
+  serviceTabs?: SbomServiceTab[];
 }) {
   const state = useSBOMManagementState({
     currentDependencies,
@@ -97,7 +109,7 @@ export function useSBOMManagementController({
         ? undefined
         : state.serviceTabs.map((service) => service.title),
       onClose: () => state.setPendingUpload(null),
-      onCreateWithFile: (file) => state.setPendingUpload({ initialFile: file }),
+      onCreateWithFile: (file: File) => state.setPendingUpload({ initialFile: file }),
       onUploaded: () => state.setPendingUpload(null),
       value: state.pendingUpload,
     },
@@ -107,7 +119,7 @@ export function useSBOMManagementController({
     tabs: {
       items: state.serviceTabs,
       onAdd: state.addSbom,
-      onSelect: (serviceId) => {
+      onSelect: (serviceId: string) => {
         state.selectService(serviceId);
         onActiveIdChange?.(serviceId);
       },

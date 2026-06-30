@@ -1,17 +1,24 @@
+import type { PTeamPackageVersionSummary, PTeamServiceResponse } from "../../../types/types.gen";
+import type {
+  SbomDependency,
+  SbomService,
+  SbomServiceTab,
+} from "../../pages/Status/SBOMManagement/SBOMManagementTypes";
+
 export const NEW_SBOM_ID = "__new_sbom__";
 
-export function createId(prefix) {
+export function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
-export function normalizeCommaSeparatedValues(value) {
+export function normalizeCommaSeparatedValues(value: string) {
   return value
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-export function getNextActiveIdAfterRemoval(items, removedId) {
+export function getNextActiveIdAfterRemoval(items: SbomServiceTab[], removedId: string) {
   const removedIndex = items.findIndex((item) => item.id === removedId);
   const remaining = items.filter((item) => item.id !== removedId);
 
@@ -26,11 +33,11 @@ export function getNextActiveIdAfterRemoval(items, removedId) {
   return remaining[Math.min(removedIndex, remaining.length - 1)].id;
 }
 
-export function isDeleteConfirmationValid(input, title) {
+export function isDeleteConfirmationValid(input: string, title: string) {
   return input.trim() === title;
 }
 
-export function buildServiceTabsFromPTeam(services) {
+export function buildServiceTabsFromPTeam(services: PTeamServiceResponse[]): SbomServiceTab[] {
   if (!Array.isArray(services)) return [];
 
   return services.map((service) => ({
@@ -39,7 +46,11 @@ export function buildServiceTabsFromPTeam(services) {
   }));
 }
 
-export function buildCurrentServiceFromPTeam(services, currentServiceId, imageUrl = "") {
+export function buildCurrentServiceFromPTeam(
+  services: PTeamServiceResponse[],
+  currentServiceId: string | null,
+  imageUrl = "",
+): SbomService | null {
   if (!Array.isArray(services) || !currentServiceId) return null;
 
   const service = services.find((item) => item.service_id === currentServiceId);
@@ -59,7 +70,10 @@ export function buildCurrentServiceFromPTeam(services, currentServiceId, imageUr
   };
 }
 
-export function buildDependencyRows(packages, currentServiceId) {
+export function buildDependencyRows(
+  packages: PTeamPackageVersionSummary[],
+  currentServiceId: string,
+): SbomDependency[] {
   if (!Array.isArray(packages) || !currentServiceId) return [];
 
   return packages.map((pkg) => ({

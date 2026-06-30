@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import PropTypes from "prop-types";
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,8 +22,12 @@ import { preserveMyTasksParam, preserveParams } from "../../utils/urlUtils";
 
 import { SBOMManagement } from "./SBOMManagement/SBOMManagement";
 import { SBOMUploadProgressButton } from "./SbomProgress/SBOMUploadProgressButton";
+import type { PTeamInfo, PTeamServiceResponse } from "../../../types/types.gen";
 
-function getValidServiceId(services, requestedServiceId) {
+function getValidServiceId(
+  services: PTeamServiceResponse[],
+  requestedServiceId: string | null,
+): string | null {
   if (requestedServiceId && services.some((service) => service.service_id === requestedServiceId)) {
     return requestedServiceId;
   }
@@ -46,7 +49,7 @@ export function Status() {
     error: pteamError,
     isFetching: pteamIsFetching,
     isLoading: pteamIsLoading,
-  } = useGetPTeamQuery({ path: { pteam_id: pteamId } }, { skip: skipByAuth || !pteamId });
+  } = useGetPTeamQuery({ path: { pteam_id: pteamId ?? "" } }, { skip: skipByAuth || !pteamId });
 
   useEffect(() => {
     if (!pteamId) return;
@@ -82,7 +85,7 @@ export function Status() {
   return <StatusBody pteamId={pteamId} pteam={pteam} serviceId={validServiceId} />;
 }
 
-function StatusHeader({ pteamId }) {
+function StatusHeader({ pteamId }: { pteamId: string }) {
   return (
     <>
       <Box display="flex" flexDirection="row">
@@ -96,7 +99,7 @@ function StatusHeader({ pteamId }) {
   );
 }
 
-function StatusEmptyBody({ pteamId }) {
+function StatusEmptyBody({ pteamId }: { pteamId: string }) {
   return (
     <>
       <StatusHeader pteamId={pteamId} />
@@ -110,7 +113,15 @@ function StatusEmptyBody({ pteamId }) {
   );
 }
 
-function StatusBody({ pteamId, pteam, serviceId }) {
+function StatusBody({
+  pteamId,
+  pteam,
+  serviceId,
+}: {
+  pteamId: string;
+  pteam: PTeamInfo;
+  serviceId: string;
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const skipByAuth = useSkipUntilAuthUserIsReady();
@@ -133,7 +144,10 @@ function StatusBody({ pteamId, pteam, serviceId }) {
 
   const serviceTabs = useMemo(() => buildServiceTabsFromPTeam(pteam.services), [pteam.services]);
 
-  const normalizedThumbnail = loadedThumbnailError?.status === 404 ? "" : (loadedThumbnail ?? "");
+  const normalizedThumbnail =
+    loadedThumbnailError && "status" in loadedThumbnailError && loadedThumbnailError.status === 404
+      ? ""
+      : ((loadedThumbnail as string | undefined) ?? "");
 
   const currentService = useMemo(
     () => buildCurrentServiceFromPTeam(pteam.services, serviceId, normalizedThumbnail),
@@ -146,7 +160,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   );
 
   const handleActiveIdChange = useCallback(
-    (serviceId) => {
+    (serviceId: string) => {
       const newParams = new URLSearchParams(location.search);
       newParams.set("serviceId", serviceId);
       navigate(location.pathname + "?" + newParams.toString());
@@ -155,7 +169,7 @@ function StatusBody({ pteamId, pteam, serviceId }) {
   );
 
   const handlePackageClick = useCallback(
-    (serviceId, packageVersionId) => {
+    (serviceId: string, packageVersionId: string) => {
       const preservedParams = preserveParams(location.search);
       preservedParams.set("pteamId", pteamId);
       preservedParams.set("serviceId", serviceId);
@@ -178,17 +192,3 @@ function StatusBody({ pteamId, pteam, serviceId }) {
     </>
   );
 }
-
-StatusHeader.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-};
-
-StatusEmptyBody.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-};
-
-StatusBody.propTypes = {
-  pteamId: PropTypes.string.isRequired,
-  pteam: PropTypes.object.isRequired,
-  serviceId: PropTypes.string.isRequired,
-};
