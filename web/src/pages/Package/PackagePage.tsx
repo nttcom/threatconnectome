@@ -1,19 +1,21 @@
 import {
   Box,
+  Chip,
+  ClickAwayListener,
   Divider,
   Tab,
   Tabs,
-  Typography,
-  Chip,
   Tooltip,
-  ClickAwayListener,
+  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
+import type { SyntheticEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { DependencyResponse } from "../../../types/types.gen";
 import { TabPanel } from "../../components/TabPanel";
 import { UUIDTypography } from "../../components/UUIDTypography";
 import {
@@ -21,14 +23,15 @@ import {
   usePackageService,
   usePackageVulnCounts,
 } from "../../hooks/Package/useApiForPackage";
-import { useSkipUntilAuthUserIsReady } from "../../hooks/auth.js";
+import { useSkipUntilAuthUserIsReady } from "../../hooks/auth";
 import { usePageParams } from "../../hooks/usePageParams";
 import { APIError } from "../../utils/APIError";
-import { getNoPTeamMessage } from "../../utils/const.js";
+import { getNoPTeamMessage } from "../../utils/const";
 import { a11yProps, errorToString } from "../../utils/func";
 
-import { CodeBlock } from "./CodeBlock.jsx";
-import { PackageReferences } from "./PackageReferences.jsx";
+import { CodeBlock } from "./CodeBlock";
+import { PackageReferences } from "./PackageReferences";
+import type { PackageReference } from "./PackagePageTypes";
 import { VulnerabilityTable } from "./VulnerabilityTable/VulnerabilityTable";
 
 export function Package() {
@@ -39,13 +42,18 @@ export function Package() {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
   const skipByAuth = useSkipUntilAuthUserIsReady();
-  const getVulnIdsReady = !skipByAuth && pteamId && serviceId && packageVersionId;
+  const pteamIdForQuery = pteamId ?? "";
+  const serviceIdForQuery = serviceId ?? "";
+  const packageVersionIdForQuery = packageVersionId ?? "";
+  const getVulnIdsReady = Boolean(
+    !skipByAuth && pteamIdForQuery && serviceIdForQuery && packageVersionIdForQuery,
+  );
 
   const {
     service,
     error: pteamError,
     isLoading: pteamIsLoading,
-  } = usePackageService(pteamId, serviceId);
+  } = usePackageService(pteamIdForQuery, serviceIdForQuery);
 
   const {
     solvedVulnCount,
@@ -54,13 +62,22 @@ export function Package() {
     unsolvedError,
     solvedLoading,
     unsolvedLoading,
-  } = usePackageVulnCounts({ pteamId, serviceId, packageVersionId, getVulnIdsReady });
+  } = usePackageVulnCounts({
+    pteamId: pteamIdForQuery,
+    serviceId: serviceIdForQuery,
+    packageVersionId: packageVersionIdForQuery,
+    getVulnIdsReady,
+  });
 
   const {
     data: packageDependencies,
     error: packageDependenciesError,
     isLoading: packageDependenciesIsLoading,
-  } = usePackageDependencies({ pteamId, serviceId, packageVersionId });
+  } = usePackageDependencies({
+    pteamId: pteamIdForQuery,
+    serviceId: serviceIdForQuery,
+    packageVersionId: packageVersionIdForQuery,
+  });
 
   const handleTooltipOpen = () => {
     if (!isMdUp) setOpen(true);
@@ -93,20 +110,23 @@ export function Package() {
     return <>{t("noDependenciesFound")}</>;
   }
 
-  const references = packageDependencies.map((dependency) => ({
-    dependencyId: dependency.dependency_id,
-    target: dependency.target,
-    version: dependency.package_version,
-    service: service.service_name,
-    package_name: dependency.package_name,
-    package_source_name: dependency.package_source_name,
-    package_manager: dependency.package_manager,
-    ecosystem: dependency.package_ecosystem,
-  }));
+  const references: Array<PackageReference> = packageDependencies.map(
+    (dependency: DependencyResponse) => ({
+      dependencyId: dependency.dependency_id,
+      target: dependency.target,
+      version: dependency.package_version,
+      service: service?.service_name ?? serviceIdForQuery,
+      package_name: dependency.package_name,
+      package_source_name: dependency.package_source_name,
+      package_manager: dependency.package_manager,
+      ecosystem: dependency.package_ecosystem,
+    }),
+  );
 
   const firstPackageDependency = packageDependencies[0];
+  const serviceName = service?.service_name ?? serviceIdForQuery;
 
-  const handleTabChange = (event, value) => setTabValue(value);
+  const handleTabChange = (_event: SyntheticEvent, value: number) => setTabValue(value);
 
   // CodeBlock is not implemented
   const visibleCodeBlock = false;
@@ -117,9 +137,9 @@ export function Package() {
         <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
           <Box>
             {isMdUp ? (
-              <Tooltip title={service.service_name}>
+              <Tooltip title={serviceName}>
                 <Chip
-                  label={service.service_name}
+                  label={serviceName}
                   variant="outlined"
                   sx={{
                     borderRadius: "2px",
@@ -138,10 +158,10 @@ export function Package() {
                   disableFocusListener
                   disableHoverListener
                   disableTouchListener
-                  title={service.service_name}
+                  title={serviceName}
                 >
                   <Chip
-                    label={service.service_name}
+                    label={serviceName}
                     variant="outlined"
                     sx={{
                       borderRadius: "2px",
@@ -163,7 +183,7 @@ export function Package() {
             <Chip label={firstPackageDependency.package_ecosystem} sx={{ ml: 1 }} />
           </Box>
           <Typography mr={1} mb={1} variant="caption">
-            <UUIDTypography sx={{ mr: 2 }}>{packageVersionId}</UUIDTypography>
+            <UUIDTypography sx={{ mr: 2 }}>{packageVersionIdForQuery}</UUIDTypography>
           </Typography>
           <PackageReferences references={references} service={service} />
         </Box>
