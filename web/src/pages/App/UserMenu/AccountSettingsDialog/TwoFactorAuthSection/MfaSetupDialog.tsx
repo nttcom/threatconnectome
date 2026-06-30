@@ -174,10 +174,10 @@ export function MfaSetupDialog({ open, onClose, onSuccess }: MfaSetupDialogProps
   };
 
   const handleSendCode = () => {
+    if (!normalizedPhoneNumber) return;
     setLoading(true);
     setError("");
     unlockAction();
-    if (!normalizedPhoneNumber) return;
 
     registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber, {
       nationalExample: selectedCountryOption.nationalExample,
@@ -195,9 +195,9 @@ export function MfaSetupDialog({ open, onClose, onSuccess }: MfaSetupDialogProps
   };
 
   const handleVerifyCode = () => {
+    if (!mfaData) return;
     setLoading(true);
     setError("");
-    if (!mfaData) return;
 
     verifySmsForEnrollment(mfaData.verificationId, verificationCode)
       .then(() => {
