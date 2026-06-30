@@ -1,5 +1,4 @@
-import { Box, Paper, Tooltip, Typography, tooltipClasses } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Box, Paper, Tooltip, Typography } from "@mui/material";
 
 import { getSsvcPriorityProps } from "../../utils/ssvcUtils";
 import type { SSVCPriorityCountChipProps } from "./PackagePageTypes";
@@ -16,12 +15,6 @@ export function SSVCPriorityCountChip({
   const ssvcPriorityProp = getSsvcPriorityProps()[ssvcPriority];
 
   const Icon = ssvcPriorityProp.icon;
-  const StyledTooltip = styled(Tooltip)({
-    [`& .${tooltipClasses.tooltip}`]: {
-      backgroundColor: ssvcPriorityProp.style.bgcolor,
-      color: ssvcPriorityProp.style.color,
-    },
-  });
   const baseSx = ssvcPriorityProp.style;
   const fixedSx = {
     ...baseSx,
@@ -39,7 +32,17 @@ export function SSVCPriorityCountChip({
 
   return (
     <Box display="flex" sx={outerSx}>
-      <StyledTooltip title={ssvcPriorityProp.statusLabel}>
+      <Tooltip
+        title={ssvcPriorityProp.statusLabel}
+        slotProps={{
+          tooltip: {
+            sx: {
+              backgroundColor: ssvcPriorityProp.style.bgcolor,
+              color: ssvcPriorityProp.style.color,
+            },
+          },
+        }}
+      >
         <Paper
           variant="outlined"
           sx={[
@@ -54,7 +57,7 @@ export function SSVCPriorityCountChip({
         >
           <Icon style={{ fontSize: "20px" }} />
         </Paper>
-      </StyledTooltip>
+      </Tooltip>
       <Paper
         variant="outlined"
         sx={[
