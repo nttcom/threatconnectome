@@ -36,6 +36,9 @@ import theme from "./theme";
 import "./i18n/config.ts";
 
 const container = document.getElementById("root");
+if (!container) {
+  throw new Error("Root element not found");
+}
 const root = createRoot(container);
 
 root.render(
@@ -51,16 +54,7 @@ root.render(
         >
           <AuthProvider>
             <Suspense fallback={<div>Loading...</div>}>
-              <Router
-                basename={import.meta.env.VITE_PUBLIC_URL}
-                future={{
-                  /* to prevent React Router Future Flag Warning.
-                   * see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath for details.
-                   */
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
-                }}
-              >
+              <Router basename={import.meta.env.VITE_PUBLIC_URL}>
                 <Routes>
                   <Route element={<AuthPageLayout />}>
                     <Route path="/login" element={<Login />} />

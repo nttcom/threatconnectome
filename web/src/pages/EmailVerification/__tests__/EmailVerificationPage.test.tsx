@@ -6,7 +6,7 @@ import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { EmailVerification } from "../EmailVerificationPage";
 
-vi.mock("react-router-dom", async (importOriginal) => {
+vi.mock("react-router-dom", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -15,7 +15,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   };
 });
 
-vi.mock("react-redux", async (importOriginal) => {
+vi.mock("react-redux", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -36,7 +36,7 @@ const renderEmailVerification = () => {
 describe("TestEmailVerificationPage", () => {
   it("renders ResetPasswordForm when mode=resetPassword", async () => {
     const testLocation = { search: "?mode=resetPassword&oobCode=00000" };
-    useLocation.mockReturnValue(testLocation);
+    vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
     renderEmailVerification();
     expect(screen.getByText("Reset Password")).toBeInTheDocument();
@@ -44,7 +44,7 @@ describe("TestEmailVerificationPage", () => {
 
   it("renders VerifyEmail when mode=resetPassword", async () => {
     const testLocation = { search: "?mode=verifyEmail&oobCode=00000" };
-    useLocation.mockReturnValue(testLocation);
+    vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
     renderEmailVerification();
     expect(screen.getByText("Email Verification")).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe("TestEmailVerificationPage", () => {
 
   it("calls console.error when mode is invalid", async () => {
     const testLocation = { search: "?mode=invalidmode&oobCode=00000" };
-    useLocation.mockReturnValue(testLocation);
+    vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
     const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 

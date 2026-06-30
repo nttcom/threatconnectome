@@ -1,10 +1,10 @@
 // cspell:ignore notistack
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ComponentProps } from "react";
 import { Provider } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import type { Mock } from "vitest";
 
 import { useSkipUntilAuthUserIsReady } from "../../../hooks/auth";
 import {
@@ -19,6 +19,12 @@ import {
 } from "../../../services/tcApi";
 import store from "../../../store";
 import { normalizeServiceImageToPng } from "../../../utils/serviceImageUtils";
+import type {
+  AssetInfo,
+  PTeamInfo,
+  PTeamPackageVersionsSummary,
+  PTeamServiceResponse,
+} from "../../../../types/types.gen";
 import { SBOMManagement } from "../SBOMManagement/SBOMManagement";
 import { Status } from "../StatusPage";
 
@@ -30,7 +36,7 @@ const renderStatusPage = () => {
   );
 };
 
-const renderSbomManagement = (props) => {
+const renderSbomManagement = (props: ComponentProps<typeof SBOMManagement>) => {
   render(
     <Provider store={store}>
       <SBOMManagement {...props} />
@@ -41,8 +47,21 @@ const renderSbomManagement = (props) => {
 const navigate = vi.fn();
 const enqueueSnackbar = vi.fn();
 
+const mockUseNavigate = useNavigate as Mock;
+const mockUseLocation = useLocation as Mock;
+const mockUseSkipUntilAuthUserIsReady = useSkipUntilAuthUserIsReady as Mock;
+const mockUseGetPTeamQuery = useGetPTeamQuery as Mock;
+const mockUseGetPTeamPackageVersionsSummaryQuery = useGetPTeamPackageVersionsSummaryQuery as Mock;
+const mockUseGetPTeamServiceThumbnailQuery = useGetPTeamServiceThumbnailQuery as Mock;
+const mockUseGetSbomUploadProgressQuery = useGetSbomUploadProgressQuery as Mock;
+const mockUseUpdatePTeamServiceMutation = useUpdatePTeamServiceMutation as Mock;
+const mockUseDeletePTeamServiceMutation = useDeletePTeamServiceMutation as Mock;
+const mockUseUpdatePTeamServiceThumbnailMutation = useUpdatePTeamServiceThumbnailMutation as Mock;
+const mockUseDeletePTeamServiceThumbnailMutation = useDeletePTeamServiceThumbnailMutation as Mock;
+const mockNormalizeServiceImageToPng = normalizeServiceImageToPng as Mock;
+
 vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as typeof import("react-router-dom");
   return {
     ...actual,
     useNavigate: vi.fn(),
@@ -51,7 +70,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 });
 
 vi.mock("notistack", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as typeof import("notistack");
   return {
     ...actual,
     useSnackbar: vi.fn(() => ({ enqueueSnackbar })),
@@ -59,7 +78,7 @@ vi.mock("notistack", async (importOriginal) => {
 });
 
 vi.mock("../../../services/tcApi", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as typeof import("../../../services/tcApi");
   return {
     ...actual,
     useGetUserMeQuery: vi.fn().mockReturnValue({
@@ -87,7 +106,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
 });
 
 vi.mock("../../../hooks/auth", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as typeof import("../../../hooks/auth");
   return {
     ...actual,
     useSkipUntilAuthUserIsReady: vi.fn(),
@@ -95,14 +114,14 @@ vi.mock("../../../hooks/auth", async (importOriginal) => {
 });
 
 vi.mock("../../../utils/serviceImageUtils", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as typeof import("../../../utils/serviceImageUtils");
   return {
     ...actual,
     normalizeServiceImageToPng: vi.fn(),
   };
 });
 
-const testPTeamData = {
+const testPTeamData: PTeamInfo = {
   pteam_id: "1d9d71ec-a341--b159-74b6d1bfffff",
   pteam_name: "test_team",
   contact_info: "",
@@ -139,7 +158,7 @@ const testPTeamData = {
   ],
 };
 
-const testPackageVersionsData = {
+const testPackageVersionsData: PTeamPackageVersionsSummary = {
   package_versions: [
     {
       package_id: "685335c5-c6aa-47ed-87d9-ce1d3eeaf48d",
@@ -185,12 +204,12 @@ const testPackageVersionsData = {
 };
 
 const testThumbnailDataUrl = "data:image/png;base64,test-thumbnail";
-let queryPTeamData;
-let queryThumbnailByServiceId;
-let queryThumbnailErrorByServiceId;
-let queryThumbnailFetchingByServiceId;
+let queryPTeamData: PTeamInfo;
+let queryThumbnailByServiceId: Record<string, string>;
+let queryThumbnailErrorByServiceId: Record<string, unknown>;
+let queryThumbnailFetchingByServiceId: Record<string, boolean>;
 
-const createResolvedMutation = (resolvedValue = undefined, onResolve) =>
+const createResolvedMutation = (resolvedValue?: unknown, onResolve?: () => void) =>
   vi.fn(() => ({
     unwrap: vi.fn().mockImplementation(async () => {
       onResolve?.();
@@ -198,10 +217,10 @@ const createResolvedMutation = (resolvedValue = undefined, onResolve) =>
     }),
   }));
 
-const createRejectedMutation = (rejectedValue) =>
+const createRejectedMutation = (rejectedValue: unknown) =>
   vi.fn(() => ({ unwrap: vi.fn().mockRejectedValue(rejectedValue) }));
 
-const updateServiceInPTeamData = (serviceId, patch) => {
+const updateServiceInPTeamData = (serviceId: string, patch: Partial<PTeamServiceResponse>) => {
   queryPTeamData = {
     ...queryPTeamData,
     services: queryPTeamData.services.map((service) =>
@@ -210,7 +229,7 @@ const updateServiceInPTeamData = (serviceId, patch) => {
   };
 };
 
-const updateServiceAssetInPTeamData = (serviceId, assetPatch) => {
+const updateServiceAssetInPTeamData = (serviceId: string, assetPatch: AssetInfo | string[]) => {
   queryPTeamData = {
     ...queryPTeamData,
     services: queryPTeamData.services.map((service) =>
@@ -245,24 +264,24 @@ describe("StatusPage", () => {
       };
       navigate.mockClear();
       enqueueSnackbar.mockClear();
-      useGetPTeamQuery.mockClear();
-      useGetPTeamPackageVersionsSummaryQuery.mockClear();
-      useGetPTeamServiceThumbnailQuery.mockClear();
-      useUpdatePTeamServiceMutation.mockClear();
-      useDeletePTeamServiceMutation.mockClear();
-      useUpdatePTeamServiceThumbnailMutation.mockClear();
-      useDeletePTeamServiceThumbnailMutation.mockClear();
-      normalizeServiceImageToPng.mockReset();
-      useNavigate.mockReturnValue(navigate);
-      useUpdatePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
-      useDeletePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
-      useUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
-      useDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
-      normalizeServiceImageToPng.mockResolvedValue({
+      mockUseGetPTeamQuery.mockClear();
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockClear();
+      mockUseGetPTeamServiceThumbnailQuery.mockClear();
+      mockUseUpdatePTeamServiceMutation.mockClear();
+      mockUseDeletePTeamServiceMutation.mockClear();
+      mockUseUpdatePTeamServiceThumbnailMutation.mockClear();
+      mockUseDeletePTeamServiceThumbnailMutation.mockClear();
+      mockNormalizeServiceImageToPng.mockReset();
+      mockUseNavigate.mockReturnValue(navigate);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
+      mockUseDeletePTeamServiceMutation.mockReturnValue([createResolvedMutation()]);
+      mockUseUpdatePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      mockUseDeletePTeamServiceThumbnailMutation.mockReturnValue([createResolvedMutation()]);
+      mockNormalizeServiceImageToPng.mockResolvedValue({
         file: new File(["test"], "test.png", { type: "image/png" }),
         previewDataUrl: "data:image/png;base64,test-preview",
       });
-      useGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
+      mockUseGetPTeamServiceThumbnailQuery.mockImplementation(({ path: { service_id } }) => ({
         data: queryThumbnailByServiceId[service_id] ?? "",
         error: queryThumbnailErrorByServiceId[service_id],
         isFetching: queryThumbnailFetchingByServiceId[service_id] ?? false,
@@ -280,7 +299,7 @@ describe("StatusPage", () => {
         error: false,
         isFetching: false,
       };
-      useGetSbomUploadProgressQuery.mockReturnValue(progresses);
+      mockUseGetSbomUploadProgressQuery.mockReturnValue(progresses);
     });
 
     it("shows the SBOM registration state when no service is registered", () => {
@@ -288,8 +307,8 @@ describe("StatusPage", () => {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const _testPTeamData = { ...testPTeamData, services: [] };
 
@@ -300,14 +319,14 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const packageVersionsSummary = {
         currentData: null,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(packageVersionsSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(packageVersionsSummary);
 
       renderStatusPage();
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
@@ -319,8 +338,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -329,14 +348,14 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       renderStatusPage();
       expect(screen.queryByText("Drop or click to select")).toBeNull();
@@ -354,17 +373,17 @@ describe("StatusPage", () => {
       };
       const longVersion =
         "1.0.0-alpha.20240618+build.0123456789abcdef0123456789abcdef0123456789abcdef";
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: {
           ...testPackageVersionsData,
           package_versions: [
@@ -391,17 +410,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -422,17 +441,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -459,17 +478,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -487,24 +506,24 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getByRole("button", { name: "test_service2" }));
 
@@ -519,17 +538,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -558,17 +577,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockImplementation(() => ({
+      mockUseGetPTeamQuery.mockImplementation(() => ({
         data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       }));
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -586,7 +605,7 @@ describe("StatusPage", () => {
           });
         },
       );
-      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
       const renderResult = renderStatusPage();
@@ -630,17 +649,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -650,10 +669,10 @@ describe("StatusPage", () => {
         status: 400,
         data: { detail: "boom" },
       });
-      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[1]);
       await ue.click(screen.getByRole("button", { name: /Open/ }));
@@ -674,23 +693,23 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
 
-      useUpdatePTeamServiceMutation.mockReturnValue([
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([
         createRejectedMutation({
           status: 400,
           data: { detail: "boom" },
@@ -721,24 +740,24 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
 
       const updateService = createResolvedMutation();
-      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
       renderStatusPage();
@@ -761,17 +780,17 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockImplementation(() => ({
+      mockUseGetPTeamQuery.mockImplementation(() => ({
         data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       }));
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -791,7 +810,7 @@ describe("StatusPage", () => {
           });
         },
       );
-      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
       const renderResult = renderStatusPage();
@@ -838,8 +857,8 @@ describe("StatusPage", () => {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=old-team-service-id",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -848,7 +867,7 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       renderStatusPage();
 
@@ -865,10 +884,10 @@ describe("StatusPage", () => {
         pathname: "/",
         search: "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
@@ -891,8 +910,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: { ...testPTeamData, pteam_id: "previous-team-id" },
@@ -901,7 +920,7 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       renderStatusPage();
 
@@ -915,8 +934,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -925,14 +944,14 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       renderStatusPage();
@@ -942,13 +961,17 @@ describe("StatusPage", () => {
 
       // Clicking the upload area opens the native file picker (hidden input), not the dialog directly.
       const uploadButton = screen.getByText("Upload an SBOM").closest("button");
-      expect(uploadButton).not.toBeNull();
+      if (!uploadButton) {
+        throw new Error("Upload button was not found");
+      }
       await ue.click(uploadButton);
       expect(screen.queryByRole("dialog")).toBeNull();
 
       // Simulate selecting a file via the hidden file input — this triggers the upload dialog.
       const fileInput = document.querySelector('input[type="file"][accept=".json"]');
-      expect(fileInput).not.toBeNull();
+      if (!(fileInput instanceof HTMLElement)) {
+        throw new Error("SBOM file input was not found");
+      }
       const testFile = new File(["{}"], "sbom.json", { type: "application/json" });
       await ue.upload(fileInput, testFile);
       expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -961,8 +984,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -970,16 +993,16 @@ describe("StatusPage", () => {
         isFetching: false,
         isLoading: false,
       };
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
-      useGetPTeamServiceThumbnailQuery.mockReturnValue({
+      mockUseGetPTeamServiceThumbnailQuery.mockReturnValue({
         data: testThumbnailDataUrl,
         error: false,
         isFetching: false,
@@ -1004,16 +1027,16 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -1026,6 +1049,9 @@ describe("StatusPage", () => {
       expect(screen.getByText("Register a new SBOM")).toBeInTheDocument();
 
       const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      if (!uploadBox) {
+        throw new Error("Upload button was not found");
+      }
       const file = new File(["{}"], "sbom.json", { type: "application/json" });
       fireEvent.drop(uploadBox, { dataTransfer: { files: [file] } });
 
@@ -1042,16 +1068,16 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -1063,6 +1089,9 @@ describe("StatusPage", () => {
       await ue.click(screen.getByRole("button", { name: "New" }));
 
       const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      if (!uploadBox) {
+        throw new Error("Upload button was not found");
+      }
       fireEvent.drop(uploadBox, {
         dataTransfer: { files: [new File(["text"], "sbom.txt", { type: "text/plain" })] },
       });
@@ -1080,16 +1109,16 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -1101,6 +1130,9 @@ describe("StatusPage", () => {
       await ue.click(screen.getByRole("button", { name: "New" }));
 
       const uploadBox = screen.getByText("Upload an SBOM").closest("button");
+      if (!uploadBox) {
+        throw new Error("Upload button was not found");
+      }
       fireEvent.drop(uploadBox, {
         dataTransfer: {
           files: [
@@ -1121,8 +1153,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -1131,17 +1163,17 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getByLabelText("Upload Progress"));
       expect(screen.getByRole("dialog", { name: "Upload Progress" })).toBeInTheDocument();
@@ -1154,24 +1186,24 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
-      useGetPTeamQuery.mockReturnValue({
+      mockUseGetPTeamQuery.mockReturnValue({
         data: testPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       });
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
 
       const ue = userEvent.setup();
-      const renderResult = renderStatusPage();
+      renderStatusPage();
 
       await ue.click(screen.getAllByRole("button", { name: "Edit" })[0]);
 
@@ -1207,8 +1239,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeamWithAsset = {
         ...testPTeamData,
@@ -1224,20 +1256,20 @@ describe("StatusPage", () => {
       };
 
       queryPTeamData = structuredClone(testPTeamWithAsset);
-      useGetPTeamQuery.mockImplementation(() => ({
+      mockUseGetPTeamQuery.mockImplementation(() => ({
         data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       }));
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       });
 
-      useUpdatePTeamServiceMutation.mockReturnValue([
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([
         createResolvedMutation(
           {
             asset: {
@@ -1280,8 +1312,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeamWithAsset = {
         ...testPTeamData,
@@ -1299,14 +1331,14 @@ describe("StatusPage", () => {
       };
 
       queryPTeamData = structuredClone(testPTeamWithAsset);
-      useGetPTeamQuery.mockImplementation(() => ({
+      mockUseGetPTeamQuery.mockImplementation(() => ({
         data: queryPTeamData,
         error: false,
         isFetching: false,
         isLoading: false,
       }));
 
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue({
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
@@ -1319,7 +1351,7 @@ describe("StatusPage", () => {
           address: "New York",
         }),
       );
-      useUpdatePTeamServiceMutation.mockReturnValue([updateService]);
+      mockUseUpdatePTeamServiceMutation.mockReturnValue([updateService]);
 
       const ue = userEvent.setup();
       const renderResult = renderStatusPage();
@@ -1381,8 +1413,8 @@ describe("StatusPage", () => {
         search:
           "?pteamId=1d9d71ec-a341--b159-74b6d1bfffff&serviceId=50604348-fd06-4152-afd1-2f3e73c4eb9f",
       };
-      useLocation.mockReturnValue(testLocation);
-      useSkipUntilAuthUserIsReady.mockReturnValue(false);
+      mockUseLocation.mockReturnValue(testLocation);
+      mockUseSkipUntilAuthUserIsReady.mockReturnValue(false);
 
       const testPTeam = {
         data: testPTeamData,
@@ -1391,14 +1423,14 @@ describe("StatusPage", () => {
         isLoading: false,
       };
 
-      useGetPTeamQuery.mockReturnValue(testPTeam);
+      mockUseGetPTeamQuery.mockReturnValue(testPTeam);
 
       const testPackagesSummary = {
         currentData: testPackageVersionsData,
         error: false,
         isFetching: false,
       };
-      useGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
+      mockUseGetPTeamPackageVersionsSummaryQuery.mockReturnValue(testPackagesSummary);
 
       const ue = userEvent.setup();
       renderStatusPage();

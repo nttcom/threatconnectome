@@ -44,7 +44,7 @@ const renderLogin = () => {
   );
 };
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -63,7 +63,7 @@ vi.mock("firebase/auth", async (importOriginal) => {
 });
 */
 
-vi.mock("../../../services/tcApi", async (importOriginal) => {
+vi.mock("../../../services/tcApi", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -72,7 +72,7 @@ vi.mock("../../../services/tcApi", async (importOriginal) => {
   };
 });
 
-vi.mock("react-router-dom", async (importOriginal) => {
+vi.mock("react-router-dom", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -81,7 +81,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   };
 });
 
-const genApiMock = (isSuccess = true, returnValue = undefined) => {
+const genApiMock = (isSuccess = true, returnValue: unknown = undefined) => {
   const mockUnwrap = isSuccess
     ? vi.fn().mockResolvedValue(returnValue)
     : vi.fn().mockRejectedValue(returnValue);
@@ -107,23 +107,27 @@ describe("TestLoginPage", () => {
 
   describe("Email authentication", () => {
     it("Login calls signInWithEmailAndPassword with inputted values", async () => {
-      const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
+      const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -148,23 +152,27 @@ describe("TestLoginPage", () => {
     });
 
     it("trims surrounding whitespace from email before calling signInWithEmailAndPassword", async () => {
-      const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
+      const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -191,22 +199,26 @@ describe("TestLoginPage", () => {
         code: errorCode,
         message: errorMessage,
       });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -233,22 +245,26 @@ describe("TestLoginPage", () => {
         code: errorCode,
         message: errorMessage,
       });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -270,22 +286,26 @@ describe("TestLoginPage", () => {
 
     it("Navigate when authentication successful without location.state", async () => {
       const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -309,23 +329,27 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Navigate back to the page where redirected from, on auth succeeded", async () => {
       const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const fromValue = "/pteam";
       const searchValue = "?pteamId=test_id";
       //useSelector.mockReturnValue({ redirectedFrom: { from: fromValue, search: searchValue }});
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -351,22 +375,26 @@ describe("TestLoginPage", () => {
 
     it("Create user when No user in Tc", async () => {
       const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -394,24 +422,28 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Login calls signInWithSamlPopup", async () => {
       const mockSignInWithSamlPopup = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithSamlPopup: mockSignInWithSamlPopup,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -426,24 +458,28 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Login shows error message when login failed", async () => {
       const mockSignInWithSamlPopup = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithSamlPopup: mockSignInWithSamlPopup,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
 
@@ -462,24 +498,28 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Navigate when authentication successful without location.state", async () => {
       const mockSignInWithSamlPopup = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithSamlPopup: mockSignInWithSamlPopup,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -497,24 +537,28 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Navigate back to the page where redirected from, on auth succeeded", async () => {
       const mockSignInWithSamlPopup = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithSamlPopup: mockSignInWithSamlPopup,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -535,24 +579,28 @@ describe("TestLoginPage", () => {
     // FIXME
     it.skip("Create user when No user in Tc", async () => {
       const mockSignInWithSamlPopup = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithSamlPopup: mockSignInWithSamlPopup,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock(false, { data: { detail: "No such user" } });
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider, "constructor").mockImplementation(() => {});
+      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -572,19 +620,25 @@ describe("TestLoginPage", () => {
 
   describe("UI elements", () => {
     it("Change password mask", async () => {
-      useAuth.mockReturnValue(useAuthReturnValueBase);
+      vi.mocked(useAuth).mockReturnValue(
+        useAuthReturnValueBase as unknown as ReturnType<typeof useAuth>,
+      );
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -616,22 +670,26 @@ describe("TestLoginPage", () => {
 
     it("Email and password are required", async () => {
       const mockSignInWithEmailAndPassword = vi.fn().mockResolvedValue({ originalData: undefined });
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         ...useAuthReturnValueBase,
         signInWithEmailAndPassword: mockSignInWithEmailAndPassword,
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       const ue = userEvent.setup();
       renderLogin();
@@ -649,19 +707,25 @@ describe("TestLoginPage", () => {
     });
 
     it("Not visible SAML button without env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID", async () => {
-      useAuth.mockReturnValue(useAuthReturnValueBase);
+      vi.mocked(useAuth).mockReturnValue(
+        useAuthReturnValueBase as unknown as ReturnType<typeof useAuth>,
+      );
 
       const mockTryLogin = genApiMock();
-      useTryLoginMutation.mockReturnValue([mockTryLogin]);
+      vi.mocked(useTryLoginMutation).mockReturnValue([mockTryLogin] as unknown as ReturnType<
+        typeof useTryLoginMutation
+      >);
 
       const mockCreateUser = genApiMock();
-      useCreateUserMutation.mockReturnValue([mockCreateUser]);
+      vi.mocked(useCreateUserMutation).mockReturnValue([mockCreateUser] as unknown as ReturnType<
+        typeof useCreateUserMutation
+      >);
 
       const mockedNavigator = vi.fn();
-      useNavigate.mockReturnValue(mockedNavigator);
+      vi.mocked(useNavigate).mockReturnValue(mockedNavigator);
 
       const testLocation = { state: null };
-      useLocation.mockReturnValue(testLocation);
+      vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
       renderLogin();
 

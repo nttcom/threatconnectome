@@ -8,7 +8,7 @@ import { AuthProvider } from "../../../providers/auth/AuthContext";
 import store from "../../../store";
 import { SignUp } from "../SignUpPage";
 
-vi.mock("../../../hooks/auth", async (importOriginal) => {
+vi.mock("../../../hooks/auth", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -16,7 +16,7 @@ vi.mock("../../../hooks/auth", async (importOriginal) => {
   };
 });
 
-vi.mock("react-router-dom", async (importOriginal) => {
+vi.mock("react-router-dom", async (importOriginal: () => Promise<object>) => {
   const actual = await importOriginal();
   return {
     ...actual,
@@ -36,11 +36,11 @@ const renderSignUp = () => {
 };
 
 const setupDefaultAuthMock = () => {
-  useAuth.mockReturnValue({
-    createUserWithEmailAndPassword: vi.fn().mockResolvedValue(),
-    sendEmailVerification: vi.fn().mockResolvedValue(),
+  vi.mocked(useAuth).mockReturnValue({
+    createUserWithEmailAndPassword: vi.fn().mockResolvedValue(undefined),
+    sendEmailVerification: vi.fn().mockResolvedValue(undefined),
     signOut: vi.fn().mockResolvedValue(undefined),
-  });
+  } as unknown as ReturnType<typeof useAuth>);
 };
 
 describe("TestSignUpPage", () => {
@@ -98,21 +98,21 @@ describe("TestSignUpPage", () => {
         user: { email: emailValue, uid: uidValue },
       });
       const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
         signOut: vi.fn().mockResolvedValue(undefined),
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
       await ue.type(emailField, emailValue);
 
       const passwordInputs = screen.getAllByLabelText(/^Password/i);
-      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT")!;
 
       const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT")!;
 
       await ue.type(passwordField, passwordValue);
       await ue.type(confirmField, confirmPassword);
@@ -143,21 +143,21 @@ describe("TestSignUpPage", () => {
       const ue = userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
       const passwordValue = "Password1234@";
 
-      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue();
-      useAuth.mockReturnValue({
+      const mockCreateUserWithEmailAndPassword = vi.fn().mockResolvedValue(undefined);
+      vi.mocked(useAuth).mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: vi.fn().mockResolvedValue(undefined),
         signOut: vi.fn().mockResolvedValue(undefined),
-      });
+      } as unknown as ReturnType<typeof useAuth>);
 
       renderSignUp();
       const emailField = screen.getByRole("textbox", { name: "Email Address" });
       await ue.type(emailField, "  test@example.com  ");
 
       const passwordInputs = screen.getAllByLabelText(/^Password/i);
-      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT")!;
       const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT")!;
 
       await ue.type(passwordField, passwordValue);
       await ue.type(confirmField, passwordValue);
@@ -184,11 +184,11 @@ describe("TestSignUpPage", () => {
         message: errorMessage,
       });
       const mockSendEmailVerification = vi.fn().mockResolvedValue(undefined);
-      useAuth.mockReturnValue({
+      vi.mocked(useAuth).mockReturnValue({
         createUserWithEmailAndPassword: mockCreateUserWithEmailAndPassword,
         sendEmailVerification: mockSendEmailVerification,
         signOut: vi.fn().mockResolvedValue(undefined),
-      });
+      } as unknown as ReturnType<typeof useAuth>);
       const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
       renderSignUp();
@@ -196,10 +196,10 @@ describe("TestSignUpPage", () => {
       await ue.type(emailField, validEmail);
 
       const passwordInputs = screen.getAllByLabelText(/^Password/i);
-      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT");
+      const passwordField = passwordInputs.find((el) => el.tagName === "INPUT")!;
 
       const confirmInputs = screen.getAllByLabelText(/^Confirm Password/i);
-      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT");
+      const confirmField = confirmInputs.find((el) => el.tagName === "INPUT")!;
 
       await ue.type(passwordField, validPassword);
       await ue.type(confirmField, confirmPassword);
@@ -226,12 +226,12 @@ describe("TestSignUpPage", () => {
     setupDefaultAuthMock();
 
     const mockNavigate = vi.fn();
-    useNavigate.mockReturnValue(mockNavigate);
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate);
 
     const mockLocation = {
       state: { from: "/test_from", search: "/test_from" },
     };
-    useLocation.mockReturnValue(mockLocation);
+    vi.mocked(useLocation).mockReturnValue(mockLocation as ReturnType<typeof useLocation>);
 
     renderSignUp();
     await ue.click(screen.getByRole("button", { name: "Back to log in" }));
@@ -269,7 +269,7 @@ describe("TestSignUpPage", () => {
 
     renderSignUp();
     const passwordFields = screen.getAllByLabelText(/^Password/);
-    const passwordField = passwordFields.find((el) => el.tagName === "INPUT");
+    const passwordField = passwordFields.find((el) => el.tagName === "INPUT")!;
     await ue.type(passwordField, tooShortPassword);
     expect(passwordField).toHaveAttribute("aria-invalid", "true");
 

@@ -14,31 +14,37 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import type { FormEvent, MouseEvent } from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../hooks/auth";
+import { useAuth, type SignInResult, type SmsLoginFlow } from "../../hooks/auth";
 import { useCreateUserMutation, useTryLoginMutation } from "../../services/tcApi";
+import type { RootState } from "../../store";
 import Firebase from "../../utils/Firebase";
 import { authErrorToString } from "../../utils/authErrorUtils";
 
 import { TwoFactorAuth } from "./TwoFactorAuth";
+
+function isSmsLoginFlow(authData: SignInResult): authData is SmsLoginFlow {
+  return Boolean(authData && "mfa" in authData && authData.mfa);
+}
 
 export function Login() {
   const { t } = useTranslation("login", { keyPrefix: "LoginPage" });
   const [message, setMessage] = useState({ text: "", type: "" }); // type: 'info' | 'error'
   const [visible, setVisible] = useState(false);
   const [isShowSmsCode, setIsShowSmsCode] = useState(false);
-  const [authData, setAuthData] = useState([]);
+  const [authData, setAuthData] = useState<SmsLoginFlow | null>(null);
   const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
 
   // `isLoggingIn`: Flag indicating that the login process is in progress.
   // - true: onAuthStateChanged does not respond.
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const redirectedFrom = useSelector((state) => state.auth.redirectedFrom);
+  const redirectedFrom = useSelector((state: RootState) => state.auth.redirectedFrom);
 
   const recaptchaId = "recaptcha-container-visible-login";
 
@@ -72,7 +78,8 @@ export function Login() {
   }, [navigate, redirectedFrom, isLoggingIn, onAuthStateChanged]);
 
   useEffect(() => {
-    setMessage({ text: location.state?.message, type: location.state?.messageType });
+    const locationState = location.state as { message?: string; messageType?: string } | null;
+    setMessage({ text: locationState?.message ?? "", type: locationState?.messageType ?? "" });
   }, [location.state]);
 
   useEffect(() => {
@@ -89,11 +96,14 @@ export function Login() {
     return () => observer.disconnect();
   }, []);
 
-  const showMessage = (text, type = "error") => {
-    setMessage({ text, type });
+  const showMessage = (text: string | undefined, type = "error") => {
+    setMessage({ text: text ?? "", type });
   };
 
-  const callSignInWithEmailAndPassword = async (email, password) => {
+  const callSignInWithEmailAndPassword = async (
+    email: string,
+    password: string,
+  ): Promise<SignInResult> => {
     return await signInWithEmailAndPassword({
       email,
       password,
@@ -111,8 +121,12 @@ export function Login() {
         pathname: redirectedFrom.from ?? "/",
         search: redirectedFrom.search ?? "",
       });
-    } catch (error) {
-      switch (error.data?.detail) {
+    } catch (error: unknown) {
+      const detail =
+        typeof error === "object" && error !== null && "data" in error
+          ? (error.data as { detail?: string } | undefined)?.detail
+          : undefined;
+      switch (detail) {
         case "Email is not verified. Try logging in on UI and verify email.": {
           const actionCodeSettings = { url: `${window.location.origin}/login` };
           await sendEmailVerification({ actionCodeSettings })
@@ -129,8 +143,12 @@ export function Login() {
                 search: redirectedFrom.search ?? "",
               },
             });
-          } catch (error) {
-            showMessage(error.data?.detail ?? t("somethingWentWrong"));
+          } catch (error: unknown) {
+            const detail =
+              typeof error === "object" && error !== null && "data" in error
+                ? (error.data as { detail?: string } | undefined)?.detail
+                : undefined;
+            showMessage(detail ?? t("somethingWentWrong"));
           }
           break;
         default:
@@ -140,20 +158,24 @@ export function Login() {
     }
   };
 
-  const handleLoginWithEmail = async (event) => {
+  const handleLoginWithEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoggingIn(true);
     showMessage(t("loggingIn"), "info");
     const data = new FormData(event.currentTarget);
-    const authData = await callSignInWithEmailAndPassword(
-      data.get("email").trim(),
-      data.get("password"),
-    );
+    const email = data.get("email");
+    const password = data.get("password");
+    if (typeof email !== "string" || typeof password !== "string") {
+      showMessage(t("somethingWentWrong"));
+      setIsLoggingIn(false);
+      return;
+    }
+    const authData = await callSignInWithEmailAndPassword(email.trim(), password);
     if (authData === undefined) {
       setIsLoggingIn(false);
       return;
     }
-    if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && authData?.mfa) {
+    if (import.meta.env.VITE_AUTH_SERVICE === "firebase" && isSmsLoginFlow(authData)) {
       // Firebase SMS multi-factor auth
       setIsShowSmsCode(true);
       setAuthData(authData);
@@ -192,7 +214,7 @@ export function Login() {
       .finally(() => setIsLoggingIn(false));
   };
 
-  const handleResetPassword = (event) => {
+  const handleResetPassword = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     navigate("/reset_password", {
       state: {
@@ -201,7 +223,7 @@ export function Login() {
       },
     });
   };
-  const handleSignUp = (event) => {
+  const handleSignUp = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     navigate("/sign_up", {
       state: {
@@ -339,7 +361,7 @@ export function Login() {
           </Typography>
         </>
       )}
-      {isShowSmsCode && (
+      {isShowSmsCode && authData && (
         <TwoFactorAuth authData={authData} navigateInternalPage={navigateInternalPage} />
       )}
     </Container>
