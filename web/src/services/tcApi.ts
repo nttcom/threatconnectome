@@ -133,6 +133,16 @@ type UpdatePTeamMemberRequestParams = Pick<
 
 type GetPTeamServicesRequestParams = Pick<GetPteamServicesPteamsPteamIdServicesGetData, "path">;
 
+type UpdatePTeamServiceRequestParams = Pick<
+  UpdatePteamServicePteamsPteamIdServicesServiceIdPutData,
+  "body" | "path"
+>;
+
+type DeletePTeamServiceRequestParams = Pick<
+  RemoveServicePteamsPteamIdServicesServiceIdDeleteData,
+  "path"
+>;
+
 type GetPTeamVulnIdsRequestParams = Pick<
   GetVulnIdsTiedToServicePackagePteamsPteamIdVulnIdsGetData,
   "path" | "query"
@@ -145,6 +155,16 @@ type GetPTeamTicketCountsRequestParams = Pick<
 
 type GetPTeamServiceThumbnailRequestParams = Pick<
   GetServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailGetData,
+  "path"
+>;
+
+type UpdatePTeamServiceThumbnailRequestParams = Pick<
+  UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostData,
+  "body" | "path"
+>;
+
+type DeletePTeamServiceThumbnailRequestParams = Pick<
+  RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteData,
   "path"
 >;
 
@@ -427,7 +447,7 @@ export const tcApi = createApi({
     }),
     updatePTeamService: builder.mutation<
       PTeamServiceUpdateResponse,
-      UpdatePteamServicePteamsPteamIdServicesServiceIdPutData
+      UpdatePTeamServiceRequestParams
     >({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/services/${arg.path.service_id}`,
@@ -442,10 +462,7 @@ export const tcApi = createApi({
             ]
           : [],
     }),
-    deletePTeamService: builder.mutation<
-      void,
-      RemoveServicePteamsPteamIdServicesServiceIdDeleteData
-    >({
+    deletePTeamService: builder.mutation<void, DeletePTeamServiceRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/services/${arg.path.service_id}`,
         method: "DELETE",
@@ -516,10 +533,7 @@ export const tcApi = createApi({
       ],
     }),
 
-    updatePTeamServiceThumbnail: builder.mutation<
-      void,
-      UploadServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailPostData
-    >({
+    updatePTeamServiceThumbnail: builder.mutation<void, UpdatePTeamServiceThumbnailRequestParams>({
       query: (arg) => {
         const imageFileData = new FormData();
         imageFileData.append("uploaded", arg.body.uploaded);
@@ -534,10 +548,7 @@ export const tcApi = createApi({
       ],
     }),
 
-    deletePTeamServiceThumbnail: builder.mutation<
-      void,
-      RemoveServiceThumbnailPteamsPteamIdServicesServiceIdThumbnailDeleteData
-    >({
+    deletePTeamServiceThumbnail: builder.mutation<void, DeletePTeamServiceThumbnailRequestParams>({
       query: (arg) => ({
         url: `pteams/${arg.path.pteam_id}/services/${arg.path.service_id}/thumbnail`,
         method: "DELETE",
