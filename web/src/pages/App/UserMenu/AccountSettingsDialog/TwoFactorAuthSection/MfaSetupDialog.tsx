@@ -1,0 +1,467 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Select,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
+
+import { SmsResendButton } from "../../../../../components/SmsResendButton";
+import { SmsTroubleshootingTips } from "../../../../../components/SmsTroubleshootingTips";
+import { SmsTroubleshootingToggleButton } from "../../../../../components/SmsTroubleshootingToggleButton";
+import { useAuth } from "../../../../../hooks/auth";
+import { useActionLock } from "../../../../../hooks/useActionLock";
+import { authErrorToString, normalizeAuthErrorSource } from "../../../../../utils/authErrorUtils";
+import { normalizeFullwidthDigits } from "../../../../../utils/normalizeInput";
+import {
+  getNationalPhoneNumber,
+  normalizePhoneNumberToE164,
+} from "../../../../../utils/phoneNumberUtils";
+import type { AuthContextValue, RegisterPhoneNumberResult } from "../../../../../hooks/auth";
+import type { AlertColor, SelectChangeEvent } from "@mui/material";
+import type { CountryCode } from "libphonenumber-js";
+
+type CountryOption = {
+  code: string;
+  country: CountryCode;
+  label: string;
+  placeholder: string;
+  nationalExample: string;
+  internationalExample: string;
+};
+
+const COUNTRY_CODES: CountryOption[] = [
+  {
+    code: "+81",
+    country: "JP",
+    label: "JP (+81)",
+    placeholder: "9012345678",
+    nationalExample: "09012345678",
+    internationalExample: "+819012345678",
+  },
+  {
+    code: "+1",
+    country: "US",
+    label: "US (+1)",
+    placeholder: "2125550191",
+    nationalExample: "2125550191",
+    internationalExample: "+12125550191",
+  },
+  {
+    code: "+44",
+    country: "GB",
+    label: "UK (+44)",
+    placeholder: "7911123456",
+    nationalExample: "07911123456",
+    internationalExample: "+447911123456",
+  },
+  {
+    code: "+86",
+    country: "CN",
+    label: "CN (+86)",
+    placeholder: "13812345678",
+    nationalExample: "13812345678",
+    internationalExample: "+8613812345678",
+  },
+  {
+    code: "+82",
+    country: "KR",
+    label: "KR (+82)",
+    placeholder: "1098765432",
+    nationalExample: "01098765432",
+    internationalExample: "+821098765432",
+  },
+];
+
+const getCountryOption = (countryCode: string): CountryOption => {
+  return COUNTRY_CODES.find((option) => option.code === countryCode) ?? COUNTRY_CODES[0];
+};
+
+type MfaSetupDialogProps = {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+};
+
+type NotificationState = {
+  open: boolean;
+  message: string;
+  type: AlertColor;
+};
+
+type MfaEnrollmentData = Awaited<ReturnType<AuthContextValue["registerPhoneNumber"]>>;
+
+export function MfaSetupDialog({ open, onClose, onSuccess }: MfaSetupDialogProps) {
+  const { t } = useTranslation("app", {
+    keyPrefix: "UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog",
+  });
+  const [step, setStep] = useState(0);
+  const [countryCode, setCountryCode] = useState("+81");
+  const selectedCountryOption = getCountryOption(countryCode);
+  const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [error, setError] = useState("");
+  const [mfaData, setMfaData] = useState<MfaEnrollmentData | null>(null);
+  const [isRecaptchaVisible, setIsRecaptchaVisible] = useState(false);
+  const [recaptchaResendKey, setRecaptchaResendKey] = useState(() => Date.now());
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: "",
+    type: "info",
+  });
+  const [isHelpExpanded, setIsHelpExpanded] = useState(false);
+  const normalizedPhoneNumber = useMemo(() => {
+    return normalizePhoneNumberToE164(phoneNumber, selectedCountryOption.country);
+  }, [phoneNumber, selectedCountryOption.country]);
+  const displayPhoneNumber = useMemo(() => {
+    return getNationalPhoneNumber(normalizedPhoneNumber) ?? phoneNumber;
+  }, [normalizedPhoneNumber, phoneNumber]);
+  const phoneValidationError =
+    phoneNumber && !normalizedPhoneNumber
+      ? t("invalidPhoneNumberExample", {
+          nationalExample: selectedCountryOption.nationalExample,
+          internationalExample: selectedCountryOption.internationalExample,
+        })
+      : "";
+
+  const { registerPhoneNumber, verifySmsForEnrollment, sendSmsCodeAgain } = useAuth();
+
+  const { canExecute, timer, lockAction, unlockAction } = useActionLock(5);
+
+  const recaptchaIdForRegisterPhoneNumber = "recaptcha-container-visible-register-phone-number";
+  const recaptchaIdForResend = "recaptcha-container-invisible-resend";
+
+  useEffect(() => {
+    const recaptcha_element = document.getElementById(recaptchaIdForRegisterPhoneNumber);
+    if (!recaptcha_element) return;
+
+    const check = () => {
+      setIsRecaptchaVisible(recaptcha_element.childElementCount > 0);
+    };
+
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(recaptcha_element, { childList: true });
+    return () => observer.disconnect();
+  }, [loading]);
+
+  const resetState = () => {
+    setStep(0);
+    setCountryCode("+81");
+    setPhoneNumber("");
+    setVerificationCode("");
+    setError("");
+    unlockAction();
+    setIsRecaptchaVisible(false);
+    setIsHelpExpanded(false);
+  };
+
+  const handleClose = () => {
+    if (loading) return;
+    onClose();
+  };
+
+  const handleSendCode = () => {
+    if (!normalizedPhoneNumber) return;
+    setLoading(true);
+    setError("");
+    unlockAction();
+
+    registerPhoneNumber(normalizedPhoneNumber, recaptchaIdForRegisterPhoneNumber, {
+      nationalExample: selectedCountryOption.nationalExample,
+      internationalExample: selectedCountryOption.internationalExample,
+    })
+      .then((mfa) => {
+        setMfaData(mfa);
+        setLoading(false);
+        setStep(1);
+      })
+      .catch((error: unknown) => {
+        setError(authErrorToString(normalizeAuthErrorSource(error)) ?? "");
+        setLoading(false);
+      });
+  };
+
+  const handleVerifyCode = () => {
+    if (!mfaData) return;
+    setLoading(true);
+    setError("");
+
+    verifySmsForEnrollment(mfaData.verificationId, verificationCode)
+      .then(() => {
+        onSuccess();
+        handleClose();
+        setLoading(false);
+      })
+      .catch((error: unknown) => {
+        setError(authErrorToString(normalizeAuthErrorSource(error)) ?? "");
+        setLoading(false);
+      });
+  };
+
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "").slice(0, 6);
+    setVerificationCode(sanitized);
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const normalized = normalizeFullwidthDigits(e.target.value);
+    const sanitized = normalized.replace(/\D/g, "");
+    setPhoneNumber(sanitized);
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleCountryCodeChange = (e: SelectChangeEvent) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleResend = () => {
+    setLoading(true);
+    lockAction();
+    setError("");
+    if (!mfaData) {
+      setLoading(false);
+      return;
+    }
+    sendSmsCodeAgain(mfaData.phoneInfoOptions, mfaData.auth, recaptchaIdForResend)
+      .then((resendVerificationId) => {
+        setMfaData((prevMfaData): RegisterPhoneNumberResult | null =>
+          prevMfaData ? { ...prevMfaData, verificationId: resendVerificationId } : null,
+        );
+        setLoading(false);
+        setNotification({
+          open: true,
+          message: t("codeResent"),
+          type: "info",
+        });
+        setRecaptchaResendKey(Date.now()); // Force re-mount recaptcha for resend
+      })
+      .catch((error: unknown) => {
+        setError(authErrorToString(normalizeAuthErrorSource(error)) ?? "");
+        setLoading(false);
+      });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
+  };
+
+  const handleToggleHelp = () => {
+    setIsHelpExpanded((prev) => !prev);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      slotProps={{ transition: { onExited: resetState } }}
+    >
+      <DialogTitle>{step === 0 ? t("titleSetup") : t("titleVerify")}</DialogTitle>
+      <DialogContent>
+        {step === 0 ? (
+          <>
+            <DialogContentText sx={{ mb: 2 }}>{t("enterPhoneNumber")}</DialogContentText>
+
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="flex-start">
+              <Select
+                value={countryCode}
+                onChange={handleCountryCodeChange}
+                disabled={loading}
+                variant="outlined"
+                sx={{ width: 130 }}
+                renderValue={(value) => value} // Show only the code when selected to keep it compact
+              >
+                {COUNTRY_CODES.map((option) => (
+                  <MenuItem key={option.code} value={option.code}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                label={t("phoneNumber")}
+                type="tel"
+                fullWidth
+                variant="outlined"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange}
+                placeholder={selectedCountryOption.placeholder}
+                disabled={loading}
+                error={!!(error || phoneValidationError)}
+                helperText={error || phoneValidationError}
+              />
+            </Stack>
+          </>
+        ) : (
+          <>
+            <DialogContentText sx={{ mb: 2 }}>
+              <Trans
+                ns="app"
+                i18nKey="UserMenu.AccountSettingsDialog.TwoFactorAuthSection.MfaSetupDialog.codeSentTo"
+                values={{ countryCode, displayPhoneNumber }}
+                components={[
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="cc" />,
+                  <Box component="span" sx={{ fontWeight: "bold" }} key="pn" />,
+                ]}
+              />
+            </DialogContentText>
+            <TextField
+              label={t("verificationCode")}
+              fullWidth
+              variant="outlined"
+              value={verificationCode}
+              onChange={handleCodeChange}
+              disabled={loading}
+              error={!!error}
+              helperText={error}
+              placeholder={t("codePlaceholder")}
+              slotProps={{
+                htmlInput: {
+                  maxLength: 6,
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  "aria-label": "6-digit verification code input",
+                  style: { letterSpacing: "0.2em", textAlign: "center" },
+                },
+              }}
+            />
+            <Stack spacing={2} sx={{ mt: 2, alignItems: "flex-start", width: "100%" }}>
+              <Stack spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t("didYouReceive")}
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-start",
+                    rowGap: 1,
+                    width: "100%",
+                  }}
+                >
+                  <SmsResendButton
+                    canExecute={canExecute}
+                    isBusy={loading}
+                    timer={timer}
+                    onResend={handleResend}
+                  />
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setStep(0);
+                      setIsRecaptchaVisible(false);
+                      setIsHelpExpanded(false);
+                    }}
+                    disabled={loading}
+                  >
+                    {t("changePhoneNumber")}
+                  </Button>
+                  <SmsTroubleshootingToggleButton
+                    expanded={isHelpExpanded}
+                    onToggle={handleToggleHelp}
+                    disabled={loading}
+                  />
+                </Stack>
+                {isHelpExpanded && <SmsTroubleshootingTips />}
+                <div
+                  id={recaptchaIdForResend}
+                  key={recaptchaResendKey}
+                  style={{ display: "none" }}
+                />
+              </Stack>
+            </Stack>
+          </>
+        )}
+      </DialogContent>
+      <DialogActions
+        sx={{
+          flexDirection: { xs: "column-reverse", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 1,
+          px: 3,
+          pb: 2,
+        }}
+      >
+        <Button onClick={handleClose} disabled={loading} sx={{ width: { xs: "100%", sm: "auto" } }}>
+          {t("cancel")}
+        </Button>
+        {step === 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              gap: 1,
+              width: { xs: "100%", sm: "auto" },
+            }}
+          >
+            <Box
+              id={recaptchaIdForRegisterPhoneNumber}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                width: { xs: "100%", sm: "auto" },
+              }}
+            />
+            {!isRecaptchaVisible && (
+              <Button
+                onClick={handleSendCode}
+                variant="contained"
+                disabled={loading || !normalizedPhoneNumber}
+                sx={{ width: { xs: "100%", sm: "auto" } }}
+              >
+                {loading ? t("processing") : t("sendCode")}
+              </Button>
+            )}
+          </Box>
+        )}
+        {step === 1 && (
+          <Button
+            onClick={handleVerifyCode}
+            variant="contained"
+            disabled={loading || !(verificationCode.length === 6)}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            {loading ? t("processing") : t("verifyEnable")}
+          </Button>
+        )}
+      </DialogActions>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={notification.type} variant="filled">
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Dialog>
+  );
+}
