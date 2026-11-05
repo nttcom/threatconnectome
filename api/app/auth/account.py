@@ -34,5 +34,7 @@ def get_current_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
         )
-    request.state.current_user = user
+    # Store a plain uid string rather than the ORM object: ORM attributes expire on
+    # commit, so reading them later (e.g. in middleware) would trigger an extra query.
+    request.state.uid = uid
     return user

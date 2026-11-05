@@ -26,6 +26,18 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
                 body_bytes = None
 
         response = await call_next(request)
+
+        # Logging must never change the API response.
+        try:
+            self.create_log(request, response, body_bytes)
+        except Exception:
+            logger.exception(
+                "Failed to write API log: method=%s path=%s", request.method, request.url.path
+            )
+
+        return response
+
+    def create_log(self, request: Request, response, body_bytes):
         route = request.scope.get("route")
         endpoint_name = getattr(route, "name", None) if route else None
 
@@ -38,11 +50,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         else:
             self.create_log_for_common_api(request, response, body_bytes)
 
-        return response
-
     def create_log_for_common_api(self, request: Request, response, body_bytes):
-        user = getattr(request.state, "current_user", None)
-        uid = user.uid if user else None
         body = json.loads(body_bytes) if body_bytes else None
         log_dict = {
             "http_status": response.status_code,
@@ -50,12 +58,11 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "path": request.url.path,
             "query_params": dict(request.query_params),
             "request_body": body,
-            "uid": uid,
+            "uid": getattr(request.state, "uid", None),
         }
         logger.info(json.dumps(log_dict))
 
     def create_log_for_upload_api(self, request: Request, response):
-        user = getattr(request.state, "current_user", None)
         file_info = getattr(request.state, "file_info", {})
         log_dict = {
             "http_status": response.status_code,
@@ -65,7 +72,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             "file_name": file_info.get("file_name", None),
             "file_size": f"{file_info['file_size']}byte" if "file_size" in file_info else None,
             "content_type": file_info.get("content_type", None),
-            "uid": user.uid if user else None,
+            "uid": getattr(request.state, "uid", None),
         }
         logger.info(json.dumps(log_dict))
 
