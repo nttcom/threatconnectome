@@ -81,7 +81,9 @@ class TestApiLoggingMiddleware:
         [
             b'{"code": "print(1)" "x"}',  # JSONDecodeError
             b"\xff\xfe\xfa",  # UnicodeDecodeError
+            b"[" * 100000,  # RecursionError
         ],
+        ids=["json_decode_error", "unicode_decode_error", "recursion_error"],
     )
     def test_it_should_return_original_status_and_log_when_json_body_is_malformed(
         self, mocker, body

@@ -21,7 +21,9 @@ def _parse_body(body_bytes: bytes | None):
         return None
     try:
         return json.loads(body_bytes)
-    except ValueError:  # includes json.JSONDecodeError and UnicodeDecodeError
+    # ValueError includes json.JSONDecodeError and UnicodeDecodeError;
+    # RecursionError is raised for deeply nested bodies.
+    except (ValueError, RecursionError):
         # Malformed bodies (e.g. from scanners) are common; keep the access log without a traceback.
         return INVALID_JSON_BODY
 
