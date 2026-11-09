@@ -4,7 +4,7 @@ import pytest
 
 from app.tests.common.constants import USER1
 from app.tests.common.utils import client, create_user, headers
-from app.utility.api_logging_middleware import ApiLoggingMiddleware
+from app.utility.api_logging_middleware import INVALID_JSON_BODY, ApiLoggingMiddleware
 
 # Note: "api_logger" is disabled by alembic's fileConfig() during test setup,
 # so the module-level logger is mocked instead of relying on caplog.
@@ -75,3 +75,33 @@ class TestApiLoggingMiddleware:
         assert "Failed to write API log" in message
         assert method == "GET"
         assert path == "/users/me"
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            b'{"code": "print(1)" "x"}',  # JSONDecodeError
+            b"\xff\xfe\xfa",  # UnicodeDecodeError
+        ],
+    )
+    def test_it_should_return_original_status_and_log_when_json_body_is_malformed(
+        self, mocker, body
+    ):
+        # Given: a request with a malformed JSON body to a non-existent path (e.g. from a scanner)
+        mock_logger = mocker.patch(LOGGER_PATH)
+
+        # When
+        response = client.post(
+            "/api/v1/code/blocks/exec/start",
+            content=body,
+            headers={"Content-Type": "application/json"},
+        )
+
+        # Then: the original 404 is returned and the access log is still written
+        assert response.status_code == 404
+        mock_logger.exception.assert_not_called()
+        mock_logger.info.assert_called_once()
+        log_dict = json.loads(mock_logger.info.call_args.args[0])
+        assert log_dict["http_status"] == 404
+        assert log_dict["path"] == "/api/v1/code/blocks/exec/start"
+        assert log_dict["request_body"] == INVALID_JSON_BODY
+        assert log_dict["uid"] is None

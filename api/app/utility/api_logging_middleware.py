@@ -13,6 +13,17 @@ UPLOAD_API_LIST = [
 ]
 AUTH_API_LIST = ["login_for_access_token", "refresh_access_token"]
 CREATE_USER = "create_user"
+INVALID_JSON_BODY = "<invalid json>"
+
+
+def _parse_body(body_bytes: bytes | None):
+    if not body_bytes:
+        return None
+    try:
+        return json.loads(body_bytes)
+    except ValueError:  # includes json.JSONDecodeError and UnicodeDecodeError
+        # Malformed bodies (e.g. from scanners) are common; keep the access log without a traceback.
+        return INVALID_JSON_BODY
 
 
 class ApiLoggingMiddleware(BaseHTTPMiddleware):
@@ -51,7 +62,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
             self.create_log_for_common_api(request, response, body_bytes)
 
     def create_log_for_common_api(self, request: Request, response, body_bytes):
-        body = json.loads(body_bytes) if body_bytes else None
+        body = _parse_body(body_bytes)
         log_dict = {
             "http_status": response.status_code,
             "method": request.method,
@@ -77,7 +88,7 @@ class ApiLoggingMiddleware(BaseHTTPMiddleware):
         logger.info(json.dumps(log_dict))
 
     def create_log_for_create_user(self, request: Request, response, body_bytes):
-        body = json.loads(body_bytes) if body_bytes else None
+        body = _parse_body(body_bytes)
         log_dict = {
             "http_status": response.status_code,
             "method": request.method,
