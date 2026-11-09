@@ -106,7 +106,6 @@ export function PTeamCreateModal({ open, onSetOpen, onCloseTeamSelector }: PTeam
     setPTeamName(null);
     setContactInfo("");
     setSlackUrl("");
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [open]);
 
   const handleCreate = async () => {

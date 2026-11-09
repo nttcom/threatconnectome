@@ -22,7 +22,7 @@ export function FormattedDateTimeWithTooltip(props: FormattedDateTimeWithTooltip
         <Typography sx={typographySx}>{formattedDate}</Typography>
       </Tooltip>
     );
-  } catch (error) {
+  } catch {
     return <Typography sx={typographySx}> - </Typography>;
   }
 }

@@ -39,7 +39,6 @@ export function DeploymentsContent({
       setIpAddressesText(ipAddresses.join(", "));
     }
     // Reset only when entering edit mode; keep the raw comma-separated text while typing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);
 
   const emptyText = (

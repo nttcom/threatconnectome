@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -233,7 +232,6 @@ function DetailsForm({
       setTitleInput(collapseSpaces(sbom.title));
     }
     // Reset only when entering edit mode or switching SBOM; ignore live `tags` updates while typing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, sbom.id]);
 
   const emptyText = (
