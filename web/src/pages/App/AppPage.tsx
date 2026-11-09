@@ -34,7 +34,6 @@ export function App() {
     };
     const unsubscribe = onAuthStateChanged({ signInCallback, signOutCallback });
     return () => unsubscribe(); // unsubscribe at unmounting.
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
   useEffect(() => {

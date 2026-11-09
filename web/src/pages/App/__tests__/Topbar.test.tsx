@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 import { render, screen } from "@testing-library/react";
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import i18n from "i18next";

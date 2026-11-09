@@ -76,7 +76,6 @@ export function AuthKeycloakCallback() {
       navigate(navigateTo);
     };
     _checkSessionAndNavigateToInternalPage();
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
   return (

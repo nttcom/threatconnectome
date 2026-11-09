@@ -443,7 +443,10 @@ describe("TestLoginPage", () => {
       const testLocation = { state: null };
       vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
+      vi.spyOn(
+        SAMLAuthProvider as unknown as { constructor: () => void },
+        "constructor",
+      ).mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -479,7 +482,10 @@ describe("TestLoginPage", () => {
       const testLocation = { state: null };
       vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
+      vi.spyOn(
+        SAMLAuthProvider as unknown as { constructor: () => void },
+        "constructor",
+      ).mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
 
@@ -519,7 +525,10 @@ describe("TestLoginPage", () => {
       const testLocation = { state: null };
       vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
+      vi.spyOn(
+        SAMLAuthProvider as unknown as { constructor: () => void },
+        "constructor",
+      ).mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -558,7 +567,10 @@ describe("TestLoginPage", () => {
       const testLocation = { state: { from: "/pteam", search: "?pteamId=test_id" } };
       vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
+      vi.spyOn(
+        SAMLAuthProvider as unknown as { constructor: () => void },
+        "constructor",
+      ).mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
@@ -600,7 +612,10 @@ describe("TestLoginPage", () => {
       const testLocation = { state: null };
       vi.mocked(useLocation).mockReturnValue(testLocation as ReturnType<typeof useLocation>);
 
-      vi.spyOn(SAMLAuthProvider as any, "constructor").mockImplementation(() => {});
+      vi.spyOn(
+        SAMLAuthProvider as unknown as { constructor: () => void },
+        "constructor",
+      ).mockImplementation(() => {});
 
       import.meta.env.VITE_FIREBASE_AUTH_SAML_PROVIDER_ID = "Test SAML ID";
       const ue = userEvent.setup();
