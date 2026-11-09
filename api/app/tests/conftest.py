@@ -63,6 +63,8 @@ def handle_testdb():
         except SQLAlchemyError as sql_error:
             print("SQL ERROR:", sql_error)
             db.rollback()
+            # Re-raise so that exception handlers run as in production (see app.database.get_db).
+            raise
 
     app.dependency_overrides[get_db] = override_get_db
 

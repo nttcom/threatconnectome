@@ -3,6 +3,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import OperationalError
 
 from app import openapi
 from app.auth.auth_module import get_auth_module
@@ -20,6 +21,7 @@ from app.routers import (
 )
 from app.ssvc import deployer_data
 from app.utility.api_logging_middleware import ApiLoggingMiddleware
+from app.utility.db_exception_handler import db_operational_error_handler
 
 
 def create_app():
@@ -34,6 +36,9 @@ def create_app():
         "https://threatconnectome.metemcyber.ntt.com",  # prod
         "https://threatconnectome.web.app",  # prod-alias
     ]
+
+    # Transient DB errors (e.g. dropped connections) are returned as 503 instead of 500.
+    app.add_exception_handler(OperationalError, db_operational_error_handler)
 
     app.add_middleware(ApiLoggingMiddleware)
     app.add_middleware(
