@@ -19,7 +19,8 @@ async def db_operational_error_handler(request: Request, exc: Exception) -> JSON
     statement timeouts, deadlocks and serialization failures.
     Returning 503 with Retry-After tells clients that the request may succeed on retry,
     instead of an opaque 500.
-    The session is rolled back and closed by get_db() when the exception propagates.
+    The session is closed (and its transaction released) by get_db() when the exception
+    propagates.
 
     Note: this handler is not applied to errors raised in background tasks, because the
     response has already been sent. Starlette re-raises such errors wrapped in RuntimeError
