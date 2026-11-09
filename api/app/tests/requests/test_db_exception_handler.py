@@ -67,6 +67,24 @@ class TestDbOperationalErrorHandler:
         assert "10.0.0.1" not in response.text
         assert "SELECT" not in response.text
 
+    def test_it_should_return_503_when_db_connection_is_lost_in_dependency(self, mocker):
+        # Given: the account lookup in get_current_user fails
+        mock_logger = mocker.patch(LOGGER_PATH)
+        mocker.patch(
+            "app.auth.account.persistence.get_account_by_uid",
+            side_effect=_operational_error("server closed the connection unexpectedly"),
+        )
+
+        # When
+        response = client.get("/users/me", headers=self.headers)
+
+        # Then
+        assert response.status_code == 503
+        assert response.json() == {"detail": DB_UNAVAILABLE_DETAIL}
+        assert response.headers["Retry-After"] == str(DB_UNAVAILABLE_RETRY_AFTER_SECONDS)
+        mock_logger.error.assert_called_once()
+        assert mock_logger.error.call_args.args[1:] == ("GET", "/users/me")
+
     def test_it_should_not_change_other_exceptions(self, mocker):
         # Given
         mocker.patch(

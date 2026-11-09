@@ -12,13 +12,19 @@ DB_UNAVAILABLE_DETAIL = "Database is temporarily unavailable. Please retry later
 
 
 async def db_operational_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Convert transient DB errors (e.g. dropped connections) into 503 Service Unavailable.
+    """Convert DB operational errors into 503 Service Unavailable.
 
-    OperationalError covers errors outside the application's control, such as
-    "server closed the connection unexpectedly" or "SSL SYSCALL error: EOF detected".
+    OperationalError covers connection and resource errors that are mostly transient,
+    such as "server closed the connection unexpectedly", "SSL SYSCALL error: EOF detected",
+    statement timeouts, deadlocks and serialization failures.
     Returning 503 with Retry-After tells clients that the request may succeed on retry,
     instead of an opaque 500.
     The session is rolled back and closed by get_db() when the exception propagates.
+
+    Note: this handler is not applied to errors raised in background tasks, because the
+    response has already been sent. Starlette re-raises such errors wrapped in RuntimeError
+    ("Caught handled exception, but response already started.") with the original
+    OperationalError as __cause__.
     """
     assert isinstance(exc, OperationalError)
     logger.error(
